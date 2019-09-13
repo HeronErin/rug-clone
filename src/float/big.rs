@@ -281,33 +281,6 @@ macro_rules! ref_math_op0_float {
     };
 }
 
-macro_rules! math_op1_float {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        math_op1_round! {
-            Round => Ordering;
-            $func;
-            $(#[$attr])*
-            fn $method($($param: $T),*);
-            $(#[$attr_mut])*
-            fn $method_mut;
-            $(#[$attr_round])*
-            fn $method_round;
-            $(#[$attr_ref])*
-            fn $method_ref -> $Incomplete;
-        }
-    };
-}
-
 macro_rules! ref_math_op1_float {
     (
         $func:path;
@@ -323,33 +296,6 @@ macro_rules! ref_math_op1_float {
     };
 }
 
-macro_rules! math_op1_2_float {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        math_op1_2_round! {
-            Round => (Ordering, Ordering);
-            $func;
-            $(#[$attr])*
-            fn $method($rop $(, $param: $T)*);
-            $(#[$attr_mut])*
-            fn $method_mut;
-            $(#[$attr_round])*
-            fn $method_round;
-            $(#[$attr_ref])*
-            fn $method_ref -> $Incomplete;
-        }
-    };
-}
-
 macro_rules! ref_math_op1_2_float {
     (
         $func:path;
@@ -361,33 +307,6 @@ macro_rules! ref_math_op1_2_float {
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
-        }
-    };
-}
-
-macro_rules! math_op2_float {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        math_op2_round! {
-            Round => Ordering;
-            $func;
-            $(#[$attr])*
-            fn $method($op $(, $param: $T)*);
-            $(#[$attr_mut])*
-            fn $method_mut;
-            $(#[$attr_round])*
-            fn $method_round;
-            $(#[$attr_ref])*
-            fn $method_ref -> $Incomplete;
         }
     };
 }
@@ -2661,624 +2580,732 @@ impl Float {
         self * mul - sub_mul1 * sub_mul2
     }
 
-    math_op0! {
-        /// Multiplies `u` by 2<sup>`exp`</sup>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// You can also compare the returned value to a [`Float`];
-        /// the following are also implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[PartialEq][`PartialEq`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[PartialEq][`PartialEq`]&lt;[Float][`Float`]&gt; for Src</code>
-        ///   * <code>[PartialOrd][`PartialOrd`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[PartialOrd][`PartialOrd`]&lt;[Float][`Float`]&gt; for Src</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let v = Float::u_exp(120, -100);
-        /// let f = Float::with_val(53, v);
-        /// assert_eq!(f, 120.0 * (-100f64).exp2());
-        /// let same = Float::u_exp(120 << 2, -100 - 2);
-        /// assert_eq!(f, same);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [`PartialEq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html
-        /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn u_exp(u: u32, exp: i32) -> UExpIncomplete;
-    }
-    math_op0! {
-        /// Multiplies `i` by 2<sup>`exp`</sup>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// You can also compare the returned value to a [`Float`];
-        /// the following are also implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[PartialEq][`PartialEq`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[PartialEq][`PartialEq`]&lt;[Float][`Float`]&gt; for Src</code>
-        ///   * <code>[PartialOrd][`PartialOrd`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[PartialOrd][`PartialOrd`]&lt;[Float][`Float`]&gt; for Src</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let v = Float::i_exp(-120, -100);
-        /// let f = Float::with_val(53, v);
-        /// assert_eq!(f, -120.0 * (-100f64).exp2());
-        /// let same = Float::i_exp(-120 << 2, -100 - 2);
-        /// assert_eq!(f, same);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [`PartialEq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html
-        /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn i_exp(i: i32, exp: i32) -> IExpIncomplete;
-    }
-    math_op0! {
-        /// Raises `base` to the power of `exponent`.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let p = Float::u_pow_u(13, 6);
-        /// let f = Float::with_val(53, p);
-        /// assert_eq!(f, 13u32.pow(6));
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete;
-    }
-    math_op0! {
-        /// Raises `base` to the power of `exponent`.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let p = Float::i_pow_u(-13, 5);
-        /// let f = Float::with_val(53, p);
-        /// assert_eq!(f, -13i32.pow(5));
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::sqr;
-        /// Computes the square, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 5.0);
-        /// let square = f.square();
-        /// assert_eq!(square, 25.0);
-        /// ```
-        fn square();
-        /// Computes the square, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 5.0);
-        /// f.square_mut();
-        /// assert_eq!(f, 25.0);
-        /// ```
-        fn square_mut;
-        /// Computes the square, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // 5 in binary is 101
-        /// let mut f = Float::with_val(3, 5.0);
-        /// // 25 in binary is 11001 (more than 3 bits of precision).
-        /// // 25 (11001) is rounded up to 28 (11100).
-        /// let dir = f.square_round(Round::Up);
-        /// assert_eq!(f, 28.0);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn square_round;
-        /// Computes the square.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 5.0);
-        /// let r = f.square_ref();
-        /// let square = Float::with_val(53, r);
-        /// assert_eq!(square, 25.0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn square_ref -> SquareIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::sqrt;
-        /// Computes the square root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 25.0);
-        /// let sqrt = f.sqrt();
-        /// assert_eq!(sqrt, 5.0);
-        /// ```
-        fn sqrt();
-        /// Computes the square root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 25.0);
-        /// f.sqrt_mut();
-        /// assert_eq!(f, 5.0);
-        /// ```
-        fn sqrt_mut;
-        /// Computes the square root, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // 5 in binary is 101
-        /// let mut f = Float::with_val(4, 5.0);
-        /// // sqrt(5) in binary is 10.00111100...
-        /// // sqrt(5) is rounded to 2.25 (10.01).
-        /// let dir = f.sqrt_round(Round::Nearest);
-        /// assert_eq!(f, 2.25);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn sqrt_round;
-        /// Computes the square root.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 25.0);
-        /// let r = f.sqrt_ref();
-        /// let sqrt = Float::with_val(53, r);
-        /// assert_eq!(sqrt, 5.0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sqrt_ref -> SqrtIncomplete;
-    }
-    math_op0! {
-        /// Computes the square root of `u`.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let s = Float::sqrt_u(25);
-        /// let f = Float::with_val(53, s);
-        /// assert_eq!(f, 5.0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sqrt_u(u: u32) -> SqrtUIncomplete;
+    /// Multiplies `u` by 2<sup>`exp`</sup>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// You can also compare the returned value to a [`Float`];
+    /// the following are also implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[PartialEq][`PartialEq`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[PartialEq][`PartialEq`]&lt;[Float][`Float`]&gt; for Src</code>
+    ///   * <code>[PartialOrd][`PartialOrd`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[PartialOrd][`PartialOrd`]&lt;[Float][`Float`]&gt; for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let v = Float::u_exp(120, -100);
+    /// let f = Float::with_val(53, v);
+    /// assert_eq!(f, 120.0 * (-100f64).exp2());
+    /// let same = Float::u_exp(120 << 2, -100 - 2);
+    /// assert_eq!(f, same);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [`PartialEq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html
+    /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn u_exp(u: u32, exp: i32) -> UExpIncomplete {
+        UExpIncomplete { u, exp }
     }
 
-    math_op1_float! {
-        xmpfr::rec_sqrt;
-        /// Computes the reciprocal square root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 16.0);
-        /// let recip_sqrt = f.recip_sqrt();
-        /// assert_eq!(recip_sqrt, 0.25);
-        /// ```
-        fn recip_sqrt();
-        /// Computes the reciprocal square root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 16.0);
-        /// f.recip_sqrt_mut();
-        /// assert_eq!(f, 0.25);
-        /// ```
-        fn recip_sqrt_mut;
-        /// Computes the reciprocal square root, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // 5 in binary is 101
-        /// let mut f = Float::with_val(4, 5.0);
-        /// // 1 / √5 in binary is 0.01110010...
-        /// // 1 / √5 is rounded to 0.4375 (0.01110).
-        /// let dir = f.recip_sqrt_round(Round::Nearest);
-        /// assert_eq!(f, 0.4375);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn recip_sqrt_round;
-        /// Computes the reciprocal square root.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 16.0);
-        /// let r = f.recip_sqrt_ref();
-        /// let recip_sqrt = Float::with_val(53, r);
-        /// assert_eq!(recip_sqrt, 0.25);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn recip_sqrt_ref -> RecipSqrtIncomplete;
+    /// Multiplies `i` by 2<sup>`exp`</sup>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// You can also compare the returned value to a [`Float`];
+    /// the following are also implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[PartialEq][`PartialEq`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[PartialEq][`PartialEq`]&lt;[Float][`Float`]&gt; for Src</code>
+    ///   * <code>[PartialOrd][`PartialOrd`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[PartialOrd][`PartialOrd`]&lt;[Float][`Float`]&gt; for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let v = Float::i_exp(-120, -100);
+    /// let f = Float::with_val(53, v);
+    /// assert_eq!(f, -120.0 * (-100f64).exp2());
+    /// let same = Float::i_exp(-120 << 2, -100 - 2);
+    /// assert_eq!(f, same);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [`PartialEq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html
+    /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn i_exp(i: i32, exp: i32) -> IExpIncomplete {
+        IExpIncomplete { i, exp }
     }
-    math_op1_float! {
-        xmpfr::cbrt;
-        /// Computes the cube root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 125.0);
-        /// let cbrt = f.cbrt();
-        /// assert_eq!(cbrt, 5.0);
-        /// ```
-        fn cbrt();
-        /// Computes the cube root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 125.0);
-        /// f.cbrt_mut();
-        /// assert_eq!(f, 5.0);
-        /// ```
-        fn cbrt_mut;
-        /// Computes the cube root, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // 5 in binary is 101
-        /// let mut f = Float::with_val(4, 5.0);
-        /// // cbrt(5) in binary is 1.101101...
-        /// // cbrt(5) is rounded to 1.75 (1.110).
-        /// let dir = f.cbrt_round(Round::Nearest);
-        /// assert_eq!(f, 1.75);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn cbrt_round;
-        /// Computes the cube root.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 125.0);
-        /// let r = f.cbrt_ref();
-        /// let cbrt = Float::with_val(53, r);
-        /// assert_eq!(cbrt, 5.0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn cbrt_ref -> CbrtIncomplete;
+
+    /// Raises `base` to the power of `exponent`.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let p = Float::u_pow_u(13, 6);
+    /// let f = Float::with_val(53, p);
+    /// assert_eq!(f, 13u32.pow(6));
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete {
+        UPowUIncomplete { base, exponent }
     }
-    math_op1_float! {
-        xmpfr::rootn_ui;
-        /// Computes the <i>k</i>th root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 625.0);
-        /// let root = f.root(4);
-        /// assert_eq!(root, 5.0);
-        /// ```
-        fn root(k: u32);
-        /// Computes the <i>k</i>th root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 625.0);
-        /// f.root_mut(4);
-        /// assert_eq!(f, 5.0);
-        /// ```
-        fn root_mut;
-        /// Computes the <i>k</i>th root, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // 5 in binary is 101
-        /// let mut f = Float::with_val(4, 5.0);
-        /// // fourth root of 5 in binary is 1.01111...
-        /// // fourth root of 5 is rounded to 1.5 (1.100).
-        /// let dir = f.root_round(4, Round::Nearest);
-        /// assert_eq!(f, 1.5);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn root_round;
-        /// Computes the <i>k</i>th root.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 625.0);
-        /// let r = f.root_ref(4);
-        /// let root = Float::with_val(53, r);
-        /// assert_eq!(root, 5.0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn root_ref -> RootIncomplete;
+
+    /// Raises `base` to the power of `exponent`.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let p = Float::i_pow_u(-13, 5);
+    /// let f = Float::with_val(53, p);
+    /// assert_eq!(f, -13i32.pow(5));
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete {
+        IPowUIncomplete { base, exponent }
     }
-    math_op1_no_round! {
-        xmpfr::abs;
-        /// Computes the absolute value.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -23.5);
-        /// let abs = f.abs();
-        /// assert_eq!(abs, 23.5);
-        /// ```
-        fn abs();
-        /// Computes the absolute value.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, -23.5);
-        /// f.abs_mut();
-        /// assert_eq!(f, 23.5);
-        /// ```
-        fn abs_mut;
-        /// Computes the absolute value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -23.5);
-        /// let r = f.abs_ref();
-        /// let abs = Float::with_val(53, r);
-        /// assert_eq!(abs, 23.5);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn abs_ref -> AbsIncomplete;
+
+    /// Computes the square, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 5.0);
+    /// let square = f.square();
+    /// assert_eq!(square, 25.0);
+    /// ```
+    #[inline]
+    pub fn square(mut self) -> Self {
+        self.square_round(<Round as Default>::default());
+        self
     }
-    math_op1_no_round! {
-        xmpfr::signum;
-        /// Computes the signum.
-        ///
-        ///   * 1.0 if the value is positive, +0.0 or +∞
-        ///   * −1.0 if the value is negative, −0.0 or −∞
-        ///   * NaN if the value is NaN
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// assert_eq!(Float::with_val(53, -23.5).signum(), -1);
-        /// assert_eq!(Float::with_val(53, -0.0).signum(), -1);
-        /// assert_eq!(Float::with_val(53, 0.0).signum(), 1);
-        /// assert_eq!(Float::with_val(53, 23.5).signum(), 1);
-        /// ```
-        fn signum();
-        /// Computes the signum.
-        ///
-        ///   * 1.0 if the value is positive, +0.0 or +∞
-        ///   * −1.0 if the value is negative, −0.0 or −∞
-        ///   * NaN if the value is NaN
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, -23.5);
-        /// f.signum_mut();
-        /// assert_eq!(f, -1);
-        /// ```
-        fn signum_mut;
-        /// Computes the signum.
-        ///
-        ///   * 1.0 if the value is positive, +0.0 or +∞
-        ///   * −1.0 if the value is negative, −0.0 or −∞
-        ///   * NaN if the value is NaN
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -23.5);
-        /// let r = f.signum_ref();
-        /// let signum = Float::with_val(53, r);
-        /// assert_eq!(signum, -1);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn signum_ref -> SignumIncomplete;
+
+    /// Computes the square, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 5.0);
+    /// f.square_mut();
+    /// assert_eq!(f, 25.0);
+    /// ```
+    #[inline]
+    pub fn square_mut(&mut self) {
+        self.square_round(<Round as Default>::default());
     }
-    math_op2_no_round! {
-        xmpfr::copysign;
-        /// Returns a number with the magnitude of `self` and the sign
-        /// of `y`.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let x = Float::with_val(53, 23.0);
-        /// let y = Float::with_val(53, -1.0);
-        /// let copysign = x.copysign(&y);
-        /// assert_eq!(copysign, -23.0);
-        /// ```
-        fn copysign(y);
-        /// Retains the magnitude of `self` and copies the sign of
-        /// `y`.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut x = Float::with_val(53, 23.0);
-        /// let y = Float::with_val(53, -1.0);
-        /// x.copysign_mut(&y);
-        /// assert_eq!(x, -23.0);
-        /// ```
-        fn copysign_mut;
-        /// Computes a number with the magnitude of `self` and the
-        /// sign of `y`.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let x = Float::with_val(53, 23.0);
-        /// let y = Float::with_val(53, -1.0);
-        /// let r = x.copysign_ref(&y);
-        /// let copysign = Float::with_val(53, r);
-        /// assert_eq!(copysign, -23.0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn copysign_ref -> CopysignIncomplete;
+
+    /// Computes the square, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // 5 in binary is 101
+    /// let mut f = Float::with_val(3, 5.0);
+    /// // 25 in binary is 11001 (more than 3 bits of precision).
+    /// // 25 (11001) is rounded up to 28 (11100).
+    /// let dir = f.square_round(Round::Up);
+    /// assert_eq!(f, 28.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn square_round(&mut self, round: Round) -> Ordering {
+        xmpfr::sqr(self, None, round)
+    }
+
+    /// Computes the square.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 5.0);
+    /// let r = f.square_ref();
+    /// let square = Float::with_val(53, r);
+    /// assert_eq!(square, 25.0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn square_ref(&self) -> SquareIncomplete<'_> {
+        SquareIncomplete { ref_self: self }
+    }
+
+    /// Computes the square root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 25.0);
+    /// let sqrt = f.sqrt();
+    /// assert_eq!(sqrt, 5.0);
+    /// ```
+    #[inline]
+    pub fn sqrt(mut self) -> Self {
+        self.sqrt_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the square root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 25.0);
+    /// f.sqrt_mut();
+    /// assert_eq!(f, 5.0);
+    /// ```
+    #[inline]
+    pub fn sqrt_mut(&mut self) {
+        self.sqrt_round(<Round as Default>::default());
+    }
+
+    /// Computes the square root, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // 5 in binary is 101
+    /// let mut f = Float::with_val(4, 5.0);
+    /// // sqrt(5) in binary is 10.00111100...
+    /// // sqrt(5) is rounded to 2.25 (10.01).
+    /// let dir = f.sqrt_round(Round::Nearest);
+    /// assert_eq!(f, 2.25);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn sqrt_round(&mut self, round: Round) -> Ordering {
+        xmpfr::sqrt(self, None, round)
+    }
+
+    /// Computes the square root.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 25.0);
+    /// let r = f.sqrt_ref();
+    /// let sqrt = Float::with_val(53, r);
+    /// assert_eq!(sqrt, 5.0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
+        SqrtIncomplete { ref_self: self }
+    }
+
+    /// Computes the square root of `u`.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let s = Float::sqrt_u(25);
+    /// let f = Float::with_val(53, s);
+    /// assert_eq!(f, 5.0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sqrt_u(u: u32) -> SqrtUIncomplete {
+        SqrtUIncomplete { u }
+    }
+
+    /// Computes the reciprocal square root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 16.0);
+    /// let recip_sqrt = f.recip_sqrt();
+    /// assert_eq!(recip_sqrt, 0.25);
+    /// ```
+    #[inline]
+    pub fn recip_sqrt(mut self) -> Self {
+        self.recip_sqrt_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the reciprocal square root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 16.0);
+    /// f.recip_sqrt_mut();
+    /// assert_eq!(f, 0.25);
+    /// ```
+    #[inline]
+    pub fn recip_sqrt_mut(&mut self) {
+        self.recip_sqrt_round(<Round as Default>::default());
+    }
+
+    /// Computes the reciprocal square root, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // 5 in binary is 101
+    /// let mut f = Float::with_val(4, 5.0);
+    /// // 1 / √5 in binary is 0.01110010...
+    /// // 1 / √5 is rounded to 0.4375 (0.01110).
+    /// let dir = f.recip_sqrt_round(Round::Nearest);
+    /// assert_eq!(f, 0.4375);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn recip_sqrt_round(&mut self, round: Round) -> Ordering {
+        xmpfr::rec_sqrt(self, None, round)
+    }
+
+    /// Computes the reciprocal square root.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 16.0);
+    /// let r = f.recip_sqrt_ref();
+    /// let recip_sqrt = Float::with_val(53, r);
+    /// assert_eq!(recip_sqrt, 0.25);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn recip_sqrt_ref(&self) -> RecipSqrtIncomplete<'_> {
+        RecipSqrtIncomplete { ref_self: self }
+    }
+
+    /// Computes the cube root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 125.0);
+    /// let cbrt = f.cbrt();
+    /// assert_eq!(cbrt, 5.0);
+    /// ```
+    #[inline]
+    pub fn cbrt(mut self) -> Self {
+        self.cbrt_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the cube root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 125.0);
+    /// f.cbrt_mut();
+    /// assert_eq!(f, 5.0);
+    /// ```
+    #[inline]
+    pub fn cbrt_mut(&mut self) {
+        self.cbrt_round(<Round as Default>::default());
+    }
+
+    /// Computes the cube root, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // 5 in binary is 101
+    /// let mut f = Float::with_val(4, 5.0);
+    /// // cbrt(5) in binary is 1.101101...
+    /// // cbrt(5) is rounded to 1.75 (1.110).
+    /// let dir = f.cbrt_round(Round::Nearest);
+    /// assert_eq!(f, 1.75);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn cbrt_round(&mut self, round: Round) -> Ordering {
+        xmpfr::cbrt(self, None, round)
+    }
+
+    /// Computes the cube root.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 125.0);
+    /// let r = f.cbrt_ref();
+    /// let cbrt = Float::with_val(53, r);
+    /// assert_eq!(cbrt, 5.0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn cbrt_ref(&self) -> CbrtIncomplete<'_> {
+        CbrtIncomplete { ref_self: self }
+    }
+
+    /// Computes the <i>k</i>th root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 625.0);
+    /// let root = f.root(4);
+    /// assert_eq!(root, 5.0);
+    /// ```
+    #[inline]
+    pub fn root(mut self, k: u32) -> Self {
+        self.root_round(k, <Round as Default>::default());
+        self
+    }
+
+    /// Computes the <i>k</i>th root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 625.0);
+    /// f.root_mut(4);
+    /// assert_eq!(f, 5.0);
+    /// ```
+    #[inline]
+    pub fn root_mut(&mut self, k: u32) {
+        self.root_round(k, <Round as Default>::default());
+    }
+
+    /// Computes the <i>k</i>th root, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // 5 in binary is 101
+    /// let mut f = Float::with_val(4, 5.0);
+    /// // fourth root of 5 in binary is 1.01111...
+    /// // fourth root of 5 is rounded to 1.5 (1.100).
+    /// let dir = f.root_round(4, Round::Nearest);
+    /// assert_eq!(f, 1.5);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn root_round(&mut self, k: u32, round: Round) -> Ordering {
+        xmpfr::rootn_ui(self, None, k, round)
+    }
+
+    /// Computes the <i>k</i>th root.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 625.0);
+    /// let r = f.root_ref(4);
+    /// let root = Float::with_val(53, r);
+    /// assert_eq!(root, 5.0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn root_ref(&self, k: u32) -> RootIncomplete<'_> {
+        RootIncomplete { ref_self: self, k }
+    }
+
+    /// Computes the absolute value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -23.5);
+    /// let abs = f.abs();
+    /// assert_eq!(abs, 23.5);
+    /// ```
+    #[inline]
+    pub fn abs(mut self) -> Self {
+        self.abs_mut();
+        self
+    }
+
+    /// Computes the absolute value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -23.5);
+    /// f.abs_mut();
+    /// assert_eq!(f, 23.5);
+    /// ```
+    #[inline]
+    pub fn abs_mut(&mut self) {
+        xmpfr::abs(self, None, Default::default());
+    }
+
+    /// Computes the absolute value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -23.5);
+    /// let r = f.abs_ref();
+    /// let abs = Float::with_val(53, r);
+    /// assert_eq!(abs, 23.5);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn abs_ref(&self) -> AbsIncomplete<'_> {
+        AbsIncomplete { ref_self: self }
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 1.0 if the value is positive, +0.0 or +∞
+    ///   * −1.0 if the value is negative, −0.0 or −∞
+    ///   * NaN if the value is NaN
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// assert_eq!(Float::with_val(53, -23.5).signum(), -1);
+    /// assert_eq!(Float::with_val(53, -0.0).signum(), -1);
+    /// assert_eq!(Float::with_val(53, 0.0).signum(), 1);
+    /// assert_eq!(Float::with_val(53, 23.5).signum(), 1);
+    /// ```
+    #[inline]
+    pub fn signum(mut self) -> Self {
+        self.signum_mut();
+        self
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 1.0 if the value is positive, +0.0 or +∞
+    ///   * −1.0 if the value is negative, −0.0 or −∞
+    ///   * NaN if the value is NaN
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -23.5);
+    /// f.signum_mut();
+    /// assert_eq!(f, -1);
+    /// ```
+    #[inline]
+    pub fn signum_mut(&mut self) {
+        xmpfr::signum(self, None, Default::default());
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 1.0 if the value is positive, +0.0 or +∞
+    ///   * −1.0 if the value is negative, −0.0 or −∞
+    ///   * NaN if the value is NaN
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -23.5);
+    /// let r = f.signum_ref();
+    /// let signum = Float::with_val(53, r);
+    /// assert_eq!(signum, -1);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn signum_ref(&self) -> SignumIncomplete<'_> {
+        SignumIncomplete { ref_self: self }
+    }
+
+    /// Returns a number with the magnitude of `self` and the sign
+    /// of `y`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let x = Float::with_val(53, 23.0);
+    /// let y = Float::with_val(53, -1.0);
+    /// let copysign = x.copysign(&y);
+    /// assert_eq!(copysign, -23.0);
+    /// ```
+    #[inline]
+    pub fn copysign(mut self, y: &Self) -> Self {
+        self.copysign_mut(y);
+        self
+    }
+
+    /// Retains the magnitude of `self` and copies the sign of
+    /// `y`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut x = Float::with_val(53, 23.0);
+    /// let y = Float::with_val(53, -1.0);
+    /// x.copysign_mut(&y);
+    /// assert_eq!(x, -23.0);
+    /// ```
+    #[inline]
+    pub fn copysign_mut(&mut self, y: &Self) {
+        xmpfr::copysign(self, None, Some(y), Default::default());
+    }
+
+    /// Computes a number with the magnitude of `self` and the
+    /// sign of `y`.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let x = Float::with_val(53, 23.0);
+    /// let y = Float::with_val(53, -1.0);
+    /// let r = x.copysign_ref(&y);
+    /// let copysign = Float::with_val(53, r);
+    /// assert_eq!(copysign, -23.0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn copysign_ref<'a>(&'a self, y: &'a Self) -> CopysignIncomplete<'_> {
+        CopysignIncomplete { ref_self: self, y }
     }
 
     /// Clamps the value within the specified bounds, rounding to the
@@ -3466,2737 +3493,3278 @@ impl Float {
         }
     }
 
-    math_op1_float! {
-        xmpfr::recip;
-        /// Computes the reciprocal, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -0.25);
-        /// let recip = f.recip();
-        /// assert_eq!(recip, -4.0);
-        /// ```
-        fn recip();
-        /// Computes the reciprocal, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, -0.25);
-        /// f.recip_mut();
-        /// assert_eq!(f, -4.0);
-        /// ```
-        fn recip_mut;
-        /// Computes the reciprocal, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // 5 in binary is 101
-        /// let mut f = Float::with_val(4, -5.0);
-        /// // 1/5 in binary is 0.00110011...
-        /// // 1/5 is rounded to 0.203125 (0.001101).
-        /// let dir = f.recip_round(Round::Nearest);
-        /// assert_eq!(f, -0.203125);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn recip_round;
-        /// Computes the reciprocal.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -0.25);
-        /// let r = f.recip_ref();
-        /// let recip = Float::with_val(53, r);
-        /// assert_eq!(recip, -4.0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn recip_ref -> RecipIncomplete;
-    }
-    math_op2_float! {
-        xmpfr::min;
-        /// Finds the minimum, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let a = Float::with_val(53, 5.2);
-        /// let b = Float::with_val(53, -2);
-        /// let min = a.min(&b);
-        /// assert_eq!(min, -2);
-        /// ```
-        fn min(other);
-        /// Finds the minimum, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut a = Float::with_val(53, 5.2);
-        /// let b = Float::with_val(53, -2);
-        /// a.min_mut(&b);
-        /// assert_eq!(a, -2);
-        /// ```
-        fn min_mut;
-        /// Finds the minimum, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// let mut a = Float::with_val(53, 5.2);
-        /// let b = Float::with_val(53, -2);
-        /// let dir = a.min_round(&b, Round::Nearest);
-        /// assert_eq!(a, -2);
-        /// assert_eq!(dir, Ordering::Equal);
-        /// ```
-        fn min_round;
-        /// Finds the minimum.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let a = Float::with_val(53, 5.2);
-        /// let b = Float::with_val(53, -2);
-        /// let r = a.min_ref(&b);
-        /// let min = Float::with_val(53, r);
-        /// assert_eq!(min, -2);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn min_ref -> MinIncomplete;
-    }
-    math_op2_float! {
-        xmpfr::max;
-        /// Finds the maximum, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let a = Float::with_val(53, 5.2);
-        /// let b = Float::with_val(53, 12.5);
-        /// let max = a.max(&b);
-        /// assert_eq!(max, 12.5);
-        /// ```
-        fn max(other);
-        /// Finds the maximum, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut a = Float::with_val(53, 5.2);
-        /// let b = Float::with_val(53, 12.5);
-        /// a.max_mut(&b);
-        /// assert_eq!(a, 12.5);
-        /// ```
-        fn max_mut;
-        /// Finds the maximum, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// let mut a = Float::with_val(53, 5.2);
-        /// let b = Float::with_val(53, 12.5);
-        /// let dir = a.max_round(&b, Round::Nearest);
-        /// assert_eq!(a, 12.5);
-        /// assert_eq!(dir, Ordering::Equal);
-        /// ```
-        fn max_round;
-        /// Finds the maximum.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let a = Float::with_val(53, 5.2);
-        /// let b = Float::with_val(53, 12.5);
-        /// let r = a.max_ref(&b);
-        /// let max = Float::with_val(53, r);
-        /// assert_eq!(max, 12.5);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn max_ref -> MaxIncomplete;
-    }
-    math_op2_float! {
-        xmpfr::dim;
-        /// Computes the positive difference between `self` and
-        /// `other`, rounding to the nearest.
-        ///
-        /// The positive difference is `self` − `other` if `self` >
-        /// `other`, zero if `self` ≤ `other`, or NaN if any operand
-        /// is NaN.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let a = Float::with_val(53, 12.5);
-        /// let b = Float::with_val(53, 7.3);
-        /// let diff1 = a.positive_diff(&b);
-        /// assert_eq!(diff1, 5.2);
-        /// let diff2 = diff1.positive_diff(&b);
-        /// assert_eq!(diff2, 0);
-        /// ```
-        fn positive_diff(other);
-        /// Computes the positive difference between `self` and
-        /// `other`, rounding to the nearest.
-        ///
-        /// The positive difference is `self` − `other` if `self` >
-        /// `other`, zero if `self` ≤ `other`, or NaN if any operand
-        /// is NaN.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut a = Float::with_val(53, 12.5);
-        /// let b = Float::with_val(53, 7.3);
-        /// a.positive_diff_mut(&b);
-        /// assert_eq!(a, 5.2);
-        /// a.positive_diff_mut(&b);
-        /// assert_eq!(a, 0);
-        /// ```
-        fn positive_diff_mut;
-        /// Computes the positive difference between `self` and
-        /// `other`, applying the specified rounding method.
-        ///
-        /// The positive difference is `self` − `other` if `self` >
-        /// `other`, zero if `self` ≤ `other`, or NaN if any operand
-        /// is NaN.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// let mut a = Float::with_val(53, 12.5);
-        /// let b = Float::with_val(53, 7.3);
-        /// let dir = a.positive_diff_round(&b, Round::Nearest);
-        /// assert_eq!(a, 5.2);
-        /// assert_eq!(dir, Ordering::Equal);
-        /// let dir = a.positive_diff_round(&b, Round::Nearest);
-        /// assert_eq!(a, 0);
-        /// assert_eq!(dir, Ordering::Equal);
-        /// ```
-        fn positive_diff_round;
-        /// Computes the positive difference.
-        ///
-        /// The positive difference is `self` − `other` if `self` >
-        /// `other`, zero if `self` ≤ `other`, or NaN if any operand
-        /// is NaN.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let a = Float::with_val(53, 12.5);
-        /// let b = Float::with_val(53, 7.3);
-        /// let rab = a.positive_diff_ref(&b);
-        /// let ab = Float::with_val(53, rab);
-        /// assert_eq!(ab, 5.2);
-        /// let rba = b.positive_diff_ref(&a);
-        /// let ba = Float::with_val(53, rba);
-        /// assert_eq!(ba, 0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn positive_diff_ref -> PositiveDiffIncomplete;
+    /// Computes the reciprocal, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.25);
+    /// let recip = f.recip();
+    /// assert_eq!(recip, -4.0);
+    /// ```
+    #[inline]
+    pub fn recip(mut self) -> Self {
+        self.recip_round(<Round as Default>::default());
+        self
     }
 
-    math_op1_float! {
-        xmpfr::log;
-        /// Computes the natural logarithm, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let ln = f.ln();
-        /// let expected = 0.4055_f64;
-        /// assert!((ln - expected).abs() < 0.0001);
-        /// ```
-        fn ln();
-        /// Computes the natural logarithm, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.5);
-        /// f.ln_mut();
-        /// let expected = 0.4055_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn ln_mut;
-        /// Computes the natural logarithm, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.5);
-        /// // ln(1.5) = 0.4055
-        /// // using 4 significant bits: 0.40625
-        /// let dir = f.ln_round(Round::Nearest);
-        /// assert_eq!(f, 0.40625);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn ln_round;
-        /// Computes the natural logarithm.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let ln = Float::with_val(53, f.ln_ref());
-        /// let expected = 0.4055_f64;
-        /// assert!((ln - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn ln_ref -> LnIncomplete;
-    }
-    math_op0! {
-        /// Computes the natural logarithm of `u`.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let l = Float::ln_u(3);
-        /// let f = Float::with_val(53, l);
-        /// let expected = 1.0986f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn ln_u(u: u32) -> LnUIncomplete;
+    /// Computes the reciprocal, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.25);
+    /// f.recip_mut();
+    /// assert_eq!(f, -4.0);
+    /// ```
+    #[inline]
+    pub fn recip_mut(&mut self) {
+        self.recip_round(<Round as Default>::default());
     }
 
-    math_op1_float! {
-        xmpfr::log2;
-        /// Computes the logarithm to base 2, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let log2 = f.log2();
-        /// let expected = 0.5850_f64;
-        /// assert!((log2 - expected).abs() < 0.0001);
-        /// ```
-        fn log2();
-        /// Computes the logarithm to base 2, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.5);
-        /// f.log2_mut();
-        /// let expected = 0.5850_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn log2_mut;
-        /// Computes the logarithm to base 2, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.5);
-        /// // log2(1.5) = 0.5850
-        /// // using 4 significant bits: 0.5625
-        /// let dir = f.log2_round(Round::Nearest);
-        /// assert_eq!(f, 0.5625);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn log2_round;
-        /// Computes the logarithm to base 2.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let log2 = Float::with_val(53, f.log2_ref());
-        /// let expected = 0.5850_f64;
-        /// assert!((log2 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn log2_ref -> Log2Incomplete;
-    }
-    math_op1_float! {
-        xmpfr::log10;
-        /// Computes the logarithm to base 10, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let log10 = f.log10();
-        /// let expected = 0.1761_f64;
-        /// assert!((log10 - expected).abs() < 0.0001);
-        /// ```
-        fn log10();
-        /// Computes the logarithm to base 10, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.5);
-        /// f.log10_mut();
-        /// let expected = 0.1761_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn log10_mut;
-        /// Computes the logarithm to base 10, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.5);
-        /// // log10(1.5) = 0.1761
-        /// // using 4 significant bits: 0.171875
-        /// let dir = f.log10_round(Round::Nearest);
-        /// assert_eq!(f, 0.171875);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn log10_round;
-        /// Computes the logarithm to base 10.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let log10 = Float::with_val(53, f.log10_ref());
-        /// let expected = 0.1761_f64;
-        /// assert!((log10 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn log10_ref -> Log10Incomplete;
-    }
-    math_op1_float! {
-        xmpfr::exp;
-        /// Computes the exponential, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let exp = f.exp();
-        /// let expected = 4.4817_f64;
-        /// assert!((exp - expected).abs() < 0.0001);
-        /// ```
-        fn exp();
-        /// Computes the exponential, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.5);
-        /// f.exp_mut();
-        /// let expected = 4.4817_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn exp_mut;
-        /// Computes the exponential, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.5);
-        /// // exp(1.5) = 4.4817
-        /// // using 4 significant bits: 4.5
-        /// let dir = f.exp_round(Round::Nearest);
-        /// assert_eq!(f, 4.5);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn exp_round;
-        /// Computes the exponential.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let exp = Float::with_val(53, f.exp_ref());
-        /// let expected = 4.4817_f64;
-        /// assert!((exp - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn exp_ref -> ExpIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::exp2;
-        /// Computes 2 to the power of `self`, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let exp2 = f.exp2();
-        /// let expected = 2.8284_f64;
-        /// assert!((exp2 - expected).abs() < 0.0001);
-        /// ```
-        fn exp2();
-        /// Computes 2 to the power of `self`, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.5);
-        /// f.exp2_mut();
-        /// let expected = 2.8284_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn exp2_mut;
-        /// Computes 2 to the power of `self`, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.5);
-        /// // exp2(1.5) = 2.8284
-        /// // using 4 significant bits: 2.75
-        /// let dir = f.exp2_round(Round::Nearest);
-        /// assert_eq!(f, 2.75);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn exp2_round;
-        /// Computes 2 to the power of the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let exp2 = Float::with_val(53, f.exp2_ref());
-        /// let expected = 2.8284_f64;
-        /// assert!((exp2 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn exp2_ref -> Exp2Incomplete;
-    }
-    math_op1_float! {
-        xmpfr::exp10;
-        /// Computes 10 to the power of `self`, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let exp10 = f.exp10();
-        /// let expected = 31.6228_f64;
-        /// assert!((exp10 - expected).abs() < 0.0001);
-        /// ```
-        fn exp10();
-        /// Computes 10 to the power of `self`, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.5);
-        /// f.exp10_mut();
-        /// let expected = 31.6228_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn exp10_mut;
-        /// Computes 10 to the power of `self`, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.5);
-        /// // exp10(1.5) = 31.6228
-        /// // using 4 significant bits: 32
-        /// let dir = f.exp10_round(Round::Nearest);
-        /// assert_eq!(f, 32);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn exp10_round;
-        /// Computes 10 to the power of the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.5);
-        /// let exp10 = Float::with_val(53, f.exp10_ref());
-        /// let expected = 31.6228_f64;
-        /// assert!((exp10 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn exp10_ref -> Exp10Incomplete;
-    }
-    math_op1_float! {
-        xmpfr::sin;
-        /// Computes the sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let sin = f.sin();
-        /// let expected = 0.9490_f64;
-        /// assert!((sin - expected).abs() < 0.0001);
-        /// ```
-        fn sin();
-        /// Computes the sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.sin_mut();
-        /// let expected = 0.9490_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn sin_mut;
-        /// Computes the sine, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // sin(1.25) = 0.9490
-        /// // using 4 significant bits: 0.9375
-        /// let dir = f.sin_round(Round::Nearest);
-        /// assert_eq!(f, 0.9375);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn sin_round;
-        /// Computes the sine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let sin = Float::with_val(53, f.sin_ref());
-        /// let expected = 0.9490_f64;
-        /// assert!((sin - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sin_ref -> SinIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::cos;
-        /// Computes the cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let cos = f.cos();
-        /// let expected = 0.3153_f64;
-        /// assert!((cos - expected).abs() < 0.0001);
-        /// ```
-        fn cos();
-        /// Computes the cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.cos_mut();
-        /// let expected = 0.3153_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn cos_mut;
-        /// Computes the cosine, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // cos(1.25) = 0.3153
-        /// // using 4 significant bits: 0.3125
-        /// let dir = f.cos_round(Round::Nearest);
-        /// assert_eq!(f, 0.3125);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn cos_round;
-        /// Computes the cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let cos = Float::with_val(53, f.cos_ref());
-        /// let expected = 0.3153_f64;
-        /// assert!((cos - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn cos_ref -> CosIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::tan;
-        /// Computes the tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let tan = f.tan();
-        /// let expected = 3.0096_f64;
-        /// assert!((tan - expected).abs() < 0.0001);
-        /// ```
-        fn tan();
-        /// Computes the tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.tan_mut();
-        /// let expected = 3.0096_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn tan_mut;
-        /// Computes the tangent, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // tan(1.25) = 3.0096
-        /// // using 4 significant bits: 3.0
-        /// let dir = f.tan_round(Round::Nearest);
-        /// assert_eq!(f, 3.0);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn tan_round;
-        /// Computes the tangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let tan = Float::with_val(53, f.tan_ref());
-        /// let expected = 3.0096_f64;
-        /// assert!((tan - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn tan_ref -> TanIncomplete;
-    }
-    math_op1_2_float! {
-        xmpfr::sin_cos;
-        /// Computes the sine and cosine of `self`, rounding to the
-        /// nearest.
-        ///
-        /// The sine is stored in `self` and keeps its precision,
-        /// while the cosine is stored in `cos` keeping its precision.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let (sin, cos) = f.sin_cos(Float::new(53));
-        /// let expected_sin = 0.9490_f64;
-        /// let expected_cos = 0.3153_f64;
-        /// assert!((sin - expected_sin).abs() < 0.0001);
-        /// assert!((cos - expected_cos).abs() < 0.0001);
-        /// ```
-        fn sin_cos(cos);
-        /// Computes the sine and cosine of `self`, rounding to the
-        /// nearest.
-        ///
-        /// The sine is stored in `self` and keeps its precision,
-        /// while the cosine is stored in `cos` keeping its precision.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut sin = Float::with_val(53, 1.25);
-        /// let mut cos = Float::new(53);
-        /// sin.sin_cos_mut(&mut cos);
-        /// let expected_sin = 0.9490_f64;
-        /// let expected_cos = 0.3153_f64;
-        /// assert!((sin - expected_sin).abs() < 0.0001);
-        /// assert!((cos - expected_cos).abs() < 0.0001);
-        /// ```
-        fn sin_cos_mut;
-        /// Computes the sine and cosine of `self`, applying the specified
-        /// rounding method.
-        ///
-        /// The sine is stored in `self` and keeps its precision,
-        /// while the cosine is stored in `cos` keeping its precision.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut sin = Float::with_val(4, 1.25);
-        /// let mut cos = Float::new(4);
-        /// // sin(1.25) = 0.9490, using 4 significant bits: 0.9375
-        /// // cos(1.25) = 0.3153, using 4 significant bits: 0.3125
-        /// let (dir_sin, dir_cos) =
-        ///     sin.sin_cos_round(&mut cos, Round::Nearest);
-        /// assert_eq!(sin, 0.9375);
-        /// assert_eq!(dir_sin, Ordering::Less);
-        /// assert_eq!(cos, 0.3125);
-        /// assert_eq!(dir_cos, Ordering::Less);
-        /// ```
-        fn sin_cos_round;
-        /// Computes the sine and cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Float][`Float`],
-        ///     [Float][`Float`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Float][`Float`],
-        ///     &amp;mut [Float][`Float`][)][tuple]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-        ///     [(][tuple][Float][`Float`],
-        ///     [Float][`Float`][)][tuple]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Float][`Float`],
-        ///     &amp;mut [Float][`Float`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, ops::AssignRound, Assign, Float};
-        /// use std::cmp::Ordering;
-        /// let phase = Float::with_val(53, 1.25);
-        ///
-        /// let (mut sin, mut cos) = (Float::new(53), Float::new(53));
-        /// let sin_cos = phase.sin_cos_ref();
-        /// (&mut sin, &mut cos).assign(sin_cos);
-        /// let expected_sin = 0.9490_f64;
-        /// let expected_cos = 0.3153_f64;
-        /// assert!((sin - expected_sin).abs() < 0.0001);
-        /// assert!((cos - expected_cos).abs() < 0.0001);
-        ///
-        /// // using 4 significant bits: sin = 0.9375
-        /// // using 4 significant bits: cos = 0.3125
-        /// let (mut sin_4, mut cos_4) = (Float::new(4), Float::new(4));
-        /// let sin_cos = phase.sin_cos_ref();
-        /// let (dir_sin, dir_cos) = (&mut sin_4, &mut cos_4)
-        ///     .assign_round(sin_cos, Round::Nearest);
-        /// assert_eq!(sin_4, 0.9375);
-        /// assert_eq!(dir_sin, Ordering::Less);
-        /// assert_eq!(cos_4, 0.3125);
-        /// assert_eq!(dir_cos, Ordering::Less);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn sin_cos_ref -> SinCosIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::sec;
-        /// Computes the secant, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let sec = f.sec();
-        /// let expected = 3.1714_f64;
-        /// assert!((sec - expected).abs() < 0.0001);
-        /// ```
-        fn sec();
-        /// Computes the secant, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.sec_mut();
-        /// let expected = 3.1714_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn sec_mut;
-        /// Computes the secant, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // sec(1.25) = 3.1714
-        /// // using 4 significant bits: 3.25
-        /// let dir = f.sec_round(Round::Nearest);
-        /// assert_eq!(f, 3.25);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn sec_round;
-        /// Computes the secant.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let sec = Float::with_val(53, f.sec_ref());
-        /// let expected = 3.1714_f64;
-        /// assert!((sec - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sec_ref -> SecIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::csc;
-        /// Computes the cosecant, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let csc = f.csc();
-        /// let expected = 1.0538_f64;
-        /// assert!((csc - expected).abs() < 0.0001);
-        /// ```
-        fn csc();
-        /// Computes the cosecant, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.csc_mut();
-        /// let expected = 1.0538_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn csc_mut;
-        /// Computes the cosecant, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // csc(1.25) = 1.0538
-        /// // using 4 significant bits: 1.0
-        /// let dir = f.csc_round(Round::Nearest);
-        /// assert_eq!(f, 1.0);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn csc_round;
-        /// Computes the cosecant.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let csc = Float::with_val(53, f.csc_ref());
-        /// let expected = 1.0538_f64;
-        /// assert!((csc - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn csc_ref -> CscIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::cot;
-        /// Computes the cotangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let cot = f.cot();
-        /// let expected = 0.3323_f64;
-        /// assert!((cot - expected).abs() < 0.0001);
-        /// ```
-        fn cot();
-        /// Computes the cotangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.cot_mut();
-        /// let expected = 0.3323_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn cot_mut;
-        /// Computes the cotangent, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // cot(1.25) = 0.3323
-        /// // using 4 significant bits: 0.34375
-        /// let dir = f.cot_round(Round::Nearest);
-        /// assert_eq!(f, 0.34375);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn cot_round;
-        /// Computes the cotangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let cot = Float::with_val(53, f.cot_ref());
-        /// let expected = 0.3323_f64;
-        /// assert!((cot - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn cot_ref -> CotIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::asin;
-        /// Computes the arc-sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -0.75);
-        /// let asin = f.asin();
-        /// let expected = -0.8481_f64;
-        /// assert!((asin - expected).abs() < 0.0001);
-        /// ```
-        fn asin();
-        /// Computes the arc-sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, -0.75);
-        /// f.asin_mut();
-        /// let expected = -0.8481_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn asin_mut;
-        /// Computes the arc-sine, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, -0.75);
-        /// // asin(−0.75) = −0.8481
-        /// // using 4 significant bits: −0.875
-        /// let dir = f.asin_round(Round::Nearest);
-        /// assert_eq!(f, -0.875);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn asin_round;
-        /// Computes the arc-sine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -0.75);
-        /// let asin = Float::with_val(53, f.asin_ref());
-        /// let expected = -0.8481_f64;
-        /// assert!((asin - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn asin_ref -> AsinIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::acos;
-        /// Computes the arc-cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -0.75);
-        /// let acos = f.acos();
-        /// let expected = 2.4189_f64;
-        /// assert!((acos - expected).abs() < 0.0001);
-        /// ```
-        fn acos();
-        /// Computes the arc-cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, -0.75);
-        /// f.acos_mut();
-        /// let expected = 2.4189_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn acos_mut;
-        /// Computes the arc-cosine, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, -0.75);
-        /// // acos(−0.75) = 2.4189
-        /// // using 4 significant bits: 2.5
-        /// let dir = f.acos_round(Round::Nearest);
-        /// assert_eq!(f, 2.5);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn acos_round;
-        /// Computes the arc-cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -0.75);
-        /// let acos = Float::with_val(53, f.acos_ref());
-        /// let expected = 2.4189_f64;
-        /// assert!((acos - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn acos_ref -> AcosIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::atan;
-        /// Computes the arc-tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -0.75);
-        /// let atan = f.atan();
-        /// let expected = -0.6435_f64;
-        /// assert!((atan - expected).abs() < 0.0001);
-        /// ```
-        fn atan();
-        /// Computes the arc-tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, -0.75);
-        /// f.atan_mut();
-        /// let expected = -0.6435_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn atan_mut;
-        /// Computes the arc-tangent, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, -0.75);
-        /// // atan(−0.75) = −0.6435
-        /// // using 4 significant bits: −0.625
-        /// let dir = f.atan_round(Round::Nearest);
-        /// assert_eq!(f, -0.625);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn atan_round;
-        /// Computes the arc-tangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, -0.75);
-        /// let atan = Float::with_val(53, f.atan_ref());
-        /// let expected = -0.6435_f64;
-        /// assert!((atan - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn atan_ref -> AtanIncomplete;
-    }
-    math_op2_float! {
-        xmpfr::atan2;
-        /// Computes the arc-tangent2 of `self` and `x`, rounding to
-        /// the nearest.
-        ///
-        /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2π rather than π.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let y = Float::with_val(53, 3.0);
-        /// let x = Float::with_val(53, -4.0);
-        /// let atan2 = y.atan2(&x);
-        /// let expected = 2.4981_f64;
-        /// assert!((atan2 - expected).abs() < 0.0001);
-        /// ```
-        fn atan2(x);
-        /// Computes the arc-tangent2 of `self` and `x`, rounding to
-        /// the nearest.
-        ///
-        /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2π rather than π.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut y = Float::with_val(53, 3.0);
-        /// let x = Float::with_val(53, -4.0);
-        /// y.atan2_mut(&x);
-        /// let expected = 2.4981_f64;
-        /// assert!((y - expected).abs() < 0.0001);
-        /// ```
-        fn atan2_mut;
-        /// Computes the arc-tangent2 of `self` and `x`, applying the
-        /// specified rounding method.
-        ///
-        /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2π rather than π.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut y = Float::with_val(4, 3.0);
-        /// let x = Float::with_val(4, -4.0);
-        /// // atan2(3.0, −4.0) = 2.4981
-        /// // using 4 significant bits: 2.5
-        /// let dir = y.atan2_round(&x, Round::Nearest);
-        /// assert_eq!(y, 2.5);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn atan2_round;
-        /// Computes the arc-tangent.
-        ///
-        /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2π rather than π.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let y = Float::with_val(53, 3.0);
-        /// let x = Float::with_val(53, -4.0);
-        /// let r = y.atan2_ref(&x);
-        /// let atan2 = Float::with_val(53, r);
-        /// let expected = 2.4981_f64;
-        /// assert!((atan2 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn atan2_ref -> Atan2Incomplete;
-    }
-    math_op1_float! {
-        xmpfr::sinh;
-        /// Computes the hyperbolic sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let sinh = f.sinh();
-        /// let expected = 1.6019_f64;
-        /// assert!((sinh - expected).abs() < 0.0001);
-        /// ```
-        fn sinh();
-        /// Computes the hyperbolic sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.sinh_mut();
-        /// let expected = 1.6019_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn sinh_mut;
-        /// Computes the hyperbolic sine, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // sinh(1.25) = 1.6019
-        /// // using 4 significant bits: 1.625
-        /// let dir = f.sinh_round(Round::Nearest);
-        /// assert_eq!(f, 1.625);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn sinh_round;
-        /// Computes the hyperbolic sine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let sinh = Float::with_val(53, f.sinh_ref());
-        /// let expected = 1.6019_f64;
-        /// assert!((sinh - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sinh_ref -> SinhIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::cosh;
-        /// Computes the hyperbolic cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let cosh = f.cosh();
-        /// let expected = 1.8884_f64;
-        /// assert!((cosh - expected).abs() < 0.0001);
-        /// ```
-        fn cosh();
-        /// Computes the hyperbolic cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.cosh_mut();
-        /// let expected = 1.8884_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn cosh_mut;
-        /// Computes the hyperbolic cosine, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // cosh(1.25) = 1.8884
-        /// // using 4 significant bits: 1.875
-        /// let dir = f.cosh_round(Round::Nearest);
-        /// assert_eq!(f, 1.875);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn cosh_round;
-        /// Computes the hyperbolic cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let cosh = Float::with_val(53, f.cosh_ref());
-        /// let expected = 1.8884_f64;
-        /// assert!((cosh - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn cosh_ref -> CoshIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::tanh;
-        /// Computes the hyperbolic tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let tanh = f.tanh();
-        /// let expected = 0.8483_f64;
-        /// assert!((tanh - expected).abs() < 0.0001);
-        /// ```
-        fn tanh();
-        /// Computes the hyperbolic tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.tanh_mut();
-        /// let expected = 0.8483_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn tanh_mut;
-        /// Computes the hyperbolic tangent, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // tanh(1.25) = 0.8483
-        /// // using 4 significant bits: 0.875
-        /// let dir = f.tanh_round(Round::Nearest);
-        /// assert_eq!(f, 0.875);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn tanh_round;
-        /// Computes the hyperbolic tangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let tanh = Float::with_val(53, f.tanh_ref());
-        /// let expected = 0.8483_f64;
-        /// assert!((tanh - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn tanh_ref -> TanhIncomplete;
-    }
-    math_op1_2_float! {
-        xmpfr::sinh_cosh;
-        /// Computes the hyperbolic sine and cosine of `self`,
-        /// rounding to the nearest.
-        ///
-        /// The sine is stored in `self` and keeps its precision,
-        /// while the cosine is stored in `cos` keeping its precision.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let (sinh, cosh) = f.sinh_cosh(Float::new(53));
-        /// let expected_sinh = 1.6019_f64;
-        /// let expected_cosh = 1.8884_f64;
-        /// assert!((sinh - expected_sinh).abs() < 0.0001);
-        /// assert!((cosh - expected_cosh).abs() < 0.0001);
-        /// ```
-        fn sinh_cosh(cos);
-        /// Computes the hyperbolic sine and cosine of `self`,
-        /// rounding to the nearest.
-        ///
-        /// The sine is stored in `self` and keeps its precision,
-        /// while the cosine is stored in `cos` keeping its precision.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut sinh = Float::with_val(53, 1.25);
-        /// let mut cosh = Float::new(53);
-        /// sinh.sinh_cosh_mut(&mut cosh);
-        /// let expected_sinh = 1.6019_f64;
-        /// let expected_cosh = 1.8884_f64;
-        /// assert!((sinh - expected_sinh).abs() < 0.0001);
-        /// assert!((cosh - expected_cosh).abs() < 0.0001);
-        /// ```
-        fn sinh_cosh_mut;
-        /// Computes the hyperbolic sine and cosine of `self`,
-        /// applying the specified rounding method.
-        ///
-        /// The sine is stored in `self` and keeps its precision,
-        /// while the cosine is stored in `cos` keeping its precision.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut sinh = Float::with_val(4, 1.25);
-        /// let mut cosh = Float::new(4);
-        /// // sinh(1.25) = 1.6019, using 4 significant bits: 1.625
-        /// // cosh(1.25) = 1.8884, using 4 significant bits: 1.875
-        /// let (dir_sinh, dir_cosh) =
-        ///     sinh.sinh_cosh_round(&mut cosh, Round::Nearest);
-        /// assert_eq!(sinh, 1.625);
-        /// assert_eq!(dir_sinh, Ordering::Greater);
-        /// assert_eq!(cosh, 1.875);
-        /// assert_eq!(dir_cosh, Ordering::Less);
-        /// ```
-        fn sinh_cosh_round;
-        /// Computes the hyperbolic sine and cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Float][`Float`],
-        ///     [Float][`Float`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Float][`Float`],
-        ///     &amp;mut [Float][`Float`][)][tuple]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-        ///     [(][tuple][Float][`Float`],
-        ///     [Float][`Float`][)][tuple]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Float][`Float`],
-        ///     &amp;mut [Float][`Float`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, ops::AssignRound, Assign, Float};
-        /// use std::cmp::Ordering;
-        /// let phase = Float::with_val(53, 1.25);
-        ///
-        /// let (mut sinh, mut cosh) = (Float::new(53), Float::new(53));
-        /// let sinh_cosh = phase.sinh_cosh_ref();
-        /// (&mut sinh, &mut cosh).assign(sinh_cosh);
-        /// let expected_sinh = 1.6019_f64;
-        /// let expected_cosh = 1.8884_f64;
-        /// assert!((sinh - expected_sinh).abs() < 0.0001);
-        /// assert!((cosh - expected_cosh).abs() < 0.0001);
-        ///
-        /// // using 4 significant bits: sin = 1.625
-        /// // using 4 significant bits: cos = 1.875
-        /// let (mut sinh_4, mut cosh_4) = (Float::new(4), Float::new(4));
-        /// let sinh_cosh = phase.sinh_cosh_ref();
-        /// let (dir_sinh, dir_cosh) = (&mut sinh_4, &mut cosh_4)
-        ///     .assign_round(sinh_cosh, Round::Nearest);
-        /// assert_eq!(sinh_4, 1.625);
-        /// assert_eq!(dir_sinh, Ordering::Greater);
-        /// assert_eq!(cosh_4, 1.875);
-        /// assert_eq!(dir_cosh, Ordering::Less);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn sinh_cosh_ref -> SinhCoshIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::sech;
-        /// Computes the hyperbolic secant, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let sech = f.sech();
-        /// let expected = 0.5295_f64;
-        /// assert!((sech - expected).abs() < 0.0001);
-        /// ```
-        fn sech();
-        /// Computes the hyperbolic secant, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.sech_mut();
-        /// let expected = 0.5295_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn sech_mut;
-        /// Computes the hyperbolic secant, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // sech(1.25) = 0.5295
-        /// // using 4 significant bits: 0.5
-        /// let dir = f.sech_round(Round::Nearest);
-        /// assert_eq!(f, 0.5);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn sech_round;
-        /// Computes the hyperbolic secant.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let sech = Float::with_val(53, f.sech_ref());
-        /// let expected = 0.5295_f64;
-        /// assert!((sech - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sech_ref -> SechIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::csch;
-        /// Computes the hyperbolic cosecant, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let csch = f.csch();
-        /// let expected = 0.6243_f64;
-        /// assert!((csch - expected).abs() < 0.0001);
-        /// ```
-        fn csch();
-        /// Computes the hyperbolic cosecant, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.csch_mut();
-        /// let expected = 0.6243_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn csch_mut;
-        /// Computes the hyperbolic cosecant, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // csch(1.25) = 0.6243
-        /// // using 4 significant bits: 0.625
-        /// let dir = f.csch_round(Round::Nearest);
-        /// assert_eq!(f, 0.625);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn csch_round;
-        /// Computes the hyperbolic cosecant.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let csch = Float::with_val(53, f.csch_ref());
-        /// let expected = 0.6243_f64;
-        /// assert!((csch - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn csch_ref -> CschIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::coth;
-        /// Computes the hyperbolic cotangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let coth = f.coth();
-        /// let expected = 1.1789_f64;
-        /// assert!((coth - expected).abs() < 0.0001);
-        /// ```
-        fn coth();
-        /// Computes the hyperbolic cotangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.coth_mut();
-        /// let expected = 1.1789_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn coth_mut;
-        /// Computes the hyperbolic cotangent, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // coth(1.25) = 1.1789
-        /// // using 4 significant bits: 1.125
-        /// let dir = f.coth_round(Round::Nearest);
-        /// assert_eq!(f, 1.125);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn coth_round;
-        /// Computes the hyperbolic cotangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let coth = Float::with_val(53, f.coth_ref());
-        /// let expected = 1.1789_f64;
-        /// assert!((coth - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn coth_ref -> CothIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::asinh;
-        /// Computes the inverse hyperbolic sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let asinh = f.asinh();
-        /// let expected = 1.0476_f64;
-        /// assert!((asinh - expected).abs() < 0.0001);
-        /// ```
-        fn asinh();
-        /// Computes the inverse hyperbolic sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.asinh_mut();
-        /// let expected = 1.0476_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn asinh_mut;
-        /// Computes the inverse hyperbolic sine, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // asinh(1.25) = 1.0476
-        /// // using 4 significant bits: 1.0
-        /// let dir = f.asinh_round(Round::Nearest);
-        /// assert_eq!(f, 1.0);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn asinh_round;
-        /// Computes the inverse hyperbolic sine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let asinh = Float::with_val(53, f.asinh_ref());
-        /// let expected = 1.0476_f64;
-        /// assert!((asinh - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn asinh_ref -> AsinhIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::acosh;
-        /// Computes the inverse hyperbolic cosine, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let acosh = f.acosh();
-        /// let expected = 0.6931_f64;
-        /// assert!((acosh - expected).abs() < 0.0001);
-        /// ```
-        fn acosh();
-        /// Computes the inverse hyperbolic cosine, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.acosh_mut();
-        /// let expected = 0.6931_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn acosh_mut;
-        /// Computes the inverse hyperbolic cosine, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // acosh(1.25) = 0.6931
-        /// // using 4 significant bits: 0.6875
-        /// let dir = f.acosh_round(Round::Nearest);
-        /// assert_eq!(f, 0.6875);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn acosh_round;
-        /// Computes the inverse hyperbolic cosine
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let acosh = Float::with_val(53, f.acosh_ref());
-        /// let expected = 0.6931_f64;
-        /// assert!((acosh - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn acosh_ref -> AcoshIncomplete;
-    }
-    math_op1_float! {
-        xmpfr::atanh;
-        /// Computes the inverse hyperbolic tangent, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 0.75);
-        /// let atanh = f.atanh();
-        /// let expected = 0.9730_f64;
-        /// assert!((atanh - expected).abs() < 0.0001);
-        /// ```
-        fn atanh();
-        /// Computes the inverse hyperbolic tangent, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 0.75);
-        /// f.atanh_mut();
-        /// let expected = 0.9730_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn atanh_mut;
-        /// Computes the inverse hyperbolic tangent, applying the
-        /// specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 0.75);
-        /// // atanh(0.75) = 0.9730
-        /// // using 4 significant bits: 1.0
-        /// let dir = f.atanh_round(Round::Nearest);
-        /// assert_eq!(f, 1.0);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn atanh_round;
-        /// Computes the inverse hyperbolic tangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 0.75);
-        /// let atanh = Float::with_val(53, f.atanh_ref());
-        /// let expected = 0.9730_f64;
-        /// assert!((atanh - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn atanh_ref -> AtanhIncomplete;
-    }
-    math_op0! {
-        /// Computes the factorial of <i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// // 10 × 9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1
-        /// let n = Float::factorial(10);
-        /// let f = Float::with_val(53, n);
-        /// assert_eq!(f, 3628800.0);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn factorial(n: u32) -> FactorialIncomplete;
+    /// Computes the reciprocal, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // 5 in binary is 101
+    /// let mut f = Float::with_val(4, -5.0);
+    /// // 1/5 in binary is 0.00110011...
+    /// // 1/5 is rounded to 0.203125 (0.001101).
+    /// let dir = f.recip_round(Round::Nearest);
+    /// assert_eq!(f, -0.203125);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn recip_round(&mut self, round: Round) -> Ordering {
+        xmpfr::recip(self, None, round)
     }
 
-    math_op1_float! {
-        xmpfr::log1p;
-        /// Computes the natural logarithm of one plus `self`, rounding to
-        /// the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let two_to_m10 = (-10f64).exp2();
-        /// let f = Float::with_val(53, 1.5 * two_to_m10);
-        /// let ln_1p = f.ln_1p();
-        /// let expected = 1.4989_f64 * two_to_m10;
-        /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
-        /// ```
-        fn ln_1p();
-        /// Computes the natural logarithm of one plus `self`, rounding to
-        /// the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let two_to_m10 = (-10f64).exp2();
-        /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
-        /// f.ln_1p_mut();
-        /// let expected = 1.4989_f64 * two_to_m10;
-        /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
-        /// ```
-        fn ln_1p_mut;
-        /// Computes the natural logarithm of one plus `self`, applying
-        /// the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// let two_to_m10 = (-10f64).exp2();
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
-        /// // ln_1p(1.5 × 2 ^ −10) = 1.4989 × 2 ^ −10
-        /// // using 4 significant bits: 1.5 × 2 ^ −10
-        /// let dir = f.ln_1p_round(Round::Nearest);
-        /// assert_eq!(f, 1.5 * two_to_m10);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn ln_1p_round;
-        /// Computes the natural logorithm of one plus the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let two_to_m10 = (-10f64).exp2();
-        /// let f = Float::with_val(53, 1.5 * two_to_m10);
-        /// let ln_1p = Float::with_val(53, f.ln_1p_ref());
-        /// let expected = 1.4989_f64 * two_to_m10;
-        /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn ln_1p_ref -> Ln1pIncomplete;
+    /// Computes the reciprocal.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.25);
+    /// let r = f.recip_ref();
+    /// let recip = Float::with_val(53, r);
+    /// assert_eq!(recip, -4.0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn recip_ref(&self) -> RecipIncomplete<'_> {
+        RecipIncomplete { ref_self: self }
     }
-    math_op1_float! {
-        xmpfr::expm1;
-        /// Subtracts one from the exponential of `self`, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let two_to_m10 = (-10f64).exp2();
-        /// let f = Float::with_val(53, 1.5 * two_to_m10);
-        /// let exp_m1 = f.exp_m1();
-        /// let expected = 1.5011_f64 * two_to_m10;
-        /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
-        /// ```
-        fn exp_m1();
-        /// Subtracts one from the exponential of `self`, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let two_to_m10 = (-10f64).exp2();
-        /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
-        /// f.exp_m1_mut();
-        /// let expected = 1.5011_f64 * two_to_m10;
-        /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
-        /// ```
-        fn exp_m1_mut;
-        /// Subtracts one from the exponential of `self`, applying the
-        /// specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// let two_to_m10 = (-10f64).exp2();
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
-        /// // exp_m1(1.5 × 2 ^ −10) = 1.5011 × 2 ^ −10
-        /// // using 4 significant bits: 1.5 × 2 ^ −10
-        /// let dir = f.exp_m1_round(Round::Nearest);
-        /// assert_eq!(f, 1.5 * two_to_m10);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn exp_m1_round;
-        /// Computes one less than the exponential of the
-        /// value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let two_to_m10 = (-10f64).exp2();
-        /// let f = Float::with_val(53, 1.5 * two_to_m10);
-        /// let exp_m1 = Float::with_val(53, f.exp_m1_ref());
-        /// let expected = 1.5011_f64 * two_to_m10;
-        /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn exp_m1_ref -> ExpM1Incomplete;
+
+    /// Finds the minimum, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 5.2);
+    /// let b = Float::with_val(53, -2);
+    /// let min = a.min(&b);
+    /// assert_eq!(min, -2);
+    /// ```
+    #[inline]
+    pub fn min(mut self, other: &Self) -> Self {
+        self.min_round(other, <Round as Default>::default());
+        self
     }
-    math_op1_float! {
-        xmpfr::eint;
-        /// Computes the exponential integral, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let eint = f.eint();
-        /// let expected = 2.5810_f64;
-        /// assert!((eint - expected).abs() < 0.0001);
-        /// ```
-        fn eint();
-        /// Computes the exponential integral, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.eint_mut();
-        /// let expected = 2.5810_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn eint_mut;
-        /// Computes the exponential integral, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // eint(1.25) = 2.5810
-        /// // using 4 significant bits: 2.5
-        /// let dir = f.eint_round(Round::Nearest);
-        /// assert_eq!(f, 2.5);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn eint_round;
-        /// Computes the exponential integral.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let eint = Float::with_val(53, f.eint_ref());
-        /// let expected = 2.5810_f64;
-        /// assert!((eint - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn eint_ref -> EintIncomplete;
+
+    /// Finds the minimum, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut a = Float::with_val(53, 5.2);
+    /// let b = Float::with_val(53, -2);
+    /// a.min_mut(&b);
+    /// assert_eq!(a, -2);
+    /// ```
+    #[inline]
+    pub fn min_mut(&mut self, other: &Self) {
+        self.min_round(other, <Round as Default>::default());
     }
-    math_op1_float! {
-        xmpfr::li2;
-        /// Computes the real part of the dilogarithm of `self`, rounding
-        /// to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let li2 = f.li2();
-        /// let expected = 2.1902_f64;
-        /// assert!((li2 - expected).abs() < 0.0001);
-        /// ```
-        fn li2();
-        /// Computes the real part of the dilogarithm of `self`, rounding
-        /// to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.li2_mut();
-        /// let expected = 2.1902_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn li2_mut;
-        /// Computes the real part of the dilogarithm of `self`, applying
-        /// the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // li2(1.25) = 2.1902
-        /// // using 4 significant bits: 2.25
-        /// let dir = f.li2_round(Round::Nearest);
-        /// assert_eq!(f, 2.25);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn li2_round;
-        /// Computes the real part of the dilogarithm of the
-        /// value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let li2 = Float::with_val(53, f.li2_ref());
-        /// let expected = 2.1902_f64;
-        /// assert!((li2 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn li2_ref -> Li2Incomplete;
+
+    /// Finds the minimum, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// let mut a = Float::with_val(53, 5.2);
+    /// let b = Float::with_val(53, -2);
+    /// let dir = a.min_round(&b, Round::Nearest);
+    /// assert_eq!(a, -2);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// ```
+    #[inline]
+    pub fn min_round(&mut self, other: &Self, round: Round) -> Ordering {
+        xmpfr::min(self, None, Some(other), round)
     }
-    math_op1_float! {
-        xmpfr::gamma;
-        /// Computes the value of the gamma function on `self`, rounding
-        /// to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let gamma = f.gamma();
-        /// let expected = 0.9064_f64;
-        /// assert!((gamma - expected).abs() < 0.0001);
-        /// ```
-        fn gamma();
-        /// Computes the value of the gamma function on `self`, rounding
-        /// to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.gamma_mut();
-        /// let expected = 0.9064_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn gamma_mut;
-        /// Computes the value of the gamma function on `self`, applying
-        /// the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // gamma(1.25) = 0.9064
-        /// // using 4 significant bits: 0.9375
-        /// let dir = f.gamma_round(Round::Nearest);
-        /// assert_eq!(f, 0.9375);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn gamma_round;
-        /// Computes the gamma function on the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let gamma = Float::with_val(53, f.gamma_ref());
-        /// let expected = 0.9064_f64;
-        /// assert!((gamma - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn gamma_ref -> GammaIncomplete;
+
+    /// Finds the minimum.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 5.2);
+    /// let b = Float::with_val(53, -2);
+    /// let r = a.min_ref(&b);
+    /// let min = Float::with_val(53, r);
+    /// assert_eq!(min, -2);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn min_ref<'a>(&'a self, other: &'a Self) -> MinIncomplete<'_> {
+        MinIncomplete {
+            ref_self: self,
+            other,
+        }
     }
-    math_op2_float! {
-        xmpfr::gamma_inc;
-        /// Computes the value of the upper incomplete gamma function
-        /// on `self` and `x`, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let x = Float::with_val(53, 2.5);
-        /// let gamma_inc = f.gamma_inc(&x);
-        /// let expected = 0.1116_f64;
-        /// assert!((gamma_inc - expected).abs() < 0.0001);
-        /// ```
-        fn gamma_inc(x);
-        /// Computes the value of the upper incomplete gamma function
-        /// on `self`, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// let x = Float::with_val(53, 2.5);
-        /// f.gamma_inc_mut(&x);
-        /// let expected = 0.1116_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn gamma_inc_mut;
-        /// Computes the value of the upper incomplete gamma function
-        /// on `self`, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// let x = Float::with_val(53, 2.5);
-        /// // gamma_inc(1.25, 2.5) = 0.1116
-        /// // using 4 significant bits: 0.109375
-        /// let dir = f.gamma_inc_round(&x, Round::Nearest);
-        /// assert_eq!(f, 0.109375);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn gamma_inc_round;
-        /// Computes the upper incomplete gamma function on the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let x = Float::with_val(53, 2.5);
-        /// let gamma_inc = Float::with_val(53, f.gamma_inc_ref(&x));
-        /// let expected = 0.1116_f64;
-        /// assert!((gamma_inc - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn gamma_inc_ref -> GammaIncIncomplete;
+
+    /// Finds the maximum, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 5.2);
+    /// let b = Float::with_val(53, 12.5);
+    /// let max = a.max(&b);
+    /// assert_eq!(max, 12.5);
+    /// ```
+    #[inline]
+    pub fn max(mut self, other: &Self) -> Self {
+        self.max_round(other, <Round as Default>::default());
+        self
     }
-    math_op1_float! {
-        xmpfr::lngamma;
-        /// Computes the logarithm of the gamma function on `self`,
-        /// rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let ln_gamma = f.ln_gamma();
-        /// let expected = -0.0983_f64;
-        /// assert!((ln_gamma - expected).abs() < 0.0001);
-        /// ```
-        fn ln_gamma();
-        /// Computes the logarithm of the gamma function on `self`,
-        /// rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.ln_gamma_mut();
-        /// let expected = -0.0983_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn ln_gamma_mut;
-        /// Computes the logarithm of the gamma function on `self`,
-        /// applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // ln_gamma(1.25) = −0.0983
-        /// // using 4 significant bits: −0.1015625
-        /// let dir = f.ln_gamma_round(Round::Nearest);
-        /// assert_eq!(f, -0.1015625);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn ln_gamma_round;
-        /// Computes the logarithm of the gamma function on
-        /// the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let ln_gamma = Float::with_val(53, f.ln_gamma_ref());
-        /// let expected = -0.0983_f64;
-        /// assert!((ln_gamma - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn ln_gamma_ref -> LnGammaIncomplete;
+
+    /// Finds the maximum, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut a = Float::with_val(53, 5.2);
+    /// let b = Float::with_val(53, 12.5);
+    /// a.max_mut(&b);
+    /// assert_eq!(a, 12.5);
+    /// ```
+    #[inline]
+    pub fn max_mut(&mut self, other: &Self) {
+        self.max_round(other, <Round as Default>::default());
+    }
+
+    /// Finds the maximum, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// let mut a = Float::with_val(53, 5.2);
+    /// let b = Float::with_val(53, 12.5);
+    /// let dir = a.max_round(&b, Round::Nearest);
+    /// assert_eq!(a, 12.5);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// ```
+    #[inline]
+    pub fn max_round(&mut self, other: &Self, round: Round) -> Ordering {
+        xmpfr::max(self, None, Some(other), round)
+    }
+
+    /// Finds the maximum.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 5.2);
+    /// let b = Float::with_val(53, 12.5);
+    /// let r = a.max_ref(&b);
+    /// let max = Float::with_val(53, r);
+    /// assert_eq!(max, 12.5);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn max_ref<'a>(&'a self, other: &'a Self) -> MaxIncomplete<'_> {
+        MaxIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Computes the positive difference between `self` and
+    /// `other`, rounding to the nearest.
+    ///
+    /// The positive difference is `self` − `other` if `self` >
+    /// `other`, zero if `self` ≤ `other`, or NaN if any operand
+    /// is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 12.5);
+    /// let b = Float::with_val(53, 7.3);
+    /// let diff1 = a.positive_diff(&b);
+    /// assert_eq!(diff1, 5.2);
+    /// let diff2 = diff1.positive_diff(&b);
+    /// assert_eq!(diff2, 0);
+    /// ```
+    #[inline]
+    pub fn positive_diff(mut self, other: &Self) -> Self {
+        self.positive_diff_round(other, <Round as Default>::default());
+        self
+    }
+
+    /// Computes the positive difference between `self` and
+    /// `other`, rounding to the nearest.
+    ///
+    /// The positive difference is `self` − `other` if `self` >
+    /// `other`, zero if `self` ≤ `other`, or NaN if any operand
+    /// is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut a = Float::with_val(53, 12.5);
+    /// let b = Float::with_val(53, 7.3);
+    /// a.positive_diff_mut(&b);
+    /// assert_eq!(a, 5.2);
+    /// a.positive_diff_mut(&b);
+    /// assert_eq!(a, 0);
+    /// ```
+    #[inline]
+    pub fn positive_diff_mut(&mut self, other: &Self) {
+        self.positive_diff_round(other, <Round as Default>::default());
+    }
+
+    /// Computes the positive difference between `self` and
+    /// `other`, applying the specified rounding method.
+    ///
+    /// The positive difference is `self` − `other` if `self` >
+    /// `other`, zero if `self` ≤ `other`, or NaN if any operand
+    /// is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// let mut a = Float::with_val(53, 12.5);
+    /// let b = Float::with_val(53, 7.3);
+    /// let dir = a.positive_diff_round(&b, Round::Nearest);
+    /// assert_eq!(a, 5.2);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// let dir = a.positive_diff_round(&b, Round::Nearest);
+    /// assert_eq!(a, 0);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// ```
+    #[inline]
+    pub fn positive_diff_round(&mut self, other: &Self, round: Round) -> Ordering {
+        xmpfr::dim(self, None, Some(other), round)
+    }
+
+    /// Computes the positive difference.
+    ///
+    /// The positive difference is `self` − `other` if `self` >
+    /// `other`, zero if `self` ≤ `other`, or NaN if any operand
+    /// is NaN.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 12.5);
+    /// let b = Float::with_val(53, 7.3);
+    /// let rab = a.positive_diff_ref(&b);
+    /// let ab = Float::with_val(53, rab);
+    /// assert_eq!(ab, 5.2);
+    /// let rba = b.positive_diff_ref(&a);
+    /// let ba = Float::with_val(53, rba);
+    /// assert_eq!(ba, 0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn positive_diff_ref<'a>(&'a self, other: &'a Self) -> PositiveDiffIncomplete<'_> {
+        PositiveDiffIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Computes the natural logarithm, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let ln = f.ln();
+    /// let expected = 0.4055_f64;
+    /// assert!((ln - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn ln(mut self) -> Self {
+        self.ln_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the natural logarithm, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.5);
+    /// f.ln_mut();
+    /// let expected = 0.4055_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn ln_mut(&mut self) {
+        self.ln_round(<Round as Default>::default());
+    }
+
+    /// Computes the natural logarithm, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5);
+    /// // ln(1.5) = 0.4055
+    /// // using 4 significant bits: 0.40625
+    /// let dir = f.ln_round(Round::Nearest);
+    /// assert_eq!(f, 0.40625);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn ln_round(&mut self, round: Round) -> Ordering {
+        xmpfr::log(self, None, round)
+    }
+
+    /// Computes the natural logarithm.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let ln = Float::with_val(53, f.ln_ref());
+    /// let expected = 0.4055_f64;
+    /// assert!((ln - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn ln_ref(&self) -> LnIncomplete<'_> {
+        LnIncomplete { ref_self: self }
+    }
+
+    /// Computes the natural logarithm of `u`.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let l = Float::ln_u(3);
+    /// let f = Float::with_val(53, l);
+    /// let expected = 1.0986f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn ln_u(u: u32) -> LnUIncomplete {
+        LnUIncomplete { u }
+    }
+
+    /// Computes the logarithm to base 2, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let log2 = f.log2();
+    /// let expected = 0.5850_f64;
+    /// assert!((log2 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn log2(mut self) -> Self {
+        self.log2_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the logarithm to base 2, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.5);
+    /// f.log2_mut();
+    /// let expected = 0.5850_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn log2_mut(&mut self) {
+        self.log2_round(<Round as Default>::default());
+    }
+
+    /// Computes the logarithm to base 2, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5);
+    /// // log2(1.5) = 0.5850
+    /// // using 4 significant bits: 0.5625
+    /// let dir = f.log2_round(Round::Nearest);
+    /// assert_eq!(f, 0.5625);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn log2_round(&mut self, round: Round) -> Ordering {
+        xmpfr::log2(self, None, round)
+    }
+
+    /// Computes the logarithm to base 2.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let log2 = Float::with_val(53, f.log2_ref());
+    /// let expected = 0.5850_f64;
+    /// assert!((log2 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn log2_ref(&self) -> Log2Incomplete<'_> {
+        Log2Incomplete { ref_self: self }
+    }
+
+    /// Computes the logarithm to base 10, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let log10 = f.log10();
+    /// let expected = 0.1761_f64;
+    /// assert!((log10 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn log10(mut self) -> Self {
+        self.log10_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the logarithm to base 10, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.5);
+    /// f.log10_mut();
+    /// let expected = 0.1761_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn log10_mut(&mut self) {
+        self.log10_round(<Round as Default>::default());
+    }
+
+    /// Computes the logarithm to base 10, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5);
+    /// // log10(1.5) = 0.1761
+    /// // using 4 significant bits: 0.171875
+    /// let dir = f.log10_round(Round::Nearest);
+    /// assert_eq!(f, 0.171875);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn log10_round(&mut self, round: Round) -> Ordering {
+        xmpfr::log10(self, None, round)
+    }
+
+    /// Computes the logarithm to base 10.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let log10 = Float::with_val(53, f.log10_ref());
+    /// let expected = 0.1761_f64;
+    /// assert!((log10 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn log10_ref(&self) -> Log10Incomplete<'_> {
+        Log10Incomplete { ref_self: self }
+    }
+
+    /// Computes the exponential, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let exp = f.exp();
+    /// let expected = 4.4817_f64;
+    /// assert!((exp - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn exp(mut self) -> Self {
+        self.exp_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the exponential, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.5);
+    /// f.exp_mut();
+    /// let expected = 4.4817_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn exp_mut(&mut self) {
+        self.exp_round(<Round as Default>::default());
+    }
+
+    /// Computes the exponential, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5);
+    /// // exp(1.5) = 4.4817
+    /// // using 4 significant bits: 4.5
+    /// let dir = f.exp_round(Round::Nearest);
+    /// assert_eq!(f, 4.5);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn exp_round(&mut self, round: Round) -> Ordering {
+        xmpfr::exp(self, None, round)
+    }
+
+    /// Computes the exponential.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let exp = Float::with_val(53, f.exp_ref());
+    /// let expected = 4.4817_f64;
+    /// assert!((exp - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn exp_ref(&self) -> ExpIncomplete<'_> {
+        ExpIncomplete { ref_self: self }
+    }
+
+    /// Computes 2 to the power of `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let exp2 = f.exp2();
+    /// let expected = 2.8284_f64;
+    /// assert!((exp2 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn exp2(mut self) -> Self {
+        self.exp2_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes 2 to the power of `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.5);
+    /// f.exp2_mut();
+    /// let expected = 2.8284_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn exp2_mut(&mut self) {
+        self.exp2_round(<Round as Default>::default());
+    }
+
+    /// Computes 2 to the power of `self`, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5);
+    /// // exp2(1.5) = 2.8284
+    /// // using 4 significant bits: 2.75
+    /// let dir = f.exp2_round(Round::Nearest);
+    /// assert_eq!(f, 2.75);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn exp2_round(&mut self, round: Round) -> Ordering {
+        xmpfr::exp2(self, None, round)
+    }
+
+    /// Computes 2 to the power of the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let exp2 = Float::with_val(53, f.exp2_ref());
+    /// let expected = 2.8284_f64;
+    /// assert!((exp2 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn exp2_ref(&self) -> Exp2Incomplete<'_> {
+        Exp2Incomplete { ref_self: self }
+    }
+
+    /// Computes 10 to the power of `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let exp10 = f.exp10();
+    /// let expected = 31.6228_f64;
+    /// assert!((exp10 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn exp10(mut self) -> Self {
+        self.exp10_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes 10 to the power of `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.5);
+    /// f.exp10_mut();
+    /// let expected = 31.6228_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn exp10_mut(&mut self) {
+        self.exp10_round(<Round as Default>::default());
+    }
+
+    /// Computes 10 to the power of `self`, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5);
+    /// // exp10(1.5) = 31.6228
+    /// // using 4 significant bits: 32
+    /// let dir = f.exp10_round(Round::Nearest);
+    /// assert_eq!(f, 32);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn exp10_round(&mut self, round: Round) -> Ordering {
+        xmpfr::exp10(self, None, round)
+    }
+
+    /// Computes 10 to the power of the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.5);
+    /// let exp10 = Float::with_val(53, f.exp10_ref());
+    /// let expected = 31.6228_f64;
+    /// assert!((exp10 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn exp10_ref(&self) -> Exp10Incomplete<'_> {
+        Exp10Incomplete { ref_self: self }
+    }
+
+    /// Computes the sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let sin = f.sin();
+    /// let expected = 0.9490_f64;
+    /// assert!((sin - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin(mut self) -> Self {
+        self.sin_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.sin_mut();
+    /// let expected = 0.9490_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin_mut(&mut self) {
+        self.sin_round(<Round as Default>::default());
+    }
+
+    /// Computes the sine, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // sin(1.25) = 0.9490
+    /// // using 4 significant bits: 0.9375
+    /// let dir = f.sin_round(Round::Nearest);
+    /// assert_eq!(f, 0.9375);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn sin_round(&mut self, round: Round) -> Ordering {
+        xmpfr::sin(self, None, round)
+    }
+
+    /// Computes the sine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let sin = Float::with_val(53, f.sin_ref());
+    /// let expected = 0.9490_f64;
+    /// assert!((sin - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sin_ref(&self) -> SinIncomplete<'_> {
+        SinIncomplete { ref_self: self }
+    }
+
+    /// Computes the cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let cos = f.cos();
+    /// let expected = 0.3153_f64;
+    /// assert!((cos - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cos(mut self) -> Self {
+        self.cos_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.cos_mut();
+    /// let expected = 0.3153_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cos_mut(&mut self) {
+        self.cos_round(<Round as Default>::default());
+    }
+
+    /// Computes the cosine, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // cos(1.25) = 0.3153
+    /// // using 4 significant bits: 0.3125
+    /// let dir = f.cos_round(Round::Nearest);
+    /// assert_eq!(f, 0.3125);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn cos_round(&mut self, round: Round) -> Ordering {
+        xmpfr::cos(self, None, round)
+    }
+
+    /// Computes the cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let cos = Float::with_val(53, f.cos_ref());
+    /// let expected = 0.3153_f64;
+    /// assert!((cos - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn cos_ref(&self) -> CosIncomplete<'_> {
+        CosIncomplete { ref_self: self }
+    }
+
+    /// Computes the tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let tan = f.tan();
+    /// let expected = 3.0096_f64;
+    /// assert!((tan - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tan(mut self) -> Self {
+        self.tan_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.tan_mut();
+    /// let expected = 3.0096_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tan_mut(&mut self) {
+        self.tan_round(<Round as Default>::default());
+    }
+
+    /// Computes the tangent, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // tan(1.25) = 3.0096
+    /// // using 4 significant bits: 3.0
+    /// let dir = f.tan_round(Round::Nearest);
+    /// assert_eq!(f, 3.0);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn tan_round(&mut self, round: Round) -> Ordering {
+        xmpfr::tan(self, None, round)
+    }
+
+    /// Computes the tangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let tan = Float::with_val(53, f.tan_ref());
+    /// let expected = 3.0096_f64;
+    /// assert!((tan - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn tan_ref(&self) -> TanIncomplete<'_> {
+        TanIncomplete { ref_self: self }
+    }
+
+    /// Computes the sine and cosine of `self`, rounding to the
+    /// nearest.
+    ///
+    /// The sine is stored in `self` and keeps its precision,
+    /// while the cosine is stored in `cos` keeping its precision.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let (sin, cos) = f.sin_cos(Float::new(53));
+    /// let expected_sin = 0.9490_f64;
+    /// let expected_cos = 0.3153_f64;
+    /// assert!((sin - expected_sin).abs() < 0.0001);
+    /// assert!((cos - expected_cos).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin_cos(mut self, mut cos: Self) -> (Self, Self) {
+        self.sin_cos_round(&mut cos, <Round as Default>::default());
+        (self, cos)
+    }
+
+    /// Computes the sine and cosine of `self`, rounding to the
+    /// nearest.
+    ///
+    /// The sine is stored in `self` and keeps its precision,
+    /// while the cosine is stored in `cos` keeping its precision.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut sin = Float::with_val(53, 1.25);
+    /// let mut cos = Float::new(53);
+    /// sin.sin_cos_mut(&mut cos);
+    /// let expected_sin = 0.9490_f64;
+    /// let expected_cos = 0.3153_f64;
+    /// assert!((sin - expected_sin).abs() < 0.0001);
+    /// assert!((cos - expected_cos).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin_cos_mut(&mut self, cos: &mut Self) {
+        self.sin_cos_round(cos, <Round as Default>::default());
+    }
+
+    /// Computes the sine and cosine of `self`, applying the specified
+    /// rounding method.
+    ///
+    /// The sine is stored in `self` and keeps its precision,
+    /// while the cosine is stored in `cos` keeping its precision.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut sin = Float::with_val(4, 1.25);
+    /// let mut cos = Float::new(4);
+    /// // sin(1.25) = 0.9490, using 4 significant bits: 0.9375
+    /// // cos(1.25) = 0.3153, using 4 significant bits: 0.3125
+    /// let (dir_sin, dir_cos) =
+    ///     sin.sin_cos_round(&mut cos, Round::Nearest);
+    /// assert_eq!(sin, 0.9375);
+    /// assert_eq!(dir_sin, Ordering::Less);
+    /// assert_eq!(cos, 0.3125);
+    /// assert_eq!(dir_cos, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn sin_cos_round(&mut self, cos: &mut Self, round: Round) -> (Ordering, Ordering) {
+        xmpfr::sin_cos(self, cos, None, round)
+    }
+
+    /// Computes the sine and cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Float][`Float`],
+    ///     [Float][`Float`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Float][`Float`],
+    ///     &amp;mut [Float][`Float`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///     [(][tuple][Float][`Float`],
+    ///     [Float][`Float`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Float][`Float`],
+    ///     &amp;mut [Float][`Float`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, ops::AssignRound, Assign, Float};
+    /// use std::cmp::Ordering;
+    /// let phase = Float::with_val(53, 1.25);
+    ///
+    /// let (mut sin, mut cos) = (Float::new(53), Float::new(53));
+    /// let sin_cos = phase.sin_cos_ref();
+    /// (&mut sin, &mut cos).assign(sin_cos);
+    /// let expected_sin = 0.9490_f64;
+    /// let expected_cos = 0.3153_f64;
+    /// assert!((sin - expected_sin).abs() < 0.0001);
+    /// assert!((cos - expected_cos).abs() < 0.0001);
+    ///
+    /// // using 4 significant bits: sin = 0.9375
+    /// // using 4 significant bits: cos = 0.3125
+    /// let (mut sin_4, mut cos_4) = (Float::new(4), Float::new(4));
+    /// let sin_cos = phase.sin_cos_ref();
+    /// let (dir_sin, dir_cos) = (&mut sin_4, &mut cos_4)
+    ///     .assign_round(sin_cos, Round::Nearest);
+    /// assert_eq!(sin_4, 0.9375);
+    /// assert_eq!(dir_sin, Ordering::Less);
+    /// assert_eq!(cos_4, 0.3125);
+    /// assert_eq!(dir_cos, Ordering::Less);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn sin_cos_ref(&self) -> SinCosIncomplete<'_> {
+        SinCosIncomplete { ref_self: self }
+    }
+
+    /// Computes the secant, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let sec = f.sec();
+    /// let expected = 3.1714_f64;
+    /// assert!((sec - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sec(mut self) -> Self {
+        self.sec_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the secant, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.sec_mut();
+    /// let expected = 3.1714_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sec_mut(&mut self) {
+        self.sec_round(<Round as Default>::default());
+    }
+
+    /// Computes the secant, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // sec(1.25) = 3.1714
+    /// // using 4 significant bits: 3.25
+    /// let dir = f.sec_round(Round::Nearest);
+    /// assert_eq!(f, 3.25);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn sec_round(&mut self, round: Round) -> Ordering {
+        xmpfr::sec(self, None, round)
+    }
+
+    /// Computes the secant.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let sec = Float::with_val(53, f.sec_ref());
+    /// let expected = 3.1714_f64;
+    /// assert!((sec - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sec_ref(&self) -> SecIncomplete<'_> {
+        SecIncomplete { ref_self: self }
+    }
+
+    /// Computes the cosecant, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let csc = f.csc();
+    /// let expected = 1.0538_f64;
+    /// assert!((csc - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn csc(mut self) -> Self {
+        self.csc_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the cosecant, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.csc_mut();
+    /// let expected = 1.0538_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn csc_mut(&mut self) {
+        self.csc_round(<Round as Default>::default());
+    }
+
+    /// Computes the cosecant, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // csc(1.25) = 1.0538
+    /// // using 4 significant bits: 1.0
+    /// let dir = f.csc_round(Round::Nearest);
+    /// assert_eq!(f, 1.0);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn csc_round(&mut self, round: Round) -> Ordering {
+        xmpfr::csc(self, None, round)
+    }
+
+    /// Computes the cosecant.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let csc = Float::with_val(53, f.csc_ref());
+    /// let expected = 1.0538_f64;
+    /// assert!((csc - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn csc_ref(&self) -> CscIncomplete<'_> {
+        CscIncomplete { ref_self: self }
+    }
+
+    /// Computes the cotangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let cot = f.cot();
+    /// let expected = 0.3323_f64;
+    /// assert!((cot - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cot(mut self) -> Self {
+        self.cot_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the cotangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.cot_mut();
+    /// let expected = 0.3323_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cot_mut(&mut self) {
+        self.cot_round(<Round as Default>::default());
+    }
+
+    /// Computes the cotangent, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // cot(1.25) = 0.3323
+    /// // using 4 significant bits: 0.34375
+    /// let dir = f.cot_round(Round::Nearest);
+    /// assert_eq!(f, 0.34375);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn cot_round(&mut self, round: Round) -> Ordering {
+        xmpfr::cot(self, None, round)
+    }
+
+    /// Computes the cotangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let cot = Float::with_val(53, f.cot_ref());
+    /// let expected = 0.3323_f64;
+    /// assert!((cot - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn cot_ref(&self) -> CotIncomplete<'_> {
+        CotIncomplete { ref_self: self }
+    }
+
+    /// Computes the arc-sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let asin = f.asin();
+    /// let expected = -0.8481_f64;
+    /// assert!((asin - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asin(mut self) -> Self {
+        self.asin_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the arc-sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.asin_mut();
+    /// let expected = -0.8481_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asin_mut(&mut self) {
+        self.asin_round(<Round as Default>::default());
+    }
+
+    /// Computes the arc-sine, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // asin(−0.75) = −0.8481
+    /// // using 4 significant bits: −0.875
+    /// let dir = f.asin_round(Round::Nearest);
+    /// assert_eq!(f, -0.875);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn asin_round(&mut self, round: Round) -> Ordering {
+        xmpfr::asin(self, None, round)
+    }
+
+    /// Computes the arc-sine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let asin = Float::with_val(53, f.asin_ref());
+    /// let expected = -0.8481_f64;
+    /// assert!((asin - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn asin_ref(&self) -> AsinIncomplete<'_> {
+        AsinIncomplete { ref_self: self }
+    }
+
+    /// Computes the arc-cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let acos = f.acos();
+    /// let expected = 2.4189_f64;
+    /// assert!((acos - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acos(mut self) -> Self {
+        self.acos_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the arc-cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.acos_mut();
+    /// let expected = 2.4189_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acos_mut(&mut self) {
+        self.acos_round(<Round as Default>::default());
+    }
+
+    /// Computes the arc-cosine, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // acos(−0.75) = 2.4189
+    /// // using 4 significant bits: 2.5
+    /// let dir = f.acos_round(Round::Nearest);
+    /// assert_eq!(f, 2.5);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn acos_round(&mut self, round: Round) -> Ordering {
+        xmpfr::acos(self, None, round)
+    }
+
+    /// Computes the arc-cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let acos = Float::with_val(53, f.acos_ref());
+    /// let expected = 2.4189_f64;
+    /// assert!((acos - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn acos_ref(&self) -> AcosIncomplete<'_> {
+        AcosIncomplete { ref_self: self }
+    }
+
+    /// Computes the arc-tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let atan = f.atan();
+    /// let expected = -0.6435_f64;
+    /// assert!((atan - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan(mut self) -> Self {
+        self.atan_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the arc-tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.atan_mut();
+    /// let expected = -0.6435_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan_mut(&mut self) {
+        self.atan_round(<Round as Default>::default());
+    }
+
+    /// Computes the arc-tangent, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // atan(−0.75) = −0.6435
+    /// // using 4 significant bits: −0.625
+    /// let dir = f.atan_round(Round::Nearest);
+    /// assert_eq!(f, -0.625);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn atan_round(&mut self, round: Round) -> Ordering {
+        xmpfr::atan(self, None, round)
+    }
+
+    /// Computes the arc-tangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let atan = Float::with_val(53, f.atan_ref());
+    /// let expected = -0.6435_f64;
+    /// assert!((atan - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn atan_ref(&self) -> AtanIncomplete<'_> {
+        AtanIncomplete { ref_self: self }
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x`, rounding to
+    /// the nearest.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but
+    /// has an output range of 2π rather than π.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// let atan2 = y.atan2(&x);
+    /// let expected = 2.4981_f64;
+    /// assert!((atan2 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan2(mut self, x: &Self) -> Self {
+        self.atan2_round(x, <Round as Default>::default());
+        self
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x`, rounding to
+    /// the nearest.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but
+    /// has an output range of 2π rather than π.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// y.atan2_mut(&x);
+    /// let expected = 2.4981_f64;
+    /// assert!((y - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan2_mut(&mut self, x: &Self) {
+        self.atan2_round(x, <Round as Default>::default());
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x`, applying the
+    /// specified rounding method.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but
+    /// has an output range of 2π rather than π.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut y = Float::with_val(4, 3.0);
+    /// let x = Float::with_val(4, -4.0);
+    /// // atan2(3.0, −4.0) = 2.4981
+    /// // using 4 significant bits: 2.5
+    /// let dir = y.atan2_round(&x, Round::Nearest);
+    /// assert_eq!(y, 2.5);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn atan2_round(&mut self, x: &Self, round: Round) -> Ordering {
+        xmpfr::atan2(self, None, Some(x), round)
+    }
+
+    /// Computes the arc-tangent.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but
+    /// has an output range of 2π rather than π.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// let r = y.atan2_ref(&x);
+    /// let atan2 = Float::with_val(53, r);
+    /// let expected = 2.4981_f64;
+    /// assert!((atan2 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn atan2_ref<'a>(&'a self, x: &'a Self) -> Atan2Incomplete<'_> {
+        Atan2Incomplete { ref_self: self, x }
+    }
+
+    /// Computes the hyperbolic sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let sinh = f.sinh();
+    /// let expected = 1.6019_f64;
+    /// assert!((sinh - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sinh(mut self) -> Self {
+        self.sinh_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.sinh_mut();
+    /// let expected = 1.6019_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sinh_mut(&mut self) {
+        self.sinh_round(<Round as Default>::default());
+    }
+
+    /// Computes the hyperbolic sine, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // sinh(1.25) = 1.6019
+    /// // using 4 significant bits: 1.625
+    /// let dir = f.sinh_round(Round::Nearest);
+    /// assert_eq!(f, 1.625);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn sinh_round(&mut self, round: Round) -> Ordering {
+        xmpfr::sinh(self, None, round)
+    }
+
+    /// Computes the hyperbolic sine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let sinh = Float::with_val(53, f.sinh_ref());
+    /// let expected = 1.6019_f64;
+    /// assert!((sinh - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sinh_ref(&self) -> SinhIncomplete<'_> {
+        SinhIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let cosh = f.cosh();
+    /// let expected = 1.8884_f64;
+    /// assert!((cosh - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cosh(mut self) -> Self {
+        self.cosh_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.cosh_mut();
+    /// let expected = 1.8884_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cosh_mut(&mut self) {
+        self.cosh_round(<Round as Default>::default());
+    }
+
+    /// Computes the hyperbolic cosine, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // cosh(1.25) = 1.8884
+    /// // using 4 significant bits: 1.875
+    /// let dir = f.cosh_round(Round::Nearest);
+    /// assert_eq!(f, 1.875);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn cosh_round(&mut self, round: Round) -> Ordering {
+        xmpfr::cosh(self, None, round)
+    }
+
+    /// Computes the hyperbolic cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let cosh = Float::with_val(53, f.cosh_ref());
+    /// let expected = 1.8884_f64;
+    /// assert!((cosh - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn cosh_ref(&self) -> CoshIncomplete<'_> {
+        CoshIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let tanh = f.tanh();
+    /// let expected = 0.8483_f64;
+    /// assert!((tanh - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tanh(mut self) -> Self {
+        self.tanh_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.tanh_mut();
+    /// let expected = 0.8483_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tanh_mut(&mut self) {
+        self.tanh_round(<Round as Default>::default());
+    }
+
+    /// Computes the hyperbolic tangent, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // tanh(1.25) = 0.8483
+    /// // using 4 significant bits: 0.875
+    /// let dir = f.tanh_round(Round::Nearest);
+    /// assert_eq!(f, 0.875);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn tanh_round(&mut self, round: Round) -> Ordering {
+        xmpfr::tanh(self, None, round)
+    }
+
+    /// Computes the hyperbolic tangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let tanh = Float::with_val(53, f.tanh_ref());
+    /// let expected = 0.8483_f64;
+    /// assert!((tanh - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn tanh_ref(&self) -> TanhIncomplete<'_> {
+        TanhIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic sine and cosine of `self`,
+    /// rounding to the nearest.
+    ///
+    /// The sine is stored in `self` and keeps its precision,
+    /// while the cosine is stored in `cos` keeping its precision.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let (sinh, cosh) = f.sinh_cosh(Float::new(53));
+    /// let expected_sinh = 1.6019_f64;
+    /// let expected_cosh = 1.8884_f64;
+    /// assert!((sinh - expected_sinh).abs() < 0.0001);
+    /// assert!((cosh - expected_cosh).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sinh_cosh(mut self, mut cos: Self) -> (Self, Self) {
+        self.sinh_cosh_round(&mut cos, <Round as Default>::default());
+        (self, cos)
+    }
+
+    /// Computes the hyperbolic sine and cosine of `self`,
+    /// rounding to the nearest.
+    ///
+    /// The sine is stored in `self` and keeps its precision,
+    /// while the cosine is stored in `cos` keeping its precision.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut sinh = Float::with_val(53, 1.25);
+    /// let mut cosh = Float::new(53);
+    /// sinh.sinh_cosh_mut(&mut cosh);
+    /// let expected_sinh = 1.6019_f64;
+    /// let expected_cosh = 1.8884_f64;
+    /// assert!((sinh - expected_sinh).abs() < 0.0001);
+    /// assert!((cosh - expected_cosh).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sinh_cosh_mut(&mut self, cos: &mut Self) {
+        self.sinh_cosh_round(cos, <Round as Default>::default());
+    }
+
+    /// Computes the hyperbolic sine and cosine of `self`,
+    /// applying the specified rounding method.
+    ///
+    /// The sine is stored in `self` and keeps its precision,
+    /// while the cosine is stored in `cos` keeping its precision.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut sinh = Float::with_val(4, 1.25);
+    /// let mut cosh = Float::new(4);
+    /// // sinh(1.25) = 1.6019, using 4 significant bits: 1.625
+    /// // cosh(1.25) = 1.8884, using 4 significant bits: 1.875
+    /// let (dir_sinh, dir_cosh) =
+    ///     sinh.sinh_cosh_round(&mut cosh, Round::Nearest);
+    /// assert_eq!(sinh, 1.625);
+    /// assert_eq!(dir_sinh, Ordering::Greater);
+    /// assert_eq!(cosh, 1.875);
+    /// assert_eq!(dir_cosh, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn sinh_cosh_round(&mut self, cos: &mut Self, round: Round) -> (Ordering, Ordering) {
+        xmpfr::sinh_cosh(self, cos, None, round)
+    }
+
+    /// Computes the hyperbolic sine and cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Float][`Float`],
+    ///     [Float][`Float`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Float][`Float`],
+    ///     &amp;mut [Float][`Float`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///     [(][tuple][Float][`Float`],
+    ///     [Float][`Float`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Float][`Float`],
+    ///     &amp;mut [Float][`Float`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, ops::AssignRound, Assign, Float};
+    /// use std::cmp::Ordering;
+    /// let phase = Float::with_val(53, 1.25);
+    ///
+    /// let (mut sinh, mut cosh) = (Float::new(53), Float::new(53));
+    /// let sinh_cosh = phase.sinh_cosh_ref();
+    /// (&mut sinh, &mut cosh).assign(sinh_cosh);
+    /// let expected_sinh = 1.6019_f64;
+    /// let expected_cosh = 1.8884_f64;
+    /// assert!((sinh - expected_sinh).abs() < 0.0001);
+    /// assert!((cosh - expected_cosh).abs() < 0.0001);
+    ///
+    /// // using 4 significant bits: sin = 1.625
+    /// // using 4 significant bits: cos = 1.875
+    /// let (mut sinh_4, mut cosh_4) = (Float::new(4), Float::new(4));
+    /// let sinh_cosh = phase.sinh_cosh_ref();
+    /// let (dir_sinh, dir_cosh) = (&mut sinh_4, &mut cosh_4)
+    ///     .assign_round(sinh_cosh, Round::Nearest);
+    /// assert_eq!(sinh_4, 1.625);
+    /// assert_eq!(dir_sinh, Ordering::Greater);
+    /// assert_eq!(cosh_4, 1.875);
+    /// assert_eq!(dir_cosh, Ordering::Less);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn sinh_cosh_ref(&self) -> SinhCoshIncomplete<'_> {
+        SinhCoshIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic secant, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let sech = f.sech();
+    /// let expected = 0.5295_f64;
+    /// assert!((sech - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sech(mut self) -> Self {
+        self.sech_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic secant, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.sech_mut();
+    /// let expected = 0.5295_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sech_mut(&mut self) {
+        self.sech_round(<Round as Default>::default());
+    }
+
+    /// Computes the hyperbolic secant, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // sech(1.25) = 0.5295
+    /// // using 4 significant bits: 0.5
+    /// let dir = f.sech_round(Round::Nearest);
+    /// assert_eq!(f, 0.5);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn sech_round(&mut self, round: Round) -> Ordering {
+        xmpfr::sech(self, None, round)
+    }
+
+    /// Computes the hyperbolic secant.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let sech = Float::with_val(53, f.sech_ref());
+    /// let expected = 0.5295_f64;
+    /// assert!((sech - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sech_ref(&self) -> SechIncomplete<'_> {
+        SechIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic cosecant, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let csch = f.csch();
+    /// let expected = 0.6243_f64;
+    /// assert!((csch - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn csch(mut self) -> Self {
+        self.csch_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic cosecant, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.csch_mut();
+    /// let expected = 0.6243_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn csch_mut(&mut self) {
+        self.csch_round(<Round as Default>::default());
+    }
+
+    /// Computes the hyperbolic cosecant, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // csch(1.25) = 0.6243
+    /// // using 4 significant bits: 0.625
+    /// let dir = f.csch_round(Round::Nearest);
+    /// assert_eq!(f, 0.625);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn csch_round(&mut self, round: Round) -> Ordering {
+        xmpfr::csch(self, None, round)
+    }
+
+    /// Computes the hyperbolic cosecant.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let csch = Float::with_val(53, f.csch_ref());
+    /// let expected = 0.6243_f64;
+    /// assert!((csch - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn csch_ref(&self) -> CschIncomplete<'_> {
+        CschIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic cotangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let coth = f.coth();
+    /// let expected = 1.1789_f64;
+    /// assert!((coth - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn coth(mut self) -> Self {
+        self.coth_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic cotangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.coth_mut();
+    /// let expected = 1.1789_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn coth_mut(&mut self) {
+        self.coth_round(<Round as Default>::default());
+    }
+
+    /// Computes the hyperbolic cotangent, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // coth(1.25) = 1.1789
+    /// // using 4 significant bits: 1.125
+    /// let dir = f.coth_round(Round::Nearest);
+    /// assert_eq!(f, 1.125);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn coth_round(&mut self, round: Round) -> Ordering {
+        xmpfr::coth(self, None, round)
+    }
+
+    /// Computes the hyperbolic cotangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let coth = Float::with_val(53, f.coth_ref());
+    /// let expected = 1.1789_f64;
+    /// assert!((coth - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn coth_ref(&self) -> CothIncomplete<'_> {
+        CothIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse hyperbolic sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let asinh = f.asinh();
+    /// let expected = 1.0476_f64;
+    /// assert!((asinh - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asinh(mut self) -> Self {
+        self.asinh_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the inverse hyperbolic sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.asinh_mut();
+    /// let expected = 1.0476_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asinh_mut(&mut self) {
+        self.asinh_round(<Round as Default>::default());
+    }
+
+    /// Computes the inverse hyperbolic sine, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // asinh(1.25) = 1.0476
+    /// // using 4 significant bits: 1.0
+    /// let dir = f.asinh_round(Round::Nearest);
+    /// assert_eq!(f, 1.0);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn asinh_round(&mut self, round: Round) -> Ordering {
+        xmpfr::asinh(self, None, round)
+    }
+
+    /// Computes the inverse hyperbolic sine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let asinh = Float::with_val(53, f.asinh_ref());
+    /// let expected = 1.0476_f64;
+    /// assert!((asinh - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn asinh_ref(&self) -> AsinhIncomplete<'_> {
+        AsinhIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse hyperbolic cosine, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let acosh = f.acosh();
+    /// let expected = 0.6931_f64;
+    /// assert!((acosh - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acosh(mut self) -> Self {
+        self.acosh_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the inverse hyperbolic cosine, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.acosh_mut();
+    /// let expected = 0.6931_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acosh_mut(&mut self) {
+        self.acosh_round(<Round as Default>::default());
+    }
+
+    /// Computes the inverse hyperbolic cosine, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // acosh(1.25) = 0.6931
+    /// // using 4 significant bits: 0.6875
+    /// let dir = f.acosh_round(Round::Nearest);
+    /// assert_eq!(f, 0.6875);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn acosh_round(&mut self, round: Round) -> Ordering {
+        xmpfr::acosh(self, None, round)
+    }
+
+    /// Computes the inverse hyperbolic cosine
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let acosh = Float::with_val(53, f.acosh_ref());
+    /// let expected = 0.6931_f64;
+    /// assert!((acosh - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn acosh_ref(&self) -> AcoshIncomplete<'_> {
+        AcoshIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse hyperbolic tangent, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 0.75);
+    /// let atanh = f.atanh();
+    /// let expected = 0.9730_f64;
+    /// assert!((atanh - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atanh(mut self) -> Self {
+        self.atanh_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the inverse hyperbolic tangent, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 0.75);
+    /// f.atanh_mut();
+    /// let expected = 0.9730_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atanh_mut(&mut self) {
+        self.atanh_round(<Round as Default>::default());
+    }
+
+    /// Computes the inverse hyperbolic tangent, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 0.75);
+    /// // atanh(0.75) = 0.9730
+    /// // using 4 significant bits: 1.0
+    /// let dir = f.atanh_round(Round::Nearest);
+    /// assert_eq!(f, 1.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn atanh_round(&mut self, round: Round) -> Ordering {
+        xmpfr::atanh(self, None, round)
+    }
+
+    /// Computes the inverse hyperbolic tangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 0.75);
+    /// let atanh = Float::with_val(53, f.atanh_ref());
+    /// let expected = 0.9730_f64;
+    /// assert!((atanh - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn atanh_ref(&self) -> AtanhIncomplete<'_> {
+        AtanhIncomplete { ref_self: self }
+    }
+
+    /// Computes the factorial of <i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // 10 × 9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1
+    /// let n = Float::factorial(10);
+    /// let f = Float::with_val(53, n);
+    /// assert_eq!(f, 3628800.0);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn factorial(n: u32) -> FactorialIncomplete {
+        FactorialIncomplete { n }
+    }
+
+    /// Computes the natural logarithm of one plus `self`, rounding to
+    /// the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let ln_1p = f.ln_1p();
+    /// let expected = 1.4989_f64 * two_to_m10;
+    /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    pub fn ln_1p(mut self) -> Self {
+        self.ln_1p_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the natural logarithm of one plus `self`, rounding to
+    /// the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+    /// f.ln_1p_mut();
+    /// let expected = 1.4989_f64 * two_to_m10;
+    /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    pub fn ln_1p_mut(&mut self) {
+        self.ln_1p_round(<Round as Default>::default());
+    }
+
+    /// Computes the natural logarithm of one plus `self`, applying
+    /// the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+    /// // ln_1p(1.5 × 2 ^ −10) = 1.4989 × 2 ^ −10
+    /// // using 4 significant bits: 1.5 × 2 ^ −10
+    /// let dir = f.ln_1p_round(Round::Nearest);
+    /// assert_eq!(f, 1.5 * two_to_m10);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn ln_1p_round(&mut self, round: Round) -> Ordering {
+        xmpfr::log1p(self, None, round)
+    }
+
+    /// Computes the natural logorithm of one plus the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let ln_1p = Float::with_val(53, f.ln_1p_ref());
+    /// let expected = 1.4989_f64 * two_to_m10;
+    /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn ln_1p_ref(&self) -> Ln1pIncomplete<'_> {
+        Ln1pIncomplete { ref_self: self }
+    }
+
+    /// Subtracts one from the exponential of `self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let exp_m1 = f.exp_m1();
+    /// let expected = 1.5011_f64 * two_to_m10;
+    /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    pub fn exp_m1(mut self) -> Self {
+        self.exp_m1_round(<Round as Default>::default());
+        self
+    }
+
+    /// Subtracts one from the exponential of `self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+    /// f.exp_m1_mut();
+    /// let expected = 1.5011_f64 * two_to_m10;
+    /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    pub fn exp_m1_mut(&mut self) {
+        self.exp_m1_round(<Round as Default>::default());
+    }
+
+    /// Subtracts one from the exponential of `self`, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+    /// // exp_m1(1.5 × 2 ^ −10) = 1.5011 × 2 ^ −10
+    /// // using 4 significant bits: 1.5 × 2 ^ −10
+    /// let dir = f.exp_m1_round(Round::Nearest);
+    /// assert_eq!(f, 1.5 * two_to_m10);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn exp_m1_round(&mut self, round: Round) -> Ordering {
+        xmpfr::expm1(self, None, round)
+    }
+
+    /// Computes one less than the exponential of the
+    /// value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let exp_m1 = Float::with_val(53, f.exp_m1_ref());
+    /// let expected = 1.5011_f64 * two_to_m10;
+    /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn exp_m1_ref(&self) -> ExpM1Incomplete<'_> {
+        ExpM1Incomplete { ref_self: self }
+    }
+
+    /// Computes the exponential integral, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let eint = f.eint();
+    /// let expected = 2.5810_f64;
+    /// assert!((eint - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn eint(mut self) -> Self {
+        self.eint_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the exponential integral, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.eint_mut();
+    /// let expected = 2.5810_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn eint_mut(&mut self) {
+        self.eint_round(<Round as Default>::default());
+    }
+
+    /// Computes the exponential integral, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // eint(1.25) = 2.5810
+    /// // using 4 significant bits: 2.5
+    /// let dir = f.eint_round(Round::Nearest);
+    /// assert_eq!(f, 2.5);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn eint_round(&mut self, round: Round) -> Ordering {
+        xmpfr::eint(self, None, round)
+    }
+
+    /// Computes the exponential integral.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let eint = Float::with_val(53, f.eint_ref());
+    /// let expected = 2.5810_f64;
+    /// assert!((eint - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn eint_ref(&self) -> EintIncomplete<'_> {
+        EintIncomplete { ref_self: self }
+    }
+
+    /// Computes the real part of the dilogarithm of `self`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let li2 = f.li2();
+    /// let expected = 2.1902_f64;
+    /// assert!((li2 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn li2(mut self) -> Self {
+        self.li2_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the real part of the dilogarithm of `self`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.li2_mut();
+    /// let expected = 2.1902_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn li2_mut(&mut self) {
+        self.li2_round(<Round as Default>::default());
+    }
+
+    /// Computes the real part of the dilogarithm of `self`, applying
+    /// the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // li2(1.25) = 2.1902
+    /// // using 4 significant bits: 2.25
+    /// let dir = f.li2_round(Round::Nearest);
+    /// assert_eq!(f, 2.25);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn li2_round(&mut self, round: Round) -> Ordering {
+        xmpfr::li2(self, None, round)
+    }
+
+    /// Computes the real part of the dilogarithm of the
+    /// value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let li2 = Float::with_val(53, f.li2_ref());
+    /// let expected = 2.1902_f64;
+    /// assert!((li2 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn li2_ref(&self) -> Li2Incomplete<'_> {
+        Li2Incomplete { ref_self: self }
+    }
+
+    /// Computes the value of the gamma function on `self`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let gamma = f.gamma();
+    /// let expected = 0.9064_f64;
+    /// assert!((gamma - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn gamma(mut self) -> Self {
+        self.gamma_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the value of the gamma function on `self`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.gamma_mut();
+    /// let expected = 0.9064_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn gamma_mut(&mut self) {
+        self.gamma_round(<Round as Default>::default());
+    }
+
+    /// Computes the value of the gamma function on `self`, applying
+    /// the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // gamma(1.25) = 0.9064
+    /// // using 4 significant bits: 0.9375
+    /// let dir = f.gamma_round(Round::Nearest);
+    /// assert_eq!(f, 0.9375);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn gamma_round(&mut self, round: Round) -> Ordering {
+        xmpfr::gamma(self, None, round)
+    }
+
+    /// Computes the gamma function on the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let gamma = Float::with_val(53, f.gamma_ref());
+    /// let expected = 0.9064_f64;
+    /// assert!((gamma - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn gamma_ref(&self) -> GammaIncomplete<'_> {
+        GammaIncomplete { ref_self: self }
+    }
+
+    /// Computes the value of the upper incomplete gamma function
+    /// on `self` and `x`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let x = Float::with_val(53, 2.5);
+    /// let gamma_inc = f.gamma_inc(&x);
+    /// let expected = 0.1116_f64;
+    /// assert!((gamma_inc - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn gamma_inc(mut self, x: &Self) -> Self {
+        self.gamma_inc_round(x, <Round as Default>::default());
+        self
+    }
+
+    /// Computes the value of the upper incomplete gamma function
+    /// on `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// let x = Float::with_val(53, 2.5);
+    /// f.gamma_inc_mut(&x);
+    /// let expected = 0.1116_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn gamma_inc_mut(&mut self, x: &Self) {
+        self.gamma_inc_round(x, <Round as Default>::default());
+    }
+
+    /// Computes the value of the upper incomplete gamma function
+    /// on `self`, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// let x = Float::with_val(53, 2.5);
+    /// // gamma_inc(1.25, 2.5) = 0.1116
+    /// // using 4 significant bits: 0.109375
+    /// let dir = f.gamma_inc_round(&x, Round::Nearest);
+    /// assert_eq!(f, 0.109375);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn gamma_inc_round(&mut self, x: &Self, round: Round) -> Ordering {
+        xmpfr::gamma_inc(self, None, Some(x), round)
+    }
+
+    /// Computes the upper incomplete gamma function on the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let x = Float::with_val(53, 2.5);
+    /// let gamma_inc = Float::with_val(53, f.gamma_inc_ref(&x));
+    /// let expected = 0.1116_f64;
+    /// assert!((gamma_inc - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn gamma_inc_ref<'a>(&'a self, x: &'a Self) -> GammaIncIncomplete<'_> {
+        GammaIncIncomplete { ref_self: self, x }
+    }
+
+    /// Computes the logarithm of the gamma function on `self`,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let ln_gamma = f.ln_gamma();
+    /// let expected = -0.0983_f64;
+    /// assert!((ln_gamma - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn ln_gamma(mut self) -> Self {
+        self.ln_gamma_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the logarithm of the gamma function on `self`,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.ln_gamma_mut();
+    /// let expected = -0.0983_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn ln_gamma_mut(&mut self) {
+        self.ln_gamma_round(<Round as Default>::default());
+    }
+
+    /// Computes the logarithm of the gamma function on `self`,
+    /// applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // ln_gamma(1.25) = −0.0983
+    /// // using 4 significant bits: −0.1015625
+    /// let dir = f.ln_gamma_round(Round::Nearest);
+    /// assert_eq!(f, -0.1015625);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn ln_gamma_round(&mut self, round: Round) -> Ordering {
+        xmpfr::lngamma(self, None, round)
+    }
+
+    /// Computes the logarithm of the gamma function on
+    /// the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let ln_gamma = Float::with_val(53, f.ln_gamma_ref());
+    /// let expected = -0.0983_f64;
+    /// assert!((ln_gamma - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn ln_gamma_ref(&self) -> LnGammaIncomplete<'_> {
+        LnGammaIncomplete { ref_self: self }
     }
 
     /// Computes the logarithm of the absolute value of the gamma
@@ -6381,1410 +6949,1673 @@ impl Float {
         LnAbsGammaIncomplete { ref_self: self }
     }
 
-    math_op1_float! {
-        xmpfr::digamma;
-        /// Computes the value of the Digamma function on `self`, rounding
-        /// to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let digamma = f.digamma();
-        /// let expected = -0.2275_f64;
-        /// assert!((digamma - expected).abs() < 0.0001);
-        /// ```
-        fn digamma();
-        /// Computes the value of the Digamma function on `self`, rounding
-        /// to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.digamma_mut();
-        /// let expected = -0.2275_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn digamma_mut;
-        /// Computes the value of the Digamma function on `self`, applying
-        /// the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // digamma(1.25) = −0.2275
-        /// // using 4 significant bits: −0.234375
-        /// let dir = f.digamma_round(Round::Nearest);
-        /// assert_eq!(f, -0.234375);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn digamma_round;
-        /// Computes the Digamma function on the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let digamma = Float::with_val(53, f.digamma_ref());
-        /// let expected = -0.2275_f64;
-        /// assert!((digamma - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn digamma_ref -> DigammaIncomplete;
+    /// Computes the value of the Digamma function on `self`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let digamma = f.digamma();
+    /// let expected = -0.2275_f64;
+    /// assert!((digamma - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn digamma(mut self) -> Self {
+        self.digamma_round(<Round as Default>::default());
+        self
     }
-    math_op1_float! {
-        xmpfr::zeta;
-        /// Computes the value of the Riemann Zeta function on `self`,
-        /// rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let zeta = f.zeta();
-        /// let expected = 4.5951_f64;
-        /// assert!((zeta - expected).abs() < 0.0001);
-        /// ```
-        fn zeta();
-        /// Computes the value of the Riemann Zeta function on `self`,
-        /// rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.zeta_mut();
-        /// let expected = 4.5951_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn zeta_mut;
-        /// Computes the value of the Riemann Zeta function on `self`,
-        /// applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // zeta(1.25) = 4.5951
-        /// // using 4 significant bits: 4.5
-        /// let dir = f.zeta_round(Round::Nearest);
-        /// assert_eq!(f, 4.5);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn zeta_round;
-        /// Computes the Riemann Zeta function on the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let zeta = Float::with_val(53, f.zeta_ref());
-        /// let expected = 4.5951_f64;
-        /// assert!((zeta - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn zeta_ref -> ZetaIncomplete;
+
+    /// Computes the value of the Digamma function on `self`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.digamma_mut();
+    /// let expected = -0.2275_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn digamma_mut(&mut self) {
+        self.digamma_round(<Round as Default>::default());
     }
-    math_op0! {
-        /// Computes the Riemann Zeta function on <i>u</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let z = Float::zeta_u(3);
-        /// let f = Float::with_val(53, z);
-        /// let expected = 1.2021_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn zeta_u(u: u32) -> ZetaUIncomplete;
+
+    /// Computes the value of the Digamma function on `self`, applying
+    /// the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // digamma(1.25) = −0.2275
+    /// // using 4 significant bits: −0.234375
+    /// let dir = f.digamma_round(Round::Nearest);
+    /// assert_eq!(f, -0.234375);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn digamma_round(&mut self, round: Round) -> Ordering {
+        xmpfr::digamma(self, None, round)
     }
-    math_op1_float! {
-        xmpfr::erf;
-        /// Computes the value of the error function, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let erf = f.erf();
-        /// let expected = 0.9229_f64;
-        /// assert!((erf - expected).abs() < 0.0001);
-        /// ```
-        fn erf();
-        /// Computes the value of the error function, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.erf_mut();
-        /// let expected = 0.9229_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn erf_mut;
-        /// Computes the value of the error function, applying the
-        /// specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // erf(1.25) = 0.9229
-        /// // using 4 significant bits: 0.9375
-        /// let dir = f.erf_round(Round::Nearest);
-        /// assert_eq!(f, 0.9375);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn erf_round;
-        /// Computes the error function.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let erf = Float::with_val(53, f.erf_ref());
-        /// let expected = 0.9229_f64;
-        /// assert!((erf - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn erf_ref -> ErfIncomplete;
+
+    /// Computes the Digamma function on the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let digamma = Float::with_val(53, f.digamma_ref());
+    /// let expected = -0.2275_f64;
+    /// assert!((digamma - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn digamma_ref(&self) -> DigammaIncomplete<'_> {
+        DigammaIncomplete { ref_self: self }
     }
-    math_op1_float! {
-        xmpfr::erfc;
-        /// Computes the value of the complementary error function,
-        /// rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let erfc = f.erfc();
-        /// let expected = 0.0771_f64;
-        /// assert!((erfc - expected).abs() < 0.0001);
-        /// ```
-        fn erfc();
-        /// Computes the value of the complementary error function,
-        /// rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.erfc_mut();
-        /// let expected = 0.0771_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn erfc_mut;
-        /// Computes the value of the complementary error function,
-        /// applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // erfc(1.25) = 0.0771
-        /// // using 4 significant bits: 0.078125
-        /// let dir = f.erfc_round(Round::Nearest);
-        /// assert_eq!(f, 0.078125);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn erfc_round;
-        /// Computes the complementary error function.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let erfc = Float::with_val(53, f.erfc_ref());
-        /// let expected = 0.0771_f64;
-        /// assert!((erfc - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn erfc_ref -> ErfcIncomplete;
+
+    /// Computes the value of the Riemann Zeta function on `self`,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let zeta = f.zeta();
+    /// let expected = 4.5951_f64;
+    /// assert!((zeta - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn zeta(mut self) -> Self {
+        self.zeta_round(<Round as Default>::default());
+        self
     }
-    math_op1_float! {
-        xmpfr::j0;
-        /// Computes the value of the first kind Bessel function of
-        /// order 0, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let j0 = f.j0();
-        /// let expected = 0.6459_f64;
-        /// assert!((j0 - expected).abs() < 0.0001);
-        /// ```
-        fn j0();
-        /// Computes the value of the first kind Bessel function of
-        /// order 0, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.j0_mut();
-        /// let expected = 0.6459_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn j0_mut;
-        /// Computes the value of the first kind Bessel function of
-        /// order 0, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // j0(1.25) = 0.6459
-        /// // using 4 significant bits: 0.625
-        /// let dir = f.j0_round(Round::Nearest);
-        /// assert_eq!(f, 0.625);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn j0_round;
-        /// Computes the first kind Bessel function of order 0.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let j0 = Float::with_val(53, f.j0_ref());
-        /// let expected = 0.6459_f64;
-        /// assert!((j0 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn j0_ref -> J0Incomplete;
+
+    /// Computes the value of the Riemann Zeta function on `self`,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.zeta_mut();
+    /// let expected = 4.5951_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn zeta_mut(&mut self) {
+        self.zeta_round(<Round as Default>::default());
     }
-    math_op1_float! {
-        xmpfr::j1;
-        /// Computes the value of the first kind Bessel function of
-        /// order 1, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let j1 = f.j1();
-        /// let expected = 0.5106_f64;
-        /// assert!((j1 - expected).abs() < 0.0001);
-        /// ```
-        fn j1();
-        /// Computes the value of the first kind Bessel function of
-        /// order 1, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.j1_mut();
-        /// let expected = 0.5106_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn j1_mut;
-        /// Computes the value of the first kind Bessel function of
-        /// order 1, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // j1(1.25) = 0.5106
-        /// // using 4 significant bits: 0.5
-        /// let dir = f.j1_round(Round::Nearest);
-        /// assert_eq!(f, 0.5);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn j1_round;
-        /// Computes the first kind Bessel function of order 1.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let j1 = Float::with_val(53, f.j1_ref());
-        /// let expected = 0.5106_f64;
-        /// assert!((j1 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn j1_ref -> J1Incomplete;
+
+    /// Computes the value of the Riemann Zeta function on `self`,
+    /// applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // zeta(1.25) = 4.5951
+    /// // using 4 significant bits: 4.5
+    /// let dir = f.zeta_round(Round::Nearest);
+    /// assert_eq!(f, 4.5);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn zeta_round(&mut self, round: Round) -> Ordering {
+        xmpfr::zeta(self, None, round)
     }
-    math_op1_float! {
-        xmpfr::jn;
-        /// Computes the value of the first kind Bessel function of
-        /// order <i>n</i>, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let j2 = f.jn(2);
-        /// let expected = 0.1711_f64;
-        /// assert!((j2 - expected).abs() < 0.0001);
-        /// ```
-        fn jn(n: i32);
-        /// Computes the value of the first kind Bessel function of
-        /// order <i>n</i>, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.jn_mut(2);
-        /// let expected = 0.1711_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn jn_mut;
-        /// Computes the value of the first kind Bessel function of
-        /// order <i>n</i>, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // j2(1.25) = 0.1711
-        /// // using 4 significant bits: 0.171875
-        /// let dir = f.jn_round(2, Round::Nearest);
-        /// assert_eq!(f, 0.171875);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn jn_round;
-        /// Computes the first kind Bessel function of order <i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let j2 = Float::with_val(53, f.jn_ref(2));
-        /// let expected = 0.1711_f64;
-        /// assert!((j2 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn jn_ref -> JnIncomplete;
+
+    /// Computes the Riemann Zeta function on the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let zeta = Float::with_val(53, f.zeta_ref());
+    /// let expected = 4.5951_f64;
+    /// assert!((zeta - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn zeta_ref(&self) -> ZetaIncomplete<'_> {
+        ZetaIncomplete { ref_self: self }
     }
-    math_op1_float! {
-        xmpfr::y0;
-        /// Computes the value of the second kind Bessel function of
-        /// order 0, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let y0 = f.y0();
-        /// let expected = 0.2582_f64;
-        /// assert!((y0 - expected).abs() < 0.0001);
-        /// ```
-        fn y0();
-        /// Computes the value of the second kind Bessel function of
-        /// order 0, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.y0_mut();
-        /// let expected = 0.2582_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn y0_mut;
-        /// Computes the value of the second kind Bessel function of
-        /// order 0, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // y0(1.25) = 0.2582
-        /// // using 4 significant bits: 0.25
-        /// let dir = f.y0_round(Round::Nearest);
-        /// assert_eq!(f, 0.25);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn y0_round;
-        /// Computes the second kind Bessel function of order 0.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let y0 = Float::with_val(53, f.y0_ref());
-        /// let expected = 0.2582_f64;
-        /// assert!((y0 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn y0_ref -> Y0Incomplete;
+
+    /// Computes the Riemann Zeta function on <i>u</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let z = Float::zeta_u(3);
+    /// let f = Float::with_val(53, z);
+    /// let expected = 1.2021_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn zeta_u(u: u32) -> ZetaUIncomplete {
+        ZetaUIncomplete { u }
     }
-    math_op1_float! {
-        xmpfr::y1;
-        /// Computes the value of the second kind Bessel function of
-        /// order 1, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let y1 = f.y1();
-        /// let expected = -0.5844_f64;
-        /// assert!((y1 - expected).abs() < 0.0001);
-        /// ```
-        fn y1();
-        /// Computes the value of the second kind Bessel function of
-        /// order 1, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.y1_mut();
-        /// let expected = -0.5844_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn y1_mut;
-        /// Computes the value of the second kind Bessel function of
-        /// order 1, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // y1(1.25) = −0.5844
-        /// // using 4 significant bits: −0.5625
-        /// let dir = f.y1_round(Round::Nearest);
-        /// assert_eq!(f, -0.5625);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn y1_round;
-        /// Computes the second kind Bessel function of order 1.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let y1 = Float::with_val(53, f.y1_ref());
-        /// let expected = -0.5844_f64;
-        /// assert!((y1 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn y1_ref -> Y1Incomplete;
+
+    /// Computes the value of the error function, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let erf = f.erf();
+    /// let expected = 0.9229_f64;
+    /// assert!((erf - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn erf(mut self) -> Self {
+        self.erf_round(<Round as Default>::default());
+        self
     }
-    math_op1_float! {
-        xmpfr::yn;
-        /// Computes the value of the second kind Bessel function of
-        /// order <i>n</i>, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let y2 = f.yn(2);
-        /// let expected = -1.1932_f64;
-        /// assert!((y2 - expected).abs() < 0.0001);
-        /// ```
-        fn yn(n: i32);
-        /// Computes the value of the second kind Bessel function of
-        /// order <i>n</i>, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.yn_mut(2);
-        /// let expected = -1.1932_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn yn_mut;
-        /// Computes the value of the second kind Bessel function of
-        /// order <i>n</i>, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // y2(1.25) = −1.1932
-        /// // using 4 significant bits: −1.25
-        /// let dir = f.yn_round(2, Round::Nearest);
-        /// assert_eq!(f, -1.25);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn yn_round;
-        /// Computes the second kind Bessel function of order <i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let y2 = Float::with_val(53, f.yn_ref(2));
-        /// let expected = -1.1932_f64;
-        /// assert!((y2 - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn yn_ref -> YnIncomplete;
+
+    /// Computes the value of the error function, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.erf_mut();
+    /// let expected = 0.9229_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn erf_mut(&mut self) {
+        self.erf_round(<Round as Default>::default());
     }
-    math_op2_float! {
-        xmpfr::agm;
-        /// Computes the arithmetic-geometric mean of `self` and `other`,
-        /// rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let g = Float::with_val(53, 3.75);
-        /// let agm = f.agm(&g);
-        /// let expected = 2.3295_f64;
-        /// assert!((agm - expected).abs() < 0.0001);
-        /// ```
-        fn agm(other);
-        /// Computes the arithmetic-geometric mean of `self` and `other`,
-        /// rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// let g = Float::with_val(53, 3.75);
-        /// f.agm_mut(&g);
-        /// let expected = 2.3295_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn agm_mut;
-        /// Computes the arithmetic-geometric mean of `self` and `other`,
-        /// applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// let g = Float::with_val(4, 3.75);
-        /// // agm(1.25, 3.75) = 2.3295
-        /// // using 4 significant bits: 2.25
-        /// let dir = f.agm_round(&g, Round::Nearest);
-        /// assert_eq!(f, 2.25);
-        /// assert_eq!(dir, Ordering::Less);
-        /// ```
-        fn agm_round;
-        /// Computes the arithmetic-geometric mean.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let g = Float::with_val(53, 3.75);
-        /// let agm = Float::with_val(53, f.agm_ref(&g));
-        /// let expected = 2.3295_f64;
-        /// assert!((agm - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn agm_ref -> AgmIncomplete;
+
+    /// Computes the value of the error function, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // erf(1.25) = 0.9229
+    /// // using 4 significant bits: 0.9375
+    /// let dir = f.erf_round(Round::Nearest);
+    /// assert_eq!(f, 0.9375);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn erf_round(&mut self, round: Round) -> Ordering {
+        xmpfr::erf(self, None, round)
     }
-    math_op2_float! {
-        xmpfr::hypot;
-        /// Computes the Euclidean norm of `self` and `other`, rounding to
-        /// the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let g = Float::with_val(53, 3.75);
-        /// let hypot = f.hypot(&g);
-        /// let expected = 3.9528_f64;
-        /// assert!((hypot - expected).abs() < 0.0001);
-        /// ```
-        fn hypot(other);
-        /// Computes the Euclidean norm of `self` and `other`, rounding to
-        /// the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// let g = Float::with_val(53, 3.75);
-        /// f.hypot_mut(&g);
-        /// let expected = 3.9528_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn hypot_mut;
-        /// Computes the Euclidean norm of `self` and `other`, applying
-        /// the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// let g = Float::with_val(4, 3.75);
-        /// // hypot(1.25) = 3.9528
-        /// // using 4 significant bits: 4.0
-        /// let dir = f.hypot_round(&g, Round::Nearest);
-        /// assert_eq!(f, 4.0);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn hypot_round;
-        /// Computes the Euclidean norm.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let g = Float::with_val(53, 3.75);
-        /// let hypot = Float::with_val(53, f.hypot_ref(&g));
-        /// let expected = 3.9528_f64;
-        /// assert!((hypot - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn hypot_ref -> HypotIncomplete;
+
+    /// Computes the error function.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let erf = Float::with_val(53, f.erf_ref());
+    /// let expected = 0.9229_f64;
+    /// assert!((erf - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn erf_ref(&self) -> ErfIncomplete<'_> {
+        ErfIncomplete { ref_self: self }
     }
-    math_op1_float! {
-        xmpfr::ai;
-        /// Computes the value of the Airy function Ai on `self`, rounding
-        /// to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let ai = f.ai();
-        /// let expected = 0.0996_f64;
-        /// assert!((ai - expected).abs() < 0.0001);
-        /// ```
-        fn ai();
-        /// Computes the value of the Airy function Ai on `self`, rounding
-        /// to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f = Float::with_val(53, 1.25);
-        /// f.ai_mut();
-        /// let expected = 0.0996_f64;
-        /// assert!((f - expected).abs() < 0.0001);
-        /// ```
-        fn ai_mut;
-        /// Computes the value of the Airy function Ai on `self`, applying
-        /// the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut f = Float::with_val(4, 1.25);
-        /// // ai(1.25) = 0.0996
-        /// // using 4 significant bits: 0.1015625
-        /// let dir = f.ai_round(Round::Nearest);
-        /// assert_eq!(f, 0.1015625);
-        /// assert_eq!(dir, Ordering::Greater);
-        /// ```
-        fn ai_round;
-        /// Computes the Airy function Ai on the value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f = Float::with_val(53, 1.25);
-        /// let ai = Float::with_val(53, f.ai_ref());
-        /// let expected = 0.0996_f64;
-        /// assert!((ai - expected).abs() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn ai_ref -> AiIncomplete;
+
+    /// Computes the value of the complementary error function,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let erfc = f.erfc();
+    /// let expected = 0.0771_f64;
+    /// assert!((erfc - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn erfc(mut self) -> Self {
+        self.erfc_round(<Round as Default>::default());
+        self
     }
-    math_op1_no_round! {
-        xmpfr::rint_ceil;
-        /// Rounds up to the next higher integer.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let ceil1 = f1.ceil();
-        /// assert_eq!(ceil1, -23);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let ceil2 = f2.ceil();
-        /// assert_eq!(ceil2, 24);
-        /// ```
-        fn ceil();
-        /// Rounds up to the next higher integer.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f1 = Float::with_val(53, -23.75);
-        /// f1.ceil_mut();
-        /// assert_eq!(f1, -23);
-        /// let mut f2 = Float::with_val(53, 23.75);
-        /// f2.ceil_mut();
-        /// assert_eq!(f2, 24);
-        /// ```
-        fn ceil_mut;
-        /// Rounds up to the next higher integer. The result may be
-        /// rounded again when assigned to the target.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let ceil1 = Float::with_val(53, f1.ceil_ref());
-        /// assert_eq!(ceil1, -23);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let ceil2 = Float::with_val(53, f2.ceil_ref());
-        /// assert_eq!(ceil2, 24);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn ceil_ref -> CeilIncomplete;
+
+    /// Computes the value of the complementary error function,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.erfc_mut();
+    /// let expected = 0.0771_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn erfc_mut(&mut self) {
+        self.erfc_round(<Round as Default>::default());
     }
-    math_op1_no_round! {
-        xmpfr::rint_floor;
-        /// Rounds down to the next lower integer.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let floor1 = f1.floor();
-        /// assert_eq!(floor1, -24);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let floor2 = f2.floor();
-        /// assert_eq!(floor2, 23);
-        /// ```
-        fn floor();
-        /// Rounds down to the next lower integer.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f1 = Float::with_val(53, -23.75);
-        /// f1.floor_mut();
-        /// assert_eq!(f1, -24);
-        /// let mut f2 = Float::with_val(53, 23.75);
-        /// f2.floor_mut();
-        /// assert_eq!(f2, 23);
-        /// ```
-        fn floor_mut;
-        /// Rounds down to the next lower integer. The result may be
-        /// rounded again when assigned to the target.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let floor1 = Float::with_val(53, f1.floor_ref());
-        /// assert_eq!(floor1, -24);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let floor2 = Float::with_val(53, f2.floor_ref());
-        /// assert_eq!(floor2, 23);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn floor_ref -> FloorIncomplete;
+
+    /// Computes the value of the complementary error function,
+    /// applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // erfc(1.25) = 0.0771
+    /// // using 4 significant bits: 0.078125
+    /// let dir = f.erfc_round(Round::Nearest);
+    /// assert_eq!(f, 0.078125);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn erfc_round(&mut self, round: Round) -> Ordering {
+        xmpfr::erfc(self, None, round)
     }
-    math_op1_no_round! {
-        xmpfr::rint_round;
-        /// Rounds to the nearest integer, rounding half-way cases
-        /// away from zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let round1 = f1.round();
-        /// assert_eq!(round1, -24);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let round2 = f2.round();
-        /// assert_eq!(round2, 24);
-        /// ```
-        fn round();
-        /// Rounds to the nearest integer, rounding half-way cases
-        /// away from zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f1 = Float::with_val(53, -23.75);
-        /// f1.round_mut();
-        /// assert_eq!(f1, -24);
-        /// let mut f2 = Float::with_val(53, 23.75);
-        /// f2.round_mut();
-        /// assert_eq!(f2, 24);
-        /// ```
-        fn round_mut;
-        /// Rounds to the nearest integer, rounding half-way cases
-        /// away from zero. The result may be rounded again when
-        /// assigned to the target.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let round1 = Float::with_val(53, f1.round_ref());
-        /// assert_eq!(round1, -24);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let round2 = Float::with_val(53, f2.round_ref());
-        /// assert_eq!(round2, 24);
-        /// ```
-        ///
-        /// Double rounding may happen when assigning to a target with
-        /// a precision less than the number of significant bits for
-        /// the truncated integer.
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use rug::ops::AssignRound;
-        /// let f = Float::with_val(53, 6.5);
-        /// // 6.5 (binary 110.1) is rounded to 7 (binary 111)
-        /// let r = f.round_ref();
-        /// // use only 2 bits of precision in destination
-        /// let mut dst = Float::new(2);
-        /// // 7 (binary 111) is rounded to 8 (binary 1000) by
-        /// // round-even rule in order to store in 2-bit Float, even
-        /// // though 6 (binary 110) is closer to original 6.5).
-        /// dst.assign_round(r, Round::Nearest);
-        /// assert_eq!(dst, 8);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-       fn round_ref -> RoundIncomplete;
+
+    /// Computes the complementary error function.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let erfc = Float::with_val(53, f.erfc_ref());
+    /// let expected = 0.0771_f64;
+    /// assert!((erfc - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn erfc_ref(&self) -> ErfcIncomplete<'_> {
+        ErfcIncomplete { ref_self: self }
     }
-    math_op1_no_round! {
-        xmpfr::rint_roundeven;
-        /// Rounds to the nearest integer, rounding half-way cases to
-        /// even.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, 23.5);
-        /// let round1 = f1.round_even();
-        /// assert_eq!(round1, 24);
-        /// let f2 = Float::with_val(53, 24.5);
-        /// let round2 = f2.round_even();
-        /// assert_eq!(round2, 24);
-        /// ```
-        fn round_even();
-        /// Rounds to the nearest integer, rounding half-way cases to
-        /// even.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f1 = Float::with_val(53, 23.5);
-        /// f1.round_even_mut();
-        /// assert_eq!(f1, 24);
-        /// let mut f2 = Float::with_val(53, 24.5);
-        /// f2.round_even_mut();
-        /// assert_eq!(f2, 24);
-        /// ```
-        fn round_even_mut;
-        /// Rounds to the nearest integer, rounding half-way cases to
-        /// even. The result may be rounded again when assigned to the
-        /// target.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, 23.5);
-        /// let round1 = Float::with_val(53, f1.round_even_ref());
-        /// assert_eq!(round1, 24);
-        /// let f2 = Float::with_val(53, 24.5);
-        /// let round2 = Float::with_val(53, f2.round_even_ref());
-        /// assert_eq!(round2, 24);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-       fn round_even_ref -> RoundEvenIncomplete;
+
+    /// Computes the value of the first kind Bessel function of
+    /// order 0, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let j0 = f.j0();
+    /// let expected = 0.6459_f64;
+    /// assert!((j0 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn j0(mut self) -> Self {
+        self.j0_round(<Round as Default>::default());
+        self
     }
-    math_op1_no_round! {
-        xmpfr::rint_trunc;
-        /// Rounds to the next integer towards zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let trunc1 = f1.trunc();
-        /// assert_eq!(trunc1, -23);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let trunc2 = f2.trunc();
-        /// assert_eq!(trunc2, 23);
-        /// ```
-        fn trunc();
-        /// Rounds to the next integer towards zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f1 = Float::with_val(53, -23.75);
-        /// f1.trunc_mut();
-        /// assert_eq!(f1, -23);
-        /// let mut f2 = Float::with_val(53, 23.75);
-        /// f2.trunc_mut();
-        /// assert_eq!(f2, 23);
-        /// ```
-        fn trunc_mut;
-        /// Rounds to the next integer towards zero. The result may be
-        /// rounded again when assigned to the target.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let trunc1 = Float::with_val(53, f1.trunc_ref());
-        /// assert_eq!(trunc1, -23);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let trunc2 = Float::with_val(53, f2.trunc_ref());
-        /// assert_eq!(trunc2, 23);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn trunc_ref -> TruncIncomplete;
+
+    /// Computes the value of the first kind Bessel function of
+    /// order 0, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.j0_mut();
+    /// let expected = 0.6459_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn j0_mut(&mut self) {
+        self.j0_round(<Round as Default>::default());
     }
-    math_op1_no_round! {
-        xmpfr::frac;
-        /// Gets the fractional part of the number.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let fract1 = f1.fract();
-        /// assert_eq!(fract1, -0.75);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let fract2 = f2.fract();
-        /// assert_eq!(fract2, 0.75);
-        /// ```
-        fn fract();
-        /// Gets the fractional part of the number.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f1 = Float::with_val(53, -23.75);
-        /// f1.fract_mut();
-        /// assert_eq!(f1, -0.75);
-        /// let mut f2 = Float::with_val(53, 23.75);
-        /// f2.fract_mut();
-        /// assert_eq!(f2, 0.75);
-        /// ```
-        fn fract_mut;
-        /// Gets the fractional part of the number.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let fract1 = Float::with_val(53, f1.fract_ref());
-        /// assert_eq!(fract1, -0.75);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let fract2 = Float::with_val(53, f2.fract_ref());
-        /// assert_eq!(fract2, 0.75);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn fract_ref -> FractIncomplete;
+
+    /// Computes the value of the first kind Bessel function of
+    /// order 0, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // j0(1.25) = 0.6459
+    /// // using 4 significant bits: 0.625
+    /// let dir = f.j0_round(Round::Nearest);
+    /// assert_eq!(f, 0.625);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn j0_round(&mut self, round: Round) -> Ordering {
+        xmpfr::j0(self, None, round)
     }
-    math_op1_2_float! {
-        xmpfr::modf;
-        /// Gets the integer and fractional parts of the number,
-        /// rounding to the nearest.
-        ///
-        /// The integer part is stored in `self` and keeps its
-        /// precision, while the fractional part is stored in `fract`
-        /// keeping its precision.
-        ///
-        /// The initial value of `fract` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let (trunc1, fract1) = f1.trunc_fract(Float::new(53));
-        /// assert_eq!(trunc1, -23);
-        /// assert_eq!(fract1, -0.75);
-        /// let f2 = Float::with_val(53, 23.75);
-        /// let (trunc2, fract2) = f2.trunc_fract(Float::new(53));
-        /// assert_eq!(trunc2, 23);
-        /// assert_eq!(fract2, 0.75);
-        /// ```
-        fn trunc_fract(fract);
-        /// Gets the integer and fractional parts of the number,
-        /// rounding to the nearest.
-        ///
-        /// The integer part is stored in `self` and keeps its
-        /// precision, while the fractional part is stored in `fract`
-        /// keeping its precision.
-        ///
-        /// The initial value of `fract` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Float;
-        /// let mut f1 = Float::with_val(53, -23.75);
-        /// let mut fract1 = Float::new(53);
-        /// f1.trunc_fract_mut(&mut fract1);
-        /// assert_eq!(f1, -23);
-        /// assert_eq!(fract1, -0.75);
-        /// let mut f2 = Float::with_val(53, 23.75);
-        /// let mut fract2 = Float::new(53);
-        /// f2.trunc_fract_mut(&mut fract2);
-        /// assert_eq!(f2, 23);
-        /// assert_eq!(fract2, 0.75);
-        /// ```
-        fn trunc_fract_mut;
-        /// Gets the integer and fractional parts of the number,
-        /// applying the specified rounding method.
-        ///
-        /// The first element of the returned tuple of rounding
-        /// directions is always
-        /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as
-        /// truncating a value in place will always be exact.
-        ///
-        /// The integer part is stored in `self` and keeps its
-        /// precision, while the fractional part is stored in `fract`
-        /// keeping its precision.
-        ///
-        /// The initial value of `fract` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Float};
-        /// use std::cmp::Ordering;
-        /// // 0.515625 in binary is 0.100001
-        /// let mut f1 = Float::with_val(53, -23.515625);
-        /// let mut fract1 = Float::new(4);
-        /// let dir1 = f1.trunc_fract_round(&mut fract1, Round::Nearest);
-        /// assert_eq!(f1, -23);
-        /// assert_eq!(fract1, -0.5);
-        /// assert_eq!(dir1, (Ordering::Equal, Ordering::Greater));
-        /// let mut f2 = Float::with_val(53, 23.515625);
-        /// let mut fract2 = Float::new(4);
-        /// let dir2 = f2.trunc_fract_round(&mut fract2, Round::Nearest);
-        /// assert_eq!(f2, 23);
-        /// assert_eq!(fract2, 0.5);
-        /// assert_eq!(dir2, (Ordering::Equal, Ordering::Less));
-        /// ```
-        ///
-        /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
-        /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
-        fn trunc_fract_round;
-        /// Gets the integer and fractional parts of the number.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Float][`Float`],
-        ///     [Float][`Float`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Float][`Float`],
-        ///     &amp;mut [Float][`Float`][)][tuple]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-        ///     [(][tuple][Float][`Float`],
-        ///     [Float][`Float`][)][tuple]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Float][`Float`],
-        ///     &amp;mut [Float][`Float`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Float};
-        /// let f1 = Float::with_val(53, -23.75);
-        /// let r1 = f1.trunc_fract_ref();
-        /// let (mut trunc1, mut fract1) = (Float::new(53), Float::new(53));
-        /// (&mut trunc1, &mut fract1).assign(r1);
-        /// assert_eq!(trunc1, -23);
-        /// assert_eq!(fract1, -0.75);
-        /// let f2 = Float::with_val(53, -23.75);
-        /// let r2 = f2.trunc_fract_ref();
-        /// let (mut trunc2, mut fract2) = (Float::new(53), Float::new(53));
-        /// (&mut trunc2, &mut fract2).assign(r2);
-        /// assert_eq!(trunc2, -23);
-        /// assert_eq!(fract2, -0.75);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Float`]: struct.Float.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn trunc_fract_ref -> TruncFractIncomplete;
+
+    /// Computes the first kind Bessel function of order 0.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let j0 = Float::with_val(53, f.j0_ref());
+    /// let expected = 0.6459_f64;
+    /// assert!((j0 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn j0_ref(&self) -> J0Incomplete<'_> {
+        J0Incomplete { ref_self: self }
+    }
+
+    /// Computes the value of the first kind Bessel function of
+    /// order 1, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let j1 = f.j1();
+    /// let expected = 0.5106_f64;
+    /// assert!((j1 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn j1(mut self) -> Self {
+        self.j1_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the value of the first kind Bessel function of
+    /// order 1, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.j1_mut();
+    /// let expected = 0.5106_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn j1_mut(&mut self) {
+        self.j1_round(<Round as Default>::default());
+    }
+
+    /// Computes the value of the first kind Bessel function of
+    /// order 1, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // j1(1.25) = 0.5106
+    /// // using 4 significant bits: 0.5
+    /// let dir = f.j1_round(Round::Nearest);
+    /// assert_eq!(f, 0.5);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn j1_round(&mut self, round: Round) -> Ordering {
+        xmpfr::j1(self, None, round)
+    }
+
+    /// Computes the first kind Bessel function of order 1.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let j1 = Float::with_val(53, f.j1_ref());
+    /// let expected = 0.5106_f64;
+    /// assert!((j1 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn j1_ref(&self) -> J1Incomplete<'_> {
+        J1Incomplete { ref_self: self }
+    }
+
+    /// Computes the value of the first kind Bessel function of
+    /// order <i>n</i>, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let j2 = f.jn(2);
+    /// let expected = 0.1711_f64;
+    /// assert!((j2 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn jn(mut self, n: i32) -> Self {
+        self.jn_round(n, <Round as Default>::default());
+        self
+    }
+
+    /// Computes the value of the first kind Bessel function of
+    /// order <i>n</i>, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.jn_mut(2);
+    /// let expected = 0.1711_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn jn_mut(&mut self, n: i32) {
+        self.jn_round(n, <Round as Default>::default());
+    }
+
+    /// Computes the value of the first kind Bessel function of
+    /// order <i>n</i>, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // j2(1.25) = 0.1711
+    /// // using 4 significant bits: 0.171875
+    /// let dir = f.jn_round(2, Round::Nearest);
+    /// assert_eq!(f, 0.171875);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn jn_round(&mut self, n: i32, round: Round) -> Ordering {
+        xmpfr::jn(self, None, n, round)
+    }
+
+    /// Computes the first kind Bessel function of order <i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let j2 = Float::with_val(53, f.jn_ref(2));
+    /// let expected = 0.1711_f64;
+    /// assert!((j2 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn jn_ref(&self, n: i32) -> JnIncomplete<'_> {
+        JnIncomplete { ref_self: self, n }
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order 0, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let y0 = f.y0();
+    /// let expected = 0.2582_f64;
+    /// assert!((y0 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn y0(mut self) -> Self {
+        self.y0_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order 0, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.y0_mut();
+    /// let expected = 0.2582_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn y0_mut(&mut self) {
+        self.y0_round(<Round as Default>::default());
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order 0, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // y0(1.25) = 0.2582
+    /// // using 4 significant bits: 0.25
+    /// let dir = f.y0_round(Round::Nearest);
+    /// assert_eq!(f, 0.25);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn y0_round(&mut self, round: Round) -> Ordering {
+        xmpfr::y0(self, None, round)
+    }
+
+    /// Computes the second kind Bessel function of order 0.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let y0 = Float::with_val(53, f.y0_ref());
+    /// let expected = 0.2582_f64;
+    /// assert!((y0 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn y0_ref(&self) -> Y0Incomplete<'_> {
+        Y0Incomplete { ref_self: self }
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order 1, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let y1 = f.y1();
+    /// let expected = -0.5844_f64;
+    /// assert!((y1 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn y1(mut self) -> Self {
+        self.y1_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order 1, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.y1_mut();
+    /// let expected = -0.5844_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn y1_mut(&mut self) {
+        self.y1_round(<Round as Default>::default());
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order 1, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // y1(1.25) = −0.5844
+    /// // using 4 significant bits: −0.5625
+    /// let dir = f.y1_round(Round::Nearest);
+    /// assert_eq!(f, -0.5625);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn y1_round(&mut self, round: Round) -> Ordering {
+        xmpfr::y1(self, None, round)
+    }
+
+    /// Computes the second kind Bessel function of order 1.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let y1 = Float::with_val(53, f.y1_ref());
+    /// let expected = -0.5844_f64;
+    /// assert!((y1 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn y1_ref(&self) -> Y1Incomplete<'_> {
+        Y1Incomplete { ref_self: self }
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order <i>n</i>, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let y2 = f.yn(2);
+    /// let expected = -1.1932_f64;
+    /// assert!((y2 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn yn(mut self, n: i32) -> Self {
+        self.yn_round(n, <Round as Default>::default());
+        self
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order <i>n</i>, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.yn_mut(2);
+    /// let expected = -1.1932_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn yn_mut(&mut self, n: i32) {
+        self.yn_round(n, <Round as Default>::default());
+    }
+
+    /// Computes the value of the second kind Bessel function of
+    /// order <i>n</i>, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // y2(1.25) = −1.1932
+    /// // using 4 significant bits: −1.25
+    /// let dir = f.yn_round(2, Round::Nearest);
+    /// assert_eq!(f, -1.25);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn yn_round(&mut self, n: i32, round: Round) -> Ordering {
+        xmpfr::yn(self, None, n, round)
+    }
+
+    /// Computes the second kind Bessel function of order <i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let y2 = Float::with_val(53, f.yn_ref(2));
+    /// let expected = -1.1932_f64;
+    /// assert!((y2 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn yn_ref(&self, n: i32) -> YnIncomplete<'_> {
+        YnIncomplete { ref_self: self, n }
+    }
+
+    /// Computes the arithmetic-geometric mean of `self` and `other`,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let g = Float::with_val(53, 3.75);
+    /// let agm = f.agm(&g);
+    /// let expected = 2.3295_f64;
+    /// assert!((agm - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn agm(mut self, other: &Self) -> Self {
+        self.agm_round(other, <Round as Default>::default());
+        self
+    }
+
+    /// Computes the arithmetic-geometric mean of `self` and `other`,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// let g = Float::with_val(53, 3.75);
+    /// f.agm_mut(&g);
+    /// let expected = 2.3295_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn agm_mut(&mut self, other: &Self) {
+        self.agm_round(other, <Round as Default>::default());
+    }
+
+    /// Computes the arithmetic-geometric mean of `self` and `other`,
+    /// applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// let g = Float::with_val(4, 3.75);
+    /// // agm(1.25, 3.75) = 2.3295
+    /// // using 4 significant bits: 2.25
+    /// let dir = f.agm_round(&g, Round::Nearest);
+    /// assert_eq!(f, 2.25);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn agm_round(&mut self, other: &Self, round: Round) -> Ordering {
+        xmpfr::agm(self, None, Some(other), round)
+    }
+
+    /// Computes the arithmetic-geometric mean.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let g = Float::with_val(53, 3.75);
+    /// let agm = Float::with_val(53, f.agm_ref(&g));
+    /// let expected = 2.3295_f64;
+    /// assert!((agm - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn agm_ref<'a>(&'a self, other: &'a Self) -> AgmIncomplete<'_> {
+        AgmIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Computes the Euclidean norm of `self` and `other`, rounding to
+    /// the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let g = Float::with_val(53, 3.75);
+    /// let hypot = f.hypot(&g);
+    /// let expected = 3.9528_f64;
+    /// assert!((hypot - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn hypot(mut self, other: &Self) -> Self {
+        self.hypot_round(other, <Round as Default>::default());
+        self
+    }
+
+    /// Computes the Euclidean norm of `self` and `other`, rounding to
+    /// the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// let g = Float::with_val(53, 3.75);
+    /// f.hypot_mut(&g);
+    /// let expected = 3.9528_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn hypot_mut(&mut self, other: &Self) {
+        self.hypot_round(other, <Round as Default>::default());
+    }
+
+    /// Computes the Euclidean norm of `self` and `other`, applying
+    /// the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// let g = Float::with_val(4, 3.75);
+    /// // hypot(1.25) = 3.9528
+    /// // using 4 significant bits: 4.0
+    /// let dir = f.hypot_round(&g, Round::Nearest);
+    /// assert_eq!(f, 4.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn hypot_round(&mut self, other: &Self, round: Round) -> Ordering {
+        xmpfr::hypot(self, None, Some(other), round)
+    }
+
+    /// Computes the Euclidean norm.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let g = Float::with_val(53, 3.75);
+    /// let hypot = Float::with_val(53, f.hypot_ref(&g));
+    /// let expected = 3.9528_f64;
+    /// assert!((hypot - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn hypot_ref<'a>(&'a self, other: &'a Self) -> HypotIncomplete<'_> {
+        HypotIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Computes the value of the Airy function Ai on `self`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let ai = f.ai();
+    /// let expected = 0.0996_f64;
+    /// assert!((ai - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn ai(mut self) -> Self {
+        self.ai_round(<Round as Default>::default());
+        self
+    }
+
+    /// Computes the value of the Airy function Ai on `self`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1.25);
+    /// f.ai_mut();
+    /// let expected = 0.0996_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn ai_mut(&mut self) {
+        self.ai_round(<Round as Default>::default());
+    }
+
+    /// Computes the value of the Airy function Ai on `self`, applying
+    /// the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.25);
+    /// // ai(1.25) = 0.0996
+    /// // using 4 significant bits: 0.1015625
+    /// let dir = f.ai_round(Round::Nearest);
+    /// assert_eq!(f, 0.1015625);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn ai_round(&mut self, round: Round) -> Ordering {
+        xmpfr::ai(self, None, round)
+    }
+
+    /// Computes the Airy function Ai on the value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.25);
+    /// let ai = Float::with_val(53, f.ai_ref());
+    /// let expected = 0.0996_f64;
+    /// assert!((ai - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn ai_ref(&self) -> AiIncomplete<'_> {
+        AiIncomplete { ref_self: self }
+    }
+
+    /// Rounds up to the next higher integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let ceil1 = f1.ceil();
+    /// assert_eq!(ceil1, -23);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let ceil2 = f2.ceil();
+    /// assert_eq!(ceil2, 24);
+    /// ```
+    #[inline]
+    pub fn ceil(mut self) -> Self {
+        self.ceil_mut();
+        self
+    }
+
+    /// Rounds up to the next higher integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f1 = Float::with_val(53, -23.75);
+    /// f1.ceil_mut();
+    /// assert_eq!(f1, -23);
+    /// let mut f2 = Float::with_val(53, 23.75);
+    /// f2.ceil_mut();
+    /// assert_eq!(f2, 24);
+    /// ```
+    #[inline]
+    pub fn ceil_mut(&mut self) {
+        xmpfr::rint_ceil(self, None, Default::default());
+    }
+
+    /// Rounds up to the next higher integer. The result may be
+    /// rounded again when assigned to the target.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let ceil1 = Float::with_val(53, f1.ceil_ref());
+    /// assert_eq!(ceil1, -23);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let ceil2 = Float::with_val(53, f2.ceil_ref());
+    /// assert_eq!(ceil2, 24);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn ceil_ref(&self) -> CeilIncomplete<'_> {
+        CeilIncomplete { ref_self: self }
+    }
+
+    /// Rounds down to the next lower integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let floor1 = f1.floor();
+    /// assert_eq!(floor1, -24);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let floor2 = f2.floor();
+    /// assert_eq!(floor2, 23);
+    /// ```
+    #[inline]
+    pub fn floor(mut self) -> Self {
+        self.floor_mut();
+        self
+    }
+
+    /// Rounds down to the next lower integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f1 = Float::with_val(53, -23.75);
+    /// f1.floor_mut();
+    /// assert_eq!(f1, -24);
+    /// let mut f2 = Float::with_val(53, 23.75);
+    /// f2.floor_mut();
+    /// assert_eq!(f2, 23);
+    /// ```
+    #[inline]
+    pub fn floor_mut(&mut self) {
+        xmpfr::rint_floor(self, None, Default::default());
+    }
+
+    /// Rounds down to the next lower integer. The result may be
+    /// rounded again when assigned to the target.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let floor1 = Float::with_val(53, f1.floor_ref());
+    /// assert_eq!(floor1, -24);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let floor2 = Float::with_val(53, f2.floor_ref());
+    /// assert_eq!(floor2, 23);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn floor_ref(&self) -> FloorIncomplete<'_> {
+        FloorIncomplete { ref_self: self }
+    }
+
+    /// Rounds to the nearest integer, rounding half-way cases
+    /// away from zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let round1 = f1.round();
+    /// assert_eq!(round1, -24);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let round2 = f2.round();
+    /// assert_eq!(round2, 24);
+    /// ```
+    #[inline]
+    pub fn round(mut self) -> Self {
+        self.round_mut();
+        self
+    }
+
+    /// Rounds to the nearest integer, rounding half-way cases
+    /// away from zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f1 = Float::with_val(53, -23.75);
+    /// f1.round_mut();
+    /// assert_eq!(f1, -24);
+    /// let mut f2 = Float::with_val(53, 23.75);
+    /// f2.round_mut();
+    /// assert_eq!(f2, 24);
+    /// ```
+    #[inline]
+    pub fn round_mut(&mut self) {
+        xmpfr::rint_round(self, None, Default::default());
+    }
+
+    /// Rounds to the nearest integer, rounding half-way cases
+    /// away from zero. The result may be rounded again when
+    /// assigned to the target.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let round1 = Float::with_val(53, f1.round_ref());
+    /// assert_eq!(round1, -24);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let round2 = Float::with_val(53, f2.round_ref());
+    /// assert_eq!(round2, 24);
+    /// ```
+    ///
+    /// Double rounding may happen when assigning to a target with
+    /// a precision less than the number of significant bits for
+    /// the truncated integer.
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use rug::ops::AssignRound;
+    /// let f = Float::with_val(53, 6.5);
+    /// // 6.5 (binary 110.1) is rounded to 7 (binary 111)
+    /// let r = f.round_ref();
+    /// // use only 2 bits of precision in destination
+    /// let mut dst = Float::new(2);
+    /// // 7 (binary 111) is rounded to 8 (binary 1000) by
+    /// // round-even rule in order to store in 2-bit Float, even
+    /// // though 6 (binary 110) is closer to original 6.5).
+    /// dst.assign_round(r, Round::Nearest);
+    /// assert_eq!(dst, 8);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn round_ref(&self) -> RoundIncomplete<'_> {
+        RoundIncomplete { ref_self: self }
+    }
+
+    /// Rounds to the nearest integer, rounding half-way cases to
+    /// even.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, 23.5);
+    /// let round1 = f1.round_even();
+    /// assert_eq!(round1, 24);
+    /// let f2 = Float::with_val(53, 24.5);
+    /// let round2 = f2.round_even();
+    /// assert_eq!(round2, 24);
+    /// ```
+    #[inline]
+    pub fn round_even(mut self) -> Self {
+        self.round_even_mut();
+        self
+    }
+
+    /// Rounds to the nearest integer, rounding half-way cases to
+    /// even.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f1 = Float::with_val(53, 23.5);
+    /// f1.round_even_mut();
+    /// assert_eq!(f1, 24);
+    /// let mut f2 = Float::with_val(53, 24.5);
+    /// f2.round_even_mut();
+    /// assert_eq!(f2, 24);
+    /// ```
+    #[inline]
+    pub fn round_even_mut(&mut self) {
+        xmpfr::rint_roundeven(self, None, Default::default());
+    }
+
+    /// Rounds to the nearest integer, rounding half-way cases to
+    /// even. The result may be rounded again when assigned to the
+    /// target.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, 23.5);
+    /// let round1 = Float::with_val(53, f1.round_even_ref());
+    /// assert_eq!(round1, 24);
+    /// let f2 = Float::with_val(53, 24.5);
+    /// let round2 = Float::with_val(53, f2.round_even_ref());
+    /// assert_eq!(round2, 24);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn round_even_ref(&self) -> RoundEvenIncomplete<'_> {
+        RoundEvenIncomplete { ref_self: self }
+    }
+
+    /// Rounds to the next integer towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let trunc1 = f1.trunc();
+    /// assert_eq!(trunc1, -23);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let trunc2 = f2.trunc();
+    /// assert_eq!(trunc2, 23);
+    /// ```
+    #[inline]
+    pub fn trunc(mut self) -> Self {
+        self.trunc_mut();
+        self
+    }
+
+    /// Rounds to the next integer towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f1 = Float::with_val(53, -23.75);
+    /// f1.trunc_mut();
+    /// assert_eq!(f1, -23);
+    /// let mut f2 = Float::with_val(53, 23.75);
+    /// f2.trunc_mut();
+    /// assert_eq!(f2, 23);
+    /// ```
+    #[inline]
+    pub fn trunc_mut(&mut self) {
+        xmpfr::rint_trunc(self, None, Default::default());
+    }
+
+    /// Rounds to the next integer towards zero. The result may be
+    /// rounded again when assigned to the target.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let trunc1 = Float::with_val(53, f1.trunc_ref());
+    /// assert_eq!(trunc1, -23);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let trunc2 = Float::with_val(53, f2.trunc_ref());
+    /// assert_eq!(trunc2, 23);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn trunc_ref(&self) -> TruncIncomplete<'_> {
+        TruncIncomplete { ref_self: self }
+    }
+
+    /// Gets the fractional part of the number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let fract1 = f1.fract();
+    /// assert_eq!(fract1, -0.75);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let fract2 = f2.fract();
+    /// assert_eq!(fract2, 0.75);
+    /// ```
+    #[inline]
+    pub fn fract(mut self) -> Self {
+        self.fract_mut();
+        self
+    }
+
+    /// Gets the fractional part of the number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f1 = Float::with_val(53, -23.75);
+    /// f1.fract_mut();
+    /// assert_eq!(f1, -0.75);
+    /// let mut f2 = Float::with_val(53, 23.75);
+    /// f2.fract_mut();
+    /// assert_eq!(f2, 0.75);
+    /// ```
+    #[inline]
+    pub fn fract_mut(&mut self) {
+        xmpfr::frac(self, None, Default::default());
+    }
+
+    /// Gets the fractional part of the number.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let fract1 = Float::with_val(53, f1.fract_ref());
+    /// assert_eq!(fract1, -0.75);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let fract2 = Float::with_val(53, f2.fract_ref());
+    /// assert_eq!(fract2, 0.75);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn fract_ref(&self) -> FractIncomplete<'_> {
+        FractIncomplete { ref_self: self }
+    }
+
+    /// Gets the integer and fractional parts of the number,
+    /// rounding to the nearest.
+    ///
+    /// The integer part is stored in `self` and keeps its
+    /// precision, while the fractional part is stored in `fract`
+    /// keeping its precision.
+    ///
+    /// The initial value of `fract` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let (trunc1, fract1) = f1.trunc_fract(Float::new(53));
+    /// assert_eq!(trunc1, -23);
+    /// assert_eq!(fract1, -0.75);
+    /// let f2 = Float::with_val(53, 23.75);
+    /// let (trunc2, fract2) = f2.trunc_fract(Float::new(53));
+    /// assert_eq!(trunc2, 23);
+    /// assert_eq!(fract2, 0.75);
+    /// ```
+    #[inline]
+    pub fn trunc_fract(mut self, mut fract: Self) -> (Self, Self) {
+        self.trunc_fract_round(&mut fract, <Round as Default>::default());
+        (self, fract)
+    }
+
+    /// Gets the integer and fractional parts of the number,
+    /// rounding to the nearest.
+    ///
+    /// The integer part is stored in `self` and keeps its
+    /// precision, while the fractional part is stored in `fract`
+    /// keeping its precision.
+    ///
+    /// The initial value of `fract` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f1 = Float::with_val(53, -23.75);
+    /// let mut fract1 = Float::new(53);
+    /// f1.trunc_fract_mut(&mut fract1);
+    /// assert_eq!(f1, -23);
+    /// assert_eq!(fract1, -0.75);
+    /// let mut f2 = Float::with_val(53, 23.75);
+    /// let mut fract2 = Float::new(53);
+    /// f2.trunc_fract_mut(&mut fract2);
+    /// assert_eq!(f2, 23);
+    /// assert_eq!(fract2, 0.75);
+    /// ```
+    #[inline]
+    pub fn trunc_fract_mut(&mut self, fract: &mut Self) {
+        self.trunc_fract_round(fract, <Round as Default>::default());
+    }
+
+    /// Gets the integer and fractional parts of the number,
+    /// applying the specified rounding method.
+    ///
+    /// The first element of the returned tuple of rounding
+    /// directions is always
+    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as
+    /// truncating a value in place will always be exact.
+    ///
+    /// The integer part is stored in `self` and keeps its
+    /// precision, while the fractional part is stored in `fract`
+    /// keeping its precision.
+    ///
+    /// The initial value of `fract` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// use std::cmp::Ordering;
+    /// // 0.515625 in binary is 0.100001
+    /// let mut f1 = Float::with_val(53, -23.515625);
+    /// let mut fract1 = Float::new(4);
+    /// let dir1 = f1.trunc_fract_round(&mut fract1, Round::Nearest);
+    /// assert_eq!(f1, -23);
+    /// assert_eq!(fract1, -0.5);
+    /// assert_eq!(dir1, (Ordering::Equal, Ordering::Greater));
+    /// let mut f2 = Float::with_val(53, 23.515625);
+    /// let mut fract2 = Float::new(4);
+    /// let dir2 = f2.trunc_fract_round(&mut fract2, Round::Nearest);
+    /// assert_eq!(f2, 23);
+    /// assert_eq!(fract2, 0.5);
+    /// assert_eq!(dir2, (Ordering::Equal, Ordering::Less));
+    /// ```
+    ///
+    /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
+    #[inline]
+    pub fn trunc_fract_round(&mut self, fract: &mut Self, round: Round) -> (Ordering, Ordering) {
+        xmpfr::modf(self, fract, None, round)
+    }
+
+    /// Gets the integer and fractional parts of the number.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Float][`Float`],
+    ///     [Float][`Float`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Float][`Float`],
+    ///     &amp;mut [Float][`Float`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///     [(][tuple][Float][`Float`],
+    ///     [Float][`Float`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Float][`Float`],
+    ///     &amp;mut [Float][`Float`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// let f1 = Float::with_val(53, -23.75);
+    /// let r1 = f1.trunc_fract_ref();
+    /// let (mut trunc1, mut fract1) = (Float::new(53), Float::new(53));
+    /// (&mut trunc1, &mut fract1).assign(r1);
+    /// assert_eq!(trunc1, -23);
+    /// assert_eq!(fract1, -0.75);
+    /// let f2 = Float::with_val(53, -23.75);
+    /// let r2 = f2.trunc_fract_ref();
+    /// let (mut trunc2, mut fract2) = (Float::new(53), Float::new(53));
+    /// (&mut trunc2, &mut fract2).assign(r2);
+    /// assert_eq!(trunc2, -23);
+    /// assert_eq!(fract2, -0.75);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn trunc_fract_ref(&self) -> TruncFractIncomplete<'_> {
+        TruncFractIncomplete { ref_self: self }
     }
 
     #[cfg(feature = "rand")]

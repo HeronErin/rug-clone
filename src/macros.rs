@@ -56,23 +56,6 @@ macro_rules! from_assign {
     };
 }
 
-// method(param*) -> Incomplete
-#[cfg(any(feature = "integer", feature = "float"))]
-macro_rules! math_op0 {
-    (
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*) -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method($($param: $T),*) -> $Incomplete {
-            $Incomplete {
-                $($param,)*
-            }
-        }
-    };
-}
-
 // struct Incomplete
 // Big = Incomplete
 // Incomplete -> Big
@@ -98,44 +81,6 @@ macro_rules! ref_math_op0 {
         }
 
         from_assign! { $Incomplete => $Big }
-    };
-}
-
-// method(self, param*) -> Self
-// method_mut(&mut self, param*)
-// method_ref(&self, param*) -> Incomplete
-#[cfg(feature = "integer")]
-macro_rules! math_op1 {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(mut self, $($param: $T),*) -> Self {
-            self.$method_mut($($param),*);
-            self
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $($param: $T),*) {
-            $func(self, None, $($param),*);
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $($param,)*
-            }
-        }
     };
 }
 
@@ -165,51 +110,6 @@ macro_rules! ref_math_op1 {
         }
 
         from_assign! { $Incomplete<'_> => $Big }
-    };
-}
-
-// method(self, Self, param*) -> (Self, Self)
-// method_mut(&mut self, &mut Self, param*)
-// method_ref(&self) -> Incomplete
-#[cfg(feature = "integer")]
-macro_rules! math_op1_2 {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(
-            mut self,
-            mut $rop: Self,
-            $($param: $T,)*
-        ) -> (Self, Self) {
-            self.$method_mut(&mut $rop, $($param),*);
-            (self, $rop)
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $rop: &mut Self, $($param: $T),*) {
-            $func(self, $rop, None, $($param),*);
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref(
-            &self,
-            $($param: $T,)*
-        ) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $($param,)*
-            }
-        }
     };
 }
 
@@ -252,49 +152,6 @@ macro_rules! ref_math_op1_2 {
     };
 }
 
-// method(self, &Self, param*) -> Self
-// method_mut(&mut self, &Self, param*)
-// method_ref(&mut self, &Self, param*) -> Incomplete
-#[cfg(feature = "integer")]
-macro_rules! math_op2 {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(mut self, $op: &Self, $($param: $T),*) -> Self {
-            self.$method_mut($op, $($param),*);
-            self
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
-            $func(self, None, $op, $($param),*);
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref<'a>(
-            &'a self,
-            $op: &'a Self,
-            $($param: $T,)*
-        ) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $op,
-                $($param,)*
-            }
-        }
-    };
-}
-
 // struct Incomplete
 // Big = Incomplete
 // Incomplete -> Big
@@ -322,53 +179,6 @@ macro_rules! ref_math_op2 {
         }
 
         from_assign! { $Incomplete<'_> => $Big }
-    };
-}
-
-// method(self, Self, param*) -> (Self, Self)
-// method_mut(&mut self, &mut Self, param*)
-// method_ref(&self, &Self, param*) -> Incomplete
-#[cfg(feature = "integer")]
-macro_rules! math_op2_2 {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(
-            mut self,
-            mut $op: Self,
-            $($param: $T,)*
-        ) -> (Self, Self) {
-            self.$method_mut(&mut $op, $($param),*);
-            (self, $op)
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $op: &mut Self, $($param: $T),*) {
-            $func(self, $op, None, None, $($param),*);
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref<'a>(
-            &'a self,
-            $op: &'a Self,
-            $($param: $T,)*
-        ) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $op,
-                $($param,)*
-            }
-        }
     };
 }
 
@@ -415,59 +225,6 @@ macro_rules! ref_math_op2_2 {
         }
 
         from_assign! { $Incomplete<'_> => $Big, $Big }
-    };
-}
-
-// method(self, Self, Self, param*) -> (Self, Self, Self)
-// method_mut(&mut self, &mut Self, &mut Self, param*)
-// method_mut(&mut self, &mut Self, param*) -> Incomplete
-#[cfg(feature = "integer")]
-macro_rules! math_op2_3 {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident, $rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(
-            mut self,
-            mut $op: Self,
-            mut $rop: Self,
-            $($param: $T,)*
-        ) -> (Self, Self, Self) {
-            self.$method_mut(&mut $op, &mut $rop, $($param),*);
-            (self, $op, $rop)
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(
-            &mut self,
-            $op: &mut Self,
-            $rop: &mut Self,
-            $($param: $T,)*
-        ) {
-            $func(self, $op, Some($rop), None, None, $($param),*);
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref<'a>(
-            &'a self,
-            $op: &'a Self,
-            $($param: $T,)*
-        ) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $op,
-                $($param,)*
-            }
-        }
     };
 }
 
@@ -1450,96 +1207,6 @@ macro_rules! ref_math_op0_round {
     };
 }
 
-// method(self, param*) -> Self
-// method_mut(&mut self, param*)
-// method_round(&mut self, param*, Round) -> Ordering
-// method_ref(&self, param*) -> Incomplete
-#[cfg(feature = "float")]
-macro_rules! math_op1_round {
-    (
-        $Round:ty => $Ordering:ty;
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(mut self, $($param: $T),*) -> Self {
-            self.$method_round($($param,)* <$Round as Default>::default());
-            self
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $($param: $T),*) {
-            self.$method_round($($param,)* <$Round as Default>::default());
-        }
-
-        $(#[$attr_round])*
-        #[inline]
-        pub fn $method_round(
-            &mut self,
-            $($param: $T,)*
-            round: $Round,
-        ) -> $Ordering {
-            $func(self, None, $($param,)* round)
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $($param,)*
-            }
-        }
-    };
-}
-
-// method(self, param*) -> Self
-// method_mut(&mut self, param*)
-// method_ref(&self, param*) -> Incomplete
-#[cfg(feature = "float")]
-macro_rules! math_op1_no_round {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(mut self, $($param: $T),*) -> Self {
-            self.$method_mut($($param),*);
-            self
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $($param: $T),*) {
-            $func(self, None, $($param,)* Default::default());
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $($param,)*
-            }
-        }
-    };
-}
-
 // struct Incomplete
 // Big = Incomplete
 #[cfg(feature = "float")]
@@ -1567,71 +1234,6 @@ macro_rules! ref_math_op1_round {
                 round: $Round,
             ) -> $Ordering {
                 $func(self, Some(src.ref_self), $(src.$param,)* round)
-            }
-        }
-    };
-}
-
-// method(self, Self, param*) -> (Self, Self)
-// method_mut(&mut self, &mut Self, param*)
-// method_round(&mut self, &mut Self, param*, Round) -> Ordering
-// method_ref(&self) -> Incomplete
-#[cfg(feature = "float")]
-macro_rules! math_op1_2_round {
-    (
-        $Round:ty => $Ordering:ty;
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(
-            mut self,
-            mut $rop: Self,
-            $($param: $T,)*
-        ) -> (Self, Self) {
-            self.$method_round(
-                &mut $rop,
-                $($param,)*
-                <$Round as Default>::default(),
-            );
-            (self, $rop)
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $rop: &mut Self, $($param: $T),*) {
-            self.$method_round(
-                $rop,
-                $($param,)*
-                <$Round as Default>::default(),
-            );
-        }
-
-        $(#[$attr_round])*
-        #[inline]
-        pub fn $method_round(
-            &mut self,
-            $rop: &mut Self,
-            $($param: $T,)*
-            round: $Round,
-        ) -> $Ordering {
-            $func(self, $rop, None, $($param,)* round)
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $($param,)*
             }
         }
     };
@@ -1703,107 +1305,6 @@ macro_rules! ref_math_op1_2_round {
                     src,
                     <$Round as Default>::default(),
                 );
-            }
-        }
-    };
-}
-
-// method(self, &Self, param*) -> Self
-// method_mut(&mut self, &Self, param*)
-// method_round(&mut self, &Self, param*, Round) -> Ordering
-// method_ref(&mut self, &Self, param*) -> Incomplete
-#[cfg(feature = "float")]
-macro_rules! math_op2_round {
-    (
-        $Round:ty => $Ordering:ty;
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(mut self, $op: &Self, $($param: $T),*) -> Self {
-            self.$method_round($op, $($param,)* <$Round as Default>::default());
-            self
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
-            self.$method_round($op, $($param,)* <$Round as Default>::default());
-        }
-
-        $(#[$attr_round])*
-        #[inline]
-        pub fn $method_round(
-            &mut self,
-            $op: &Self,
-            $($param: $T,)*
-            round: $Round,
-        ) -> $Ordering {
-            $func(self, None, Some($op), $($param,)* round)
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref<'a>(
-            &'a self,
-            $op: &'a Self,
-            $($param: $T,)*
-        ) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $op,
-                $($param,)*
-            }
-        }
-    };
-}
-
-// method(self, &Self, param*) -> Self
-// method_mut(&mut self, &Self, param*)
-// method_ref(&mut self, &Self, param*) -> Incomplete
-#[cfg(feature = "float")]
-macro_rules! math_op2_no_round {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(mut self, $op: &Self, $($param: $T),*) -> Self {
-            self.$method_mut($op, $($param),*);
-            self
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
-            $func(self, None, Some($op), $($param,)* Default::default());
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref<'a>(
-            &'a self,
-            $op: &'a Self,
-            $($param: $T,)*
-        ) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $op,
-                $($param,)*
             }
         }
     };

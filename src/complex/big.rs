@@ -187,33 +187,6 @@ macro_rules! ref_math_op0_complex {
     };
 }
 
-macro_rules! math_op1_complex {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        math_op1_round! {
-            Round2 => Ordering2;
-            $func;
-            $(#[$attr])*
-            fn $method($($param: $T),*);
-            $(#[$attr_mut])*
-            fn $method_mut;
-            $(#[$attr_round])*
-            fn $method_round;
-            $(#[$attr_ref])*
-            fn $method_ref -> $Incomplete;
-        }
-    };
-}
-
 macro_rules! ref_math_op1_complex {
     (
         $func:path;
@@ -225,33 +198,6 @@ macro_rules! ref_math_op1_complex {
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
-        }
-    };
-}
-
-macro_rules! math_op1_2_complex {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        math_op1_2_round! {
-            Round2 => (Ordering2, Ordering2);
-            $func;
-            $(#[$attr])*
-            fn $method($rop $(, $param: $T)*);
-            $(#[$attr_mut])*
-            fn $method_mut;
-            $(#[$attr_round])*
-            fn $method_round;
-            $(#[$attr_ref])*
-            fn $method_ref -> $Incomplete;
         }
     };
 }
@@ -1414,274 +1360,321 @@ impl Complex {
         self * mul - sub
     }
 
-    math_op1_no_round! {
-        xmpc::proj;
-        /// Computes a projection onto the Riemann sphere, rounding to
-        /// the nearest.
-        ///
-        /// If no parts of the number are infinite, the result is
-        /// unchanged. If any part is infinite, the real part of the
-        /// result is set to +∞ and the imaginary part of the result
-        /// is set to 0 with the same sign as the imaginary part of
-        /// the input.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// use std::f64;
-        /// let c1 = Complex::with_val(53, (1.5, 2.5));
-        /// let proj1 = c1.proj();
-        /// assert_eq!(proj1, (1.5, 2.5));
-        /// let c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
-        /// let proj2 = c2.proj();
-        /// assert_eq!(proj2, (f64::INFINITY, 0.0));
-        /// // imaginary was negative, so now it is minus zero
-        /// assert!(proj2.imag().is_sign_negative());
-        /// ```
-        fn proj();
-        /// Computes a projection onto the Riemann sphere, rounding to
-        /// the nearest.
-        ///
-        /// If no parts of the number are infinite, the result is
-        /// unchanged. If any part is infinite, the real part of the
-        /// result is set to +∞ and the imaginary part of the result
-        /// is set to 0 with the same sign as the imaginary part of
-        /// the input.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// use std::f64;
-        /// let mut c1 = Complex::with_val(53, (1.5, 2.5));
-        /// c1.proj_mut();
-        /// assert_eq!(c1, (1.5, 2.5));
-        /// let mut c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
-        /// c2.proj_mut();
-        /// assert_eq!(c2, (f64::INFINITY, 0.0));
-        /// // imaginary was negative, so now it is minus zero
-        /// assert!(c2.imag().is_sign_negative());
-        /// ```
-        fn proj_mut;
-        /// Computes the projection onto the Riemann sphere.
-        ///
-        /// If no parts of the number are infinite, the result is
-        /// unchanged. If any part is infinite, the real part of the
-        /// result is set to +∞ and the imaginary part of the result
-        /// is set to 0 with the same sign as the imaginary part of
-        /// the input.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// use std::f64;
-        /// let c1 = Complex::with_val(53, (f64::INFINITY, 50));
-        /// let proj1 = Complex::with_val(53, c1.proj_ref());
-        /// assert_eq!(proj1, (f64::INFINITY, 0.0));
-        /// let c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
-        /// let proj2 = Complex::with_val(53, c2.proj_ref());
-        /// assert_eq!(proj2, (f64::INFINITY, 0.0));
-        /// // imaginary was negative, so now it is minus zero
-        /// assert!(proj2.imag().is_sign_negative());
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn proj_ref -> ProjIncomplete;
+    /// Computes a projection onto the Riemann sphere, rounding to
+    /// the nearest.
+    ///
+    /// If no parts of the number are infinite, the result is
+    /// unchanged. If any part is infinite, the real part of the
+    /// result is set to +∞ and the imaginary part of the result
+    /// is set to 0 with the same sign as the imaginary part of
+    /// the input.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use std::f64;
+    /// let c1 = Complex::with_val(53, (1.5, 2.5));
+    /// let proj1 = c1.proj();
+    /// assert_eq!(proj1, (1.5, 2.5));
+    /// let c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
+    /// let proj2 = c2.proj();
+    /// assert_eq!(proj2, (f64::INFINITY, 0.0));
+    /// // imaginary was negative, so now it is minus zero
+    /// assert!(proj2.imag().is_sign_negative());
+    /// ```
+    #[inline]
+    pub fn proj(mut self) -> Self {
+        self.proj_mut();
+        self
     }
-    math_op1_complex! {
-        xmpc::sqr;
-        /// Computes the square, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, -2));
-        /// // (1 − 2i) squared is (−3 − 4i)
-        /// let square = c.square();
-        /// assert_eq!(square, (-3, -4));
-        /// ```
-        fn square();
-        /// Computes the square, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, -2));
-        /// // (1 − 2i) squared is (−3 − 4i)
-        /// c.square_mut();
-        /// assert_eq!(c, (-3, -4));
-        /// ```
-        fn square_mut;
-        /// Computes the square, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// let mut c = Complex::with_val(4, (1.25, 1.25));
-        /// // (1.25 + 1.25i) squared is (0 + 3.125i).
-        /// // With 4 bits of precision, 3.125 is rounded down to 3.
-        /// let dir = c.square_round((Round::Down, Round::Down));
-        /// assert_eq!(c, (0, 3));
-        /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
-        /// ```
-        fn square_round;
-        /// Computes the square.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// let c = Complex::with_val(53, (1.25, 1.25));
-        /// // (1.25 + 1.25i) squared is (0 + 3.125i).
-        /// let r = c.square_ref();
-        /// // With 4 bits of precision, 3.125 is rounded down to 3.
-        /// let round = (Round::Down, Round::Down);
-        /// let (square, dir) = Complex::with_val_round(4, r, round);
-        /// assert_eq!(square, (0, 3));
-        /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn square_ref -> SquareIncomplete;
+
+    /// Computes a projection onto the Riemann sphere, rounding to
+    /// the nearest.
+    ///
+    /// If no parts of the number are infinite, the result is
+    /// unchanged. If any part is infinite, the real part of the
+    /// result is set to +∞ and the imaginary part of the result
+    /// is set to 0 with the same sign as the imaginary part of
+    /// the input.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use std::f64;
+    /// let mut c1 = Complex::with_val(53, (1.5, 2.5));
+    /// c1.proj_mut();
+    /// assert_eq!(c1, (1.5, 2.5));
+    /// let mut c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
+    /// c2.proj_mut();
+    /// assert_eq!(c2, (f64::INFINITY, 0.0));
+    /// // imaginary was negative, so now it is minus zero
+    /// assert!(c2.imag().is_sign_negative());
+    /// ```
+    #[inline]
+    pub fn proj_mut(&mut self) {
+        xmpc::proj(self, None, Default::default());
     }
-    math_op1_complex! {
-        xmpc::sqrt;
-        /// Computes the square root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (-1, 0));
-        /// // square root of (−1 + 0i) is (0 + i)
-        /// let sqrt = c.sqrt();
-        /// assert_eq!(sqrt, (0, 1));
-        /// ```
-        fn sqrt();
-        /// Computes the square root, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (-1, 0));
-        /// // square root of (−1 + 0i) is (0 + i)
-        /// c.sqrt_mut();
-        /// assert_eq!(c, (0, 1));
-        /// ```
-        fn sqrt_mut;
-        /// Computes the square root, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// let mut c = Complex::with_val(4, (2, 2.25));
-        /// // Square root of (2 + 2.25i) is (1.5828 + 0.7108i).
-        /// // Nearest with 4 bits of precision: (1.625 + 0.6875i)
-        /// let dir = c.sqrt_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (1.625, 0.6875));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-        /// ```
-        fn sqrt_round;
-        /// Computes the square root.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// let c = Complex::with_val(53, (2, 2.25));
-        /// // Square root of (2 + 2.25i) is (1.5828 + 0.7108i).
-        /// let r = c.sqrt_ref();
-        /// // Nearest with 4 bits of precision: (1.625 + 0.6875i)
-        /// let nearest = (Round::Nearest, Round::Nearest);
-        /// let (sqrt, dir) = Complex::with_val_round(4, r, nearest);
-        /// assert_eq!(sqrt, (1.625, 0.6875));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sqrt_ref -> SqrtIncomplete;
+
+    /// Computes the projection onto the Riemann sphere.
+    ///
+    /// If no parts of the number are infinite, the result is
+    /// unchanged. If any part is infinite, the real part of the
+    /// result is set to +∞ and the imaginary part of the result
+    /// is set to 0 with the same sign as the imaginary part of
+    /// the input.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use std::f64;
+    /// let c1 = Complex::with_val(53, (f64::INFINITY, 50));
+    /// let proj1 = Complex::with_val(53, c1.proj_ref());
+    /// assert_eq!(proj1, (f64::INFINITY, 0.0));
+    /// let c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
+    /// let proj2 = Complex::with_val(53, c2.proj_ref());
+    /// assert_eq!(proj2, (f64::INFINITY, 0.0));
+    /// // imaginary was negative, so now it is minus zero
+    /// assert!(proj2.imag().is_sign_negative());
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn proj_ref(&self) -> ProjIncomplete<'_> {
+        ProjIncomplete { ref_self: self }
     }
-    math_op1_no_round! {
-        xmpc::conj;
-        /// Computes the complex conjugate.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1.5, 2.5));
-        /// let conj = c.conj();
-        /// assert_eq!(conj, (1.5, -2.5));
-        /// ```
-        fn conj();
-        /// Computes the complex conjugate.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1.5, 2.5));
-        /// c.conj_mut();
-        /// assert_eq!(c, (1.5, -2.5));
-        /// ```
-        fn conj_mut;
-        /// Computes the complex conjugate.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1.5, 2.5));
-        /// let conj = Complex::with_val(53, c.conj_ref());
-        /// assert_eq!(conj, (1.5, -2.5));
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn conj_ref -> ConjIncomplete;
+
+    /// Computes the square, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, -2));
+    /// // (1 − 2i) squared is (−3 − 4i)
+    /// let square = c.square();
+    /// assert_eq!(square, (-3, -4));
+    /// ```
+    #[inline]
+    pub fn square(mut self) -> Self {
+        self.square_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the square, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, -2));
+    /// // (1 − 2i) squared is (−3 − 4i)
+    /// c.square_mut();
+    /// assert_eq!(c, (-3, -4));
+    /// ```
+    #[inline]
+    pub fn square_mut(&mut self) {
+        self.square_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the square, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// let mut c = Complex::with_val(4, (1.25, 1.25));
+    /// // (1.25 + 1.25i) squared is (0 + 3.125i).
+    /// // With 4 bits of precision, 3.125 is rounded down to 3.
+    /// let dir = c.square_round((Round::Down, Round::Down));
+    /// assert_eq!(c, (0, 3));
+    /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn square_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::sqr(self, None, round)
+    }
+
+    /// Computes the square.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// let c = Complex::with_val(53, (1.25, 1.25));
+    /// // (1.25 + 1.25i) squared is (0 + 3.125i).
+    /// let r = c.square_ref();
+    /// // With 4 bits of precision, 3.125 is rounded down to 3.
+    /// let round = (Round::Down, Round::Down);
+    /// let (square, dir) = Complex::with_val_round(4, r, round);
+    /// assert_eq!(square, (0, 3));
+    /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn square_ref(&self) -> SquareIncomplete<'_> {
+        SquareIncomplete { ref_self: self }
+    }
+
+    /// Computes the square root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (-1, 0));
+    /// // square root of (−1 + 0i) is (0 + i)
+    /// let sqrt = c.sqrt();
+    /// assert_eq!(sqrt, (0, 1));
+    /// ```
+    #[inline]
+    pub fn sqrt(mut self) -> Self {
+        self.sqrt_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the square root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (-1, 0));
+    /// // square root of (−1 + 0i) is (0 + i)
+    /// c.sqrt_mut();
+    /// assert_eq!(c, (0, 1));
+    /// ```
+    #[inline]
+    pub fn sqrt_mut(&mut self) {
+        self.sqrt_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the square root, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// let mut c = Complex::with_val(4, (2, 2.25));
+    /// // Square root of (2 + 2.25i) is (1.5828 + 0.7108i).
+    /// // Nearest with 4 bits of precision: (1.625 + 0.6875i)
+    /// let dir = c.sqrt_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (1.625, 0.6875));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn sqrt_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::sqrt(self, None, round)
+    }
+
+    /// Computes the square root.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// let c = Complex::with_val(53, (2, 2.25));
+    /// // Square root of (2 + 2.25i) is (1.5828 + 0.7108i).
+    /// let r = c.sqrt_ref();
+    /// // Nearest with 4 bits of precision: (1.625 + 0.6875i)
+    /// let nearest = (Round::Nearest, Round::Nearest);
+    /// let (sqrt, dir) = Complex::with_val_round(4, r, nearest);
+    /// assert_eq!(sqrt, (1.625, 0.6875));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
+        SqrtIncomplete { ref_self: self }
+    }
+
+    /// Computes the complex conjugate.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1.5, 2.5));
+    /// let conj = c.conj();
+    /// assert_eq!(conj, (1.5, -2.5));
+    /// ```
+    #[inline]
+    pub fn conj(mut self) -> Self {
+        self.conj_mut();
+        self
+    }
+
+    /// Computes the complex conjugate.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1.5, 2.5));
+    /// c.conj_mut();
+    /// assert_eq!(c, (1.5, -2.5));
+    /// ```
+    #[inline]
+    pub fn conj_mut(&mut self) {
+        xmpc::conj(self, None, Default::default());
+    }
+
+    /// Computes the complex conjugate.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1.5, 2.5));
+    /// let conj = Complex::with_val(53, c.conj_ref());
+    /// assert_eq!(conj, (1.5, -2.5));
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn conj_ref(&self) -> ConjIncomplete<'_> {
+        ConjIncomplete { ref_self: self }
     }
 
     /// Computes the absolute value, rounding to the nearest.
@@ -1889,145 +1882,175 @@ impl Complex {
         ArgIncomplete { ref_self: self }
     }
 
-    math_op1_complex! {
-        xmpc::mul_i;
-        /// Multiplies the complex number by ±<i>i</i>, rounding to
-        /// the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (13, 24));
-        /// let rot1 = c.mul_i(false);
-        /// assert_eq!(rot1, (-24, 13));
-        /// let rot2 = rot1.mul_i(false);
-        /// assert_eq!(rot2, (-13, -24));
-        /// let rot2_less1 = rot2.mul_i(true);
-        /// assert_eq!(rot2_less1, (-24, 13));
-        /// ```
-        fn mul_i(negative: bool);
-        /// Multiplies the complex number by ±<i>i</i>, rounding to
-        /// the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (13, 24));
-        /// c.mul_i_mut(false);
-        /// assert_eq!(c, (-24, 13));
-        /// c.mul_i_mut(false);
-        /// assert_eq!(c, (-13, -24));
-        /// c.mul_i_mut(true);
-        /// assert_eq!(c, (-24, 13));
-        /// ```
-        fn mul_i_mut;
-        /// Multiplies the complex number by ±<i>i</i>, applying the
-        /// specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // only 4 bits of precision for imaginary part
-        /// let mut c = Complex::with_val((53, 4), (127, 15));
-        /// assert_eq!(c, (127, 15));
-        /// let dir = c.mul_i_round(false, (Round::Down, Round::Down));
-        /// assert_eq!(c, (-15, 120));
-        /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
-        /// let dir = c.mul_i_round(true, (Round::Down, Round::Down));
-        /// assert_eq!(c, (120, 15));
-        /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
-        /// ```
-        fn mul_i_round;
-        /// Multiplies the complex number by ±<i>i</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (13, 24));
-        /// let rotated = Complex::with_val(53, c.mul_i_ref(false));
-        /// assert_eq!(rotated, (-24, 13));
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn mul_i_ref -> MulIIncomplete;
+    /// Multiplies the complex number by ±<i>i</i>, rounding to
+    /// the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (13, 24));
+    /// let rot1 = c.mul_i(false);
+    /// assert_eq!(rot1, (-24, 13));
+    /// let rot2 = rot1.mul_i(false);
+    /// assert_eq!(rot2, (-13, -24));
+    /// let rot2_less1 = rot2.mul_i(true);
+    /// assert_eq!(rot2_less1, (-24, 13));
+    /// ```
+    #[inline]
+    pub fn mul_i(mut self, negative: bool) -> Self {
+        self.mul_i_round(negative, <Round2 as Default>::default());
+        self
     }
-    math_op1_complex! {
-        xmpc::recip;
-        /// Computes the reciprocal, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// // 1/(1 + i) = (0.5 − 0.5i)
-        /// let recip = c.recip();
-        /// assert_eq!(recip, (0.5, -0.5));
-        /// ```
-        fn recip();
-        /// Computes the reciprocal, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// // 1/(1 + i) = (0.5 − 0.5i)
-        /// c.recip_mut();
-        /// assert_eq!(c, (0.5, -0.5));
-        /// ```
-        fn recip_mut;
-        /// Computes the reciprocal, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// let mut c = Complex::with_val(4, (1, 2));
-        /// // 1/(1 + 2i) = (0.2 − 0.4i), binary (0.00110011..., −0.01100110...)
-        /// // 4 bits of precision: (0.001101, −0.01101) = (13/64, −13/32)
-        /// let dir = c.recip_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (13.0/64.0, -13.0/32.0));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-        /// ```
-        fn recip_round;
-        /// Computes the reciprocal.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// // 1/(1 + i) = (0.5 − 0.5i)
-        /// let recip = Complex::with_val(53, c.recip_ref());
-        /// assert_eq!(recip, (0.5, -0.5));
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn recip_ref -> RecipIncomplete;
+
+    /// Multiplies the complex number by ±<i>i</i>, rounding to
+    /// the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (13, 24));
+    /// c.mul_i_mut(false);
+    /// assert_eq!(c, (-24, 13));
+    /// c.mul_i_mut(false);
+    /// assert_eq!(c, (-13, -24));
+    /// c.mul_i_mut(true);
+    /// assert_eq!(c, (-24, 13));
+    /// ```
+    #[inline]
+    pub fn mul_i_mut(&mut self, negative: bool) {
+        self.mul_i_round(negative, <Round2 as Default>::default());
+    }
+
+    /// Multiplies the complex number by ±<i>i</i>, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // only 4 bits of precision for imaginary part
+    /// let mut c = Complex::with_val((53, 4), (127, 15));
+    /// assert_eq!(c, (127, 15));
+    /// let dir = c.mul_i_round(false, (Round::Down, Round::Down));
+    /// assert_eq!(c, (-15, 120));
+    /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
+    /// let dir = c.mul_i_round(true, (Round::Down, Round::Down));
+    /// assert_eq!(c, (120, 15));
+    /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
+    /// ```
+    #[inline]
+    pub fn mul_i_round(&mut self, negative: bool, round: Round2) -> Ordering2 {
+        xmpc::mul_i(self, None, negative, round)
+    }
+
+    /// Multiplies the complex number by ±<i>i</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (13, 24));
+    /// let rotated = Complex::with_val(53, c.mul_i_ref(false));
+    /// assert_eq!(rotated, (-24, 13));
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn mul_i_ref(&self, negative: bool) -> MulIIncomplete<'_> {
+        MulIIncomplete {
+            ref_self: self,
+            negative,
+        }
+    }
+
+    /// Computes the reciprocal, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// // 1/(1 + i) = (0.5 − 0.5i)
+    /// let recip = c.recip();
+    /// assert_eq!(recip, (0.5, -0.5));
+    /// ```
+    #[inline]
+    pub fn recip(mut self) -> Self {
+        self.recip_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the reciprocal, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// // 1/(1 + i) = (0.5 − 0.5i)
+    /// c.recip_mut();
+    /// assert_eq!(c, (0.5, -0.5));
+    /// ```
+    #[inline]
+    pub fn recip_mut(&mut self) {
+        self.recip_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the reciprocal, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// let mut c = Complex::with_val(4, (1, 2));
+    /// // 1/(1 + 2i) = (0.2 − 0.4i), binary (0.00110011..., −0.01100110...)
+    /// // 4 bits of precision: (0.001101, −0.01101) = (13/64, −13/32)
+    /// let dir = c.recip_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (13.0/64.0, -13.0/32.0));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn recip_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::recip(self, None, round)
+    }
+
+    /// Computes the reciprocal.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// // 1/(1 + i) = (0.5 − 0.5i)
+    /// let recip = Complex::with_val(53, c.recip_ref());
+    /// assert_eq!(recip, (0.5, -0.5));
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn recip_ref(&self) -> RecipIncomplete<'_> {
+        RecipIncomplete { ref_self: self }
     }
 
     /// Computes the norm, that is the square of the absolute value,
@@ -2121,1146 +2144,1371 @@ impl Complex {
         NormIncomplete { ref_self: self }
     }
 
-    math_op1_complex! {
-        xmpc::log;
-        /// Computes the natural logarithm, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1.5, -0.5));
-        /// let ln = c.ln();
-        /// let expected = Complex::with_val(53, (0.4581, -0.3218));
-        /// assert!(*(ln - expected).abs().real() < 0.0001);
-        /// ```
-        fn ln();
-        /// Computes the natural logarithm, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1.5, -0.5));
-        /// c.ln_mut();
-        /// let expected = Complex::with_val(53, (0.4581, -0.3218));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn ln_mut;
-        /// Computes the natural logarithm, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1.5, -0.5));
-        /// // ln(1.5 − 0.5i) = (0.4581 − 0.3218i)
-        /// // using 4 significant bits: (0.46875 − 0.3125i)
-        /// let dir = c.ln_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.46875, -0.3125));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
-        /// ```
-        fn ln_round;
-        /// Computes the natural logarithm;
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1.5, -0.5));
-        /// let ln = Complex::with_val(53, c.ln_ref());
-        /// let expected = Complex::with_val(53, (0.4581, -0.3218));
-        /// assert!(*(ln - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn ln_ref -> LnIncomplete;
+    /// Computes the natural logarithm, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1.5, -0.5));
+    /// let ln = c.ln();
+    /// let expected = Complex::with_val(53, (0.4581, -0.3218));
+    /// assert!(*(ln - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn ln(mut self) -> Self {
+        self.ln_round(<Round2 as Default>::default());
+        self
     }
-    math_op1_complex! {
-        xmpc::log10;
-        /// Computes the logarithm to base 10, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1.5, -0.5));
-        /// let log10 = c.log10();
-        /// let expected = Complex::with_val(53, (0.1990, -0.1397));
-        /// assert!(*(log10 - expected).abs().real() < 0.0001);
-        /// ```
-        fn log10();
-        /// Computes the logarithm to base 10, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1.5, -0.5));
-        /// c.log10_mut();
-        /// let expected = Complex::with_val(53, (0.1990, -0.1397));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn log10_mut;
-        /// Computes the logarithm to base 10, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1.5, -0.5));
-        /// // log10(1.5 − 0.5i) = (0.1990 − 0.1397i)
-        /// // using 4 significant bits: (0.203125 − 0.140625i)
-        /// let dir = c.log10_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.203125, -0.140625));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-        /// ```
-        fn log10_round;
-        /// Computes the logarithm to base 10.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1.5, -0.5));
-        /// let log10 = Complex::with_val(53, c.log10_ref());
-        /// let expected = Complex::with_val(53, (0.1990, -0.1397));
-        /// assert!(*(log10 - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn log10_ref -> Log10Incomplete;
+
+    /// Computes the natural logarithm, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1.5, -0.5));
+    /// c.ln_mut();
+    /// let expected = Complex::with_val(53, (0.4581, -0.3218));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn ln_mut(&mut self) {
+        self.ln_round(<Round2 as Default>::default());
     }
-    math_op0! {
-        /// Generates a root of unity, rounding to the nearest.
-        ///
-        /// The generated number is the <i>n</i>th root of unity
-        /// raised to the power <i>k</i>, that is its magnitude is 1
-        /// and its argument is 2π<i>k</i>/<i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let r = Complex::root_of_unity(3, 2);
-        /// let c = Complex::with_val(53, r);
-        /// let expected = Complex::with_val(53, (-0.5, -0.8660));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn root_of_unity(n: u32, k: u32) -> RootOfUnityIncomplete;
+
+    /// Computes the natural logarithm, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1.5, -0.5));
+    /// // ln(1.5 − 0.5i) = (0.4581 − 0.3218i)
+    /// // using 4 significant bits: (0.46875 − 0.3125i)
+    /// let dir = c.ln_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.46875, -0.3125));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
+    /// ```
+    #[inline]
+    pub fn ln_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::log(self, None, round)
     }
-    math_op1_complex! {
-        xmpc::exp;
-        /// Computes the exponential, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (0.5, -0.75));
-        /// let exp = c.exp();
-        /// let expected = Complex::with_val(53, (1.2064, -1.1238));
-        /// assert!(*(exp - expected).abs().real() < 0.0001);
-        /// ```
-        fn exp();
-        /// Computes the exponential, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (0.5, -0.75));
-        /// c.exp_mut();
-        /// let expected = Complex::with_val(53, (1.2064, -1.1238));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn exp_mut;
-        /// Computes the exponential, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (0.5, -0.75));
-        /// // exp(0.5 − 0.75i) = (1.2064 − 1.1238i)
-        /// // using 4 significant bits: (1.25 − 1.125)
-        /// let dir = c.exp_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (1.25, -1.125));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-        /// ```
-        fn exp_round;
-        /// Computes the exponential.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (0.5, -0.75));
-        /// let exp = Complex::with_val(53, c.exp_ref());
-        /// let expected = Complex::with_val(53, (1.2064, -1.1238));
-        /// assert!(*(exp - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn exp_ref -> ExpIncomplete;
+
+    /// Computes the natural logarithm;
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1.5, -0.5));
+    /// let ln = Complex::with_val(53, c.ln_ref());
+    /// let expected = Complex::with_val(53, (0.4581, -0.3218));
+    /// assert!(*(ln - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn ln_ref(&self) -> LnIncomplete<'_> {
+        LnIncomplete { ref_self: self }
     }
-    math_op1_complex! {
-        xmpc::sin;
-        /// Computes the sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let sin = c.sin();
-        /// let expected = Complex::with_val(53, (1.2985, 0.6350));
-        /// assert!(*(sin - expected).abs().real() < 0.0001);
-        /// ```
-        fn sin();
-        /// Computes the sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.sin_mut();
-        /// let expected = Complex::with_val(53, (1.2985, 0.6350));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn sin_mut;
-        /// Computes the sine, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // sin(1 + i) = (1.2985 + 0.6350i)
-        /// // using 4 significant bits: (1.25 + 0.625i)
-        /// let dir = c.sin_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (1.25, 0.625));
-        /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
-        /// ```
-        fn sin_round;
-        /// Computes the sine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let sin = Complex::with_val(53, c.sin_ref());
-        /// let expected = Complex::with_val(53, (1.2985, 0.6350));
-        /// assert!(*(sin - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sin_ref -> SinIncomplete;
+
+    /// Computes the logarithm to base 10, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1.5, -0.5));
+    /// let log10 = c.log10();
+    /// let expected = Complex::with_val(53, (0.1990, -0.1397));
+    /// assert!(*(log10 - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn log10(mut self) -> Self {
+        self.log10_round(<Round2 as Default>::default());
+        self
     }
-    math_op1_complex! {
-        xmpc::cos;
-        /// Computes the cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let cos = c.cos();
-        /// let expected = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!(*(cos - expected).abs().real() < 0.0001);
-        /// ```
-        fn cos();
-        /// Computes the cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.cos_mut();
-        /// let expected = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn cos_mut;
-        /// Computes the cosine, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // cos(1 + i) = (0.8337 − 0.9889i)
-        /// // using 4 significant bits: (0.8125 − i)
-        /// let dir = c.cos_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.8125, -1));
-        /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
-        /// ```
-        fn cos_round;
-        /// Computes the cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let cos = Complex::with_val(53, c.cos_ref());
-        /// let expected = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!(*(cos - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn cos_ref -> CosIncomplete;
+
+    /// Computes the logarithm to base 10, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1.5, -0.5));
+    /// c.log10_mut();
+    /// let expected = Complex::with_val(53, (0.1990, -0.1397));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn log10_mut(&mut self) {
+        self.log10_round(<Round2 as Default>::default());
     }
-    math_op1_2_complex! {
-        xmpc::sin_cos;
-        /// Computes the sine and cosine of `self`, rounding to the
-        /// nearest.
-        ///
-        /// The sine keeps the precision of `self` while the cosine
-        /// keeps the precision of `cos`.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let (sin, cos) = c.sin_cos(Complex::new(53));
-        /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
-        /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
-        /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
-        /// ```
-        fn sin_cos(cos);
-        /// Computes the sine and cosine of `self`, rounding to the
-        /// nearest.
-        ///
-        /// The sine is stored in `self` and keeps its precision,
-        /// while the cosine is stored in `cos` keeping its precision.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut sin = Complex::with_val(53, (1, 1));
-        /// let mut cos = Complex::new(53);
-        /// sin.sin_cos_mut(&mut cos);
-        /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
-        /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
-        /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
-        /// ```
-        fn sin_cos_mut;
-        /// Computes the sine and cosine of `self`, applying the
-        /// specified rounding methods.
-        ///
-        /// The sine is stored in `self` and keeps its precision,
-        /// while the cosine is stored in `cos` keeping its precision.
-        ///
-        /// The initial value of `cos` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut sin = Complex::with_val(4, (1, 1));
-        /// let mut cos = Complex::new(4);
-        /// // sin(1 + i) = (1.2985 + 0.6350)
-        /// // using 4 significant bits: (1.25 + 0.625i)
-        /// // cos(1 + i) = (0.8337 − 0.9889i)
-        /// // using 4 significant bits: (0.8125 − i)
-        /// let (dir_sin, dir_cos) =
-        ///     sin.sin_cos_round(&mut cos, (Round::Nearest, Round::Nearest));
-        /// assert_eq!(sin, (1.25, 0.625));
-        /// assert_eq!(dir_sin, (Ordering::Less, Ordering::Less));
-        /// assert_eq!(cos, (0.8125, -1));
-        /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
-        /// ```
-        fn sin_cos_round;
-        /// Computes the sine and cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Complex][`Complex`],
-        ///     [Complex][`Complex`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Complex][`Complex`],
-        ///     &amp;mut [Complex][`Complex`][)][tuple]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-        ///     [(][tuple][Complex][`Complex`],
-        ///     [Complex][`Complex`][)][tuple]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Complex][`Complex`],
-        ///     &amp;mut [Complex][`Complex`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, ops::AssignRound, Assign, Complex};
-        /// use std::cmp::Ordering;
-        /// let phase = Complex::with_val(53, (1, 1));
-        ///
-        /// let (mut sin, mut cos) = (Complex::new(53), Complex::new(53));
-        /// let sin_cos = phase.sin_cos_ref();
-        /// (&mut sin, &mut cos).assign(sin_cos);
-        /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
-        /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
-        /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
-        ///
-        /// // using 4 significant bits: sin = (1.25 + 0.625i)
-        /// // using 4 significant bits: cos = (0.8125 − i)
-        /// let (mut sin_4, mut cos_4) = (Complex::new(4), Complex::new(4));
-        /// let sin_cos = phase.sin_cos_ref();
-        /// let (dir_sin, dir_cos) = (&mut sin_4, &mut cos_4)
-        ///     .assign_round(sin_cos, (Round::Nearest, Round::Nearest));
-        /// assert_eq!(sin_4, (1.25, 0.625));
-        /// assert_eq!(dir_sin, (Ordering::Less, Ordering::Less));
-        /// assert_eq!(cos_4, (0.8125, -1));
-        /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn sin_cos_ref -> SinCosIncomplete;
+
+    /// Computes the logarithm to base 10, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1.5, -0.5));
+    /// // log10(1.5 − 0.5i) = (0.1990 − 0.1397i)
+    /// // using 4 significant bits: (0.203125 − 0.140625i)
+    /// let dir = c.log10_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.203125, -0.140625));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn log10_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::log10(self, None, round)
     }
-    math_op1_complex! {
-        xmpc::tan;
-        /// Computes the tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let tan = c.tan();
-        /// let expected = Complex::with_val(53, (0.2718, 1.0839));
-        /// assert!(*(tan - expected).abs().real() < 0.0001);
-        /// ```
-        fn tan();
-        /// Computes the tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.tan_mut();
-        /// let expected = Complex::with_val(53, (0.2718, 1.0839));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn tan_mut;
-        /// Computes the tangent, applying the specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // tan(1 + i) = (0.2718 + 1.0839)
-        /// // using 4 significant bits: (0.28125 + 1.125i)
-        /// let dir = c.tan_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.28125, 1.125));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
-        /// ```
-        fn tan_round;
-        /// Computes the tangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let tan = Complex::with_val(53, c.tan_ref());
-        /// let expected = Complex::with_val(53, (0.2718, 1.0839));
-        /// assert!(*(tan - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn tan_ref -> TanIncomplete;
+
+    /// Computes the logarithm to base 10.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1.5, -0.5));
+    /// let log10 = Complex::with_val(53, c.log10_ref());
+    /// let expected = Complex::with_val(53, (0.1990, -0.1397));
+    /// assert!(*(log10 - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn log10_ref(&self) -> Log10Incomplete<'_> {
+        Log10Incomplete { ref_self: self }
     }
-    math_op1_complex! {
-        xmpc::sinh;
-        /// Computes the hyperbolic sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let sinh = c.sinh();
-        /// let expected = Complex::with_val(53, (0.6350, 1.2985));
-        /// assert!(*(sinh - expected).abs().real() < 0.0001);
-        /// ```
-        fn sinh();
-        /// Computes the hyperbolic sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.sinh_mut();
-        /// let expected = Complex::with_val(53, (0.6350, 1.2985));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn sinh_mut;
-        /// Computes the hyperbolic sine, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // sinh(1 + i) = (0.6350 + 1.2985i)
-        /// // using 4 significant bits: (0.625 + 1.25i)
-        /// let dir = c.sinh_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.625, 1.25));
-        /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
-        /// ```
-        fn sinh_round;
-        /// Computes the hyperbolic sine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let sinh = Complex::with_val(53, c.sinh_ref());
-        /// let expected = Complex::with_val(53, (0.6350, 1.2985));
-        /// assert!(*(sinh - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sinh_ref -> SinhIncomplete;
+
+    /// Generates a root of unity, rounding to the nearest.
+    ///
+    /// The generated number is the <i>n</i>th root of unity
+    /// raised to the power <i>k</i>, that is its magnitude is 1
+    /// and its argument is 2π<i>k</i>/<i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let r = Complex::root_of_unity(3, 2);
+    /// let c = Complex::with_val(53, r);
+    /// let expected = Complex::with_val(53, (-0.5, -0.8660));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn root_of_unity(n: u32, k: u32) -> RootOfUnityIncomplete {
+        RootOfUnityIncomplete { n, k }
     }
-    math_op1_complex! {
-        xmpc::cosh;
-        /// Computes the hyperbolic cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let cosh = c.cosh();
-        /// let expected = Complex::with_val(53, (0.8337, 0.9889));
-        /// assert!(*(cosh - expected).abs().real() < 0.0001);
-        /// ```
-        fn cosh();
-        /// Computes the hyperbolic cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.cosh_mut();
-        /// let expected = Complex::with_val(53, (0.8337, 0.9889));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn cosh_mut;
-        /// Computes the hyperbolic cosine, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // cosh(1 + i) = (0.8337 + 0.9889)
-        /// // using 4 significant bits: (0.8125 + i)
-        /// let dir = c.cosh_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.8125, 1));
-        /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
-        /// ```
-        fn cosh_round;
-        /// Computes the hyperbolic cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let cosh = Complex::with_val(53, c.cosh_ref());
-        /// let expected = Complex::with_val(53, (0.8337, 0.9889));
-        /// assert!(*(cosh - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn cosh_ref -> CoshIncomplete;
+
+    /// Computes the exponential, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (0.5, -0.75));
+    /// let exp = c.exp();
+    /// let expected = Complex::with_val(53, (1.2064, -1.1238));
+    /// assert!(*(exp - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn exp(mut self) -> Self {
+        self.exp_round(<Round2 as Default>::default());
+        self
     }
-    math_op1_complex! {
-        xmpc::tanh;
-        /// Computes the hyperbolic tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let tanh = c.tanh();
-        /// let expected = Complex::with_val(53, (1.0839, 0.2718));
-        /// assert!(*(tanh - expected).abs().real() < 0.0001);
-        /// ```
-        fn tanh();
-        /// Computes the hyperbolic tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.tanh_mut();
-        /// let expected = Complex::with_val(53, (1.0839, 0.2718));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn tanh_mut;
-        /// Computes the hyperbolic tangent, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // tanh(1 + i) = (1.0839 + 0.2718i)
-        /// // using 4 significant bits: (1.125 + 0.28125i)
-        /// let dir = c.tanh_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (1.125, 0.28125));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
-        /// ```
-        fn tanh_round;
-        /// Computes the hyperbolic tangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let tanh = Complex::with_val(53, c.tanh_ref());
-        /// let expected = Complex::with_val(53, (1.0839, 0.2718));
-        /// assert!(*(tanh - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn tanh_ref -> TanhIncomplete;
+
+    /// Computes the exponential, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (0.5, -0.75));
+    /// c.exp_mut();
+    /// let expected = Complex::with_val(53, (1.2064, -1.1238));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn exp_mut(&mut self) {
+        self.exp_round(<Round2 as Default>::default());
     }
-    math_op1_complex! {
-        xmpc::asin;
-        /// Computes the inverse sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let asin = c.asin();
-        /// let expected = Complex::with_val(53, (0.6662, 1.0613));
-        /// assert!(*(asin - expected).abs().real() < 0.0001);
-        /// ```
-        fn asin();
-        /// Computes the inverse sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.asin_mut();
-        /// let expected = Complex::with_val(53, (0.6662, 1.0613));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn asin_mut;
-        /// Computes the inverse sine, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // asin(1 + i) = (0.6662 + 1.0613i)
-        /// // using 4 significant bits: (0.6875 + i)
-        /// let dir = c.asin_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.6875, 1));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-        /// ```
-        fn asin_round;
-        /// Computes the inverse sine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let asin = Complex::with_val(53, c.asin_ref());
-        /// let expected = Complex::with_val(53, (0.6662, 1.0613));
-        /// assert!(*(asin - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn asin_ref -> AsinIncomplete;
+
+    /// Computes the exponential, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (0.5, -0.75));
+    /// // exp(0.5 − 0.75i) = (1.2064 − 1.1238i)
+    /// // using 4 significant bits: (1.25 − 1.125)
+    /// let dir = c.exp_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (1.25, -1.125));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn exp_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::exp(self, None, round)
     }
-    math_op1_complex! {
-        xmpc::acos;
-        /// Computes the inverse cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let acos = c.acos();
-        /// let expected = Complex::with_val(53, (0.9046, -1.0613));
-        /// assert!(*(acos - expected).abs().real() < 0.0001);
-        /// ```
-        fn acos();
-        /// Computes the inverse cosine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.acos_mut();
-        /// let expected = Complex::with_val(53, (0.9046, -1.0613));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn acos_mut;
-        /// Computes the inverse cosine, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // acos(1 + i) = (0.9046 − 1.0613i)
-        /// // using 4 significant bits: (0.875 − i)
-        /// let dir = c.acos_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.875, -1));
-        /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
-        /// ```
-        fn acos_round;
-        /// Computes the inverse cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let acos = Complex::with_val(53, c.acos_ref());
-        /// let expected = Complex::with_val(53, (0.9046, -1.0613));
-        /// assert!(*(acos - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn acos_ref -> AcosIncomplete;
+
+    /// Computes the exponential.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (0.5, -0.75));
+    /// let exp = Complex::with_val(53, c.exp_ref());
+    /// let expected = Complex::with_val(53, (1.2064, -1.1238));
+    /// assert!(*(exp - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn exp_ref(&self) -> ExpIncomplete<'_> {
+        ExpIncomplete { ref_self: self }
     }
-    math_op1_complex! {
-        xmpc::atan;
-        /// Computes the inverse tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let atan = c.atan();
-        /// let expected = Complex::with_val(53, (1.0172, 0.4024));
-        /// assert!(*(atan - expected).abs().real() < 0.0001);
-        /// ```
-        fn atan();
-        /// Computes the inverse tangent, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.atan_mut();
-        /// let expected = Complex::with_val(53, (1.0172, 0.4024));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn atan_mut;
-        /// Computes the inverse tangent, applying the specified rounding
-        /// method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // atan(1 + i) = (1.0172 + 0.4024i)
-        /// // using 4 significant bits: (1 + 0.40625i)
-        /// let dir = c.atan_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (1, 0.40625));
-        /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
-        /// ```
-        fn atan_round;
-        /// Computes the inverse tangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let atan = Complex::with_val(53, c.atan_ref());
-        /// let expected = Complex::with_val(53, (1.0172, 0.4024));
-        /// assert!(*(atan - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn atan_ref -> AtanIncomplete;
+
+    /// Computes the sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let sin = c.sin();
+    /// let expected = Complex::with_val(53, (1.2985, 0.6350));
+    /// assert!(*(sin - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin(mut self) -> Self {
+        self.sin_round(<Round2 as Default>::default());
+        self
     }
-    math_op1_complex! {
-        xmpc::asinh;
-        /// Computes the inverse hyperbolic sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let asinh = c.asinh();
-        /// let expected = Complex::with_val(53, (1.0613, 0.6662));
-        /// assert!(*(asinh - expected).abs().real() < 0.0001);
-        /// ```
-        fn asinh();
-        /// Computes the inverse hyperbolic sine, rounding to the nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.asinh_mut();
-        /// let expected = Complex::with_val(53, (1.0613, 0.6662));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn asinh_mut;
-        /// Computes the inverse hyperbolic sine, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // asinh(1 + i) = (1.0613 + 0.6662i)
-        /// // using 4 significant bits: (1 + 0.6875i)
-        /// let dir = c.asinh_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (1, 0.6875));
-        /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
-        /// ```
-        fn asinh_round;
-        /// Computes the inverse hyperboic sine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let asinh = Complex::with_val(53, c.asinh_ref());
-        /// let expected = Complex::with_val(53, (1.0613, 0.6662));
-        /// assert!(*(asinh - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn asinh_ref -> AsinhIncomplete;
+
+    /// Computes the sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.sin_mut();
+    /// let expected = Complex::with_val(53, (1.2985, 0.6350));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin_mut(&mut self) {
+        self.sin_round(<Round2 as Default>::default());
     }
-    math_op1_complex! {
-        xmpc::acosh;
-        /// Computes the inverse hyperbolic cosine, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let acosh = c.acosh();
-        /// let expected = Complex::with_val(53, (1.0613, 0.9046));
-        /// assert!(*(acosh - expected).abs().real() < 0.0001);
-        /// ```
-        fn acosh();
-        /// Computes the inverse hyperbolic cosine, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.acosh_mut();
-        /// let expected = Complex::with_val(53, (1.0613, 0.9046));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn acosh_mut;
-        /// Computes the inverse hyperbolic cosine, applying the specified
-        /// rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // acosh(1 + i) = (1.0613 + 0.9046i)
-        /// // using 4 significant bits: (1 + 0.875i)
-        /// let dir = c.acosh_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (1, 0.875));
-        /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
-        /// ```
-        fn acosh_round;
-        /// Computes the inverse hyperbolic cosine.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let acosh = Complex::with_val(53, c.acosh_ref());
-        /// let expected = Complex::with_val(53, (1.0613, 0.9046));
-        /// assert!(*(acosh - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn acosh_ref -> AcoshIncomplete;
+
+    /// Computes the sine, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // sin(1 + i) = (1.2985 + 0.6350i)
+    /// // using 4 significant bits: (1.25 + 0.625i)
+    /// let dir = c.sin_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (1.25, 0.625));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn sin_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::sin(self, None, round)
     }
-    math_op1_complex! {
-        xmpc::atanh;
-        /// Computes the inverse hyperbolic tangent, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let atanh = c.atanh();
-        /// let expected = Complex::with_val(53, (0.4024, 1.0172));
-        /// assert!(*(atanh - expected).abs().real() < 0.0001);
-        /// ```
-        fn atanh();
-        /// Computes the inverse hyperbolic tangent, rounding to the
-        /// nearest.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
-        /// c.atanh_mut();
-        /// let expected = Complex::with_val(53, (0.4024, 1.0172));
-        /// assert!(*(c - expected).abs().real() < 0.0001);
-        /// ```
-        fn atanh_mut;
-        /// Computes the inverse hyperbolic tangent, applying the
-        /// specified rounding method.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{float::Round, Complex};
-        /// use std::cmp::Ordering;
-        /// // Use only 4 bits of precision to show rounding.
-        /// let mut c = Complex::with_val(4, (1, 1));
-        /// // atanh(1 + i) = (0.4024 + 1.0172i)
-        /// // using 4 significant bits: (0.40625 + i)
-        /// let dir = c.atanh_round((Round::Nearest, Round::Nearest));
-        /// assert_eq!(c, (0.40625, 1));
-        /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-        /// ```
-        fn atanh_round;
-        /// Computes the inverse hyperbolic tangent.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Complex;
-        /// let c = Complex::with_val(53, (1, 1));
-        /// let atanh = Complex::with_val(53, c.atanh_ref());
-        /// let expected = Complex::with_val(53, (0.4024, 1.0172));
-        /// assert!(*(atanh - expected).abs().real() < 0.0001);
-        /// ```
-        ///
-        /// [`AssignRound`]: ops/trait.AssignRound.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Complex`]: struct.Complex.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn atanh_ref -> AtanhIncomplete;
+
+    /// Computes the sine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let sin = Complex::with_val(53, c.sin_ref());
+    /// let expected = Complex::with_val(53, (1.2985, 0.6350));
+    /// assert!(*(sin - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sin_ref(&self) -> SinIncomplete<'_> {
+        SinIncomplete { ref_self: self }
+    }
+
+    /// Computes the cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let cos = c.cos();
+    /// let expected = Complex::with_val(53, (0.8337, -0.9889));
+    /// assert!(*(cos - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cos(mut self) -> Self {
+        self.cos_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.cos_mut();
+    /// let expected = Complex::with_val(53, (0.8337, -0.9889));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cos_mut(&mut self) {
+        self.cos_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the cosine, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // cos(1 + i) = (0.8337 − 0.9889i)
+    /// // using 4 significant bits: (0.8125 − i)
+    /// let dir = c.cos_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.8125, -1));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn cos_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::cos(self, None, round)
+    }
+
+    /// Computes the cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let cos = Complex::with_val(53, c.cos_ref());
+    /// let expected = Complex::with_val(53, (0.8337, -0.9889));
+    /// assert!(*(cos - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn cos_ref(&self) -> CosIncomplete<'_> {
+        CosIncomplete { ref_self: self }
+    }
+
+    /// Computes the sine and cosine of `self`, rounding to the
+    /// nearest.
+    ///
+    /// The sine keeps the precision of `self` while the cosine
+    /// keeps the precision of `cos`.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let (sin, cos) = c.sin_cos(Complex::new(53));
+    /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
+    /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
+    /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
+    /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin_cos(mut self, mut cos: Self) -> (Self, Self) {
+        self.sin_cos_round(&mut cos, <Round2 as Default>::default());
+        (self, cos)
+    }
+
+    /// Computes the sine and cosine of `self`, rounding to the
+    /// nearest.
+    ///
+    /// The sine is stored in `self` and keeps its precision,
+    /// while the cosine is stored in `cos` keeping its precision.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut sin = Complex::with_val(53, (1, 1));
+    /// let mut cos = Complex::new(53);
+    /// sin.sin_cos_mut(&mut cos);
+    /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
+    /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
+    /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
+    /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin_cos_mut(&mut self, cos: &mut Self) {
+        self.sin_cos_round(cos, <Round2 as Default>::default());
+    }
+
+    /// Computes the sine and cosine of `self`, applying the
+    /// specified rounding methods.
+    ///
+    /// The sine is stored in `self` and keeps its precision,
+    /// while the cosine is stored in `cos` keeping its precision.
+    ///
+    /// The initial value of `cos` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut sin = Complex::with_val(4, (1, 1));
+    /// let mut cos = Complex::new(4);
+    /// // sin(1 + i) = (1.2985 + 0.6350)
+    /// // using 4 significant bits: (1.25 + 0.625i)
+    /// // cos(1 + i) = (0.8337 − 0.9889i)
+    /// // using 4 significant bits: (0.8125 − i)
+    /// let (dir_sin, dir_cos) =
+    ///     sin.sin_cos_round(&mut cos, (Round::Nearest, Round::Nearest));
+    /// assert_eq!(sin, (1.25, 0.625));
+    /// assert_eq!(dir_sin, (Ordering::Less, Ordering::Less));
+    /// assert_eq!(cos, (0.8125, -1));
+    /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn sin_cos_round(&mut self, cos: &mut Self, round: Round2) -> (Ordering2, Ordering2) {
+        xmpc::sin_cos(self, cos, None, round)
+    }
+
+    /// Computes the sine and cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Complex][`Complex`],
+    ///     [Complex][`Complex`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Complex][`Complex`],
+    ///     &amp;mut [Complex][`Complex`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///     [(][tuple][Complex][`Complex`],
+    ///     [Complex][`Complex`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Complex][`Complex`],
+    ///     &amp;mut [Complex][`Complex`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, ops::AssignRound, Assign, Complex};
+    /// use std::cmp::Ordering;
+    /// let phase = Complex::with_val(53, (1, 1));
+    ///
+    /// let (mut sin, mut cos) = (Complex::new(53), Complex::new(53));
+    /// let sin_cos = phase.sin_cos_ref();
+    /// (&mut sin, &mut cos).assign(sin_cos);
+    /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
+    /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
+    /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
+    /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
+    ///
+    /// // using 4 significant bits: sin = (1.25 + 0.625i)
+    /// // using 4 significant bits: cos = (0.8125 − i)
+    /// let (mut sin_4, mut cos_4) = (Complex::new(4), Complex::new(4));
+    /// let sin_cos = phase.sin_cos_ref();
+    /// let (dir_sin, dir_cos) = (&mut sin_4, &mut cos_4)
+    ///     .assign_round(sin_cos, (Round::Nearest, Round::Nearest));
+    /// assert_eq!(sin_4, (1.25, 0.625));
+    /// assert_eq!(dir_sin, (Ordering::Less, Ordering::Less));
+    /// assert_eq!(cos_4, (0.8125, -1));
+    /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn sin_cos_ref(&self) -> SinCosIncomplete<'_> {
+        SinCosIncomplete { ref_self: self }
+    }
+
+    /// Computes the tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let tan = c.tan();
+    /// let expected = Complex::with_val(53, (0.2718, 1.0839));
+    /// assert!(*(tan - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tan(mut self) -> Self {
+        self.tan_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.tan_mut();
+    /// let expected = Complex::with_val(53, (0.2718, 1.0839));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tan_mut(&mut self) {
+        self.tan_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the tangent, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // tan(1 + i) = (0.2718 + 1.0839)
+    /// // using 4 significant bits: (0.28125 + 1.125i)
+    /// let dir = c.tan_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.28125, 1.125));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
+    /// ```
+    #[inline]
+    pub fn tan_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::tan(self, None, round)
+    }
+
+    /// Computes the tangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let tan = Complex::with_val(53, c.tan_ref());
+    /// let expected = Complex::with_val(53, (0.2718, 1.0839));
+    /// assert!(*(tan - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn tan_ref(&self) -> TanIncomplete<'_> {
+        TanIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let sinh = c.sinh();
+    /// let expected = Complex::with_val(53, (0.6350, 1.2985));
+    /// assert!(*(sinh - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sinh(mut self) -> Self {
+        self.sinh_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.sinh_mut();
+    /// let expected = Complex::with_val(53, (0.6350, 1.2985));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sinh_mut(&mut self) {
+        self.sinh_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the hyperbolic sine, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // sinh(1 + i) = (0.6350 + 1.2985i)
+    /// // using 4 significant bits: (0.625 + 1.25i)
+    /// let dir = c.sinh_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.625, 1.25));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn sinh_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::sinh(self, None, round)
+    }
+
+    /// Computes the hyperbolic sine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let sinh = Complex::with_val(53, c.sinh_ref());
+    /// let expected = Complex::with_val(53, (0.6350, 1.2985));
+    /// assert!(*(sinh - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sinh_ref(&self) -> SinhIncomplete<'_> {
+        SinhIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let cosh = c.cosh();
+    /// let expected = Complex::with_val(53, (0.8337, 0.9889));
+    /// assert!(*(cosh - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cosh(mut self) -> Self {
+        self.cosh_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.cosh_mut();
+    /// let expected = Complex::with_val(53, (0.8337, 0.9889));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cosh_mut(&mut self) {
+        self.cosh_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the hyperbolic cosine, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // cosh(1 + i) = (0.8337 + 0.9889)
+    /// // using 4 significant bits: (0.8125 + i)
+    /// let dir = c.cosh_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.8125, 1));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+    /// ```
+    #[inline]
+    pub fn cosh_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::cosh(self, None, round)
+    }
+
+    /// Computes the hyperbolic cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let cosh = Complex::with_val(53, c.cosh_ref());
+    /// let expected = Complex::with_val(53, (0.8337, 0.9889));
+    /// assert!(*(cosh - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn cosh_ref(&self) -> CoshIncomplete<'_> {
+        CoshIncomplete { ref_self: self }
+    }
+
+    /// Computes the hyperbolic tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let tanh = c.tanh();
+    /// let expected = Complex::with_val(53, (1.0839, 0.2718));
+    /// assert!(*(tanh - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tanh(mut self) -> Self {
+        self.tanh_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the hyperbolic tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.tanh_mut();
+    /// let expected = Complex::with_val(53, (1.0839, 0.2718));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tanh_mut(&mut self) {
+        self.tanh_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the hyperbolic tangent, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // tanh(1 + i) = (1.0839 + 0.2718i)
+    /// // using 4 significant bits: (1.125 + 0.28125i)
+    /// let dir = c.tanh_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (1.125, 0.28125));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
+    /// ```
+    #[inline]
+    pub fn tanh_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::tanh(self, None, round)
+    }
+
+    /// Computes the hyperbolic tangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let tanh = Complex::with_val(53, c.tanh_ref());
+    /// let expected = Complex::with_val(53, (1.0839, 0.2718));
+    /// assert!(*(tanh - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn tanh_ref(&self) -> TanhIncomplete<'_> {
+        TanhIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let asin = c.asin();
+    /// let expected = Complex::with_val(53, (0.6662, 1.0613));
+    /// assert!(*(asin - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asin(mut self) -> Self {
+        self.asin_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the inverse sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.asin_mut();
+    /// let expected = Complex::with_val(53, (0.6662, 1.0613));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asin_mut(&mut self) {
+        self.asin_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the inverse sine, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // asin(1 + i) = (0.6662 + 1.0613i)
+    /// // using 4 significant bits: (0.6875 + i)
+    /// let dir = c.asin_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.6875, 1));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn asin_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::asin(self, None, round)
+    }
+
+    /// Computes the inverse sine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let asin = Complex::with_val(53, c.asin_ref());
+    /// let expected = Complex::with_val(53, (0.6662, 1.0613));
+    /// assert!(*(asin - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn asin_ref(&self) -> AsinIncomplete<'_> {
+        AsinIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let acos = c.acos();
+    /// let expected = Complex::with_val(53, (0.9046, -1.0613));
+    /// assert!(*(acos - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acos(mut self) -> Self {
+        self.acos_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the inverse cosine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.acos_mut();
+    /// let expected = Complex::with_val(53, (0.9046, -1.0613));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acos_mut(&mut self) {
+        self.acos_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the inverse cosine, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // acos(1 + i) = (0.9046 − 1.0613i)
+    /// // using 4 significant bits: (0.875 − i)
+    /// let dir = c.acos_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.875, -1));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+    /// ```
+    #[inline]
+    pub fn acos_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::acos(self, None, round)
+    }
+
+    /// Computes the inverse cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let acos = Complex::with_val(53, c.acos_ref());
+    /// let expected = Complex::with_val(53, (0.9046, -1.0613));
+    /// assert!(*(acos - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn acos_ref(&self) -> AcosIncomplete<'_> {
+        AcosIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let atan = c.atan();
+    /// let expected = Complex::with_val(53, (1.0172, 0.4024));
+    /// assert!(*(atan - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan(mut self) -> Self {
+        self.atan_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the inverse tangent, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.atan_mut();
+    /// let expected = Complex::with_val(53, (1.0172, 0.4024));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan_mut(&mut self) {
+        self.atan_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the inverse tangent, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // atan(1 + i) = (1.0172 + 0.4024i)
+    /// // using 4 significant bits: (1 + 0.40625i)
+    /// let dir = c.atan_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (1, 0.40625));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+    /// ```
+    #[inline]
+    pub fn atan_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::atan(self, None, round)
+    }
+
+    /// Computes the inverse tangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let atan = Complex::with_val(53, c.atan_ref());
+    /// let expected = Complex::with_val(53, (1.0172, 0.4024));
+    /// assert!(*(atan - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn atan_ref(&self) -> AtanIncomplete<'_> {
+        AtanIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse hyperbolic sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let asinh = c.asinh();
+    /// let expected = Complex::with_val(53, (1.0613, 0.6662));
+    /// assert!(*(asinh - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asinh(mut self) -> Self {
+        self.asinh_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the inverse hyperbolic sine, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.asinh_mut();
+    /// let expected = Complex::with_val(53, (1.0613, 0.6662));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asinh_mut(&mut self) {
+        self.asinh_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the inverse hyperbolic sine, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // asinh(1 + i) = (1.0613 + 0.6662i)
+    /// // using 4 significant bits: (1 + 0.6875i)
+    /// let dir = c.asinh_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (1, 0.6875));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+    /// ```
+    #[inline]
+    pub fn asinh_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::asinh(self, None, round)
+    }
+
+    /// Computes the inverse hyperboic sine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let asinh = Complex::with_val(53, c.asinh_ref());
+    /// let expected = Complex::with_val(53, (1.0613, 0.6662));
+    /// assert!(*(asinh - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn asinh_ref(&self) -> AsinhIncomplete<'_> {
+        AsinhIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse hyperbolic cosine, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let acosh = c.acosh();
+    /// let expected = Complex::with_val(53, (1.0613, 0.9046));
+    /// assert!(*(acosh - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acosh(mut self) -> Self {
+        self.acosh_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the inverse hyperbolic cosine, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.acosh_mut();
+    /// let expected = Complex::with_val(53, (1.0613, 0.9046));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acosh_mut(&mut self) {
+        self.acosh_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the inverse hyperbolic cosine, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // acosh(1 + i) = (1.0613 + 0.9046i)
+    /// // using 4 significant bits: (1 + 0.875i)
+    /// let dir = c.acosh_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (1, 0.875));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn acosh_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::acosh(self, None, round)
+    }
+
+    /// Computes the inverse hyperbolic cosine.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let acosh = Complex::with_val(53, c.acosh_ref());
+    /// let expected = Complex::with_val(53, (1.0613, 0.9046));
+    /// assert!(*(acosh - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn acosh_ref(&self) -> AcoshIncomplete<'_> {
+        AcoshIncomplete { ref_self: self }
+    }
+
+    /// Computes the inverse hyperbolic tangent, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let atanh = c.atanh();
+    /// let expected = Complex::with_val(53, (0.4024, 1.0172));
+    /// assert!(*(atanh - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atanh(mut self) -> Self {
+        self.atanh_round(<Round2 as Default>::default());
+        self
+    }
+
+    /// Computes the inverse hyperbolic tangent, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (1, 1));
+    /// c.atanh_mut();
+    /// let expected = Complex::with_val(53, (0.4024, 1.0172));
+    /// assert!(*(c - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atanh_mut(&mut self) {
+        self.atanh_round(<Round2 as Default>::default());
+    }
+
+    /// Computes the inverse hyperbolic tangent, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Complex};
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (1, 1));
+    /// // atanh(1 + i) = (0.4024 + 1.0172i)
+    /// // using 4 significant bits: (0.40625 + i)
+    /// let dir = c.atanh_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.40625, 1));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn atanh_round(&mut self, round: Round2) -> Ordering2 {
+        xmpc::atanh(self, None, round)
+    }
+
+    /// Computes the inverse hyperbolic tangent.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (1, 1));
+    /// let atanh = Complex::with_val(53, c.atanh_ref());
+    /// let expected = Complex::with_val(53, (0.4024, 1.0172));
+    /// assert!(*(atanh - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn atanh_ref(&self) -> AtanhIncomplete<'_> {
+        AtanhIncomplete { ref_self: self }
     }
 
     #[cfg(feature = "rand")]

@@ -96,40 +96,6 @@ fn _static_assertions() {
     static_assert_same_layout!(BorrowRational<'_>, mpq_t);
 }
 
-macro_rules! rat_op_int {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(mut self, $($param: $T),*) -> Rational {
-            self.$method_mut($($param),*);
-            self
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $($param: $T),*) {
-            $func(None, Some(self), None, $($param),*);
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $($param,)*
-            }
-        }
-    };
-}
-
 macro_rules! ref_rat_op_int {
     (
         $func:path;
@@ -151,44 +117,6 @@ macro_rules! ref_rat_op_int {
         }
 
         from_assign! { $Incomplete<'_> => Integer }
-    };
-}
-
-macro_rules! rat_op_rat_int {
-    (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($int:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Incomplete:ident;
-    ) => {
-        $(#[$attr])*
-        #[inline]
-        pub fn $method(
-            mut self,
-            mut $int: Integer,
-            $($param: $T,)*
-        ) -> (Self, Integer) {
-            self.$method_mut(&mut $int);
-            (self, $int)
-        }
-
-        $(#[$attr_mut])*
-        #[inline]
-        pub fn $method_mut(&mut self, $int: &mut Integer, $($param: $T),*) {
-            $func(self, $int, None, $($param),*);
-        }
-
-        $(#[$attr_ref])*
-        #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete<'_> {
-            $Incomplete {
-                ref_self: self,
-                $($param,)*
-            }
-        }
     };
 }
 
@@ -1207,114 +1135,133 @@ impl Rational {
         ProductIncomplete { values }
     }
 
-    math_op1! {
-        xmpq::abs;
-        /// Computes the absolute value.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let r = Rational::from((-100, 17));
-        /// let abs = r.abs();
-        /// assert_eq!(abs, (100, 17));
-        /// ```
-        fn abs();
-        /// Computes the absolute value.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let mut r = Rational::from((-100, 17));
-        /// r.abs_mut();
-        /// assert_eq!(r, (100, 17));
-        /// ```
-        fn abs_mut;
-        /// Computes the absolute value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let r = Rational::from((-100, 17));
-        /// let r_ref = r.abs_ref();
-        /// let abs = Rational::from(r_ref);
-        /// assert_eq!(abs, (100, 17));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn abs_ref -> AbsIncomplete;
+    /// Computes the absolute value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-100, 17));
+    /// let abs = r.abs();
+    /// assert_eq!(abs, (100, 17));
+    /// ```
+    #[inline]
+    pub fn abs(mut self) -> Self {
+        self.abs_mut();
+        self
     }
-    rat_op_int! {
-        xmpq::signum;
-        /// Computes the signum.
-        ///
-        ///   * 0 if the value is zero
-        ///   * 1 if the value is positive
-        ///   * −1 if the value is negative
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let r = Rational::from((-100, 17));
-        /// let signum = r.signum();
-        /// assert_eq!(signum, -1);
-        /// ```
-        fn signum();
-        /// Computes the signum.
-        ///
-        ///   * 0 if the value is zero
-        ///   * 1 if the value is positive
-        ///   * −1 if the value is negative
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let mut r = Rational::from((-100, 17));
-        /// r.signum_mut();
-        /// assert_eq!(r, -1);
-        /// ```
-        fn signum_mut;
-        /// Computes the signum.
-        ///
-        ///   * 0 if the value is zero
-        ///   * 1 if the value is positive
-        ///   * −1 if the value is negative
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// let r = Rational::from((-100, 17));
-        /// let r_ref = r.signum_ref();
-        /// let signum = Integer::from(r_ref);
-        /// assert_eq!(signum, -1);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn signum_ref -> SignumIncomplete;
+
+    /// Computes the absolute value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let mut r = Rational::from((-100, 17));
+    /// r.abs_mut();
+    /// assert_eq!(r, (100, 17));
+    /// ```
+    #[inline]
+    pub fn abs_mut(&mut self) {
+        xmpq::abs(self, None);
+    }
+
+    /// Computes the absolute value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-100, 17));
+    /// let r_ref = r.abs_ref();
+    /// let abs = Rational::from(r_ref);
+    /// assert_eq!(abs, (100, 17));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn abs_ref(&self) -> AbsIncomplete<'_> {
+        AbsIncomplete { ref_self: self }
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 0 if the value is zero
+    ///   * 1 if the value is positive
+    ///   * −1 if the value is negative
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-100, 17));
+    /// let signum = r.signum();
+    /// assert_eq!(signum, -1);
+    /// ```
+    #[inline]
+    pub fn signum(mut self) -> Rational {
+        self.signum_mut();
+        self
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 0 if the value is zero
+    ///   * 1 if the value is positive
+    ///   * −1 if the value is negative
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let mut r = Rational::from((-100, 17));
+    /// r.signum_mut();
+    /// assert_eq!(r, -1);
+    /// ```
+    #[inline]
+    pub fn signum_mut(&mut self) {
+        xmpq::signum(None, Some(self), None);
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 0 if the value is zero
+    ///   * 1 if the value is positive
+    ///   * −1 if the value is negative
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// let r = Rational::from((-100, 17));
+    /// let r_ref = r.signum_ref();
+    /// let signum = Integer::from(r_ref);
+    /// assert_eq!(signum, -1);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn signum_ref(&self) -> SignumIncomplete<'_> {
+        SignumIncomplete { ref_self: self }
     }
 
     /// Clamps the value within the specified bounds.
@@ -1424,911 +1371,1049 @@ impl Rational {
         }
     }
 
-    math_op1! {
-        xmpq::inv;
-        /// Computes the reciprocal.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let r = Rational::from((-100, 17));
-        /// let recip = r.recip();
-        /// assert_eq!(recip, (-17, 100));
-        /// ```
-        fn recip();
-        /// Computes the reciprocal.
-        ///
-        /// This method never reallocates or copies the heap data. It
-        /// simply swaps the allocated data of the numerator and
-        /// denominator and makes sure the denominator is stored as
-        /// positive.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let mut r = Rational::from((-100, 17));
-        /// r.recip_mut();
-        /// assert_eq!(r, (-17, 100));
-        /// ```
-        fn recip_mut;
-        /// Computes the reciprocal.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let r = Rational::from((-100, 17));
-        /// let r_ref = r.recip_ref();
-        /// let recip = Rational::from(r_ref);
-        /// assert_eq!(recip, (-17, 100));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn recip_ref -> RecipIncomplete;
-    }
-    rat_op_int! {
-        xmpq::trunc;
-        /// Rounds the number towards zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −3.7
-        /// let r1 = Rational::from((-37, 10));
-        /// let trunc1 = r1.trunc();
-        /// assert_eq!(trunc1, -3);
-        /// // 3.3
-        /// let r2 = Rational::from((33, 10));
-        /// let trunc2 = r2.trunc();
-        /// assert_eq!(trunc2, 3);
-        /// ```
-        fn trunc();
-        /// Rounds the number towards zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Rational};
-        /// // −3.7
-        /// let mut r = Rational::from((-37, 10));
-        /// r.trunc_mut();
-        /// assert_eq!(r, -3);
-        /// // 3.3
-        /// r.assign((33, 10));
-        /// r.trunc_mut();
-        /// assert_eq!(r, 3);
-        /// ```
-        fn trunc_mut;
-        /// Rounds the number towards zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer, Rational};
-        /// let mut trunc = Integer::new();
-        /// // −3.7
-        /// let r1 = Rational::from((-37, 10));
-        /// trunc.assign(r1.trunc_ref());
-        /// assert_eq!(trunc, -3);
-        /// // 3.3
-        /// let r2 = Rational::from((33, 10));
-        /// trunc.assign(r2.trunc_ref());
-        /// assert_eq!(trunc, 3);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn trunc_ref -> TruncIncomplete;
+    /// Computes the reciprocal.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-100, 17));
+    /// let recip = r.recip();
+    /// assert_eq!(recip, (-17, 100));
+    /// ```
+    #[inline]
+    pub fn recip(mut self) -> Self {
+        self.recip_mut();
+        self
     }
 
-    math_op1! {
-        xmpq::trunc_fract;
-        /// Computes the fractional part of the number.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −100/17 = −5 − 15/17
-        /// let r = Rational::from((-100, 17));
-        /// let rem = r.rem_trunc();
-        /// assert_eq!(rem, (-15, 17));
-        /// ```
-        fn rem_trunc();
-        /// Computes the fractional part of the number.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −100/17 = −5 − 15/17
-        /// let mut r = Rational::from((-100, 17));
-        /// r.rem_trunc_mut();
-        /// assert_eq!(r, (-15, 17));
-        /// ```
-        fn rem_trunc_mut;
-        /// Computes the fractional part of the number.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −100/17 = −5 − 15/17
-        /// let r = Rational::from((-100, 17));
-        /// let r_ref = r.rem_trunc_ref();
-        /// let rem = Rational::from(r_ref);
-        /// assert_eq!(rem, (-15, 17));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn rem_trunc_ref -> RemTruncIncomplete;
+    /// Computes the reciprocal.
+    ///
+    /// This method never reallocates or copies the heap data. It
+    /// simply swaps the allocated data of the numerator and
+    /// denominator and makes sure the denominator is stored as
+    /// positive.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let mut r = Rational::from((-100, 17));
+    /// r.recip_mut();
+    /// assert_eq!(r, (-17, 100));
+    /// ```
+    #[inline]
+    pub fn recip_mut(&mut self) {
+        xmpq::inv(self, None);
     }
-    rat_op_rat_int! {
-        xmpq::trunc_fract_whole;
-        /// Computes the fractional and truncated parts of the number.
-        ///
-        /// The initial value of `trunc` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// // −100/17 = −5 − 15/17
-        /// let r = Rational::from((-100, 17));
-        /// let (fract, trunc) = r.fract_trunc(Integer::new());
-        /// assert_eq!(fract, (-15, 17));
-        /// assert_eq!(trunc, -5);
-        /// ```
-        fn fract_trunc(trunc);
-        /// Computes the fractional and truncated parts of the number.
-        ///
-        /// The initial value of `trunc` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// // −100/17 = −5 − 15/17
-        /// let mut r = Rational::from((-100, 17));
-        /// let mut whole = Integer::new();
-        /// r.fract_trunc_mut(&mut whole);
-        /// assert_eq!(r, (-15, 17));
-        /// assert_eq!(whole, -5);
-        /// ```
-        fn fract_trunc_mut;
-        /// Computes the fractional and truncated parts of the number.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Rational][`Rational`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Rational][`Rational`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Rational][`Rational`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer, Rational};
-        /// // −100/17 = −5 − 15/17
-        /// let r = Rational::from((-100, 17));
-        /// let r_ref = r.fract_trunc_ref();
-        /// let (mut fract, mut trunc) = (Rational::new(), Integer::new());
-        /// (&mut fract, &mut trunc).assign(r_ref);
-        /// assert_eq!(fract, (-15, 17));
-        /// assert_eq!(trunc, -5);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn fract_trunc_ref -> FractTruncIncomplete;
+
+    /// Computes the reciprocal.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-100, 17));
+    /// let r_ref = r.recip_ref();
+    /// let recip = Rational::from(r_ref);
+    /// assert_eq!(recip, (-17, 100));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn recip_ref(&self) -> RecipIncomplete<'_> {
+        RecipIncomplete { ref_self: self }
     }
-    rat_op_int! {
-        xmpq::ceil;
-        /// Rounds the number upwards (towards plus infinity).
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −3.7
-        /// let r1 = Rational::from((-37, 10));
-        /// let ceil1 = r1.ceil();
-        /// assert_eq!(ceil1, -3);
-        /// // 3.3
-        /// let r2 = Rational::from((33, 10));
-        /// let ceil2 = r2.ceil();
-        /// assert_eq!(ceil2, 4);
-        /// ```
-        fn ceil();
-        /// Rounds the number upwards (towards plus infinity).
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Rational};
-        /// // −3.7
-        /// let mut r = Rational::from((-37, 10));
-        /// r.ceil_mut();
-        /// assert_eq!(r, -3);
-        /// // 3.3
-        /// r.assign((33, 10));
-        /// r.ceil_mut();
-        /// assert_eq!(r, 4);
-        /// ```
-        fn ceil_mut;
-        /// Rounds the number upwards (towards plus infinity).
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer, Rational};
-        /// let mut ceil = Integer::new();
-        /// // −3.7
-        /// let r1 = Rational::from((-37, 10));
-        /// ceil.assign(r1.ceil_ref());
-        /// assert_eq!(ceil, -3);
-        /// // 3.3
-        /// let r2 = Rational::from((33, 10));
-        /// ceil.assign(r2.ceil_ref());
-        /// assert_eq!(ceil, 4);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn ceil_ref -> CeilIncomplete;
+
+    /// Rounds the number towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −3.7
+    /// let r1 = Rational::from((-37, 10));
+    /// let trunc1 = r1.trunc();
+    /// assert_eq!(trunc1, -3);
+    /// // 3.3
+    /// let r2 = Rational::from((33, 10));
+    /// let trunc2 = r2.trunc();
+    /// assert_eq!(trunc2, 3);
+    /// ```
+    #[inline]
+    pub fn trunc(mut self) -> Rational {
+        self.trunc_mut();
+        self
     }
-    math_op1! {
-        xmpq::ceil_fract;
-        /// Computes the non-positive remainder after rounding up.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // 100/17 = 6 − 2/17
-        /// let r = Rational::from((100, 17));
-        /// let rem = r.rem_ceil();
-        /// assert_eq!(rem, (-2, 17));
-        /// ```
-        fn rem_ceil();
-        /// Computes the non-positive remainder after rounding up.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // 100/17 = 6 − 2/17
-        /// let mut r = Rational::from((100, 17));
-        /// r.rem_ceil_mut();
-        /// assert_eq!(r, (-2, 17));
-        /// ```
-        fn rem_ceil_mut;
-        /// Computes the non-positive remainder after rounding up.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // 100/17 = 6 − 2/17
-        /// let r = Rational::from((100, 17));
-        /// let r_ref = r.rem_ceil_ref();
-        /// let rem = Rational::from(r_ref);
-        /// assert_eq!(rem, (-2, 17));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn rem_ceil_ref -> RemCeilIncomplete;
+
+    /// Rounds the number towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Rational};
+    /// // −3.7
+    /// let mut r = Rational::from((-37, 10));
+    /// r.trunc_mut();
+    /// assert_eq!(r, -3);
+    /// // 3.3
+    /// r.assign((33, 10));
+    /// r.trunc_mut();
+    /// assert_eq!(r, 3);
+    /// ```
+    #[inline]
+    pub fn trunc_mut(&mut self) {
+        xmpq::trunc(None, Some(self), None);
     }
-    rat_op_rat_int! {
-        xmpq::ceil_fract_whole;
-        /// Computes the fractional and ceil parts of the number.
-        ///
-        /// The fractional part cannot greater than zero.
-        ///
-        /// The initial value of `ceil` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// // 100/17 = 6 − 2/17
-        /// let r = Rational::from((100, 17));
-        /// let (fract, ceil) = r.fract_ceil(Integer::new());
-        /// assert_eq!(fract, (-2, 17));
-        /// assert_eq!(ceil, 6);
-        /// ```
-        fn fract_ceil(ceil);
-        /// Computes the fractional and ceil parts of the number.
-        ///
-        /// The fractional part cannot be greater than zero.
-        ///
-        /// The initial value of `ceil` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// // 100/17 = 6 − 2/17
-        /// let mut r = Rational::from((100, 17));
-        /// let mut ceil = Integer::new();
-        /// r.fract_ceil_mut(&mut ceil);
-        /// assert_eq!(r, (-2, 17));
-        /// assert_eq!(ceil, 6);
-        /// ```
-        fn fract_ceil_mut;
-        /// Computes the fractional and ceil parts of the number.
-        ///
-        /// The fractional part cannot be greater than zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Rational][`Rational`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Rational][`Rational`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Rational][`Rational`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer, Rational};
-        /// // 100/17 = 6 − 2/17
-        /// let r = Rational::from((100, 17));
-        /// let r_ref = r.fract_ceil_ref();
-        /// let (mut fract, mut ceil) = (Rational::new(), Integer::new());
-        /// (&mut fract, &mut ceil).assign(r_ref);
-        /// assert_eq!(fract, (-2, 17));
-        /// assert_eq!(ceil, 6);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn fract_ceil_ref -> FractCeilIncomplete;
+
+    /// Rounds the number towards zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// let mut trunc = Integer::new();
+    /// // −3.7
+    /// let r1 = Rational::from((-37, 10));
+    /// trunc.assign(r1.trunc_ref());
+    /// assert_eq!(trunc, -3);
+    /// // 3.3
+    /// let r2 = Rational::from((33, 10));
+    /// trunc.assign(r2.trunc_ref());
+    /// assert_eq!(trunc, 3);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn trunc_ref(&self) -> TruncIncomplete<'_> {
+        TruncIncomplete { ref_self: self }
     }
-    rat_op_int! {
-        xmpq::floor;
-        /// Rounds the number downwards (towards minus infinity).
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −3.7
-        /// let r1 = Rational::from((-37, 10));
-        /// let floor1 = r1.floor();
-        /// assert_eq!(floor1, -4);
-        /// // 3.3
-        /// let r2 = Rational::from((33, 10));
-        /// let floor2 = r2.floor();
-        /// assert_eq!(floor2, 3);
-        /// ```
-        fn floor();
-        /// Rounds the number downwards (towards minus infinity).
-        ///
-        /// ```rust
-        /// use rug::{Assign, Rational};
-        /// // −3.7
-        /// let mut r = Rational::from((-37, 10));
-        /// r.floor_mut();
-        /// assert_eq!(r, -4);
-        /// // 3.3
-        /// r.assign((33, 10));
-        /// r.floor_mut();
-        /// assert_eq!(r, 3);
-        /// ```
-        fn floor_mut;
-        /// Rounds the number downwards (towards minus infinity).
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer, Rational};
-        /// let mut floor = Integer::new();
-        /// // −3.7
-        /// let r1 = Rational::from((-37, 10));
-        /// floor.assign(r1.floor_ref());
-        /// assert_eq!(floor, -4);
-        /// // 3.3
-        /// let r2 = Rational::from((33, 10));
-        /// floor.assign(r2.floor_ref());
-        /// assert_eq!(floor, 3);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn floor_ref -> FloorIncomplete;
+
+    /// Computes the fractional part of the number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −100/17 = −5 − 15/17
+    /// let r = Rational::from((-100, 17));
+    /// let rem = r.rem_trunc();
+    /// assert_eq!(rem, (-15, 17));
+    /// ```
+    #[inline]
+    pub fn rem_trunc(mut self) -> Self {
+        self.rem_trunc_mut();
+        self
     }
-    math_op1! {
-        xmpq::floor_fract;
-        /// Computes the non-negative remainder after rounding down.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −100/17 = −6 + 2/17
-        /// let r = Rational::from((-100, 17));
-        /// let rem = r.rem_floor();
-        /// assert_eq!(rem, (2, 17));
-        /// ```
-        fn rem_floor();
-        /// Computes the non-negative remainder after rounding down.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −100/17 = −6 + 2/17
-        /// let mut r = Rational::from((-100, 17));
-        /// r.rem_floor_mut();
-        /// assert_eq!(r, (2, 17));
-        /// ```
-        fn rem_floor_mut;
-        /// Computes the non-negative remainder after rounding down.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −100/17 = −6 + 2/17
-        /// let r = Rational::from((-100, 17));
-        /// let r_ref = r.rem_floor_ref();
-        /// let rem = Rational::from(r_ref);
-        /// assert_eq!(rem, (2, 17));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn rem_floor_ref -> RemFloorIncomplete;
+
+    /// Computes the fractional part of the number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −100/17 = −5 − 15/17
+    /// let mut r = Rational::from((-100, 17));
+    /// r.rem_trunc_mut();
+    /// assert_eq!(r, (-15, 17));
+    /// ```
+    #[inline]
+    pub fn rem_trunc_mut(&mut self) {
+        xmpq::trunc_fract(self, None);
     }
-    rat_op_rat_int! {
-        xmpq::floor_fract_whole;
-        /// Computes the fractional and floor parts of the number.
-        ///
-        /// The fractional part cannot be negative.
-        ///
-        /// The initial value of `floor` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// // −100/17 = −6 + 2/17
-        /// let r = Rational::from((-100, 17));
-        /// let (fract, floor) = r.fract_floor(Integer::new());
-        /// assert_eq!(fract, (2, 17));
-        /// assert_eq!(floor, -6);
-        /// ```
-        fn fract_floor(floor);
-        /// Computes the fractional and floor parts of the number.
-        ///
-        /// The fractional part cannot be negative.
-        ///
-        /// The initial value of `floor` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// // −100/17 = −6 + 2/17
-        /// let mut r = Rational::from((-100, 17));
-        /// let mut floor = Integer::new();
-        /// r.fract_floor_mut(&mut floor);
-        /// assert_eq!(r, (2, 17));
-        /// assert_eq!(floor, -6);
-        /// ```
-        fn fract_floor_mut;
-        /// Computes the fractional and floor parts of the number.
-        ///
-        /// The fractional part cannot be negative.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Rational][`Rational`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Rational][`Rational`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Rational][`Rational`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer, Rational};
-        /// // −100/17 = −6 + 2/17
-        /// let r = Rational::from((-100, 17));
-        /// let r_ref = r.fract_floor_ref();
-        /// let (mut fract, mut floor) = (Rational::new(), Integer::new());
-        /// (&mut fract, &mut floor).assign(r_ref);
-        /// assert_eq!(fract, (2, 17));
-        /// assert_eq!(floor, -6);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn fract_floor_ref -> FractFloorIncomplete;
+
+    /// Computes the fractional part of the number.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −100/17 = −5 − 15/17
+    /// let r = Rational::from((-100, 17));
+    /// let r_ref = r.rem_trunc_ref();
+    /// let rem = Rational::from(r_ref);
+    /// assert_eq!(rem, (-15, 17));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn rem_trunc_ref(&self) -> RemTruncIncomplete<'_> {
+        RemTruncIncomplete { ref_self: self }
     }
-    rat_op_int! {
-        xmpq::round;
-        /// Rounds the number to the nearest integer.
-        ///
-        /// When the number lies exactly between two integers, it is
-        /// rounded away from zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −3.5
-        /// let r1 = Rational::from((-35, 10));
-        /// let round1 = r1.round();
-        /// assert_eq!(round1, -4);
-        /// // 3.7
-        /// let r2 = Rational::from((37, 10));
-        /// let round2 = r2.round();
-        /// assert_eq!(round2, 4);
-        /// ```
-        fn round();
-        /// Rounds the number to the nearest integer.
-        ///
-        /// When the number lies exactly between two integers, it is
-        /// rounded away from zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Rational};
-        /// // −3.5
-        /// let mut r = Rational::from((-35, 10));
-        /// r.round_mut();
-        /// assert_eq!(r, -4);
-        /// // 3.7
-        /// r.assign((37, 10));
-        /// r.round_mut();
-        /// assert_eq!(r, 4);
-        /// ```
-        fn round_mut;
-        /// Rounds the number to the nearest integer.
-        ///
-        /// When the number lies exactly between two integers, it is
-        /// rounded away from zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer, Rational};
-        /// let mut round = Integer::new();
-        /// // −3.5
-        /// let r1 = Rational::from((-35, 10));
-        /// round.assign(r1.round_ref());
-        /// assert_eq!(round, -4);
-        /// // 3.7
-        /// let r2 = Rational::from((37, 10));
-        /// round.assign(r2.round_ref());
-        /// assert_eq!(round, 4);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn round_ref -> RoundIncomplete;
+
+    /// Computes the fractional and truncated parts of the number.
+    ///
+    /// The initial value of `trunc` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // −100/17 = −5 − 15/17
+    /// let r = Rational::from((-100, 17));
+    /// let (fract, trunc) = r.fract_trunc(Integer::new());
+    /// assert_eq!(fract, (-15, 17));
+    /// assert_eq!(trunc, -5);
+    /// ```
+    #[inline]
+    pub fn fract_trunc(mut self, mut trunc: Integer) -> (Self, Integer) {
+        self.fract_trunc_mut(&mut trunc);
+        (self, trunc)
     }
-    math_op1! {
-        xmpq::round_fract;
-        /// Computes the remainder after rounding to the nearest
-        /// integer.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −3.5 = −4 + 0.5 = −4 + 1/2
-        /// let r1 = Rational::from((-35, 10));
-        /// let rem1 = r1.rem_round();
-        /// assert_eq!(rem1, (1, 2));
-        /// // 3.7 = 4 − 0.3 = 4 − 3/10
-        /// let r2 = Rational::from((37, 10));
-        /// let rem2 = r2.rem_round();
-        /// assert_eq!(rem2, (-3, 10));
-        /// ```
-        fn rem_round();
-        /// Computes the remainder after rounding to the nearest
-        /// integer.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −3.5 = −4 + 0.5 = −4 + 1/2
-        /// let mut r1 = Rational::from((-35, 10));
-        /// r1.rem_round_mut();
-        /// assert_eq!(r1, (1, 2));
-        /// // 3.7 = 4 − 0.3 = 4 − 3/10
-        /// let mut r2 = Rational::from((37, 10));
-        /// r2.rem_round_mut();
-        /// assert_eq!(r2, (-3, 10));
-        /// ```
-        fn rem_round_mut;
-        /// Computes the remainder after rounding to the nearest
-        /// integer.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// // −3.5 = −4 + 0.5 = −4 + 1/2
-        /// let r1 = Rational::from((-35, 10));
-        /// let r_ref1 = r1.rem_round_ref();
-        /// let rem1 = Rational::from(r_ref1);
-        /// assert_eq!(rem1, (1, 2));
-        /// // 3.7 = 4 − 0.3 = 4 − 3/10
-        /// let r2 = Rational::from((37, 10));
-        /// let r_ref2 = r2.rem_round_ref();
-        /// let rem2 = Rational::from(r_ref2);
-        /// assert_eq!(rem2, (-3, 10));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn rem_round_ref -> RemRoundIncomplete;
+
+    /// Computes the fractional and truncated parts of the number.
+    ///
+    /// The initial value of `trunc` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // −100/17 = −5 − 15/17
+    /// let mut r = Rational::from((-100, 17));
+    /// let mut whole = Integer::new();
+    /// r.fract_trunc_mut(&mut whole);
+    /// assert_eq!(r, (-15, 17));
+    /// assert_eq!(whole, -5);
+    /// ```
+    #[inline]
+    pub fn fract_trunc_mut(&mut self, trunc: &mut Integer) {
+        xmpq::trunc_fract_whole(self, trunc, None);
     }
-    rat_op_rat_int! {
-        xmpq::round_fract_whole;
-        /// Computes the fractional and rounded parts of the number.
-        ///
-        /// The fractional part is positive when the number is rounded
-        /// down and negative when the number is rounded up. When the
-        /// number lies exactly between two integers, it is rounded away
-        /// from zero.
-        ///
-        /// The initial value of `round` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// // −3.5 = −4 + 0.5 = −4 + 1/2
-        /// let r1 = Rational::from((-35, 10));
-        /// let (fract1, round1) = r1.fract_round(Integer::new());
-        /// assert_eq!(fract1, (1, 2));
-        /// assert_eq!(round1, -4);
-        /// // 3.7 = 4 − 0.3 = 4 − 3/10
-        /// let r2 = Rational::from((37, 10));
-        /// let (fract2, round2) = r2.fract_round(Integer::new());
-        /// assert_eq!(fract2, (-3, 10));
-        /// assert_eq!(round2, 4);
-        /// ```
-        fn fract_round(round);
-        /// Computes the fractional and round parts of the number.
-        ///
-        /// The fractional part is positive when the number is rounded
-        /// down and negative when the number is rounded up. When the
-        /// number lies exactly between two integers, it is rounded away
-        /// from zero.
-        ///
-        /// The initial value of `round` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Integer, Rational};
-        /// // −3.5 = −4 + 0.5 = −4 + 1/2
-        /// let mut r1 = Rational::from((-35, 10));
-        /// let mut round1 = Integer::new();
-        /// r1.fract_round_mut(&mut round1);
-        /// assert_eq!(r1, (1, 2));
-        /// assert_eq!(round1, -4);
-        /// // 3.7 = 4 − 0.3 = 4 − 3/10
-        /// let mut r2 = Rational::from((37, 10));
-        /// let mut round2 = Integer::new();
-        /// r2.fract_round_mut(&mut round2);
-        /// assert_eq!(r2, (-3, 10));
-        /// assert_eq!(round2, 4);
-        /// ```
-        fn fract_round_mut;
-        /// Computes the fractional and round parts of the number.
-        ///
-        /// The fractional part is positive when the number is rounded
-        /// down and negative when the number is rounded up. When the
-        /// number lies exactly between two integers, it is rounded away
-        /// from zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Rational][`Rational`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Rational][`Rational`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Rational][`Rational`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer, Rational};
-        /// // −3.5 = −4 + 0.5 = −4 + 1/2
-        /// let r1 = Rational::from((-35, 10));
-        /// let r_ref1 = r1.fract_round_ref();
-        /// let (mut fract1, mut round1) = (Rational::new(), Integer::new());
-        /// (&mut fract1, &mut round1).assign(r_ref1);
-        /// assert_eq!(fract1, (1, 2));
-        /// assert_eq!(round1, -4);
-        /// // 3.7 = 4 − 0.3 = 4 − 3/10
-        /// let r2 = Rational::from((37, 10));
-        /// let r_ref2 = r2.fract_round_ref();
-        /// let (mut fract2, mut round2) = (Rational::new(), Integer::new());
-        /// (&mut fract2, &mut round2).assign(r_ref2);
-        /// assert_eq!(fract2, (-3, 10));
-        /// assert_eq!(round2, 4);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn fract_round_ref -> FractRoundIncomplete;
+
+    /// Computes the fractional and truncated parts of the number.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Rational][`Rational`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Rational][`Rational`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Rational][`Rational`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// // −100/17 = −5 − 15/17
+    /// let r = Rational::from((-100, 17));
+    /// let r_ref = r.fract_trunc_ref();
+    /// let (mut fract, mut trunc) = (Rational::new(), Integer::new());
+    /// (&mut fract, &mut trunc).assign(r_ref);
+    /// assert_eq!(fract, (-15, 17));
+    /// assert_eq!(trunc, -5);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn fract_trunc_ref(&self) -> FractTruncIncomplete<'_> {
+        FractTruncIncomplete { ref_self: self }
     }
-    math_op1! {
-        xmpq::square;
-        /// Computes the square.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let r = Rational::from((-13, 2));
-        /// let square = r.square();
-        /// assert_eq!(square, (169, 4));
-        /// ```
-        fn square();
-        /// Computes the square.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let mut r = Rational::from((-13, 2));
-        /// r.square_mut();
-        /// assert_eq!(r, (169, 4));
-        /// ```
-        fn square_mut;
-        /// Computes the square.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Rational;
-        /// let r = Rational::from((-13, 2));
-        /// assert_eq!(Rational::from(r.square_ref()), (169, 4));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Rational`]: struct.Rational.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn square_ref -> SquareIncomplete;
+
+    /// Rounds the number upwards (towards plus infinity).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −3.7
+    /// let r1 = Rational::from((-37, 10));
+    /// let ceil1 = r1.ceil();
+    /// assert_eq!(ceil1, -3);
+    /// // 3.3
+    /// let r2 = Rational::from((33, 10));
+    /// let ceil2 = r2.ceil();
+    /// assert_eq!(ceil2, 4);
+    /// ```
+    #[inline]
+    pub fn ceil(mut self) -> Rational {
+        self.ceil_mut();
+        self
+    }
+
+    /// Rounds the number upwards (towards plus infinity).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Rational};
+    /// // −3.7
+    /// let mut r = Rational::from((-37, 10));
+    /// r.ceil_mut();
+    /// assert_eq!(r, -3);
+    /// // 3.3
+    /// r.assign((33, 10));
+    /// r.ceil_mut();
+    /// assert_eq!(r, 4);
+    /// ```
+    #[inline]
+    pub fn ceil_mut(&mut self) {
+        xmpq::ceil(None, Some(self), None);
+    }
+
+    /// Rounds the number upwards (towards plus infinity).
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// let mut ceil = Integer::new();
+    /// // −3.7
+    /// let r1 = Rational::from((-37, 10));
+    /// ceil.assign(r1.ceil_ref());
+    /// assert_eq!(ceil, -3);
+    /// // 3.3
+    /// let r2 = Rational::from((33, 10));
+    /// ceil.assign(r2.ceil_ref());
+    /// assert_eq!(ceil, 4);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn ceil_ref(&self) -> CeilIncomplete<'_> {
+        CeilIncomplete { ref_self: self }
+    }
+
+    /// Computes the non-positive remainder after rounding up.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // 100/17 = 6 − 2/17
+    /// let r = Rational::from((100, 17));
+    /// let rem = r.rem_ceil();
+    /// assert_eq!(rem, (-2, 17));
+    /// ```
+    #[inline]
+    pub fn rem_ceil(mut self) -> Self {
+        self.rem_ceil_mut();
+        self
+    }
+
+    /// Computes the non-positive remainder after rounding up.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // 100/17 = 6 − 2/17
+    /// let mut r = Rational::from((100, 17));
+    /// r.rem_ceil_mut();
+    /// assert_eq!(r, (-2, 17));
+    /// ```
+    #[inline]
+    pub fn rem_ceil_mut(&mut self) {
+        xmpq::ceil_fract(self, None);
+    }
+
+    /// Computes the non-positive remainder after rounding up.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // 100/17 = 6 − 2/17
+    /// let r = Rational::from((100, 17));
+    /// let r_ref = r.rem_ceil_ref();
+    /// let rem = Rational::from(r_ref);
+    /// assert_eq!(rem, (-2, 17));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn rem_ceil_ref(&self) -> RemCeilIncomplete<'_> {
+        RemCeilIncomplete { ref_self: self }
+    }
+
+    /// Computes the fractional and ceil parts of the number.
+    ///
+    /// The fractional part cannot greater than zero.
+    ///
+    /// The initial value of `ceil` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // 100/17 = 6 − 2/17
+    /// let r = Rational::from((100, 17));
+    /// let (fract, ceil) = r.fract_ceil(Integer::new());
+    /// assert_eq!(fract, (-2, 17));
+    /// assert_eq!(ceil, 6);
+    /// ```
+    #[inline]
+    pub fn fract_ceil(mut self, mut ceil: Integer) -> (Self, Integer) {
+        self.fract_ceil_mut(&mut ceil);
+        (self, ceil)
+    }
+
+    /// Computes the fractional and ceil parts of the number.
+    ///
+    /// The fractional part cannot be greater than zero.
+    ///
+    /// The initial value of `ceil` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // 100/17 = 6 − 2/17
+    /// let mut r = Rational::from((100, 17));
+    /// let mut ceil = Integer::new();
+    /// r.fract_ceil_mut(&mut ceil);
+    /// assert_eq!(r, (-2, 17));
+    /// assert_eq!(ceil, 6);
+    /// ```
+    #[inline]
+    pub fn fract_ceil_mut(&mut self, ceil: &mut Integer) {
+        xmpq::ceil_fract_whole(self, ceil, None);
+    }
+
+    /// Computes the fractional and ceil parts of the number.
+    ///
+    /// The fractional part cannot be greater than zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Rational][`Rational`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Rational][`Rational`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Rational][`Rational`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// // 100/17 = 6 − 2/17
+    /// let r = Rational::from((100, 17));
+    /// let r_ref = r.fract_ceil_ref();
+    /// let (mut fract, mut ceil) = (Rational::new(), Integer::new());
+    /// (&mut fract, &mut ceil).assign(r_ref);
+    /// assert_eq!(fract, (-2, 17));
+    /// assert_eq!(ceil, 6);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn fract_ceil_ref(&self) -> FractCeilIncomplete<'_> {
+        FractCeilIncomplete { ref_self: self }
+    }
+
+    /// Rounds the number downwards (towards minus infinity).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −3.7
+    /// let r1 = Rational::from((-37, 10));
+    /// let floor1 = r1.floor();
+    /// assert_eq!(floor1, -4);
+    /// // 3.3
+    /// let r2 = Rational::from((33, 10));
+    /// let floor2 = r2.floor();
+    /// assert_eq!(floor2, 3);
+    /// ```
+    #[inline]
+    pub fn floor(mut self) -> Rational {
+        self.floor_mut();
+        self
+    }
+
+    /// Rounds the number downwards (towards minus infinity).
+    ///
+    /// ```rust
+    /// use rug::{Assign, Rational};
+    /// // −3.7
+    /// let mut r = Rational::from((-37, 10));
+    /// r.floor_mut();
+    /// assert_eq!(r, -4);
+    /// // 3.3
+    /// r.assign((33, 10));
+    /// r.floor_mut();
+    /// assert_eq!(r, 3);
+    /// ```
+    #[inline]
+    pub fn floor_mut(&mut self) {
+        xmpq::floor(None, Some(self), None);
+    }
+
+    /// Rounds the number downwards (towards minus infinity).
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// let mut floor = Integer::new();
+    /// // −3.7
+    /// let r1 = Rational::from((-37, 10));
+    /// floor.assign(r1.floor_ref());
+    /// assert_eq!(floor, -4);
+    /// // 3.3
+    /// let r2 = Rational::from((33, 10));
+    /// floor.assign(r2.floor_ref());
+    /// assert_eq!(floor, 3);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn floor_ref(&self) -> FloorIncomplete<'_> {
+        FloorIncomplete { ref_self: self }
+    }
+
+    /// Computes the non-negative remainder after rounding down.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −100/17 = −6 + 2/17
+    /// let r = Rational::from((-100, 17));
+    /// let rem = r.rem_floor();
+    /// assert_eq!(rem, (2, 17));
+    /// ```
+    #[inline]
+    pub fn rem_floor(mut self) -> Self {
+        self.rem_floor_mut();
+        self
+    }
+
+    /// Computes the non-negative remainder after rounding down.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −100/17 = −6 + 2/17
+    /// let mut r = Rational::from((-100, 17));
+    /// r.rem_floor_mut();
+    /// assert_eq!(r, (2, 17));
+    /// ```
+    #[inline]
+    pub fn rem_floor_mut(&mut self) {
+        xmpq::floor_fract(self, None);
+    }
+
+    /// Computes the non-negative remainder after rounding down.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −100/17 = −6 + 2/17
+    /// let r = Rational::from((-100, 17));
+    /// let r_ref = r.rem_floor_ref();
+    /// let rem = Rational::from(r_ref);
+    /// assert_eq!(rem, (2, 17));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn rem_floor_ref(&self) -> RemFloorIncomplete<'_> {
+        RemFloorIncomplete { ref_self: self }
+    }
+
+    /// Computes the fractional and floor parts of the number.
+    ///
+    /// The fractional part cannot be negative.
+    ///
+    /// The initial value of `floor` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // −100/17 = −6 + 2/17
+    /// let r = Rational::from((-100, 17));
+    /// let (fract, floor) = r.fract_floor(Integer::new());
+    /// assert_eq!(fract, (2, 17));
+    /// assert_eq!(floor, -6);
+    /// ```
+    #[inline]
+    pub fn fract_floor(mut self, mut floor: Integer) -> (Self, Integer) {
+        self.fract_floor_mut(&mut floor);
+        (self, floor)
+    }
+
+    /// Computes the fractional and floor parts of the number.
+    ///
+    /// The fractional part cannot be negative.
+    ///
+    /// The initial value of `floor` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // −100/17 = −6 + 2/17
+    /// let mut r = Rational::from((-100, 17));
+    /// let mut floor = Integer::new();
+    /// r.fract_floor_mut(&mut floor);
+    /// assert_eq!(r, (2, 17));
+    /// assert_eq!(floor, -6);
+    /// ```
+    #[inline]
+    pub fn fract_floor_mut(&mut self, floor: &mut Integer) {
+        xmpq::floor_fract_whole(self, floor, None);
+    }
+
+    /// Computes the fractional and floor parts of the number.
+    ///
+    /// The fractional part cannot be negative.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Rational][`Rational`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Rational][`Rational`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Rational][`Rational`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// // −100/17 = −6 + 2/17
+    /// let r = Rational::from((-100, 17));
+    /// let r_ref = r.fract_floor_ref();
+    /// let (mut fract, mut floor) = (Rational::new(), Integer::new());
+    /// (&mut fract, &mut floor).assign(r_ref);
+    /// assert_eq!(fract, (2, 17));
+    /// assert_eq!(floor, -6);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn fract_floor_ref(&self) -> FractFloorIncomplete<'_> {
+        FractFloorIncomplete { ref_self: self }
+    }
+
+    /// Rounds the number to the nearest integer.
+    ///
+    /// When the number lies exactly between two integers, it is
+    /// rounded away from zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −3.5
+    /// let r1 = Rational::from((-35, 10));
+    /// let round1 = r1.round();
+    /// assert_eq!(round1, -4);
+    /// // 3.7
+    /// let r2 = Rational::from((37, 10));
+    /// let round2 = r2.round();
+    /// assert_eq!(round2, 4);
+    /// ```
+    #[inline]
+    pub fn round(mut self) -> Rational {
+        self.round_mut();
+        self
+    }
+
+    /// Rounds the number to the nearest integer.
+    ///
+    /// When the number lies exactly between two integers, it is
+    /// rounded away from zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Rational};
+    /// // −3.5
+    /// let mut r = Rational::from((-35, 10));
+    /// r.round_mut();
+    /// assert_eq!(r, -4);
+    /// // 3.7
+    /// r.assign((37, 10));
+    /// r.round_mut();
+    /// assert_eq!(r, 4);
+    /// ```
+    #[inline]
+    pub fn round_mut(&mut self) {
+        xmpq::round(None, Some(self), None);
+    }
+
+    /// Rounds the number to the nearest integer.
+    ///
+    /// When the number lies exactly between two integers, it is
+    /// rounded away from zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// let mut round = Integer::new();
+    /// // −3.5
+    /// let r1 = Rational::from((-35, 10));
+    /// round.assign(r1.round_ref());
+    /// assert_eq!(round, -4);
+    /// // 3.7
+    /// let r2 = Rational::from((37, 10));
+    /// round.assign(r2.round_ref());
+    /// assert_eq!(round, 4);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn round_ref(&self) -> RoundIncomplete<'_> {
+        RoundIncomplete { ref_self: self }
+    }
+
+    /// Computes the remainder after rounding to the nearest
+    /// integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −3.5 = −4 + 0.5 = −4 + 1/2
+    /// let r1 = Rational::from((-35, 10));
+    /// let rem1 = r1.rem_round();
+    /// assert_eq!(rem1, (1, 2));
+    /// // 3.7 = 4 − 0.3 = 4 − 3/10
+    /// let r2 = Rational::from((37, 10));
+    /// let rem2 = r2.rem_round();
+    /// assert_eq!(rem2, (-3, 10));
+    /// ```
+    #[inline]
+    pub fn rem_round(mut self) -> Self {
+        self.rem_round_mut();
+        self
+    }
+
+    /// Computes the remainder after rounding to the nearest
+    /// integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −3.5 = −4 + 0.5 = −4 + 1/2
+    /// let mut r1 = Rational::from((-35, 10));
+    /// r1.rem_round_mut();
+    /// assert_eq!(r1, (1, 2));
+    /// // 3.7 = 4 − 0.3 = 4 − 3/10
+    /// let mut r2 = Rational::from((37, 10));
+    /// r2.rem_round_mut();
+    /// assert_eq!(r2, (-3, 10));
+    /// ```
+    #[inline]
+    pub fn rem_round_mut(&mut self) {
+        xmpq::round_fract(self, None);
+    }
+
+    /// Computes the remainder after rounding to the nearest
+    /// integer.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// // −3.5 = −4 + 0.5 = −4 + 1/2
+    /// let r1 = Rational::from((-35, 10));
+    /// let r_ref1 = r1.rem_round_ref();
+    /// let rem1 = Rational::from(r_ref1);
+    /// assert_eq!(rem1, (1, 2));
+    /// // 3.7 = 4 − 0.3 = 4 − 3/10
+    /// let r2 = Rational::from((37, 10));
+    /// let r_ref2 = r2.rem_round_ref();
+    /// let rem2 = Rational::from(r_ref2);
+    /// assert_eq!(rem2, (-3, 10));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn rem_round_ref(&self) -> RemRoundIncomplete<'_> {
+        RemRoundIncomplete { ref_self: self }
+    }
+
+    /// Computes the fractional and rounded parts of the number.
+    ///
+    /// The fractional part is positive when the number is rounded
+    /// down and negative when the number is rounded up. When the
+    /// number lies exactly between two integers, it is rounded away
+    /// from zero.
+    ///
+    /// The initial value of `round` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // −3.5 = −4 + 0.5 = −4 + 1/2
+    /// let r1 = Rational::from((-35, 10));
+    /// let (fract1, round1) = r1.fract_round(Integer::new());
+    /// assert_eq!(fract1, (1, 2));
+    /// assert_eq!(round1, -4);
+    /// // 3.7 = 4 − 0.3 = 4 − 3/10
+    /// let r2 = Rational::from((37, 10));
+    /// let (fract2, round2) = r2.fract_round(Integer::new());
+    /// assert_eq!(fract2, (-3, 10));
+    /// assert_eq!(round2, 4);
+    /// ```
+    #[inline]
+    pub fn fract_round(mut self, mut round: Integer) -> (Self, Integer) {
+        self.fract_round_mut(&mut round);
+        (self, round)
+    }
+
+    /// Computes the fractional and round parts of the number.
+    ///
+    /// The fractional part is positive when the number is rounded
+    /// down and negative when the number is rounded up. When the
+    /// number lies exactly between two integers, it is rounded away
+    /// from zero.
+    ///
+    /// The initial value of `round` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // −3.5 = −4 + 0.5 = −4 + 1/2
+    /// let mut r1 = Rational::from((-35, 10));
+    /// let mut round1 = Integer::new();
+    /// r1.fract_round_mut(&mut round1);
+    /// assert_eq!(r1, (1, 2));
+    /// assert_eq!(round1, -4);
+    /// // 3.7 = 4 − 0.3 = 4 − 3/10
+    /// let mut r2 = Rational::from((37, 10));
+    /// let mut round2 = Integer::new();
+    /// r2.fract_round_mut(&mut round2);
+    /// assert_eq!(r2, (-3, 10));
+    /// assert_eq!(round2, 4);
+    /// ```
+    #[inline]
+    pub fn fract_round_mut(&mut self, round: &mut Integer) {
+        xmpq::round_fract_whole(self, round, None);
+    }
+
+    /// Computes the fractional and round parts of the number.
+    ///
+    /// The fractional part is positive when the number is rounded
+    /// down and negative when the number is rounded up. When the
+    /// number lies exactly between two integers, it is rounded away
+    /// from zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Rational][`Rational`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Rational][`Rational`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Rational][`Rational`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// // −3.5 = −4 + 0.5 = −4 + 1/2
+    /// let r1 = Rational::from((-35, 10));
+    /// let r_ref1 = r1.fract_round_ref();
+    /// let (mut fract1, mut round1) = (Rational::new(), Integer::new());
+    /// (&mut fract1, &mut round1).assign(r_ref1);
+    /// assert_eq!(fract1, (1, 2));
+    /// assert_eq!(round1, -4);
+    /// // 3.7 = 4 − 0.3 = 4 − 3/10
+    /// let r2 = Rational::from((37, 10));
+    /// let r_ref2 = r2.fract_round_ref();
+    /// let (mut fract2, mut round2) = (Rational::new(), Integer::new());
+    /// (&mut fract2, &mut round2).assign(r_ref2);
+    /// assert_eq!(fract2, (-3, 10));
+    /// assert_eq!(round2, 4);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn fract_round_ref(&self) -> FractRoundIncomplete<'_> {
+        FractRoundIncomplete { ref_self: self }
+    }
+
+    /// Computes the square.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-13, 2));
+    /// let square = r.square();
+    /// assert_eq!(square, (169, 4));
+    /// ```
+    #[inline]
+    pub fn square(mut self) -> Self {
+        self.square_mut();
+        self
+    }
+
+    /// Computes the square.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let mut r = Rational::from((-13, 2));
+    /// r.square_mut();
+    /// assert_eq!(r, (169, 4));
+    /// ```
+    #[inline]
+    pub fn square_mut(&mut self) {
+        xmpq::square(self, None);
+    }
+
+    /// Computes the square.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-13, 2));
+    /// assert_eq!(Rational::from(r.square_ref()), (169, 4));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn square_ref(&self) -> SquareIncomplete<'_> {
+        SquareIncomplete { ref_self: self }
     }
 }
 

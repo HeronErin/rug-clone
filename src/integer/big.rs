@@ -2350,113 +2350,132 @@ impl Integer {
         ProductIncomplete { values }
     }
 
-    math_op1! {
-        xmpz::abs;
-        /// Computes the absolute value.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(-100);
-        /// let abs = i.abs();
-        /// assert_eq!(abs, 100);
-        /// ```
-        fn abs();
-        /// Computes the absolute value.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(-100);
-        /// i.abs_mut();
-        /// assert_eq!(i, 100);
-        /// ```
-        fn abs_mut;
-        /// Computes the absolute value.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(-100);
-        /// let r = i.abs_ref();
-        /// let abs = Integer::from(r);
-        /// assert_eq!(abs, 100);
-        /// assert_eq!(i, -100);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn abs_ref -> AbsIncomplete;
+    /// Computes the absolute value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-100);
+    /// let abs = i.abs();
+    /// assert_eq!(abs, 100);
+    /// ```
+    #[inline]
+    pub fn abs(mut self) -> Self {
+        self.abs_mut();
+        self
     }
-    math_op1! {
-        xmpz::signum;
-        /// Computes the signum.
-        ///
-        ///   * 0 if the value is zero
-        ///   * 1 if the value is positive
-        ///   * −1 if the value is negative
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// assert_eq!(Integer::from(-100).signum(), -1);
-        /// assert_eq!(Integer::from(0).signum(), 0);
-        /// assert_eq!(Integer::from(100).signum(), 1);
-        /// ```
-        fn signum();
-        /// Computes the signum.
-        ///
-        ///   * 0 if the value is zero
-        ///   * 1 if the value is positive
-        ///   * −1 if the value is negative
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(-100);
-        /// i.signum_mut();
-        /// assert_eq!(i, -1);
-        /// ```
-        fn signum_mut;
-        /// Computes the signum.
-        ///
-        ///   * 0 if the value is zero
-        ///   * 1 if the value is positive
-        ///   * −1 if the value is negative
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(-100);
-        /// let r = i.signum_ref();
-        /// let signum = Integer::from(r);
-        /// assert_eq!(signum, -1);
-        /// assert_eq!(i, -100);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn signum_ref -> SignumIncomplete;
+
+    /// Computes the absolute value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(-100);
+    /// i.abs_mut();
+    /// assert_eq!(i, 100);
+    /// ```
+    #[inline]
+    pub fn abs_mut(&mut self) {
+        xmpz::abs(self, None);
+    }
+
+    /// Computes the absolute value.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-100);
+    /// let r = i.abs_ref();
+    /// let abs = Integer::from(r);
+    /// assert_eq!(abs, 100);
+    /// assert_eq!(i, -100);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn abs_ref(&self) -> AbsIncomplete {
+        AbsIncomplete { ref_self: self }
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 0 if the value is zero
+    ///   * 1 if the value is positive
+    ///   * −1 if the value is negative
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// assert_eq!(Integer::from(-100).signum(), -1);
+    /// assert_eq!(Integer::from(0).signum(), 0);
+    /// assert_eq!(Integer::from(100).signum(), 1);
+    /// ```
+    #[inline]
+    pub fn signum(mut self) -> Self {
+        self.signum_mut();
+        self
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 0 if the value is zero
+    ///   * 1 if the value is positive
+    ///   * −1 if the value is negative
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(-100);
+    /// i.signum_mut();
+    /// assert_eq!(i, -1);
+    /// ```
+    #[inline]
+    pub fn signum_mut(&mut self) {
+        xmpz::signum(self, None)
+    }
+
+    /// Computes the signum.
+    ///
+    ///   * 0 if the value is zero
+    ///   * 1 if the value is positive
+    ///   * −1 if the value is negative
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-100);
+    /// let r = i.signum_ref();
+    /// let signum = Integer::from(r);
+    /// assert_eq!(signum, -1);
+    /// assert_eq!(i, -100);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn signum_ref(&self) -> SignumIncomplete {
+        SignumIncomplete { ref_self: self }
     }
 
     /// Clamps the value within the specified bounds.
@@ -2566,576 +2585,668 @@ impl Integer {
         }
     }
 
-    math_op1! {
-        xmpz::fdiv_r_2exp;
-        /// Keeps the <i>n</i> least significant bits only, producing
-        /// a result that is greater or equal to 0.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(-1);
-        /// let keep_8 = i.keep_bits(8);
-        /// assert_eq!(keep_8, 0xff);
-        /// ```
-        fn keep_bits(n: u32);
-        /// Keeps the <i>n</i> least significant bits only, producing
-        /// a result that is greater or equal to 0.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(-1);
-        /// i.keep_bits_mut(8);
-        /// assert_eq!(i, 0xff);
-        /// ```
-        fn keep_bits_mut;
-        /// Keeps the <i>n</i> least significant bits only, producing
-        /// a result that is greater or equal to 0.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(-1);
-        /// let r = i.keep_bits_ref(8);
-        /// let eight_bits = Integer::from(r);
-        /// assert_eq!(eight_bits, 0xff);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn keep_bits_ref -> KeepBitsIncomplete;
+    /// Keeps the <i>n</i> least significant bits only, producing
+    /// a result that is greater or equal to 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// let keep_8 = i.keep_bits(8);
+    /// assert_eq!(keep_8, 0xff);
+    /// ```
+    #[inline]
+    pub fn keep_bits(mut self, n: u32) -> Self {
+        self.keep_bits_mut(n);
+        self
     }
 
-    math_op1! {
-        xmpz::keep_signed_bits;
-        /// Keeps the <i>n</i> least significant bits only, producing
-        /// a negative result if the <i>n</i>th least significant bit
-        /// is one.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(-1);
-        /// let i_keep_8 = i.keep_signed_bits(8);
-        /// assert_eq!(i_keep_8, -1);
-        /// let j = Integer::from(15 << 8 | 15);
-        /// let j_keep_8 = j.keep_signed_bits(8);
-        /// assert_eq!(j_keep_8, 15);
-        /// ```
-        fn keep_signed_bits(n: u32);
-        /// Keeps the <i>n</i> least significant bits only, producing
-        /// a negative result if the <i>n</i>th least significant bit
-        /// is one.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(-1);
-        /// i.keep_signed_bits_mut(8);
-        /// assert_eq!(i, -1);
-        /// let mut j = Integer::from(15 << 8 | 15);
-        /// j.keep_signed_bits_mut(8);
-        /// assert_eq!(j, 15);
-        /// ```
-        fn keep_signed_bits_mut;
-        /// Keeps the <i>n</i> least significant bits only, producing
-        /// a negative result if the <i>n</i>th least significant bit
-        /// is one.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(-1);
-        /// let r = i.keep_signed_bits_ref(8);
-        /// let eight_bits = Integer::from(r);
-        /// assert_eq!(eight_bits, -1);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn keep_signed_bits_ref -> KeepSignedBitsIncomplete;
+    /// Keeps the <i>n</i> least significant bits only, producing
+    /// a result that is greater or equal to 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(-1);
+    /// i.keep_bits_mut(8);
+    /// assert_eq!(i, 0xff);
+    /// ```
+    #[inline]
+    pub fn keep_bits_mut(&mut self, n: u32) {
+        xmpz::fdiv_r_2exp(self, None, n)
     }
-    math_op1! {
-        xmpz::next_pow_of_two;
-        /// Finds the next power of two, or 1 if the number ≤ 0.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(-3).next_power_of_two();
-        /// assert_eq!(i, 1);
-        /// let i = Integer::from(4).next_power_of_two();
-        /// assert_eq!(i, 4);
-        /// let i = Integer::from(7).next_power_of_two();
-        /// assert_eq!(i, 8);
-        /// ```
-        fn next_power_of_two();
-        /// Finds the next power of two, or 1 if the number ≤ 0.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(53);
-        /// i.next_power_of_two_mut();
-        /// assert_eq!(i, 64);
-        /// ```
-        fn next_power_of_two_mut;
-        /// Finds the next power of two, or 1 if the number ≤ 0.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(53);
-        /// let r = i.next_power_of_two_ref();
-        /// let next = Integer::from(r);
-        /// assert_eq!(next, 64);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn next_power_of_two_ref -> NextPowerOfTwoIncomplete;
+
+    /// Keeps the <i>n</i> least significant bits only, producing
+    /// a result that is greater or equal to 0.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// let r = i.keep_bits_ref(8);
+    /// let eight_bits = Integer::from(r);
+    /// assert_eq!(eight_bits, 0xff);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    pub fn keep_bits_ref(&self, n: u32) -> KeepBitsIncomplete {
+        KeepBitsIncomplete { ref_self: self, n }
     }
-    math_op2_2! {
-        xmpz::tdiv_qr;
-        /// Performs a division producing both the quotient and
-        /// remainder.
-        ///
-        /// The remainder has the same sign as the dividend.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let dividend = Integer::from(23);
-        /// let divisor = Integer::from(-10);
-        /// let (quotient, rem) = dividend.div_rem(divisor);
-        /// assert_eq!(quotient, -2);
-        /// assert_eq!(rem, 3);
-        /// ```
-        fn div_rem(divisor);
-        /// Performs a division producing both the quotient and
-        /// remainder.
-        ///
-        /// The remainder has the same sign as the dividend.
-        ///
-        /// The quotient is stored in `self` and the remainder is
-        /// stored in `divisor`.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut dividend_quotient = Integer::from(-23);
-        /// let mut divisor_rem = Integer::from(10);
-        /// dividend_quotient.div_rem_mut(&mut divisor_rem);
-        /// assert_eq!(dividend_quotient, -2);
-        /// assert_eq!(divisor_rem, -3);
-        /// ```
-        fn div_rem_mut;
-        /// Performs a division producing both the quotient and
-        /// remainder.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// The remainder has the same sign as the dividend.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let dividend = Integer::from(-23);
-        /// let divisor = Integer::from(-10);
-        /// let r = dividend.div_rem_ref(&divisor);
-        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
-        /// assert_eq!(quotient, 2);
-        /// assert_eq!(rem, -3);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn div_rem_ref -> DivRemIncomplete;
+
+    /// Keeps the <i>n</i> least significant bits only, producing
+    /// a negative result if the <i>n</i>th least significant bit
+    /// is one.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// let i_keep_8 = i.keep_signed_bits(8);
+    /// assert_eq!(i_keep_8, -1);
+    /// let j = Integer::from(15 << 8 | 15);
+    /// let j_keep_8 = j.keep_signed_bits(8);
+    /// assert_eq!(j_keep_8, 15);
+    /// ```
+    #[inline]
+    pub fn keep_signed_bits(mut self, n: u32) -> Self {
+        self.keep_signed_bits_mut(n);
+        self
     }
-    math_op2_2! {
-        xmpz::cdiv_qr;
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded up.
-        ///
-        /// The sign of the remainder is the opposite of the divisor’s
-        /// sign.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let dividend = Integer::from(23);
-        /// let divisor = Integer::from(-10);
-        /// let (quotient, rem) = dividend.div_rem_ceil(divisor);
-        /// assert_eq!(quotient, -2);
-        /// assert_eq!(rem, 3);
-        /// ```
-        fn div_rem_ceil(divisor);
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded up.
-        ///
-        /// The sign of the remainder is the opposite of the divisor’s
-        /// sign.
-        ///
-        /// The quotient is stored in `self` and the remainder is
-        /// stored in `divisor`.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut dividend_quotient = Integer::from(-23);
-        /// let mut divisor_rem = Integer::from(10);
-        /// dividend_quotient.div_rem_ceil_mut(&mut divisor_rem);
-        /// assert_eq!(dividend_quotient, -2);
-        /// assert_eq!(divisor_rem, -3);
-        /// ```
-        fn div_rem_ceil_mut;
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded up.
-        ///
-        /// The sign of the remainder is the opposite of the divisor’s
-        /// sign.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let dividend = Integer::from(-23);
-        /// let divisor = Integer::from(-10);
-        /// let r = dividend.div_rem_ceil_ref(&divisor);
-        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
-        /// assert_eq!(quotient, 3);
-        /// assert_eq!(rem, 7);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn div_rem_ceil_ref -> DivRemCeilIncomplete;
+
+    /// Keeps the <i>n</i> least significant bits only, producing
+    /// a negative result if the <i>n</i>th least significant bit
+    /// is one.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(-1);
+    /// i.keep_signed_bits_mut(8);
+    /// assert_eq!(i, -1);
+    /// let mut j = Integer::from(15 << 8 | 15);
+    /// j.keep_signed_bits_mut(8);
+    /// assert_eq!(j, 15);
+    /// ```
+    #[inline]
+    pub fn keep_signed_bits_mut(&mut self, n: u32) {
+        xmpz::keep_signed_bits(self, None, n);
     }
-    math_op2_2! {
-        xmpz::fdiv_qr;
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded down.
-        ///
-        /// The remainder has the same sign as the divisor.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let dividend = Integer::from(23);
-        /// let divisor = Integer::from(-10);
-        /// let (quotient, rem) = dividend.div_rem_floor(divisor);
-        /// assert_eq!(quotient, -3);
-        /// assert_eq!(rem, -7);
-        /// ```
-        fn div_rem_floor(divisor);
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded down.
-        ///
-        /// The remainder has the same sign as the divisor.
-        ///
-        /// The quotient is stored in `self` and the remainder is
-        /// stored in `divisor`.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut dividend_quotient = Integer::from(-23);
-        /// let mut divisor_rem = Integer::from(10);
-        /// dividend_quotient.div_rem_floor_mut(&mut divisor_rem);
-        /// assert_eq!(dividend_quotient, -3);
-        /// assert_eq!(divisor_rem, 7);
-        /// ```
-        fn div_rem_floor_mut;
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded down.
-        ///
-        /// The remainder has the same sign as the divisor.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let dividend = Integer::from(-23);
-        /// let divisor = Integer::from(-10);
-        /// let r = dividend.div_rem_floor_ref(&divisor);
-        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
-        /// assert_eq!(quotient, 2);
-        /// assert_eq!(rem, -3);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn div_rem_floor_ref -> DivRemFloorIncomplete;
+
+    /// Keeps the <i>n</i> least significant bits only, producing
+    /// a negative result if the <i>n</i>th least significant bit
+    /// is one.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// let r = i.keep_signed_bits_ref(8);
+    /// let eight_bits = Integer::from(r);
+    /// assert_eq!(eight_bits, -1);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn keep_signed_bits_ref(&self, n: u32) -> KeepSignedBitsIncomplete<'_> {
+        KeepSignedBitsIncomplete { ref_self: self, n }
     }
-    math_op2_2! {
-        xmpz::rdiv_qr;
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded to the nearest
-        /// integer.
-        ///
-        /// When the quotient before rounding lies exactly between two
-        /// integers, it is rounded away from zero.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 23 / −10 → −2 rem 3
-        /// let (q, rem) = Integer::from(23).div_rem_round((-10).into());
-        /// assert!(q == -2 && rem == 3);
-        /// // 25 / 10 → 3 rem −5
-        /// let (q, rem) = Integer::from(25).div_rem_round(10.into());
-        /// assert!(q == 3 && rem == -5);
-        /// // −27 / 10 → −3 rem 3
-        /// let (q, rem) = Integer::from(-27).div_rem_round(10.into());
-        /// assert!(q == -3 && rem == 3);
-        /// ```
-        fn div_rem_round(divisor);
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded to the nearest
-        /// integer.
-        ///
-        /// When the quotient before rounding lies exactly between two
-        /// integers, it is rounded away from zero.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // −25 / −10 → 3 rem 5
-        /// let mut dividend_quotient = Integer::from(-25);
-        /// let mut divisor_rem = Integer::from(-10);
-        /// dividend_quotient.div_rem_round_mut(&mut divisor_rem);
-        /// assert_eq!(dividend_quotient, 3);
-        /// assert_eq!(divisor_rem, 5);
-        /// ```
-        fn div_rem_round_mut;
-        /// Performs a division producing both the quotient and
-        /// remainder, with the quotient rounded to the nearest
-        /// integer.
-        ///
-        /// When the quotient before rounding lies exactly between two
-        /// integers, it is rounded away from zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // −28 / −10 → 3 rem 2
-        /// let dividend = Integer::from(-28);
-        /// let divisor = Integer::from(-10);
-        /// let r = dividend.div_rem_round_ref(&divisor);
-        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
-        /// assert_eq!(quotient, 3);
-        /// assert_eq!(rem, 2);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn div_rem_round_ref -> DivRemRoundIncomplete;
+
+    /// Finds the next power of two, or 1 if the number ≤ 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-3).next_power_of_two();
+    /// assert_eq!(i, 1);
+    /// let i = Integer::from(4).next_power_of_two();
+    /// assert_eq!(i, 4);
+    /// let i = Integer::from(7).next_power_of_two();
+    /// assert_eq!(i, 8);
+    /// ```
+    #[inline]
+    pub fn next_power_of_two(mut self) -> Self {
+        self.next_power_of_two_mut();
+        self
     }
-    math_op2_2! {
-        xmpz::ediv_qr;
-        /// Performs Euclidean division producing both the quotient
-        /// and remainder, with a positive remainder.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let dividend = Integer::from(23);
-        /// let divisor = Integer::from(-10);
-        /// let (quotient, rem) = dividend.div_rem_euc(divisor);
-        /// assert_eq!(quotient, -2);
-        /// assert_eq!(rem, 3);
-        /// ```
-        fn div_rem_euc(divisor);
-        /// Performs Euclidean division producing both the quotient
-        /// and remainder, with a positive remainder.
-        ///
-        /// The quotient is stored in `self` and the remainder is
-        /// stored in `divisor`.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut dividend_quotient = Integer::from(-23);
-        /// let mut divisor_rem = Integer::from(10);
-        /// dividend_quotient.div_rem_euc_mut(&mut divisor_rem);
-        /// assert_eq!(dividend_quotient, -3);
-        /// assert_eq!(divisor_rem, 7);
-        /// ```
-        fn div_rem_euc_mut;
-        /// Performs Euclidan division producing both the quotient and
-        /// remainder, with a positive remainder.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let dividend = Integer::from(-23);
-        /// let divisor = Integer::from(-10);
-        /// let r = dividend.div_rem_euc_ref(&divisor);
-        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
-        /// assert_eq!(quotient, 3);
-        /// assert_eq!(rem, 7);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn div_rem_euc_ref -> DivRemEucIncomplete;
+
+    /// Finds the next power of two, or 1 if the number ≤ 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(53);
+    /// i.next_power_of_two_mut();
+    /// assert_eq!(i, 64);
+    /// ```
+    #[inline]
+    pub fn next_power_of_two_mut(&mut self) {
+        xmpz::next_pow_of_two(self, None);
+    }
+
+    /// Finds the next power of two, or 1 if the number ≤ 0.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(53);
+    /// let r = i.next_power_of_two_ref();
+    /// let next = Integer::from(r);
+    /// assert_eq!(next, 64);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn next_power_of_two_ref(&self) -> NextPowerOfTwoIncomplete<'_> {
+        NextPowerOfTwoIncomplete { ref_self: self }
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder.
+    ///
+    /// The remainder has the same sign as the dividend.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let dividend = Integer::from(23);
+    /// let divisor = Integer::from(-10);
+    /// let (quotient, rem) = dividend.div_rem(divisor);
+    /// assert_eq!(quotient, -2);
+    /// assert_eq!(rem, 3);
+    /// ```
+    #[inline]
+    pub fn div_rem(mut self, mut divisor: Self) -> (Self, Self) {
+        self.div_rem_mut(&mut divisor);
+        (self, divisor)
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder.
+    ///
+    /// The remainder has the same sign as the dividend.
+    ///
+    /// The quotient is stored in `self` and the remainder is
+    /// stored in `divisor`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut dividend_quotient = Integer::from(-23);
+    /// let mut divisor_rem = Integer::from(10);
+    /// dividend_quotient.div_rem_mut(&mut divisor_rem);
+    /// assert_eq!(dividend_quotient, -2);
+    /// assert_eq!(divisor_rem, -3);
+    /// ```
+    #[inline]
+    pub fn div_rem_mut(&mut self, divisor: &mut Self) {
+        xmpz::tdiv_qr(self, divisor, None, None);
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// The remainder has the same sign as the dividend.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let dividend = Integer::from(-23);
+    /// let divisor = Integer::from(-10);
+    /// let r = dividend.div_rem_ref(&divisor);
+    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// assert_eq!(quotient, 2);
+    /// assert_eq!(rem, -3);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn div_rem_ref<'a>(&'a self, divisor: &'a Self) -> DivRemIncomplete<'_> {
+        DivRemIncomplete {
+            ref_self: self,
+            divisor,
+        }
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded up.
+    ///
+    /// The sign of the remainder is the opposite of the divisor’s
+    /// sign.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let dividend = Integer::from(23);
+    /// let divisor = Integer::from(-10);
+    /// let (quotient, rem) = dividend.div_rem_ceil(divisor);
+    /// assert_eq!(quotient, -2);
+    /// assert_eq!(rem, 3);
+    /// ```
+    #[inline]
+    pub fn div_rem_ceil(mut self, mut divisor: Self) -> (Self, Self) {
+        self.div_rem_ceil_mut(&mut divisor);
+        (self, divisor)
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded up.
+    ///
+    /// The sign of the remainder is the opposite of the divisor’s
+    /// sign.
+    ///
+    /// The quotient is stored in `self` and the remainder is
+    /// stored in `divisor`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut dividend_quotient = Integer::from(-23);
+    /// let mut divisor_rem = Integer::from(10);
+    /// dividend_quotient.div_rem_ceil_mut(&mut divisor_rem);
+    /// assert_eq!(dividend_quotient, -2);
+    /// assert_eq!(divisor_rem, -3);
+    /// ```
+    #[inline]
+    pub fn div_rem_ceil_mut(&mut self, divisor: &mut Self) {
+        xmpz::cdiv_qr(self, divisor, None, None);
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded up.
+    ///
+    /// The sign of the remainder is the opposite of the divisor’s
+    /// sign.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let dividend = Integer::from(-23);
+    /// let divisor = Integer::from(-10);
+    /// let r = dividend.div_rem_ceil_ref(&divisor);
+    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// assert_eq!(quotient, 3);
+    /// assert_eq!(rem, 7);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn div_rem_ceil_ref<'a>(&'a self, divisor: &'a Self) -> DivRemCeilIncomplete<'_> {
+        DivRemCeilIncomplete {
+            ref_self: self,
+            divisor,
+        }
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded down.
+    ///
+    /// The remainder has the same sign as the divisor.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let dividend = Integer::from(23);
+    /// let divisor = Integer::from(-10);
+    /// let (quotient, rem) = dividend.div_rem_floor(divisor);
+    /// assert_eq!(quotient, -3);
+    /// assert_eq!(rem, -7);
+    /// ```
+    #[inline]
+    pub fn div_rem_floor(mut self, mut divisor: Self) -> (Self, Self) {
+        self.div_rem_floor_mut(&mut divisor);
+        (self, divisor)
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded down.
+    ///
+    /// The remainder has the same sign as the divisor.
+    ///
+    /// The quotient is stored in `self` and the remainder is
+    /// stored in `divisor`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut dividend_quotient = Integer::from(-23);
+    /// let mut divisor_rem = Integer::from(10);
+    /// dividend_quotient.div_rem_floor_mut(&mut divisor_rem);
+    /// assert_eq!(dividend_quotient, -3);
+    /// assert_eq!(divisor_rem, 7);
+    /// ```
+    #[inline]
+    pub fn div_rem_floor_mut(&mut self, divisor: &mut Self) {
+        xmpz::fdiv_qr(self, divisor, None, None);
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded down.
+    ///
+    /// The remainder has the same sign as the divisor.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let dividend = Integer::from(-23);
+    /// let divisor = Integer::from(-10);
+    /// let r = dividend.div_rem_floor_ref(&divisor);
+    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// assert_eq!(quotient, 2);
+    /// assert_eq!(rem, -3);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn div_rem_floor_ref<'a>(&'a self, divisor: &'a Self) -> DivRemFloorIncomplete<'_> {
+        DivRemFloorIncomplete {
+            ref_self: self,
+            divisor,
+        }
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded to the nearest
+    /// integer.
+    ///
+    /// When the quotient before rounding lies exactly between two
+    /// integers, it is rounded away from zero.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 23 / −10 → −2 rem 3
+    /// let (q, rem) = Integer::from(23).div_rem_round((-10).into());
+    /// assert!(q == -2 && rem == 3);
+    /// // 25 / 10 → 3 rem −5
+    /// let (q, rem) = Integer::from(25).div_rem_round(10.into());
+    /// assert!(q == 3 && rem == -5);
+    /// // −27 / 10 → −3 rem 3
+    /// let (q, rem) = Integer::from(-27).div_rem_round(10.into());
+    /// assert!(q == -3 && rem == 3);
+    /// ```
+    #[inline]
+    pub fn div_rem_round(mut self, mut divisor: Self) -> (Self, Self) {
+        self.div_rem_round_mut(&mut divisor);
+        (self, divisor)
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded to the nearest
+    /// integer.
+    ///
+    /// When the quotient before rounding lies exactly between two
+    /// integers, it is rounded away from zero.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // −25 / −10 → 3 rem 5
+    /// let mut dividend_quotient = Integer::from(-25);
+    /// let mut divisor_rem = Integer::from(-10);
+    /// dividend_quotient.div_rem_round_mut(&mut divisor_rem);
+    /// assert_eq!(dividend_quotient, 3);
+    /// assert_eq!(divisor_rem, 5);
+    /// ```
+    #[inline]
+    pub fn div_rem_round_mut(&mut self, divisor: &mut Self) {
+        xmpz::rdiv_qr(self, divisor, None, None);
+    }
+
+    /// Performs a division producing both the quotient and
+    /// remainder, with the quotient rounded to the nearest
+    /// integer.
+    ///
+    /// When the quotient before rounding lies exactly between two
+    /// integers, it is rounded away from zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // −28 / −10 → 3 rem 2
+    /// let dividend = Integer::from(-28);
+    /// let divisor = Integer::from(-10);
+    /// let r = dividend.div_rem_round_ref(&divisor);
+    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// assert_eq!(quotient, 3);
+    /// assert_eq!(rem, 2);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn div_rem_round_ref<'a>(&'a self, divisor: &'a Self) -> DivRemRoundIncomplete<'_> {
+        DivRemRoundIncomplete {
+            ref_self: self,
+            divisor,
+        }
+    }
+
+    /// Performs Euclidean division producing both the quotient
+    /// and remainder, with a positive remainder.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let dividend = Integer::from(23);
+    /// let divisor = Integer::from(-10);
+    /// let (quotient, rem) = dividend.div_rem_euc(divisor);
+    /// assert_eq!(quotient, -2);
+    /// assert_eq!(rem, 3);
+    /// ```
+    #[inline]
+    pub fn div_rem_euc(mut self, mut divisor: Self) -> (Self, Self) {
+        self.div_rem_euc_mut(&mut divisor);
+        (self, divisor)
+    }
+
+    /// Performs Euclidean division producing both the quotient
+    /// and remainder, with a positive remainder.
+    ///
+    /// The quotient is stored in `self` and the remainder is
+    /// stored in `divisor`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut dividend_quotient = Integer::from(-23);
+    /// let mut divisor_rem = Integer::from(10);
+    /// dividend_quotient.div_rem_euc_mut(&mut divisor_rem);
+    /// assert_eq!(dividend_quotient, -3);
+    /// assert_eq!(divisor_rem, 7);
+    /// ```
+    #[inline]
+    pub fn div_rem_euc_mut(&mut self, divisor: &mut Self) {
+        xmpz::ediv_qr(self, divisor, None, None);
+    }
+
+    /// Performs Euclidan division producing both the quotient and
+    /// remainder, with a positive remainder.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let dividend = Integer::from(-23);
+    /// let divisor = Integer::from(-10);
+    /// let r = dividend.div_rem_euc_ref(&divisor);
+    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// assert_eq!(quotient, 3);
+    /// assert_eq!(rem, 7);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn div_rem_euc_ref<'a>(&'a self, divisor: &'a Self) -> DivRemEucIncomplete<'_> {
+        DivRemEucIncomplete {
+            ref_self: self,
+            divisor,
+        }
     }
 
     /// Returns the modulo, or the remainder of Euclidean division by
@@ -3167,70 +3278,82 @@ impl Integer {
         xmpz::fdiv_u32(self, modulo)
     }
 
-    math_op2! {
-        xmpz::divexact;
-        /// Performs an exact division.
-        ///
-        /// This is much faster than normal division, but produces
-        /// correct results only when the division is exact.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(12345 * 54321);
-        /// let quotient = i.div_exact(&Integer::from(12345));
-        /// assert_eq!(quotient, 54321);
-        /// ```
-        fn div_exact(divisor);
-        /// Performs an exact division.
-        ///
-        /// This is much faster than normal division, but produces
-        /// correct results only when the division is exact.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(12345 * 54321);
-        /// i.div_exact_mut(&Integer::from(12345));
-        /// assert_eq!(i, 54321);
-        /// ```
-        fn div_exact_mut;
-        /// Performs an exact division.
-        ///
-        /// This is much faster than normal division, but produces
-        /// correct results only when the division is exact.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(12345 * 54321);
-        /// let divisor = Integer::from(12345);
-        /// let r = i.div_exact_ref(&divisor);
-        /// let quotient = Integer::from(r);
-        /// assert_eq!(quotient, 54321);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn div_exact_ref -> DivExactIncomplete;
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces
+    /// correct results only when the division is exact.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(12345 * 54321);
+    /// let quotient = i.div_exact(&Integer::from(12345));
+    /// assert_eq!(quotient, 54321);
+    /// ```
+    #[inline]
+    pub fn div_exact(mut self, divisor: &Self) -> Self {
+        self.div_exact_mut(divisor);
+        self
+    }
+
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces
+    /// correct results only when the division is exact.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(12345 * 54321);
+    /// i.div_exact_mut(&Integer::from(12345));
+    /// assert_eq!(i, 54321);
+    /// ```
+    #[inline]
+    pub fn div_exact_mut(&mut self, divisor: &Self) {
+        xmpz::divexact(self, None, divisor);
+    }
+
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces
+    /// correct results only when the division is exact.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(12345 * 54321);
+    /// let divisor = Integer::from(12345);
+    /// let r = i.div_exact_ref(&divisor);
+    /// let quotient = Integer::from(r);
+    /// assert_eq!(quotient, 54321);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn div_exact_ref<'a>(&'a self, divisor: &'a Self) -> DivExactIncomplete<'_> {
+        DivExactIncomplete {
+            ref_self: self,
+            divisor,
+        }
     }
 
     /// Performs an exact division `dividend` / `self`.
@@ -3257,68 +3380,80 @@ impl Integer {
         }
     }
 
-    math_op1! {
-        xmpz::divexact_u32;
-        /// Performs an exact division.
-        ///
-        /// This is much faster than normal division, but produces
-        /// correct results only when the division is exact.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(12345 * 54321);
-        /// let q = i.div_exact_u(12345);
-        /// assert_eq!(q, 54321);
-        /// ```
-        fn div_exact_u(divisor: u32);
-        /// Performs an exact division.
-        ///
-        /// This is much faster than normal division, but produces
-        /// correct results only when the division is exact.
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(12345 * 54321);
-        /// i.div_exact_u_mut(12345);
-        /// assert_eq!(i, 54321);
-        /// ```
-        fn div_exact_u_mut;
-        /// Performs an exact division.
-        ///
-        /// This is much faster than normal division, but produces
-        /// correct results only when the division is exact.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(12345 * 54321);
-        /// let r = i.div_exact_u_ref(12345);
-        /// assert_eq!(Integer::from(r), 54321);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn div_exact_u_ref -> DivExactUIncomplete;
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces
+    /// correct results only when the division is exact.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(12345 * 54321);
+    /// let q = i.div_exact_u(12345);
+    /// assert_eq!(q, 54321);
+    /// ```
+    #[inline]
+    pub fn div_exact_u(mut self, divisor: u32) -> Self {
+        self.div_exact_u_mut(divisor);
+        self
+    }
+
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces
+    /// correct results only when the division is exact.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(12345 * 54321);
+    /// i.div_exact_u_mut(12345);
+    /// assert_eq!(i, 54321);
+    /// ```
+    #[inline]
+    pub fn div_exact_u_mut(&mut self, divisor: u32) {
+        xmpz::divexact_u32(self, None, divisor);
+    }
+
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces
+    /// correct results only when the division is exact.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(12345 * 54321);
+    /// let r = i.div_exact_u_ref(12345);
+    /// assert_eq!(Integer::from(r), 54321);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn div_exact_u_ref(&self, divisor: u32) -> DivExactUIncomplete<'_> {
+        DivExactUIncomplete {
+            ref_self: self,
+            divisor,
+        }
     }
 
     /// Finds the inverse modulo `modulo` and returns
@@ -3696,386 +3831,437 @@ impl Integer {
         }
     }
 
-    math_op0! {
-        /// Raises `base` to the power of `exponent`.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let p = Integer::u_pow_u(13, 12);
-        /// let i = Integer::from(p);
-        /// assert_eq!(i, 13_u64.pow(12));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete;
+    /// Raises `base` to the power of `exponent`.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let p = Integer::u_pow_u(13, 12);
+    /// let i = Integer::from(p);
+    /// assert_eq!(i, 13_u64.pow(12));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete {
+        UPowUIncomplete { base, exponent }
     }
 
-    math_op0! {
-        /// Raises `base` to the power of `exponent`.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let p1 = Integer::i_pow_u(-13, 13);
-        /// let i1 = Integer::from(p1);
-        /// assert_eq!(i1, (-13_i64).pow(13));
-        /// let p2 = Integer::i_pow_u(13, 13);
-        /// let i2 = Integer::from(p2);
-        /// assert_eq!(i2, (13_i64).pow(13));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
+    /// Raises `base` to the power of `exponent`.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let p1 = Integer::i_pow_u(-13, 13);
+    /// let i1 = Integer::from(p1);
+    /// assert_eq!(i1, (-13_i64).pow(13));
+    /// let p2 = Integer::i_pow_u(13, 13);
+    /// let i2 = Integer::from(p2);
+    /// assert_eq!(i2, (13_i64).pow(13));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete {
+        IPowUIncomplete { base, exponent }
     }
 
-    math_op1! {
-        xmpz::root;
-        /// Computes the <i>n</i>th root and truncates the result.
-        ///
-        /// # Panics
-        ///
-        /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
-        /// value is negative.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(1004);
-        /// let root = i.root(3);
-        /// assert_eq!(root, 10);
-        /// ```
-        fn root(n: u32);
-        /// Computes the <i>n</i>th root and truncates the result.
-        ///
-        /// # Panics
-        ///
-        /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
-        /// value is negative.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(1004);
-        /// i.root_mut(3);
-        /// assert_eq!(i, 10);
-        /// ```
-        fn root_mut;
-        /// Computes the <i>n</i>th root and truncates the result.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(1004);
-        /// assert_eq!(Integer::from(i.root_ref(3)), 10);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn root_ref -> RootIncomplete;
+    /// Computes the <i>n</i>th root and truncates the result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
+    /// value is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(1004);
+    /// let root = i.root(3);
+    /// assert_eq!(root, 10);
+    /// ```
+    #[inline]
+    pub fn root(mut self, n: u32) -> Self {
+        self.root_mut(n);
+        self
     }
-    math_op1_2! {
-        xmpz::rootrem;
-        /// Computes the <i>n</i>th root and returns the truncated
-        /// root and the remainder.
-        ///
-        /// The remainder is the original number minus the truncated
-        /// root raised to the power of <i>n</i>.
-        ///
-        /// The initial value of `remainder` is ignored.
-        ///
-        /// # Panics
-        ///
-        /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
-        /// value is negative.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(1004);
-        /// let (root, rem) = i.root_rem(Integer::new(), 3);
-        /// assert_eq!(root, 10);
-        /// assert_eq!(rem, 4);
-        /// ```
-        fn root_rem(remainder, n: u32);
-        /// Computes the <i>n</i>th root and returns the truncated
-        /// root and the remainder.
-        ///
-        /// The remainder is the original number minus the truncated
-        /// root raised to the power of <i>n</i>.
-        ///
-        /// The initial value of `remainder` is ignored.
-        ///
-        /// # Panics
-        ///
-        /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
-        /// value is negative.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(1004);
-        /// let mut rem = Integer::new();
-        /// i.root_rem_mut(&mut rem, 3);
-        /// assert_eq!(i, 10);
-        /// assert_eq!(rem, 4);
-        /// ```
-        fn root_rem_mut;
-        /// Computes the <i>n</i>th root and returns the truncated
-        /// root and the remainder.
-        ///
-        /// The remainder is the original number minus the truncated
-        /// root raised to the power of <i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let i = Integer::from(1004);
-        /// let mut root = Integer::new();
-        /// let mut rem = Integer::new();
-        /// let r = i.root_rem_ref(3);
-        /// (&mut root, &mut rem).assign(r);
-        /// assert_eq!(root, 10);
-        /// assert_eq!(rem, 4);
-        /// let r = i.root_rem_ref(3);
-        /// let (other_root, other_rem) = <(Integer, Integer)>::from(r);
-        /// assert_eq!(other_root, 10);
-        /// assert_eq!(other_rem, 4);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn root_rem_ref -> RootRemIncomplete;
+
+    /// Computes the <i>n</i>th root and truncates the result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
+    /// value is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(1004);
+    /// i.root_mut(3);
+    /// assert_eq!(i, 10);
+    /// ```
+    #[inline]
+    pub fn root_mut(&mut self, n: u32) {
+        xmpz::root(self, None, n);
     }
-    math_op1! {
-        xmpz::square;
-        /// Computes the square.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(13);
-        /// let square = i.square();
-        /// assert_eq!(square, 169);
-        /// ```
-        fn square();
-        /// Computes the square.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(13);
-        /// i.square_mut();
-        /// assert_eq!(i, 169);
-        /// ```
-        fn square_mut;
-        /// Computes the square.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(13);
-        /// assert_eq!(Integer::from(i.square_ref()), 169);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn square_ref -> SquareIncomplete;
+
+    /// Computes the <i>n</i>th root and truncates the result.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(1004);
+    /// assert_eq!(Integer::from(i.root_ref(3)), 10);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn root_ref(&self, n: u32) -> RootIncomplete<'_> {
+        RootIncomplete { ref_self: self, n }
     }
-    math_op1! {
-        xmpz::sqrt;
-        /// Computes the square root and truncates the result.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is negative.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(104);
-        /// let sqrt = i.sqrt();
-        /// assert_eq!(sqrt, 10);
-        /// ```
-        fn sqrt();
-        /// Computes the square root and truncates the result.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is negative.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(104);
-        /// i.sqrt_mut();
-        /// assert_eq!(i, 10);
-        /// ```
-        fn sqrt_mut;
-        /// Computes the square root and truncates the result.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(104);
-        /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn sqrt_ref -> SqrtIncomplete;
+
+    /// Computes the <i>n</i>th root and returns the truncated
+    /// root and the remainder.
+    ///
+    /// The remainder is the original number minus the truncated
+    /// root raised to the power of <i>n</i>.
+    ///
+    /// The initial value of `remainder` is ignored.
+    ///
+    /// # Panics
+    ///
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
+    /// value is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(1004);
+    /// let (root, rem) = i.root_rem(Integer::new(), 3);
+    /// assert_eq!(root, 10);
+    /// assert_eq!(rem, 4);
+    /// ```
+    #[inline]
+    pub fn root_rem(mut self, mut remainder: Self, n: u32) -> (Self, Self) {
+        self.root_rem_mut(&mut remainder, n);
+        (self, remainder)
     }
-    math_op1_2! {
-        xmpz::sqrtrem;
-        /// Computes the square root and the remainder.
-        ///
-        /// The remainder is the original number minus the truncated
-        /// root squared.
-        ///
-        /// The initial value of `remainder` is ignored.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is negative.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(104);
-        /// let (sqrt, rem) = i.sqrt_rem(Integer::new());
-        /// assert_eq!(sqrt, 10);
-        /// assert_eq!(rem, 4);
-        /// ```
-        fn sqrt_rem(remainder);
-        /// Computes the square root and the remainder.
-        ///
-        /// The remainder is the original number minus the truncated
-        /// root squared.
-        ///
-        /// The initial value of `remainder` is ignored.
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is negative.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(104);
-        /// let mut rem = Integer::new();
-        /// i.sqrt_rem_mut(&mut rem);
-        /// assert_eq!(i, 10);
-        /// assert_eq!(rem, 4);
-        /// ```
-        fn sqrt_rem_mut;
-        /// Computes the square root and the remainder.
-        ///
-        /// The remainder is the original number minus the truncated
-        /// root squared.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let i = Integer::from(104);
-        /// let mut sqrt = Integer::new();
-        /// let mut rem = Integer::new();
-        /// let r = i.sqrt_rem_ref();
-        /// (&mut sqrt, &mut rem).assign(r);
-        /// assert_eq!(sqrt, 10);
-        /// assert_eq!(rem, 4);
-        /// let r = i.sqrt_rem_ref();
-        /// let (other_sqrt, other_rem) = <(Integer, Integer)>::from(r);
-        /// assert_eq!(other_sqrt, 10);
-        /// assert_eq!(other_rem, 4);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn sqrt_rem_ref -> SqrtRemIncomplete;
+
+    /// Computes the <i>n</i>th root and returns the truncated
+    /// root and the remainder.
+    ///
+    /// The remainder is the original number minus the truncated
+    /// root raised to the power of <i>n</i>.
+    ///
+    /// The initial value of `remainder` is ignored.
+    ///
+    /// # Panics
+    ///
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
+    /// value is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(1004);
+    /// let mut rem = Integer::new();
+    /// i.root_rem_mut(&mut rem, 3);
+    /// assert_eq!(i, 10);
+    /// assert_eq!(rem, 4);
+    /// ```
+    #[inline]
+    pub fn root_rem_mut(&mut self, remainder: &mut Self, n: u32) {
+        xmpz::rootrem(self, remainder, None, n);
+    }
+
+    /// Computes the <i>n</i>th root and returns the truncated
+    /// root and the remainder.
+    ///
+    /// The remainder is the original number minus the truncated
+    /// root raised to the power of <i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let i = Integer::from(1004);
+    /// let mut root = Integer::new();
+    /// let mut rem = Integer::new();
+    /// let r = i.root_rem_ref(3);
+    /// (&mut root, &mut rem).assign(r);
+    /// assert_eq!(root, 10);
+    /// assert_eq!(rem, 4);
+    /// let r = i.root_rem_ref(3);
+    /// let (other_root, other_rem) = <(Integer, Integer)>::from(r);
+    /// assert_eq!(other_root, 10);
+    /// assert_eq!(other_rem, 4);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn root_rem_ref(&self, n: u32) -> RootRemIncomplete<'_> {
+        RootRemIncomplete { ref_self: self, n }
+    }
+
+    /// Computes the square.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(13);
+    /// let square = i.square();
+    /// assert_eq!(square, 169);
+    /// ```
+    #[inline]
+    pub fn square(mut self) -> Self {
+        self.square_mut();
+        self
+    }
+
+    /// Computes the square.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(13);
+    /// i.square_mut();
+    /// assert_eq!(i, 169);
+    /// ```
+    #[inline]
+    pub fn square_mut(&mut self) {
+        xmpz::square(self, None);
+    }
+
+    /// Computes the square.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(13);
+    /// assert_eq!(Integer::from(i.square_ref()), 169);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn square_ref(&self) -> SquareIncomplete<'_> {
+        SquareIncomplete { ref_self: self }
+    }
+
+    /// Computes the square root and truncates the result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(104);
+    /// let sqrt = i.sqrt();
+    /// assert_eq!(sqrt, 10);
+    /// ```
+    #[inline]
+    pub fn sqrt(mut self) -> Self {
+        self.sqrt_mut();
+        self
+    }
+
+    /// Computes the square root and truncates the result.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(104);
+    /// i.sqrt_mut();
+    /// assert_eq!(i, 10);
+    /// ```
+    #[inline]
+    pub fn sqrt_mut(&mut self) {
+        xmpz::sqrt(self, None);
+    }
+
+    /// Computes the square root and truncates the result.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(104);
+    /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
+        SqrtIncomplete { ref_self: self }
+    }
+
+    /// Computes the square root and the remainder.
+    ///
+    /// The remainder is the original number minus the truncated
+    /// root squared.
+    ///
+    /// The initial value of `remainder` is ignored.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(104);
+    /// let (sqrt, rem) = i.sqrt_rem(Integer::new());
+    /// assert_eq!(sqrt, 10);
+    /// assert_eq!(rem, 4);
+    /// ```
+    #[inline]
+    pub fn sqrt_rem(mut self, mut remainder: Self) -> (Self, Self) {
+        self.sqrt_rem_mut(&mut remainder);
+        (self, remainder)
+    }
+
+    /// Computes the square root and the remainder.
+    ///
+    /// The remainder is the original number minus the truncated
+    /// root squared.
+    ///
+    /// The initial value of `remainder` is ignored.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(104);
+    /// let mut rem = Integer::new();
+    /// i.sqrt_rem_mut(&mut rem);
+    /// assert_eq!(i, 10);
+    /// assert_eq!(rem, 4);
+    /// ```
+    #[inline]
+    pub fn sqrt_rem_mut(&mut self, remainder: &mut Self) {
+        xmpz::sqrtrem(self, remainder, None);
+    }
+
+    /// Computes the square root and the remainder.
+    ///
+    /// The remainder is the original number minus the truncated
+    /// root squared.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let i = Integer::from(104);
+    /// let mut sqrt = Integer::new();
+    /// let mut rem = Integer::new();
+    /// let r = i.sqrt_rem_ref();
+    /// (&mut sqrt, &mut rem).assign(r);
+    /// assert_eq!(sqrt, 10);
+    /// assert_eq!(rem, 4);
+    /// let r = i.sqrt_rem_ref();
+    /// let (other_sqrt, other_rem) = <(Integer, Integer)>::from(r);
+    /// assert_eq!(other_sqrt, 10);
+    /// assert_eq!(other_rem, 4);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn sqrt_rem_ref(&self) -> SqrtRemIncomplete<'_> {
+        SqrtRemIncomplete { ref_self: self }
     }
 
     /// Determines wheter a number is prime using some trial
@@ -4105,523 +4291,595 @@ impl Integer {
         }
     }
 
-    math_op1! {
-        xmpz::nextprime;
-        /// Identifies primes using a probabilistic algorithm; the
-        /// chance of a composite passing will be extremely small.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(800_000_000);
-        /// let prime = i.next_prime();
-        /// assert_eq!(prime, 800_000_011);
-        /// ```
-        fn next_prime();
-        /// Identifies primes using a probabilistic algorithm; the
-        /// chance of a composite passing will be extremely small.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(800_000_000);
-        /// i.next_prime_mut();
-        /// assert_eq!(i, 800_000_011);
-        /// ```
-        fn next_prime_mut;
-        /// Identifies primes using a probabilistic algorithm; the
-        /// chance of a composite passing will be extremely small.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(800_000_000);
-        /// let r = i.next_prime_ref();
-        /// let prime = Integer::from(r);
-        /// assert_eq!(prime, 800_000_011);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn next_prime_ref -> NextPrimeIncomplete;
-    }
-    math_op2! {
-        xmpz::gcd;
-        /// Finds the greatest common divisor.
-        ///
-        /// The result is always positive except when both inputs are
-        /// zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let a = Integer::new();
-        /// let mut b = Integer::new();
-        /// // gcd of 0, 0 is 0
-        /// let gcd1 = a.gcd(&b);
-        /// assert_eq!(gcd1, 0);
-        /// b.assign(10);
-        /// // gcd of 0, 10 is 10
-        /// let gcd2 = gcd1.gcd(&b);
-        /// assert_eq!(gcd2, 10);
-        /// b.assign(25);
-        /// // gcd of 10, 25 is 5
-        /// let gcd3 = gcd2.gcd(&b);
-        /// assert_eq!(gcd3, 5);
-        /// ```
-        fn gcd(other);
-        /// Finds the greatest common divisor.
-        ///
-        /// The result is always positive except when both inputs are
-        /// zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let mut a = Integer::new();
-        /// let mut b = Integer::new();
-        /// // gcd of 0, 0 is 0
-        /// a.gcd_mut(&b);
-        /// assert_eq!(a, 0);
-        /// b.assign(10);
-        /// // gcd of 0, 10 is 10
-        /// a.gcd_mut(&b);
-        /// assert_eq!(a, 10);
-        /// b.assign(25);
-        /// // gcd of 10, 25 is 5
-        /// a.gcd_mut(&b);
-        /// assert_eq!(a, 5);
-        /// ```
-        fn gcd_mut;
-        /// Finds the greatest common divisor.
-        ///
-        /// The result is always positive except when both inputs are
-        /// zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let a = Integer::from(100);
-        /// let b = Integer::from(125);
-        /// let r = a.gcd_ref(&b);
-        /// // gcd of 100, 125 is 25
-        /// assert_eq!(Integer::from(r), 25);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn gcd_ref -> GcdIncomplete;
-    }
-    math_op1! {
-        xmpz::gcd_u32;
-        /// Finds the greatest common divisor.
-        ///
-        /// The result is always positive except when both inputs are
-        /// zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::new();
-        /// // gcd of 0, 0 is 0
-        /// let gcd1 = i.gcd_u(0);
-        /// assert_eq!(gcd1, 0);
-        /// // gcd of 0, 10 is 10
-        /// let gcd2 = gcd1.gcd_u(10);
-        /// assert_eq!(gcd2, 10);
-        /// // gcd of 10, 25 is 5
-        /// let gcd3 = gcd2.gcd_u(25);
-        /// assert_eq!(gcd3, 5);
-        /// ```
-        fn gcd_u(other: u32);
-        /// Finds the greatest common divisor.
-        ///
-        /// The result is always positive except when both inputs are
-        /// zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::new();
-        /// // gcd of 0, 0 is 0
-        /// i.gcd_u_mut(0);
-        /// assert_eq!(i, 0);
-        /// // gcd of 0, 10 is 10
-        /// i.gcd_u_mut(10);
-        /// assert_eq!(i, 10);
-        /// // gcd of 10, 25 is 5
-        /// i.gcd_u_mut(25);
-        /// assert_eq!(i, 5);
-        /// ```
-        fn gcd_u_mut;
-        /// Finds the greatest common divisor.
-        ///
-        /// The result is always positive except when both inputs are
-        /// zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Option][`Option`]&lt;[u32][`u32`]&gt;</code>
-        ///
-        /// The last item above is useful to obtain the result as a
-        /// [`u32`] if it fits. If `other` > 0 , the result always
-        /// fits. If the result does not fit, it is equal to the
-        /// absolute value of `self`.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(100);
-        /// let r = i.gcd_u_ref(125);
-        /// // gcd of 100, 125 is 25
-        /// assert_eq!(Integer::from(r), 25);
-        /// let r = i.gcd_u_ref(125);
-        /// assert_eq!(Option::<u32>::from(r), Some(25));
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
-        /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn gcd_u_ref -> GcdUIncomplete;
-    }
-    math_op2_3! {
-        xmpz::gcdext;
-        /// Finds the greatest common divisor (GCD) of the two inputs
-        /// (`self` and `other`), and two cofactors to obtain the GCD
-        /// from the two inputs.
-        ///
-        /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
-        /// GCD is <i>g</i> and the cofactors are <i>s</i> and
-        /// <i>t</i> such that
-        ///
-        /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
-        ///
-        /// The values <i>s</i> and <i>t</i> are chosen such that
-        /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-        /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
-        /// define <i>s</i> and <i>t</i> uniquely. There are a few
-        /// exceptional cases:
-        ///
-        ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
-        ///     <i>t</i> = sgn(<i>b</i>).
-        ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
-        ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
-        ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
-        ///
-        /// The initial value of `rop` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let a = Integer::from(4);
-        /// let b = Integer::from(6);
-        /// let (g, s, t) = a.gcd_cofactors(b, Integer::new());
-        /// assert_eq!(g, 2);
-        /// assert_eq!(s, -1);
-        /// assert_eq!(t, 1);
-        /// ```
-        fn gcd_cofactors(other, rop);
-        /// Finds the greatest common divisor (GCD) of the two inputs
-        /// (`self` and `other`), and two cofactors to obtain the GCD
-        /// from the two inputs.
-        ///
-        /// The GCD is stored in `self`, and the two cofactors are
-        /// stored in `other` and `rop`.
-        ///
-        /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
-        /// GCD is <i>g</i> and the cofactors are <i>s</i> and
-        /// <i>t</i> such that
-        ///
-        /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
-        ///
-        /// The values <i>s</i> and <i>t</i> are chosen such that
-        /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-        /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
-        /// define <i>s</i> and <i>t</i> uniquely. There are a few
-        /// exceptional cases:
-        ///
-        ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
-        ///     <i>t</i> = sgn(<i>b</i>).
-        ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
-        ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
-        ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
-        ///
-        /// The initial value of `rop` is ignored.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut a_g = Integer::from(4);
-        /// let mut b_s = Integer::from(6);
-        /// let mut t = Integer::new();
-        /// a_g.gcd_cofactors_mut(&mut b_s, &mut t);
-        /// assert_eq!(a_g, 2);
-        /// assert_eq!(b_s, -1);
-        /// assert_eq!(t, 1);
-        /// ```
-        fn gcd_cofactors_mut;
-        /// Finds the greatest common divisor (GCD) of the two inputs
-        /// (`self` and `other`), and two cofactors to obtain the GCD
-        /// from the two inputs.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// In the case that only one of the two cofactors is
-        /// required, the following are also implemented:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
-        /// GCD is <i>g</i> and the cofactors are <i>s</i> and
-        /// <i>t</i> such that
-        ///
-        /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
-        ///
-        /// The values <i>s</i> and <i>t</i> are chosen such that
-        /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-        /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
-        /// define <i>s</i> and <i>t</i> uniquely. There are a few
-        /// exceptional cases:
-        ///
-        ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
-        ///     <i>t</i> = sgn(<i>b</i>).
-        ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
-        ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
-        ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let a = Integer::from(4);
-        /// let b = Integer::from(6);
-        /// let r = a.gcd_cofactors_ref(&b);
-        /// let mut g = Integer::new();
-        /// let mut s = Integer::new();
-        /// let mut t = Integer::new();
-        /// (&mut g, &mut s, &mut t).assign(r);
-        /// assert_eq!(a, 4);
-        /// assert_eq!(b, 6);
-        /// assert_eq!(g, 2);
-        /// assert_eq!(s, -1);
-        /// assert_eq!(t, 1);
-        /// ```
-        ///
-        /// In the case that only one of the two cofactors is
-        /// required, this can be achieved as follows:
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let a = Integer::from(4);
-        /// let b = Integer::from(6);
-        ///
-        /// // no t required
-        /// let (mut g1, mut s1) = (Integer::new(), Integer::new());
-        /// (&mut g1, &mut s1).assign(a.gcd_cofactors_ref(&b));
-        /// assert_eq!(g1, 2);
-        /// assert_eq!(s1, -1);
-        ///
-        /// // no s required
-        /// let (mut g2, mut t2) = (Integer::new(), Integer::new());
-        /// (&mut g2, &mut t2).assign(b.gcd_cofactors_ref(&a));
-        /// assert_eq!(g2, 2);
-        /// assert_eq!(t2, 1);
-        /// ```
-        ///
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Assign`]: trait.Assign.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn gcd_cofactors_ref -> GcdIncomplete;
+    /// Identifies primes using a probabilistic algorithm; the
+    /// chance of a composite passing will be extremely small.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(800_000_000);
+    /// let prime = i.next_prime();
+    /// assert_eq!(prime, 800_000_011);
+    /// ```
+    #[inline]
+    pub fn next_prime(mut self) -> Self {
+        self.next_prime_mut();
+        self
     }
 
-    math_op2! {
-        xmpz::lcm;
-        /// Finds the least common multiple.
-        ///
-        /// The result is always positive except when one or both
-        /// inputs are zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let a = Integer::from(10);
-        /// let mut b = Integer::from(25);
-        /// // lcm of 10, 25 is 50
-        /// let lcm1 = a.lcm(&b);
-        /// assert_eq!(lcm1, 50);
-        /// b.assign(0);
-        /// // lcm of 50, 0 is 0
-        /// let lcm2 = lcm1.lcm(&b);
-        /// assert_eq!(lcm2, 0);
-        /// ```
-        fn lcm(other);
-        /// Finds the least common multiple.
-        ///
-        /// The result is always positive except when one or both
-        /// inputs are zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let mut a = Integer::from(10);
-        /// let mut b = Integer::from(25);
-        /// // lcm of 10, 25 is 50
-        /// a.lcm_mut(&b);
-        /// assert_eq!(a, 50);
-        /// b.assign(0);
-        /// // lcm of 50, 0 is 0
-        /// a.lcm_mut(&b);
-        /// assert_eq!(a, 0);
-        /// ```
-        fn lcm_mut;
-        /// Finds the least common multiple.
-        ///
-        /// The result is always positive except when one or both
-        /// inputs are zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let a = Integer::from(100);
-        /// let b = Integer::from(125);
-        /// let r = a.lcm_ref(&b);
-        /// // lcm of 100, 125 is 500
-        /// assert_eq!(Integer::from(r), 500);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn lcm_ref -> LcmIncomplete;
+    /// Identifies primes using a probabilistic algorithm; the
+    /// chance of a composite passing will be extremely small.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(800_000_000);
+    /// i.next_prime_mut();
+    /// assert_eq!(i, 800_000_011);
+    /// ```
+    #[inline]
+    pub fn next_prime_mut(&mut self) {
+        xmpz::nextprime(self, None);
     }
 
-    math_op1! {
-        xmpz::lcm_u32;
-        /// Finds the least common multiple.
-        ///
-        /// The result is always positive except when one or both
-        /// inputs are zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(10);
-        /// // lcm of 10, 25 is 50
-        /// let lcm1 = i.lcm_u(25);
-        /// assert_eq!(lcm1, 50);
-        /// // lcm of 50, 0 is 0
-        /// let lcm2 = lcm1.lcm_u(0);
-        /// assert_eq!(lcm2, 0);
-        /// ```
-        fn lcm_u(other: u32);
-        /// Finds the least common multiple.
-        ///
-        /// The result is always positive except when one or both
-        /// inputs are zero.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let mut i = Integer::from(10);
-        /// // lcm of 10, 25 is 50
-        /// i.lcm_u_mut(25);
-        /// assert_eq!(i, 50);
-        /// // lcm of 50, 0 is 0
-        /// i.lcm_u_mut(0);
-        /// assert_eq!(i, 0);
-        /// ```
-        fn lcm_u_mut;
-        /// Finds the least common multiple.
-        ///
-        /// The result is always positive except when one or both
-        /// inputs are zero.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let i = Integer::from(100);
-        /// let r = i.lcm_u_ref(125);
-        /// // lcm of 100, 125 is 500
-        /// assert_eq!(Integer::from(r), 500);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn lcm_u_ref -> LcmUIncomplete;
+    /// Identifies primes using a probabilistic algorithm; the
+    /// chance of a composite passing will be extremely small.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(800_000_000);
+    /// let r = i.next_prime_ref();
+    /// let prime = Integer::from(r);
+    /// assert_eq!(prime, 800_000_011);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn next_prime_ref(&self) -> NextPrimeIncomplete<'_> {
+        NextPrimeIncomplete { ref_self: self }
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let a = Integer::new();
+    /// let mut b = Integer::new();
+    /// // gcd of 0, 0 is 0
+    /// let gcd1 = a.gcd(&b);
+    /// assert_eq!(gcd1, 0);
+    /// b.assign(10);
+    /// // gcd of 0, 10 is 10
+    /// let gcd2 = gcd1.gcd(&b);
+    /// assert_eq!(gcd2, 10);
+    /// b.assign(25);
+    /// // gcd of 10, 25 is 5
+    /// let gcd3 = gcd2.gcd(&b);
+    /// assert_eq!(gcd3, 5);
+    /// ```
+    #[inline]
+    pub fn gcd(mut self, other: &Self) -> Self {
+        self.gcd_mut(other);
+        self
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let mut a = Integer::new();
+    /// let mut b = Integer::new();
+    /// // gcd of 0, 0 is 0
+    /// a.gcd_mut(&b);
+    /// assert_eq!(a, 0);
+    /// b.assign(10);
+    /// // gcd of 0, 10 is 10
+    /// a.gcd_mut(&b);
+    /// assert_eq!(a, 10);
+    /// b.assign(25);
+    /// // gcd of 10, 25 is 5
+    /// a.gcd_mut(&b);
+    /// assert_eq!(a, 5);
+    /// ```
+    #[inline]
+    pub fn gcd_mut(&mut self, other: &Self) {
+        xmpz::gcd(self, None, other);
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are
+    /// zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let a = Integer::from(100);
+    /// let b = Integer::from(125);
+    /// let r = a.gcd_ref(&b);
+    /// // gcd of 100, 125 is 25
+    /// assert_eq!(Integer::from(r), 25);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn gcd_ref<'a>(&'a self, other: &'a Self) -> GcdIncomplete<'_> {
+        GcdIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::new();
+    /// // gcd of 0, 0 is 0
+    /// let gcd1 = i.gcd_u(0);
+    /// assert_eq!(gcd1, 0);
+    /// // gcd of 0, 10 is 10
+    /// let gcd2 = gcd1.gcd_u(10);
+    /// assert_eq!(gcd2, 10);
+    /// // gcd of 10, 25 is 5
+    /// let gcd3 = gcd2.gcd_u(25);
+    /// assert_eq!(gcd3, 5);
+    /// ```
+    #[inline]
+    pub fn gcd_u(mut self, other: u32) -> Self {
+        self.gcd_u_mut(other);
+        self
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::new();
+    /// // gcd of 0, 0 is 0
+    /// i.gcd_u_mut(0);
+    /// assert_eq!(i, 0);
+    /// // gcd of 0, 10 is 10
+    /// i.gcd_u_mut(10);
+    /// assert_eq!(i, 10);
+    /// // gcd of 10, 25 is 5
+    /// i.gcd_u_mut(25);
+    /// assert_eq!(i, 5);
+    /// ```
+    #[inline]
+    pub fn gcd_u_mut(&mut self, other: u32) {
+        xmpz::gcd_u32(self, None, other);
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are
+    /// zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Option][`Option`]&lt;[u32][`u32`]&gt;</code>
+    ///
+    /// The last item above is useful to obtain the result as a
+    /// [`u32`] if it fits. If `other` > 0 , the result always
+    /// fits. If the result does not fit, it is equal to the
+    /// absolute value of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(100);
+    /// let r = i.gcd_u_ref(125);
+    /// // gcd of 100, 125 is 25
+    /// assert_eq!(Integer::from(r), 25);
+    /// let r = i.gcd_u_ref(125);
+    /// assert_eq!(Option::<u32>::from(r), Some(25));
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
+    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn gcd_u_ref(&self, other: u32) -> GcdUIncomplete<'_> {
+        GcdUIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Finds the greatest common divisor (GCD) of the two inputs
+    /// (`self` and `other`), and two cofactors to obtain the GCD
+    /// from the two inputs.
+    ///
+    /// The GCD is always positive except when both inputs are
+    /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
+    /// GCD is <i>g</i> and the cofactors are <i>s</i> and
+    /// <i>t</i> such that
+    ///
+    /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
+    ///
+    /// The values <i>s</i> and <i>t</i> are chosen such that
+    /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
+    /// define <i>s</i> and <i>t</i> uniquely. There are a few
+    /// exceptional cases:
+    ///
+    ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
+    ///     <i>t</i> = sgn(<i>b</i>).
+    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
+    ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+    ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
+    ///
+    /// The initial value of `rop` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let a = Integer::from(4);
+    /// let b = Integer::from(6);
+    /// let (g, s, t) = a.gcd_cofactors(b, Integer::new());
+    /// assert_eq!(g, 2);
+    /// assert_eq!(s, -1);
+    /// assert_eq!(t, 1);
+    /// ```
+    #[inline]
+    pub fn gcd_cofactors(mut self, mut other: Self, mut rop: Self) -> (Self, Self, Self) {
+        self.gcd_cofactors_mut(&mut other, &mut rop);
+        (self, other, rop)
+    }
+
+    /// Finds the greatest common divisor (GCD) of the two inputs
+    /// (`self` and `other`), and two cofactors to obtain the GCD
+    /// from the two inputs.
+    ///
+    /// The GCD is stored in `self`, and the two cofactors are
+    /// stored in `other` and `rop`.
+    ///
+    /// The GCD is always positive except when both inputs are
+    /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
+    /// GCD is <i>g</i> and the cofactors are <i>s</i> and
+    /// <i>t</i> such that
+    ///
+    /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
+    ///
+    /// The values <i>s</i> and <i>t</i> are chosen such that
+    /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
+    /// define <i>s</i> and <i>t</i> uniquely. There are a few
+    /// exceptional cases:
+    ///
+    ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
+    ///     <i>t</i> = sgn(<i>b</i>).
+    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
+    ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+    ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
+    ///
+    /// The initial value of `rop` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut a_g = Integer::from(4);
+    /// let mut b_s = Integer::from(6);
+    /// let mut t = Integer::new();
+    /// a_g.gcd_cofactors_mut(&mut b_s, &mut t);
+    /// assert_eq!(a_g, 2);
+    /// assert_eq!(b_s, -1);
+    /// assert_eq!(t, 1);
+    /// ```
+    #[inline]
+    pub fn gcd_cofactors_mut(&mut self, other: &mut Self, rop: &mut Self) {
+        xmpz::gcdext(self, other, Some(rop), None, None);
+    }
+
+    /// Finds the greatest common divisor (GCD) of the two inputs
+    /// (`self` and `other`), and two cofactors to obtain the GCD
+    /// from the two inputs.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// In the case that only one of the two cofactors is
+    /// required, the following are also implemented:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// The GCD is always positive except when both inputs are
+    /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
+    /// GCD is <i>g</i> and the cofactors are <i>s</i> and
+    /// <i>t</i> such that
+    ///
+    /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
+    ///
+    /// The values <i>s</i> and <i>t</i> are chosen such that
+    /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
+    /// define <i>s</i> and <i>t</i> uniquely. There are a few
+    /// exceptional cases:
+    ///
+    ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
+    ///     <i>t</i> = sgn(<i>b</i>).
+    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
+    ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+    ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let a = Integer::from(4);
+    /// let b = Integer::from(6);
+    /// let r = a.gcd_cofactors_ref(&b);
+    /// let mut g = Integer::new();
+    /// let mut s = Integer::new();
+    /// let mut t = Integer::new();
+    /// (&mut g, &mut s, &mut t).assign(r);
+    /// assert_eq!(a, 4);
+    /// assert_eq!(b, 6);
+    /// assert_eq!(g, 2);
+    /// assert_eq!(s, -1);
+    /// assert_eq!(t, 1);
+    /// ```
+    ///
+    /// In the case that only one of the two cofactors is
+    /// required, this can be achieved as follows:
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let a = Integer::from(4);
+    /// let b = Integer::from(6);
+    ///
+    /// // no t required
+    /// let (mut g1, mut s1) = (Integer::new(), Integer::new());
+    /// (&mut g1, &mut s1).assign(a.gcd_cofactors_ref(&b));
+    /// assert_eq!(g1, 2);
+    /// assert_eq!(s1, -1);
+    ///
+    /// // no s required
+    /// let (mut g2, mut t2) = (Integer::new(), Integer::new());
+    /// (&mut g2, &mut t2).assign(b.gcd_cofactors_ref(&a));
+    /// assert_eq!(g2, 2);
+    /// assert_eq!(t2, 1);
+    /// ```
+    ///
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdIncomplete<'_> {
+        GcdIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both
+    /// inputs are zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let a = Integer::from(10);
+    /// let mut b = Integer::from(25);
+    /// // lcm of 10, 25 is 50
+    /// let lcm1 = a.lcm(&b);
+    /// assert_eq!(lcm1, 50);
+    /// b.assign(0);
+    /// // lcm of 50, 0 is 0
+    /// let lcm2 = lcm1.lcm(&b);
+    /// assert_eq!(lcm2, 0);
+    /// ```
+    #[inline]
+    pub fn lcm(mut self, other: &Self) -> Self {
+        self.lcm_mut(other);
+        self
+    }
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both
+    /// inputs are zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let mut a = Integer::from(10);
+    /// let mut b = Integer::from(25);
+    /// // lcm of 10, 25 is 50
+    /// a.lcm_mut(&b);
+    /// assert_eq!(a, 50);
+    /// b.assign(0);
+    /// // lcm of 50, 0 is 0
+    /// a.lcm_mut(&b);
+    /// assert_eq!(a, 0);
+    /// ```
+    #[inline]
+    pub fn lcm_mut(&mut self, other: &Self) {
+        xmpz::lcm(self, None, other);
+    }
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both
+    /// inputs are zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let a = Integer::from(100);
+    /// let b = Integer::from(125);
+    /// let r = a.lcm_ref(&b);
+    /// // lcm of 100, 125 is 500
+    /// assert_eq!(Integer::from(r), 500);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn lcm_ref<'a>(&'a self, other: &'a Self) -> LcmIncomplete<'_> {
+        LcmIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both
+    /// inputs are zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(10);
+    /// // lcm of 10, 25 is 50
+    /// let lcm1 = i.lcm_u(25);
+    /// assert_eq!(lcm1, 50);
+    /// // lcm of 50, 0 is 0
+    /// let lcm2 = lcm1.lcm_u(0);
+    /// assert_eq!(lcm2, 0);
+    /// ```
+    #[inline]
+    pub fn lcm_u(mut self, other: u32) -> Self {
+        self.lcm_u_mut(other);
+        self
+    }
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both
+    /// inputs are zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(10);
+    /// // lcm of 10, 25 is 50
+    /// i.lcm_u_mut(25);
+    /// assert_eq!(i, 50);
+    /// // lcm of 50, 0 is 0
+    /// i.lcm_u_mut(0);
+    /// assert_eq!(i, 0);
+    /// ```
+    #[inline]
+    pub fn lcm_u_mut(&mut self, other: u32) {
+        xmpz::lcm_u32(self, None, other);
+    }
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both
+    /// inputs are zero.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(100);
+    /// let r = i.lcm_u_ref(125);
+    /// // lcm of 100, 125 is 500
+    /// assert_eq!(Integer::from(r), 500);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn lcm_u_ref(&self, other: u32) -> LcmUIncomplete<'_> {
+        LcmUIncomplete {
+            ref_self: self,
+            other,
+        }
     }
 
     /// Calculates the Jacobi symbol (`self`/<i>n</i>).
@@ -4741,322 +4999,340 @@ impl Integer {
         }
     }
 
-    math_op0! {
-        /// Computes the factorial of <i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 10 × 9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1
-        /// let f = Integer::factorial(10);
-        /// let i = Integer::from(f);
-        /// assert_eq!(i, 3628800);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn factorial(n: u32) -> FactorialIncomplete;
+    /// Computes the factorial of <i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 10 × 9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1
+    /// let f = Integer::factorial(10);
+    /// let i = Integer::from(f);
+    /// assert_eq!(i, 3628800);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn factorial(n: u32) -> FactorialIncomplete {
+        FactorialIncomplete { n }
     }
 
-    math_op0! {
-        /// Computes the double factorial of <i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 10 × 8 × 6 × 4 × 2
-        /// let f = Integer::factorial_2(10);
-        /// let i = Integer::from(f);
-        /// assert_eq!(i, 3840);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn factorial_2(n: u32) -> Factorial2Incomplete;
+    /// Computes the double factorial of <i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 10 × 8 × 6 × 4 × 2
+    /// let f = Integer::factorial_2(10);
+    /// let i = Integer::from(f);
+    /// assert_eq!(i, 3840);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn factorial_2(n: u32) -> Factorial2Incomplete {
+        Factorial2Incomplete { n }
     }
 
-    math_op0! {
-        /// Computes the <i>m</i>-multi factorial of <i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 10 × 7 × 4 × 1
-        /// let f = Integer::factorial_m(10, 3);
-        /// let i = Integer::from(f);
-        /// assert_eq!(i, 280);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete;
+    /// Computes the <i>m</i>-multi factorial of <i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 10 × 7 × 4 × 1
+    /// let f = Integer::factorial_m(10, 3);
+    /// let i = Integer::from(f);
+    /// assert_eq!(i, 280);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete {
+        FactorialMIncomplete { n, m }
     }
 
-    math_op0! {
-        /// Computes the primorial of <i>n</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 7 × 5 × 3 × 2
-        /// let p = Integer::primorial(10);
-        /// let i = Integer::from(p);
-        /// assert_eq!(i, 210);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        #[inline]
-        fn primorial(n: u32) -> PrimorialIncomplete;
+    /// Computes the primorial of <i>n</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 × 5 × 3 × 2
+    /// let p = Integer::primorial(10);
+    /// let i = Integer::from(p);
+    /// assert_eq!(i, 210);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn primorial(n: u32) -> PrimorialIncomplete {
+        PrimorialIncomplete { n }
     }
 
-    math_op1! {
-        xmpz::bin_ui;
-        /// Computes the binomial coefficient over <i>k</i>.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 7 choose 2 is 21
-        /// let i = Integer::from(7);
-        /// let bin = i.binomial(2);
-        /// assert_eq!(bin, 21);
-        /// ```
-        fn binomial(k: u32);
-        /// Computes the binomial coefficient over <i>k</i>.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 7 choose 2 is 21
-        /// let mut i = Integer::from(7);
-        /// i.binomial_mut(2);
-        /// assert_eq!(i, 21);
-        /// ```
-        fn binomial_mut;
-        /// Computes the binomial coefficient over <i>k</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 7 choose 2 is 21
-        /// let i = Integer::from(7);
-        /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn binomial_ref -> BinomialIncomplete;
-    }
-    math_op0! {
-        /// Computes the binomial coefficient <i>n</i> over <i>k</i>.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// // 7 choose 2 is 21
-        /// let b = Integer::binomial_u(7, 2);
-        /// let i = Integer::from(b);
-        /// assert_eq!(i, 21);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete;
+    /// Computes the binomial coefficient over <i>k</i>.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 choose 2 is 21
+    /// let i = Integer::from(7);
+    /// let bin = i.binomial(2);
+    /// assert_eq!(bin, 21);
+    /// ```
+    #[inline]
+    pub fn binomial(mut self, k: u32) -> Self {
+        self.binomial_mut(k);
+        self
     }
 
-    math_op0! {
-        /// Computes the Fibonacci number.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// This function is meant for an isolated number. If a
-        /// sequence of Fibonacci numbers is required, the first two
-        /// values of the sequence should be computed with the
-        /// [`fibonacci_2`] method, then iterations should be used.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let f = Integer::fibonacci(12);
-        /// let i = Integer::from(f);
-        /// assert_eq!(i, 144);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`fibonacci_2`]: #method.fibonacci_2
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        fn fibonacci(n: u32) -> FibonacciIncomplete;
+    /// Computes the binomial coefficient over <i>k</i>.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 choose 2 is 21
+    /// let mut i = Integer::from(7);
+    /// i.binomial_mut(2);
+    /// assert_eq!(i, 21);
+    /// ```
+    #[inline]
+    pub fn binomial_mut(&mut self, k: u32) {
+        xmpz::bin_ui(self, None, k);
     }
 
-    math_op0! {
-        /// Computes a Fibonacci number, and the previous Fibonacci
-        /// number.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// This function is meant to calculate isolated numbers. If a
-        /// sequence of Fibonacci numbers is required, the first two
-        /// values of the sequence should be computed with this function,
-        /// then iterations should be used.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let f = Integer::fibonacci_2(12);
-        /// let mut pair = <(Integer, Integer)>::from(f);
-        /// assert_eq!(pair.0, 144);
-        /// assert_eq!(pair.1, 89);
-        /// // Fibonacci number F[−1] is 1
-        /// pair.assign(Integer::fibonacci_2(0));
-        /// assert_eq!(pair.0, 0);
-        /// assert_eq!(pair.1, 1);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn fibonacci_2(n: u32) -> FibonacciIncomplete;
+    /// Computes the binomial coefficient over <i>k</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 choose 2 is 21
+    /// let i = Integer::from(7);
+    /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn binomial_ref(&self, k: u32) -> BinomialIncomplete<'_> {
+        BinomialIncomplete { ref_self: self, k }
     }
 
-    math_op0! {
-        /// Computes the Lucas number.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        ///
-        /// This function is meant for an isolated number. If a
-        /// sequence of Lucas numbers is required, the first two
-        /// values of the sequence should be computed with the
-        /// [`lucas_2`] method, then iterations should be used.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::Integer;
-        /// let l = Integer::lucas(12);
-        /// let i = Integer::from(l);
-        /// assert_eq!(i, 322);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [`lucas_2`]: #method.lucas_2
-        /// [icv]: index.html#incomplete-computation-values
-        fn lucas(n: u32) -> LucasIncomplete;
+    /// Computes the binomial coefficient <i>n</i> over <i>k</i>.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 choose 2 is 21
+    /// let b = Integer::binomial_u(7, 2);
+    /// let i = Integer::from(b);
+    /// assert_eq!(i, 21);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete {
+        BinomialUIncomplete { n, k }
     }
 
-    math_op0! {
-        /// Computes a Lucas number, and the previous Lucas number.
-        ///
-        /// The following are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-        ///     [(][tuple]&amp;mut [Integer][`Integer`],
-        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-        ///   * <code>[From][`From`]&lt;Src&gt; for
-        ///     [(][tuple][Integer][`Integer`],
-        ///     [Integer][`Integer`][)][tuple]</code>
-        ///
-        /// This function is meant to calculate isolated numbers. If a
-        /// sequence of Lucas numbers is required, the first two values of
-        /// the sequence should be computed with this function, then
-        /// iterations should be used.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let l = Integer::lucas_2(12);
-        /// let mut pair = <(Integer, Integer)>::from(l);
-        /// assert_eq!(pair.0, 322);
-        /// assert_eq!(pair.1, 199);
-        /// pair.assign(Integer::lucas_2(0));
-        /// assert_eq!(pair.0, 2);
-        /// assert_eq!(pair.1, -1);
-        /// ```
-        ///
-        /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-        /// [`Integer`]: struct.Integer.html
-        /// [icv]: index.html#incomplete-computation-values
-        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
-        fn lucas_2(n: u32) -> LucasIncomplete;
+    /// Computes the Fibonacci number.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// This function is meant for an isolated number. If a
+    /// sequence of Fibonacci numbers is required, the first two
+    /// values of the sequence should be computed with the
+    /// [`fibonacci_2`] method, then iterations should be used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let f = Integer::fibonacci(12);
+    /// let i = Integer::from(f);
+    /// assert_eq!(i, 144);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`fibonacci_2`]: #method.fibonacci_2
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn fibonacci(n: u32) -> FibonacciIncomplete {
+        FibonacciIncomplete { n }
+    }
+
+    /// Computes a Fibonacci number, and the previous Fibonacci
+    /// number.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// This function is meant to calculate isolated numbers. If a
+    /// sequence of Fibonacci numbers is required, the first two
+    /// values of the sequence should be computed with this function,
+    /// then iterations should be used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let f = Integer::fibonacci_2(12);
+    /// let mut pair = <(Integer, Integer)>::from(f);
+    /// assert_eq!(pair.0, 144);
+    /// assert_eq!(pair.1, 89);
+    /// // Fibonacci number F[−1] is 1
+    /// pair.assign(Integer::fibonacci_2(0));
+    /// assert_eq!(pair.0, 0);
+    /// assert_eq!(pair.1, 1);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn fibonacci_2(n: u32) -> FibonacciIncomplete {
+        FibonacciIncomplete { n }
+    }
+
+    /// Computes the Lucas number.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///
+    /// This function is meant for an isolated number. If a
+    /// sequence of Lucas numbers is required, the first two
+    /// values of the sequence should be computed with the
+    /// [`lucas_2`] method, then iterations should be used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let l = Integer::lucas(12);
+    /// let i = Integer::from(l);
+    /// assert_eq!(i, 322);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`lucas_2`]: #method.lucas_2
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn lucas(n: u32) -> LucasIncomplete {
+        LucasIncomplete { n }
+    }
+
+    /// Computes a Lucas number, and the previous Lucas number.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///     [(][tuple]&amp;mut [Integer][`Integer`],
+    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for
+    ///     [(][tuple][Integer][`Integer`],
+    ///     [Integer][`Integer`][)][tuple]</code>
+    ///
+    /// This function is meant to calculate isolated numbers. If a
+    /// sequence of Lucas numbers is required, the first two values of
+    /// the sequence should be computed with this function, then
+    /// iterations should be used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let l = Integer::lucas_2(12);
+    /// let mut pair = <(Integer, Integer)>::from(l);
+    /// assert_eq!(pair.0, 322);
+    /// assert_eq!(pair.1, 199);
+    /// pair.assign(Integer::lucas_2(0));
+    /// assert_eq!(pair.0, 2);
+    /// assert_eq!(pair.1, -1);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    #[inline]
+    pub fn lucas_2(n: u32) -> LucasIncomplete {
+        LucasIncomplete { n }
     }
 
     #[cfg(feature = "rand")]
