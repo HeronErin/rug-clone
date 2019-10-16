@@ -14,6 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+#![allow(clippy::missing_safety_doc)]
+
 #[cfg(feature = "complex")]
 pub mod xmpc;
 #[cfg(feature = "float")]
