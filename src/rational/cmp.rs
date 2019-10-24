@@ -311,16 +311,16 @@ mod tests {
         for op in s {
             let iop = Rational::from(*op);
             for b in against {
-                assert_eq!(b.eq(op), <Rational as PartialEq>::eq(b, &iop));
-                assert_eq!(op.eq(b), <Rational as PartialEq>::eq(&iop, b));
+                assert_eq!(b.eq(op), PartialEq::<Rational>::eq(b, &iop));
+                assert_eq!(op.eq(b), PartialEq::<Rational>::eq(&iop, b));
                 assert_eq!(b.eq(op), op.eq(b));
                 assert_eq!(
                     b.partial_cmp(op),
-                    <Rational as PartialOrd>::partial_cmp(b, &iop)
+                    PartialOrd::<Rational>::partial_cmp(b, &iop)
                 );
                 assert_eq!(
                     op.partial_cmp(b),
-                    <Rational as PartialOrd>::partial_cmp(&iop, b)
+                    PartialOrd::<Rational>::partial_cmp(&iop, b)
                 );
                 assert_eq!(
                     b.partial_cmp(op).unwrap(),
@@ -367,16 +367,16 @@ mod tests {
                 let op = (*n, *d);
                 let iop = Rational::from(op);
                 for b in against {
-                    assert_eq!(b.eq(&op), <Rational as PartialEq>::eq(b, &iop));
-                    assert_eq!(op.eq(b), <Rational as PartialEq>::eq(&iop, b));
+                    assert_eq!(b.eq(&op), PartialEq::<Rational>::eq(b, &iop));
+                    assert_eq!(op.eq(b), PartialEq::<Rational>::eq(&iop, b));
                     assert_eq!(b.eq(&op), op.eq(b));
                     assert_eq!(
                         b.partial_cmp(&op),
-                        <Rational as PartialOrd>::partial_cmp(b, &iop)
+                        PartialOrd::<Rational>::partial_cmp(b, &iop)
                     );
                     assert_eq!(
                         op.partial_cmp(b),
-                        <Rational as PartialOrd>::partial_cmp(&iop, b)
+                        PartialOrd::<Rational>::partial_cmp(&iop, b)
                     );
                     assert_eq!(
                         b.partial_cmp(&op).unwrap(),

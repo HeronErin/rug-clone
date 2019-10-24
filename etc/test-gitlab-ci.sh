@@ -42,9 +42,9 @@ for features in \
     serde
 do
     if [[ $TOOLCHAIN == beta* ]]; then
-        check="clippy --all-targets"
+        check=clippy
     else
-        check="check --all-targets"
+        check=check
     fi
     if [[ "$features" =~ ^(()|serde)$ ]]; then
         gmp=""
@@ -53,7 +53,7 @@ do
     fi
     features="fail-on-warnings${features:+ $features}"
     print_eval_check \
-        cargo +$TOOLCHAIN $check \
+        cargo +$TOOLCHAIN $check --all-targets \
         --no-default-features --features "$features" \
         $gmp -p rug
 done

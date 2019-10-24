@@ -7,7 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-printf '%s*- mode: compilation; default-directory: "%s" -*-\n' - "$work_dir"
+printf '%s*- mode: compilation; default-directory: "%s" -*-\n' - "$PWD"
 printf 'Compilation started at %s\n\n' "$(date)"
 
 function check_error {
@@ -102,11 +102,9 @@ for features in \
 do
     toolchain="${toolchains[0]}"
     if [[ "$toolchain" == beta* ]]; then
-        check="clippy --all-targets"
-    elif [[ "$toolchain" == 1.31.1* ]]; then
-        check=check
+        check=clippy
     else
-        check="check --all-targets"
+        check=check
     fi
     if [[ "$features" =~ ^(()|serde)$ ]]; then
         gmp=""
@@ -115,7 +113,7 @@ do
     fi
     features="fail-on-warnings${features:+ $features}"
     print_eval_check \
-        cargo $(tc "$toolchain") $check \
+        cargo $(tc "$toolchain") $check --all-targets \
         --no-default-features --features "$features" \
         $gmp -p rug
 done

@@ -172,16 +172,16 @@ mod tests {
         for op in s {
             let iop = Integer::from(*op);
             for b in against {
-                assert_eq!(b.eq(op), <Integer as PartialEq>::eq(b, &iop));
-                assert_eq!(op.eq(b), <Integer as PartialEq>::eq(&iop, b));
+                assert_eq!(b.eq(op), PartialEq::<Integer>::eq(b, &iop));
+                assert_eq!(op.eq(b), PartialEq::<Integer>::eq(&iop, b));
                 assert_eq!(b.eq(op), op.eq(b));
                 assert_eq!(
                     b.partial_cmp(op),
-                    <Integer as PartialOrd>::partial_cmp(b, &iop)
+                    PartialOrd::<Integer>::partial_cmp(b, &iop)
                 );
                 assert_eq!(
                     op.partial_cmp(b),
-                    <Integer as PartialOrd>::partial_cmp(&iop, b)
+                    PartialOrd::<Integer>::partial_cmp(&iop, b)
                 );
                 assert_eq!(
                     b.partial_cmp(op).unwrap(),

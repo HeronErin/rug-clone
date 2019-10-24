@@ -209,17 +209,11 @@ mod tests {
         for op in s {
             let fop = Float::with_val(150, *op);
             for b in against {
-                assert_eq!(b.eq(op), <Float as PartialEq>::eq(b, &fop));
-                assert_eq!(op.eq(b), <Float as PartialEq>::eq(&fop, b));
+                assert_eq!(b.eq(op), PartialEq::<Float>::eq(b, &fop));
+                assert_eq!(op.eq(b), PartialEq::<Float>::eq(&fop, b));
                 assert_eq!(b.eq(op), op.eq(b));
-                assert_eq!(
-                    b.partial_cmp(op),
-                    <Float as PartialOrd>::partial_cmp(b, &fop)
-                );
-                assert_eq!(
-                    op.partial_cmp(b),
-                    <Float as PartialOrd>::partial_cmp(&fop, b)
-                );
+                assert_eq!(b.partial_cmp(op), PartialOrd::<Float>::partial_cmp(b, &fop));
+                assert_eq!(op.partial_cmp(b), PartialOrd::<Float>::partial_cmp(&fop, b));
                 assert_eq!(b.partial_cmp(op), op.partial_cmp(b).map(Ordering::reverse));
             }
         }
@@ -234,17 +228,11 @@ mod tests {
         for op in s {
             let fop = Float::with_val(150, op);
             for b in against {
-                assert_eq!(b.eq(op), <Float as PartialEq>::eq(b, &fop));
-                assert_eq!(op.eq(b), <Float as PartialEq>::eq(&fop, b));
+                assert_eq!(b.eq(op), PartialEq::<Float>::eq(b, &fop));
+                assert_eq!(op.eq(b), PartialEq::<Float>::eq(&fop, b));
                 assert_eq!(b.eq(op), op.eq(b));
-                assert_eq!(
-                    b.partial_cmp(op),
-                    <Float as PartialOrd>::partial_cmp(b, &fop)
-                );
-                assert_eq!(
-                    op.partial_cmp(b),
-                    <Float as PartialOrd>::partial_cmp(&fop, b)
-                );
+                assert_eq!(b.partial_cmp(op), PartialOrd::<Float>::partial_cmp(b, &fop));
+                assert_eq!(op.partial_cmp(b), PartialOrd::<Float>::partial_cmp(&fop, b));
                 assert_eq!(b.partial_cmp(op), op.partial_cmp(b).map(Ordering::reverse));
             }
         }
