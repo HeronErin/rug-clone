@@ -88,7 +88,7 @@ macro_rules! arith_binary_self_float {
         $Incomplete:ident
     ) => {
         arith_binary_self_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func, raw_round => ordering1;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -112,7 +112,7 @@ macro_rules! arith_forward_float {
         $OwnedIncomplete:ident
     ) => {
         arith_forward_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func, raw_round => ordering1;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -137,7 +137,7 @@ macro_rules! arith_commut_float {
         $OwnedIncomplete:ident
     ) => {
         arith_commut_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func, raw_round => ordering1;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -165,7 +165,7 @@ macro_rules! arith_noncommut_float {
         $FromIncomplete:ident, $FromOwnedIncomplete:ident
     ) => {
         arith_noncommut_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func, $func_from, raw_round => ordering1;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -336,7 +336,7 @@ macro_rules! arith_prim_exact_float {
         $($T:ty, $Incomplete:ident;)*
     ) => {
         arith_prim_exact_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func, raw_round => ordering1;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -356,7 +356,7 @@ macro_rules! arith_prim_commut_float {
         $($T:ty, $Incomplete:ident;)*
     ) => {
         arith_prim_commut_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func, raw_round => ordering1;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -380,7 +380,7 @@ macro_rules! arith_prim_noncommut_float {
         $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
     ) => {
         arith_prim_noncommut_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func, $func_from, raw_round => ordering1;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -518,7 +518,7 @@ arith_prim_exact_float! {
     i32, ShrI32Incomplete;
 }
 mul_op_commut_round! {
-    Float, Round => Ordering;
+    Float, Round, Round::Nearest => Ordering;
     add_mul, raw_round => ordering1;
     Add { add }
     AddAssign { add_assign }
@@ -529,7 +529,7 @@ mul_op_commut_round! {
     AddMulIncomplete
 }
 mul_op_noncommut_round! {
-    Float, Round => Ordering;
+    Float, Round, Round::Nearest => Ordering;
     sub_mul, mul_sub, raw_round => ordering1;
     Sub { sub }
     SubAssign { sub_assign }

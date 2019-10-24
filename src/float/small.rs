@@ -16,6 +16,7 @@
 
 use crate::{
     ext::xmpfr::{self, raw_round},
+    float::Round,
     misc::{AsOrPanic, Limbs, MaybeLimb, NegAbs},
     Assign, Float,
 };
@@ -323,7 +324,7 @@ impl SealedToSmall for f32 {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr = limbs[0].as_mut_ptr();
         xmpfr::custom_zero(ptr, limbs_ptr, 24);
-        mpfr::set_d(ptr, self.into(), raw_round(Default::default()));
+        mpfr::set_d(ptr, self.into(), raw_round(Round::Nearest));
         // retain sign in case of NaN
         if self.is_sign_negative() {
             (*inner).sign = -1;
@@ -338,7 +339,7 @@ impl SealedToSmall for f64 {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr = limbs[0].as_mut_ptr();
         xmpfr::custom_zero(ptr, limbs_ptr, 53);
-        mpfr::set_d(ptr, self, raw_round(Default::default()));
+        mpfr::set_d(ptr, self, raw_round(Round::Nearest));
         // retain sign in case of NaN
         if self.is_sign_negative() {
             (*inner).sign = -1;

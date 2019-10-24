@@ -22,7 +22,7 @@ use crate::{
         OrdComplex, Prec,
     },
     ext::{
-        xmpc::{self, ordering2, raw_round2, Ordering2, Round2},
+        xmpc::{self, ordering2, raw_round2, Ordering2, Round2, NEAREST2},
         xmpfr::raw_round,
     },
     float::{
@@ -179,7 +179,7 @@ macro_rules! ref_math_op0_complex {
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op0_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
@@ -194,7 +194,7 @@ macro_rules! ref_math_op1_complex {
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op1_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
@@ -209,7 +209,7 @@ macro_rules! ref_math_op1_2_complex {
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op1_2_round! {
-            Complex, Round2 => (Ordering2, Ordering2);
+            Complex, Round2, NEAREST2 => (Ordering2, Ordering2);
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
@@ -358,7 +358,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn set_prec<P: Prec>(&mut self, prec: P) {
-        self.set_prec_round(prec, Default::default());
+        self.set_prec_round(prec, NEAREST2);
     }
 
     /// Sets the precision of the real and imaginary parts, applying
@@ -663,7 +663,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn to_string_radix(&self, radix: i32, num_digits: Option<usize>) -> String {
-        self.to_string_radix_round(radix, num_digits, Default::default())
+        self.to_string_radix_round(radix, num_digits, NEAREST2)
     }
 
     /// Returns a string representation of the value for the specified
@@ -1163,7 +1163,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mul_add(mut self, mul: &Self, add: &Self) -> Self {
-        self.mul_add_round(mul, add, Default::default());
+        self.mul_add_round(mul, add, NEAREST2);
         self
     }
 
@@ -1186,7 +1186,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mul_add_mut(&mut self, mul: &Self, add: &Self) {
-        self.mul_add_round(mul, add, Default::default());
+        self.mul_add_round(mul, add, NEAREST2);
     }
 
     /// Multiplies and adds in one fused operation, applying the
@@ -1267,7 +1267,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mul_sub(mut self, mul: &Self, sub: &Self) -> Self {
-        self.mul_sub_round(mul, sub, Default::default());
+        self.mul_sub_round(mul, sub, NEAREST2);
         self
     }
 
@@ -1290,7 +1290,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mul_sub_mut(&mut self, mul: &Self, sub: &Self) {
-        self.mul_sub_round(mul, sub, Default::default());
+        self.mul_sub_round(mul, sub, NEAREST2);
     }
 
     /// Multiplies and subtracts in one fused operation, applying the
@@ -1414,7 +1414,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn proj_mut(&mut self) {
-        xmpc::proj(self, None, Default::default());
+        xmpc::proj(self, None, NEAREST2);
     }
 
     /// Computes the projection onto the Riemann sphere.
@@ -1467,7 +1467,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn square(mut self) -> Self {
-        self.square_round(<Round2 as Default>::default());
+        self.square_round(NEAREST2);
         self
     }
 
@@ -1484,7 +1484,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn square_mut(&mut self) {
-        self.square_round(<Round2 as Default>::default());
+        self.square_round(NEAREST2);
     }
 
     /// Computes the square, applying the specified rounding method.
@@ -1550,7 +1550,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sqrt(mut self) -> Self {
-        self.sqrt_round(<Round2 as Default>::default());
+        self.sqrt_round(NEAREST2);
         self
     }
 
@@ -1567,7 +1567,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sqrt_mut(&mut self) {
-        self.sqrt_round(<Round2 as Default>::default());
+        self.sqrt_round(NEAREST2);
     }
 
     /// Computes the square root, applying the specified rounding
@@ -1649,7 +1649,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn conj_mut(&mut self) {
-        xmpc::conj(self, None, Default::default());
+        xmpc::conj(self, None, NEAREST2);
     }
 
     /// Computes the complex conjugate.
@@ -1711,7 +1711,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn abs_mut(&mut self) {
-        self.abs_round(Default::default());
+        self.abs_round(NEAREST2);
     }
 
     /// Computes the absolute value, applying the specified rounding
@@ -1789,7 +1789,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn arg(mut self) -> Complex {
-        self.arg_round(Default::default());
+        self.arg_round(NEAREST2);
         self
     }
 
@@ -1808,7 +1808,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn arg_mut(&mut self) {
-        self.arg_round(Default::default());
+        self.arg_round(NEAREST2);
     }
 
     /// Computes the argument, applying the specified rounding method.
@@ -1899,7 +1899,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mul_i(mut self, negative: bool) -> Self {
-        self.mul_i_round(negative, <Round2 as Default>::default());
+        self.mul_i_round(negative, NEAREST2);
         self
     }
 
@@ -1920,7 +1920,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mul_i_mut(&mut self, negative: bool) {
-        self.mul_i_round(negative, <Round2 as Default>::default());
+        self.mul_i_round(negative, NEAREST2);
     }
 
     /// Multiplies the complex number by ±<i>i</i>, applying the
@@ -1987,7 +1987,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn recip(mut self) -> Self {
-        self.recip_round(<Round2 as Default>::default());
+        self.recip_round(NEAREST2);
         self
     }
 
@@ -2004,7 +2004,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn recip_mut(&mut self) {
-        self.recip_round(<Round2 as Default>::default());
+        self.recip_round(NEAREST2);
     }
 
     /// Computes the reciprocal, applying the specified rounding
@@ -2066,7 +2066,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn norm(mut self) -> Complex {
-        self.norm_round(Default::default());
+        self.norm_round(NEAREST2);
         self
     }
 
@@ -2086,7 +2086,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn norm_mut(&mut self) {
-        self.norm_round(Default::default());
+        self.norm_round(NEAREST2);
     }
 
     /// Computes the norm, that is the square of the absolute value,
@@ -2157,7 +2157,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn ln(mut self) -> Self {
-        self.ln_round(<Round2 as Default>::default());
+        self.ln_round(NEAREST2);
         self
     }
 
@@ -2174,7 +2174,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn ln_mut(&mut self) {
-        self.ln_round(<Round2 as Default>::default());
+        self.ln_round(NEAREST2);
     }
 
     /// Computes the natural logarithm, applying the specified
@@ -2237,7 +2237,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn log10(mut self) -> Self {
-        self.log10_round(<Round2 as Default>::default());
+        self.log10_round(NEAREST2);
         self
     }
 
@@ -2254,7 +2254,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn log10_mut(&mut self) {
-        self.log10_round(<Round2 as Default>::default());
+        self.log10_round(NEAREST2);
     }
 
     /// Computes the logarithm to base 10, applying the specified
@@ -2347,7 +2347,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn exp(mut self) -> Self {
-        self.exp_round(<Round2 as Default>::default());
+        self.exp_round(NEAREST2);
         self
     }
 
@@ -2364,7 +2364,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn exp_mut(&mut self) {
-        self.exp_round(<Round2 as Default>::default());
+        self.exp_round(NEAREST2);
     }
 
     /// Computes the exponential, applying the specified rounding
@@ -2427,7 +2427,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sin(mut self) -> Self {
-        self.sin_round(<Round2 as Default>::default());
+        self.sin_round(NEAREST2);
         self
     }
 
@@ -2444,7 +2444,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sin_mut(&mut self) {
-        self.sin_round(<Round2 as Default>::default());
+        self.sin_round(NEAREST2);
     }
 
     /// Computes the sine, applying the specified rounding method.
@@ -2506,7 +2506,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn cos(mut self) -> Self {
-        self.cos_round(<Round2 as Default>::default());
+        self.cos_round(NEAREST2);
         self
     }
 
@@ -2523,7 +2523,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn cos_mut(&mut self) {
-        self.cos_round(<Round2 as Default>::default());
+        self.cos_round(NEAREST2);
     }
 
     /// Computes the cosine, applying the specified rounding method.
@@ -2593,7 +2593,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sin_cos(mut self, mut cos: Self) -> (Self, Self) {
-        self.sin_cos_round(&mut cos, <Round2 as Default>::default());
+        self.sin_cos_round(&mut cos, NEAREST2);
         (self, cos)
     }
 
@@ -2619,7 +2619,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sin_cos_mut(&mut self, cos: &mut Self) {
-        self.sin_cos_round(cos, <Round2 as Default>::default());
+        self.sin_cos_round(cos, NEAREST2);
     }
 
     /// Computes the sine and cosine of `self`, applying the
@@ -2721,7 +2721,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn tan(mut self) -> Self {
-        self.tan_round(<Round2 as Default>::default());
+        self.tan_round(NEAREST2);
         self
     }
 
@@ -2738,7 +2738,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn tan_mut(&mut self) {
-        self.tan_round(<Round2 as Default>::default());
+        self.tan_round(NEAREST2);
     }
 
     /// Computes the tangent, applying the specified rounding method.
@@ -2800,7 +2800,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sinh(mut self) -> Self {
-        self.sinh_round(<Round2 as Default>::default());
+        self.sinh_round(NEAREST2);
         self
     }
 
@@ -2817,7 +2817,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sinh_mut(&mut self) {
-        self.sinh_round(<Round2 as Default>::default());
+        self.sinh_round(NEAREST2);
     }
 
     /// Computes the hyperbolic sine, applying the specified rounding
@@ -2880,7 +2880,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn cosh(mut self) -> Self {
-        self.cosh_round(<Round2 as Default>::default());
+        self.cosh_round(NEAREST2);
         self
     }
 
@@ -2897,7 +2897,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn cosh_mut(&mut self) {
-        self.cosh_round(<Round2 as Default>::default());
+        self.cosh_round(NEAREST2);
     }
 
     /// Computes the hyperbolic cosine, applying the specified rounding
@@ -2960,7 +2960,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn tanh(mut self) -> Self {
-        self.tanh_round(<Round2 as Default>::default());
+        self.tanh_round(NEAREST2);
         self
     }
 
@@ -2977,7 +2977,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn tanh_mut(&mut self) {
-        self.tanh_round(<Round2 as Default>::default());
+        self.tanh_round(NEAREST2);
     }
 
     /// Computes the hyperbolic tangent, applying the specified
@@ -3040,7 +3040,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn asin(mut self) -> Self {
-        self.asin_round(<Round2 as Default>::default());
+        self.asin_round(NEAREST2);
         self
     }
 
@@ -3057,7 +3057,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn asin_mut(&mut self) {
-        self.asin_round(<Round2 as Default>::default());
+        self.asin_round(NEAREST2);
     }
 
     /// Computes the inverse sine, applying the specified rounding
@@ -3120,7 +3120,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn acos(mut self) -> Self {
-        self.acos_round(<Round2 as Default>::default());
+        self.acos_round(NEAREST2);
         self
     }
 
@@ -3137,7 +3137,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn acos_mut(&mut self) {
-        self.acos_round(<Round2 as Default>::default());
+        self.acos_round(NEAREST2);
     }
 
     /// Computes the inverse cosine, applying the specified rounding
@@ -3200,7 +3200,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn atan(mut self) -> Self {
-        self.atan_round(<Round2 as Default>::default());
+        self.atan_round(NEAREST2);
         self
     }
 
@@ -3217,7 +3217,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn atan_mut(&mut self) {
-        self.atan_round(<Round2 as Default>::default());
+        self.atan_round(NEAREST2);
     }
 
     /// Computes the inverse tangent, applying the specified rounding
@@ -3280,7 +3280,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn asinh(mut self) -> Self {
-        self.asinh_round(<Round2 as Default>::default());
+        self.asinh_round(NEAREST2);
         self
     }
 
@@ -3297,7 +3297,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn asinh_mut(&mut self) {
-        self.asinh_round(<Round2 as Default>::default());
+        self.asinh_round(NEAREST2);
     }
 
     /// Computes the inverse hyperbolic sine, applying the specified
@@ -3361,7 +3361,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn acosh(mut self) -> Self {
-        self.acosh_round(<Round2 as Default>::default());
+        self.acosh_round(NEAREST2);
         self
     }
 
@@ -3379,7 +3379,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn acosh_mut(&mut self) {
-        self.acosh_round(<Round2 as Default>::default());
+        self.acosh_round(NEAREST2);
     }
 
     /// Computes the inverse hyperbolic cosine, applying the specified
@@ -3443,7 +3443,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn atanh(mut self) -> Self {
-        self.atanh_round(<Round2 as Default>::default());
+        self.atanh_round(NEAREST2);
         self
     }
 
@@ -3461,7 +3461,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn atanh_mut(&mut self) {
-        self.atanh_round(<Round2 as Default>::default());
+        self.atanh_round(NEAREST2);
     }
 
     /// Computes the inverse hyperbolic tangent, applying the
@@ -3668,7 +3668,7 @@ where
     type Output = Self;
     #[inline]
     fn add(mut self, rhs: SumIncomplete<'a, I>) -> Self {
-        self.add_assign_round(rhs, Default::default());
+        self.add_assign_round(rhs, NEAREST2);
         self
     }
 }
@@ -3679,7 +3679,7 @@ where
 {
     #[inline]
     fn add_assign(&mut self, rhs: SumIncomplete<'a, I>) {
-        self.add_assign_round(rhs, Default::default());
+        self.add_assign_round(rhs, NEAREST2);
     }
 }
 
@@ -3796,7 +3796,7 @@ where
     type Output = Self;
     #[inline]
     fn add(mut self, rhs: DotIncomplete<'a, I>) -> Self {
-        self.add_assign_round(rhs, Default::default());
+        self.add_assign_round(rhs, NEAREST2);
         self
     }
 }
@@ -3807,7 +3807,7 @@ where
 {
     #[inline]
     fn add_assign(&mut self, rhs: DotIncomplete<'a, I>) {
-        self.add_assign_round(rhs, Default::default());
+        self.add_assign_round(rhs, NEAREST2);
     }
 }
 

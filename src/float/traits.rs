@@ -159,7 +159,7 @@ where
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        self.assign_round(src, Default::default());
+        self.assign_round(src, Round::Nearest);
     }
 }
 
@@ -373,7 +373,7 @@ unsafe impl Sync for Float {}
 #[allow(clippy::float_cmp)]
 mod tests {
     use crate::{
-        float::{self, FreeCache},
+        float::{self, FreeCache, Round},
         ops::AssignRound,
         Assign, Float,
     };
@@ -385,11 +385,11 @@ mod tests {
         assert_eq!(f, 1.0);
 
         let other = Float::with_val(53, 14.75);
-        let mut dir = f.assign_round(&other, Default::default());
+        let mut dir = f.assign_round(&other, Round::Nearest);
         assert_eq!(f, 15.0);
         assert_eq!(dir, Ordering::Greater);
 
-        dir = f.assign_round(14.25, Default::default());
+        dir = f.assign_round(14.25, Round::Nearest);
         assert_eq!(f, 14.0);
         assert_eq!(dir, Ordering::Less);
 

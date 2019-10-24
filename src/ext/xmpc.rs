@@ -29,6 +29,7 @@ use std::{
 };
 
 pub type Round2 = (Round, Round);
+pub const NEAREST2: Round2 = (Round::Nearest, Round::Nearest);
 
 pub type Ordering2 = (Ordering, Ordering);
 

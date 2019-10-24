@@ -273,7 +273,7 @@ macro_rules! ref_math_op0_float {
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op0_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
@@ -288,7 +288,7 @@ macro_rules! ref_math_op1_float {
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op1_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
@@ -303,7 +303,7 @@ macro_rules! ref_math_op1_2_float {
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op1_2_round! {
-            Float, Round => (Ordering, Ordering);
+            Float, Round, Round::Nearest => (Ordering, Ordering);
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
@@ -318,7 +318,7 @@ macro_rules! ref_math_op2_float {
         struct $Incomplete:ident { $op:ident $(, $param:ident: $T:ty),* }
     ) => {
         ref_math_op2_round! {
-            Float, Round => Ordering;
+            Float, Round, Round::Nearest => Ordering;
             $func;
             $(#[$attr_ref])*
             struct $Incomplete { $op $(, $param: $T)* }
@@ -456,7 +456,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn set_prec(&mut self, prec: u32) {
-        self.set_prec_round(prec, Default::default());
+        self.set_prec_round(prec, Round::Nearest);
     }
 
     /// Sets the precision, applying the specified rounding method.
@@ -753,7 +753,7 @@ impl Float {
     /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
-        self.to_integer_round(Default::default()).map(|x| x.0)
+        self.to_integer_round(Round::Nearest).map(|x| x.0)
     }
 
     #[cfg(feature = "integer")]
@@ -908,7 +908,7 @@ impl Float {
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32_saturating(&self) -> Option<i32> {
-        self.to_i32_saturating_round(Default::default())
+        self.to_i32_saturating_round(Round::Nearest)
     }
 
     /// Converts to an [`i32`], applying the specified rounding method.
@@ -965,7 +965,7 @@ impl Float {
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32_saturating(&self) -> Option<u32> {
-        self.to_u32_saturating_round(Default::default())
+        self.to_u32_saturating_round(Round::Nearest)
     }
 
     /// Converts to a [`u32`], applying the specified rounding method.
@@ -1018,7 +1018,7 @@ impl Float {
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32(&self) -> f32 {
-        self.to_f32_round(Default::default())
+        self.to_f32_round(Round::Nearest)
     }
 
     /// Converts to an [`f32`], applying the specified rounding
@@ -1062,7 +1062,7 @@ impl Float {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
-        self.to_f64_round(Default::default())
+        self.to_f64_round(Round::Nearest)
     }
 
     /// Converts to an [`f64`], applying the specified rounding
@@ -1110,7 +1110,7 @@ impl Float {
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32_exp(&self) -> (f32, i32) {
-        self.to_f32_exp_round(Default::default())
+        self.to_f32_exp_round(Round::Nearest)
     }
 
     /// Converts to an [`f32`] and an exponent, applying the specified
@@ -1175,7 +1175,7 @@ impl Float {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, i32) {
-        self.to_f64_exp_round(Default::default())
+        self.to_f64_exp_round(Round::Nearest)
     }
 
     /// Converts to an [`f64`] and an exponent, applying the specified
@@ -1231,7 +1231,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn to_string_radix(&self, radix: i32, num_digits: Option<usize>) -> String {
-        self.to_string_radix_round(radix, num_digits, Default::default())
+        self.to_string_radix_round(radix, num_digits, Round::Nearest)
     }
 
     /// Returns a string representation of `self` for the specified
@@ -1803,7 +1803,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn subnormalize_ieee(&mut self) -> &mut Self {
-        self.subnormalize_ieee_round(Ordering::Equal, Default::default());
+        self.subnormalize_ieee_round(Ordering::Equal, Round::Nearest);
         self
     }
 
@@ -1881,7 +1881,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn subnormalize(&mut self, normal_exp_min: i32) -> &mut Self {
-        self.subnormalize_round(normal_exp_min, Ordering::Equal, Default::default());
+        self.subnormalize_round(normal_exp_min, Ordering::Equal, Round::Nearest);
         self
     }
 
@@ -2071,7 +2071,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn mul_add(mut self, mul: &Self, add: &Self) -> Self {
-        self.mul_add_round(mul, add, Default::default());
+        self.mul_add_round(mul, add, Round::Nearest);
         self
     }
 
@@ -2099,7 +2099,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn mul_add_mut(&mut self, mul: &Self, add: &Self) {
-        self.mul_add_round(mul, add, Default::default());
+        self.mul_add_round(mul, add, Round::Nearest);
     }
 
     /// Multiplies and adds in one fused operation, applying the
@@ -2204,7 +2204,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn mul_sub(mut self, mul: &Self, sub: &Self) -> Self {
-        self.mul_sub_round(mul, sub, Default::default());
+        self.mul_sub_round(mul, sub, Round::Nearest);
         self
     }
 
@@ -2232,7 +2232,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn mul_sub_mut(&mut self, mul: &Self, sub: &Self) {
-        self.mul_sub_round(mul, sub, Default::default());
+        self.mul_sub_round(mul, sub, Round::Nearest);
     }
 
     /// Multiplies and subtracts in one fused operation, applying the
@@ -2334,7 +2334,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn mul_add_mul(mut self, mul: &Self, add_mul1: &Self, add_mul2: &Self) -> Self {
-        self.mul_add_mul_round(mul, add_mul1, add_mul2, Default::default());
+        self.mul_add_mul_round(mul, add_mul1, add_mul2, Round::Nearest);
         self
     }
 
@@ -2359,7 +2359,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn mul_add_mul_mut(&mut self, mul: &Self, add_mul1: &Self, add_mul2: &Self) {
-        self.mul_add_mul_round(mul, add_mul1, add_mul2, Default::default());
+        self.mul_add_mul_round(mul, add_mul1, add_mul2, Round::Nearest);
     }
 
     /// Multiplies two produces and adds them in one fused operation,
@@ -2467,7 +2467,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn mul_sub_mul(mut self, mul: &Self, sub_mul1: &Self, sub_mul2: &Self) -> Self {
-        self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Default::default());
+        self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Round::Nearest);
         self
     }
 
@@ -2493,7 +2493,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn mul_sub_mul_mut(&mut self, mul: &Self, sub_mul1: &Self, sub_mul2: &Self) {
-        self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Default::default());
+        self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Round::Nearest);
     }
 
     /// Multiplies two produces and subtracts them in one fused
@@ -2716,7 +2716,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn square(mut self) -> Self {
-        self.square_round(<Round as Default>::default());
+        self.square_round(Round::Nearest);
         self
     }
 
@@ -2732,7 +2732,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn square_mut(&mut self) {
-        self.square_round(<Round as Default>::default());
+        self.square_round(Round::Nearest);
     }
 
     /// Computes the square, applying the specified rounding method.
@@ -2793,7 +2793,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sqrt(mut self) -> Self {
-        self.sqrt_round(<Round as Default>::default());
+        self.sqrt_round(Round::Nearest);
         self
     }
 
@@ -2809,7 +2809,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sqrt_mut(&mut self) {
-        self.sqrt_round(<Round as Default>::default());
+        self.sqrt_round(Round::Nearest);
     }
 
     /// Computes the square root, applying the specified rounding
@@ -2896,7 +2896,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn recip_sqrt(mut self) -> Self {
-        self.recip_sqrt_round(<Round as Default>::default());
+        self.recip_sqrt_round(Round::Nearest);
         self
     }
 
@@ -2912,7 +2912,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn recip_sqrt_mut(&mut self) {
-        self.recip_sqrt_round(<Round as Default>::default());
+        self.recip_sqrt_round(Round::Nearest);
     }
 
     /// Computes the reciprocal square root, applying the specified
@@ -2974,7 +2974,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cbrt(mut self) -> Self {
-        self.cbrt_round(<Round as Default>::default());
+        self.cbrt_round(Round::Nearest);
         self
     }
 
@@ -2990,7 +2990,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cbrt_mut(&mut self) {
-        self.cbrt_round(<Round as Default>::default());
+        self.cbrt_round(Round::Nearest);
     }
 
     /// Computes the cube root, applying the specified rounding
@@ -3052,7 +3052,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn root(mut self, k: u32) -> Self {
-        self.root_round(k, <Round as Default>::default());
+        self.root_round(k, Round::Nearest);
         self
     }
 
@@ -3068,7 +3068,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn root_mut(&mut self, k: u32) {
-        self.root_round(k, <Round as Default>::default());
+        self.root_round(k, Round::Nearest);
     }
 
     /// Computes the <i>k</i>th root, applying the specified
@@ -3146,7 +3146,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn abs_mut(&mut self) {
-        xmpfr::abs(self, None, Default::default());
+        xmpfr::abs(self, None, Round::Nearest);
     }
 
     /// Computes the absolute value.
@@ -3212,7 +3212,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn signum_mut(&mut self) {
-        xmpfr::signum(self, None, Default::default());
+        xmpfr::signum(self, None, Round::Nearest);
     }
 
     /// Computes the signum.
@@ -3277,7 +3277,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn copysign_mut(&mut self, y: &Self) {
-        xmpfr::copysign(self, None, Some(y), Default::default());
+        xmpfr::copysign(self, None, Some(y), Round::Nearest);
     }
 
     /// Computes a number with the magnitude of `self` and the
@@ -3338,7 +3338,7 @@ impl Float {
             + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
-        self.clamp_round(min, max, Default::default());
+        self.clamp_round(min, max, Round::Nearest);
         self
     }
 
@@ -3372,7 +3372,7 @@ impl Float {
             + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
-        self.clamp_round(min, max, Default::default());
+        self.clamp_round(min, max, Round::Nearest);
     }
 
     /// Clamps the value within the specified bounds, applying the
@@ -3505,7 +3505,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn recip(mut self) -> Self {
-        self.recip_round(<Round as Default>::default());
+        self.recip_round(Round::Nearest);
         self
     }
 
@@ -3521,7 +3521,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn recip_mut(&mut self) {
-        self.recip_round(<Round as Default>::default());
+        self.recip_round(Round::Nearest);
     }
 
     /// Computes the reciprocal, applying the specified rounding
@@ -3584,7 +3584,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn min(mut self, other: &Self) -> Self {
-        self.min_round(other, <Round as Default>::default());
+        self.min_round(other, Round::Nearest);
         self
     }
 
@@ -3601,7 +3601,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn min_mut(&mut self, other: &Self) {
-        self.min_round(other, <Round as Default>::default());
+        self.min_round(other, Round::Nearest);
     }
 
     /// Finds the minimum, applying the specified rounding method.
@@ -3665,7 +3665,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn max(mut self, other: &Self) -> Self {
-        self.max_round(other, <Round as Default>::default());
+        self.max_round(other, Round::Nearest);
         self
     }
 
@@ -3682,7 +3682,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn max_mut(&mut self, other: &Self) {
-        self.max_round(other, <Round as Default>::default());
+        self.max_round(other, Round::Nearest);
     }
 
     /// Finds the maximum, applying the specified rounding method.
@@ -3753,7 +3753,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn positive_diff(mut self, other: &Self) -> Self {
-        self.positive_diff_round(other, <Round as Default>::default());
+        self.positive_diff_round(other, Round::Nearest);
         self
     }
 
@@ -3777,7 +3777,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn positive_diff_mut(&mut self, other: &Self) {
-        self.positive_diff_round(other, <Round as Default>::default());
+        self.positive_diff_round(other, Round::Nearest);
     }
 
     /// Computes the positive difference between `self` and
@@ -3856,7 +3856,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln(mut self) -> Self {
-        self.ln_round(<Round as Default>::default());
+        self.ln_round(Round::Nearest);
         self
     }
 
@@ -3873,7 +3873,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_mut(&mut self) {
-        self.ln_round(<Round as Default>::default());
+        self.ln_round(Round::Nearest);
     }
 
     /// Computes the natural logarithm, applying the specified
@@ -3962,7 +3962,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn log2(mut self) -> Self {
-        self.log2_round(<Round as Default>::default());
+        self.log2_round(Round::Nearest);
         self
     }
 
@@ -3979,7 +3979,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn log2_mut(&mut self) {
-        self.log2_round(<Round as Default>::default());
+        self.log2_round(Round::Nearest);
     }
 
     /// Computes the logarithm to base 2, applying the specified
@@ -4042,7 +4042,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn log10(mut self) -> Self {
-        self.log10_round(<Round as Default>::default());
+        self.log10_round(Round::Nearest);
         self
     }
 
@@ -4059,7 +4059,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn log10_mut(&mut self) {
-        self.log10_round(<Round as Default>::default());
+        self.log10_round(Round::Nearest);
     }
 
     /// Computes the logarithm to base 10, applying the specified
@@ -4122,7 +4122,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp(mut self) -> Self {
-        self.exp_round(<Round as Default>::default());
+        self.exp_round(Round::Nearest);
         self
     }
 
@@ -4139,7 +4139,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp_mut(&mut self) {
-        self.exp_round(<Round as Default>::default());
+        self.exp_round(Round::Nearest);
     }
 
     /// Computes the exponential, applying the specified rounding
@@ -4202,7 +4202,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp2(mut self) -> Self {
-        self.exp2_round(<Round as Default>::default());
+        self.exp2_round(Round::Nearest);
         self
     }
 
@@ -4219,7 +4219,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp2_mut(&mut self) {
-        self.exp2_round(<Round as Default>::default());
+        self.exp2_round(Round::Nearest);
     }
 
     /// Computes 2 to the power of `self`, applying the specified
@@ -4282,7 +4282,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp10(mut self) -> Self {
-        self.exp10_round(<Round as Default>::default());
+        self.exp10_round(Round::Nearest);
         self
     }
 
@@ -4299,7 +4299,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp10_mut(&mut self) {
-        self.exp10_round(<Round as Default>::default());
+        self.exp10_round(Round::Nearest);
     }
 
     /// Computes 10 to the power of `self`, applying the specified
@@ -4362,7 +4362,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sin(mut self) -> Self {
-        self.sin_round(<Round as Default>::default());
+        self.sin_round(Round::Nearest);
         self
     }
 
@@ -4379,7 +4379,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sin_mut(&mut self) {
-        self.sin_round(<Round as Default>::default());
+        self.sin_round(Round::Nearest);
     }
 
     /// Computes the sine, applying the specified rounding method.
@@ -4441,7 +4441,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cos(mut self) -> Self {
-        self.cos_round(<Round as Default>::default());
+        self.cos_round(Round::Nearest);
         self
     }
 
@@ -4458,7 +4458,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cos_mut(&mut self) {
-        self.cos_round(<Round as Default>::default());
+        self.cos_round(Round::Nearest);
     }
 
     /// Computes the cosine, applying the specified rounding method.
@@ -4520,7 +4520,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn tan(mut self) -> Self {
-        self.tan_round(<Round as Default>::default());
+        self.tan_round(Round::Nearest);
         self
     }
 
@@ -4537,7 +4537,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn tan_mut(&mut self) {
-        self.tan_round(<Round as Default>::default());
+        self.tan_round(Round::Nearest);
     }
 
     /// Computes the tangent, applying the specified rounding method.
@@ -4607,7 +4607,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sin_cos(mut self, mut cos: Self) -> (Self, Self) {
-        self.sin_cos_round(&mut cos, <Round as Default>::default());
+        self.sin_cos_round(&mut cos, Round::Nearest);
         (self, cos)
     }
 
@@ -4633,7 +4633,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sin_cos_mut(&mut self, cos: &mut Self) {
-        self.sin_cos_round(cos, <Round as Default>::default());
+        self.sin_cos_round(cos, Round::Nearest);
     }
 
     /// Computes the sine and cosine of `self`, applying the specified
@@ -4733,7 +4733,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sec(mut self) -> Self {
-        self.sec_round(<Round as Default>::default());
+        self.sec_round(Round::Nearest);
         self
     }
 
@@ -4750,7 +4750,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sec_mut(&mut self) {
-        self.sec_round(<Round as Default>::default());
+        self.sec_round(Round::Nearest);
     }
 
     /// Computes the secant, applying the specified rounding method.
@@ -4812,7 +4812,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn csc(mut self) -> Self {
-        self.csc_round(<Round as Default>::default());
+        self.csc_round(Round::Nearest);
         self
     }
 
@@ -4829,7 +4829,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn csc_mut(&mut self) {
-        self.csc_round(<Round as Default>::default());
+        self.csc_round(Round::Nearest);
     }
 
     /// Computes the cosecant, applying the specified rounding method.
@@ -4891,7 +4891,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cot(mut self) -> Self {
-        self.cot_round(<Round as Default>::default());
+        self.cot_round(Round::Nearest);
         self
     }
 
@@ -4908,7 +4908,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cot_mut(&mut self) {
-        self.cot_round(<Round as Default>::default());
+        self.cot_round(Round::Nearest);
     }
 
     /// Computes the cotangent, applying the specified rounding
@@ -4971,7 +4971,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn asin(mut self) -> Self {
-        self.asin_round(<Round as Default>::default());
+        self.asin_round(Round::Nearest);
         self
     }
 
@@ -4988,7 +4988,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn asin_mut(&mut self) {
-        self.asin_round(<Round as Default>::default());
+        self.asin_round(Round::Nearest);
     }
 
     /// Computes the arc-sine, applying the specified rounding method.
@@ -5050,7 +5050,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn acos(mut self) -> Self {
-        self.acos_round(<Round as Default>::default());
+        self.acos_round(Round::Nearest);
         self
     }
 
@@ -5067,7 +5067,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn acos_mut(&mut self) {
-        self.acos_round(<Round as Default>::default());
+        self.acos_round(Round::Nearest);
     }
 
     /// Computes the arc-cosine, applying the specified rounding
@@ -5130,7 +5130,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atan(mut self) -> Self {
-        self.atan_round(<Round as Default>::default());
+        self.atan_round(Round::Nearest);
         self
     }
 
@@ -5147,7 +5147,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atan_mut(&mut self) {
-        self.atan_round(<Round as Default>::default());
+        self.atan_round(Round::Nearest);
     }
 
     /// Computes the arc-tangent, applying the specified rounding
@@ -5215,7 +5215,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atan2(mut self, x: &Self) -> Self {
-        self.atan2_round(x, <Round as Default>::default());
+        self.atan2_round(x, Round::Nearest);
         self
     }
 
@@ -5237,7 +5237,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atan2_mut(&mut self, x: &Self) {
-        self.atan2_round(x, <Round as Default>::default());
+        self.atan2_round(x, Round::Nearest);
     }
 
     /// Computes the arc-tangent2 of `self` and `x`, applying the
@@ -5309,7 +5309,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sinh(mut self) -> Self {
-        self.sinh_round(<Round as Default>::default());
+        self.sinh_round(Round::Nearest);
         self
     }
 
@@ -5326,7 +5326,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sinh_mut(&mut self) {
-        self.sinh_round(<Round as Default>::default());
+        self.sinh_round(Round::Nearest);
     }
 
     /// Computes the hyperbolic sine, applying the specified rounding
@@ -5389,7 +5389,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cosh(mut self) -> Self {
-        self.cosh_round(<Round as Default>::default());
+        self.cosh_round(Round::Nearest);
         self
     }
 
@@ -5406,7 +5406,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cosh_mut(&mut self) {
-        self.cosh_round(<Round as Default>::default());
+        self.cosh_round(Round::Nearest);
     }
 
     /// Computes the hyperbolic cosine, applying the specified
@@ -5469,7 +5469,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn tanh(mut self) -> Self {
-        self.tanh_round(<Round as Default>::default());
+        self.tanh_round(Round::Nearest);
         self
     }
 
@@ -5486,7 +5486,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn tanh_mut(&mut self) {
-        self.tanh_round(<Round as Default>::default());
+        self.tanh_round(Round::Nearest);
     }
 
     /// Computes the hyperbolic tangent, applying the specified
@@ -5557,7 +5557,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sinh_cosh(mut self, mut cos: Self) -> (Self, Self) {
-        self.sinh_cosh_round(&mut cos, <Round as Default>::default());
+        self.sinh_cosh_round(&mut cos, Round::Nearest);
         (self, cos)
     }
 
@@ -5583,7 +5583,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sinh_cosh_mut(&mut self, cos: &mut Self) {
-        self.sinh_cosh_round(cos, <Round as Default>::default());
+        self.sinh_cosh_round(cos, Round::Nearest);
     }
 
     /// Computes the hyperbolic sine and cosine of `self`,
@@ -5683,7 +5683,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sech(mut self) -> Self {
-        self.sech_round(<Round as Default>::default());
+        self.sech_round(Round::Nearest);
         self
     }
 
@@ -5700,7 +5700,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sech_mut(&mut self) {
-        self.sech_round(<Round as Default>::default());
+        self.sech_round(Round::Nearest);
     }
 
     /// Computes the hyperbolic secant, applying the specified
@@ -5763,7 +5763,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn csch(mut self) -> Self {
-        self.csch_round(<Round as Default>::default());
+        self.csch_round(Round::Nearest);
         self
     }
 
@@ -5780,7 +5780,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn csch_mut(&mut self) {
-        self.csch_round(<Round as Default>::default());
+        self.csch_round(Round::Nearest);
     }
 
     /// Computes the hyperbolic cosecant, applying the specified
@@ -5843,7 +5843,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn coth(mut self) -> Self {
-        self.coth_round(<Round as Default>::default());
+        self.coth_round(Round::Nearest);
         self
     }
 
@@ -5860,7 +5860,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn coth_mut(&mut self) {
-        self.coth_round(<Round as Default>::default());
+        self.coth_round(Round::Nearest);
     }
 
     /// Computes the hyperbolic cotangent, applying the specified
@@ -5923,7 +5923,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn asinh(mut self) -> Self {
-        self.asinh_round(<Round as Default>::default());
+        self.asinh_round(Round::Nearest);
         self
     }
 
@@ -5940,7 +5940,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn asinh_mut(&mut self) {
-        self.asinh_round(<Round as Default>::default());
+        self.asinh_round(Round::Nearest);
     }
 
     /// Computes the inverse hyperbolic sine, applying the specified
@@ -6004,7 +6004,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn acosh(mut self) -> Self {
-        self.acosh_round(<Round as Default>::default());
+        self.acosh_round(Round::Nearest);
         self
     }
 
@@ -6022,7 +6022,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn acosh_mut(&mut self) {
-        self.acosh_round(<Round as Default>::default());
+        self.acosh_round(Round::Nearest);
     }
 
     /// Computes the inverse hyperbolic cosine, applying the specified
@@ -6086,7 +6086,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atanh(mut self) -> Self {
-        self.atanh_round(<Round as Default>::default());
+        self.atanh_round(Round::Nearest);
         self
     }
 
@@ -6104,7 +6104,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atanh_mut(&mut self) {
-        self.atanh_round(<Round as Default>::default());
+        self.atanh_round(Round::Nearest);
     }
 
     /// Computes the inverse hyperbolic tangent, applying the
@@ -6195,7 +6195,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_1p(mut self) -> Self {
-        self.ln_1p_round(<Round as Default>::default());
+        self.ln_1p_round(Round::Nearest);
         self
     }
 
@@ -6214,7 +6214,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_1p_mut(&mut self) {
-        self.ln_1p_round(<Round as Default>::default());
+        self.ln_1p_round(Round::Nearest);
     }
 
     /// Computes the natural logarithm of one plus `self`, applying
@@ -6281,7 +6281,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp_m1(mut self) -> Self {
-        self.exp_m1_round(<Round as Default>::default());
+        self.exp_m1_round(Round::Nearest);
         self
     }
 
@@ -6300,7 +6300,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp_m1_mut(&mut self) {
-        self.exp_m1_round(<Round as Default>::default());
+        self.exp_m1_round(Round::Nearest);
     }
 
     /// Subtracts one from the exponential of `self`, applying the
@@ -6366,7 +6366,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn eint(mut self) -> Self {
-        self.eint_round(<Round as Default>::default());
+        self.eint_round(Round::Nearest);
         self
     }
 
@@ -6383,7 +6383,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn eint_mut(&mut self) {
-        self.eint_round(<Round as Default>::default());
+        self.eint_round(Round::Nearest);
     }
 
     /// Computes the exponential integral, applying the specified
@@ -6447,7 +6447,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn li2(mut self) -> Self {
-        self.li2_round(<Round as Default>::default());
+        self.li2_round(Round::Nearest);
         self
     }
 
@@ -6465,7 +6465,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn li2_mut(&mut self) {
-        self.li2_round(<Round as Default>::default());
+        self.li2_round(Round::Nearest);
     }
 
     /// Computes the real part of the dilogarithm of `self`, applying
@@ -6530,7 +6530,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn gamma(mut self) -> Self {
-        self.gamma_round(<Round as Default>::default());
+        self.gamma_round(Round::Nearest);
         self
     }
 
@@ -6548,7 +6548,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn gamma_mut(&mut self) {
-        self.gamma_round(<Round as Default>::default());
+        self.gamma_round(Round::Nearest);
     }
 
     /// Computes the value of the gamma function on `self`, applying
@@ -6613,7 +6613,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn gamma_inc(mut self, x: &Self) -> Self {
-        self.gamma_inc_round(x, <Round as Default>::default());
+        self.gamma_inc_round(x, Round::Nearest);
         self
     }
 
@@ -6632,7 +6632,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn gamma_inc_mut(&mut self, x: &Self) {
-        self.gamma_inc_round(x, <Round as Default>::default());
+        self.gamma_inc_round(x, Round::Nearest);
     }
 
     /// Computes the value of the upper incomplete gamma function
@@ -6698,7 +6698,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_gamma(mut self) -> Self {
-        self.ln_gamma_round(<Round as Default>::default());
+        self.ln_gamma_round(Round::Nearest);
         self
     }
 
@@ -6716,7 +6716,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_gamma_mut(&mut self) {
-        self.ln_gamma_round(<Round as Default>::default());
+        self.ln_gamma_round(Round::Nearest);
     }
 
     /// Computes the logarithm of the gamma function on `self`,
@@ -6816,7 +6816,7 @@ impl Float {
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     #[inline]
     pub fn ln_abs_gamma(mut self) -> (Self, Ordering) {
-        let sign = self.ln_abs_gamma_round(Default::default()).0;
+        let sign = self.ln_abs_gamma_round(Round::Nearest).0;
         (self, sign)
     }
 
@@ -6851,7 +6851,7 @@ impl Float {
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     #[inline]
     pub fn ln_abs_gamma_mut(&mut self) -> Ordering {
-        self.ln_abs_gamma_round(Default::default()).0
+        self.ln_abs_gamma_round(Round::Nearest).0
     }
 
     /// Computes the logarithm of the absolute value of the gamma
@@ -6963,7 +6963,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn digamma(mut self) -> Self {
-        self.digamma_round(<Round as Default>::default());
+        self.digamma_round(Round::Nearest);
         self
     }
 
@@ -6981,7 +6981,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn digamma_mut(&mut self) {
-        self.digamma_round(<Round as Default>::default());
+        self.digamma_round(Round::Nearest);
     }
 
     /// Computes the value of the Digamma function on `self`, applying
@@ -7045,7 +7045,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn zeta(mut self) -> Self {
-        self.zeta_round(<Round as Default>::default());
+        self.zeta_round(Round::Nearest);
         self
     }
 
@@ -7063,7 +7063,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn zeta_mut(&mut self) {
-        self.zeta_round(<Round as Default>::default());
+        self.zeta_round(Round::Nearest);
     }
 
     /// Computes the value of the Riemann Zeta function on `self`,
@@ -7153,7 +7153,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn erf(mut self) -> Self {
-        self.erf_round(<Round as Default>::default());
+        self.erf_round(Round::Nearest);
         self
     }
 
@@ -7171,7 +7171,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn erf_mut(&mut self) {
-        self.erf_round(<Round as Default>::default());
+        self.erf_round(Round::Nearest);
     }
 
     /// Computes the value of the error function, applying the
@@ -7235,7 +7235,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn erfc(mut self) -> Self {
-        self.erfc_round(<Round as Default>::default());
+        self.erfc_round(Round::Nearest);
         self
     }
 
@@ -7253,7 +7253,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn erfc_mut(&mut self) {
-        self.erfc_round(<Round as Default>::default());
+        self.erfc_round(Round::Nearest);
     }
 
     /// Computes the value of the complementary error function,
@@ -7317,7 +7317,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn j0(mut self) -> Self {
-        self.j0_round(<Round as Default>::default());
+        self.j0_round(Round::Nearest);
         self
     }
 
@@ -7335,7 +7335,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn j0_mut(&mut self) {
-        self.j0_round(<Round as Default>::default());
+        self.j0_round(Round::Nearest);
     }
 
     /// Computes the value of the first kind Bessel function of
@@ -7399,7 +7399,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn j1(mut self) -> Self {
-        self.j1_round(<Round as Default>::default());
+        self.j1_round(Round::Nearest);
         self
     }
 
@@ -7417,7 +7417,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn j1_mut(&mut self) {
-        self.j1_round(<Round as Default>::default());
+        self.j1_round(Round::Nearest);
     }
 
     /// Computes the value of the first kind Bessel function of
@@ -7481,7 +7481,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn jn(mut self, n: i32) -> Self {
-        self.jn_round(n, <Round as Default>::default());
+        self.jn_round(n, Round::Nearest);
         self
     }
 
@@ -7499,7 +7499,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn jn_mut(&mut self, n: i32) {
-        self.jn_round(n, <Round as Default>::default());
+        self.jn_round(n, Round::Nearest);
     }
 
     /// Computes the value of the first kind Bessel function of
@@ -7563,7 +7563,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn y0(mut self) -> Self {
-        self.y0_round(<Round as Default>::default());
+        self.y0_round(Round::Nearest);
         self
     }
 
@@ -7581,7 +7581,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn y0_mut(&mut self) {
-        self.y0_round(<Round as Default>::default());
+        self.y0_round(Round::Nearest);
     }
 
     /// Computes the value of the second kind Bessel function of
@@ -7645,7 +7645,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn y1(mut self) -> Self {
-        self.y1_round(<Round as Default>::default());
+        self.y1_round(Round::Nearest);
         self
     }
 
@@ -7663,7 +7663,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn y1_mut(&mut self) {
-        self.y1_round(<Round as Default>::default());
+        self.y1_round(Round::Nearest);
     }
 
     /// Computes the value of the second kind Bessel function of
@@ -7727,7 +7727,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn yn(mut self, n: i32) -> Self {
-        self.yn_round(n, <Round as Default>::default());
+        self.yn_round(n, Round::Nearest);
         self
     }
 
@@ -7745,7 +7745,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn yn_mut(&mut self, n: i32) {
-        self.yn_round(n, <Round as Default>::default());
+        self.yn_round(n, Round::Nearest);
     }
 
     /// Computes the value of the second kind Bessel function of
@@ -7810,7 +7810,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn agm(mut self, other: &Self) -> Self {
-        self.agm_round(other, <Round as Default>::default());
+        self.agm_round(other, Round::Nearest);
         self
     }
 
@@ -7829,7 +7829,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn agm_mut(&mut self, other: &Self) {
-        self.agm_round(other, <Round as Default>::default());
+        self.agm_round(other, Round::Nearest);
     }
 
     /// Computes the arithmetic-geometric mean of `self` and `other`,
@@ -7899,7 +7899,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn hypot(mut self, other: &Self) -> Self {
-        self.hypot_round(other, <Round as Default>::default());
+        self.hypot_round(other, Round::Nearest);
         self
     }
 
@@ -7918,7 +7918,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn hypot_mut(&mut self, other: &Self) {
-        self.hypot_round(other, <Round as Default>::default());
+        self.hypot_round(other, Round::Nearest);
     }
 
     /// Computes the Euclidean norm of `self` and `other`, applying
@@ -7987,7 +7987,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ai(mut self) -> Self {
-        self.ai_round(<Round as Default>::default());
+        self.ai_round(Round::Nearest);
         self
     }
 
@@ -8005,7 +8005,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ai_mut(&mut self) {
-        self.ai_round(<Round as Default>::default());
+        self.ai_round(Round::Nearest);
     }
 
     /// Computes the value of the Airy function Ai on `self`, applying
@@ -8089,7 +8089,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ceil_mut(&mut self) {
-        xmpfr::rint_ceil(self, None, Default::default());
+        xmpfr::rint_ceil(self, None, Round::Nearest);
     }
 
     /// Rounds up to the next higher integer. The result may be
@@ -8155,7 +8155,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn floor_mut(&mut self) {
-        xmpfr::rint_floor(self, None, Default::default());
+        xmpfr::rint_floor(self, None, Round::Nearest);
     }
 
     /// Rounds down to the next lower integer. The result may be
@@ -8223,7 +8223,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn round_mut(&mut self) {
-        xmpfr::rint_round(self, None, Default::default());
+        xmpfr::rint_round(self, None, Round::Nearest);
     }
 
     /// Rounds to the nearest integer, rounding half-way cases
@@ -8311,7 +8311,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn round_even_mut(&mut self) {
-        xmpfr::rint_roundeven(self, None, Default::default());
+        xmpfr::rint_roundeven(self, None, Round::Nearest);
     }
 
     /// Rounds to the nearest integer, rounding half-way cases to
@@ -8378,7 +8378,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn trunc_mut(&mut self) {
-        xmpfr::rint_trunc(self, None, Default::default());
+        xmpfr::rint_trunc(self, None, Round::Nearest);
     }
 
     /// Rounds to the next integer towards zero. The result may be
@@ -8444,7 +8444,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn fract_mut(&mut self) {
-        xmpfr::frac(self, None, Default::default());
+        xmpfr::frac(self, None, Round::Nearest);
     }
 
     /// Gets the fractional part of the number.
@@ -8499,7 +8499,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn trunc_fract(mut self, mut fract: Self) -> (Self, Self) {
-        self.trunc_fract_round(&mut fract, <Round as Default>::default());
+        self.trunc_fract_round(&mut fract, Round::Nearest);
         (self, fract)
     }
 
@@ -8529,7 +8529,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn trunc_fract_mut(&mut self, fract: &mut Self) {
-        self.trunc_fract_round(fract, <Round as Default>::default());
+        self.trunc_fract_round(fract, Round::Nearest);
     }
 
     /// Gets the integer and fractional parts of the number,
@@ -8815,7 +8815,7 @@ where
     type Output = Self;
     #[inline]
     fn add(mut self, rhs: SumIncomplete<'a, I>) -> Self {
-        self.add_assign_round(rhs, Default::default());
+        self.add_assign_round(rhs, Round::Nearest);
         self
     }
 }
@@ -8826,7 +8826,7 @@ where
 {
     #[inline]
     fn add_assign(&mut self, rhs: SumIncomplete<'a, I>) {
-        self.add_assign_round(rhs, Default::default());
+        self.add_assign_round(rhs, Round::Nearest);
     }
 }
 
@@ -8890,7 +8890,7 @@ where
     type Output = Self;
     #[inline]
     fn add(mut self, rhs: DotIncomplete<'a, I>) -> Self {
-        self.add_assign_round(rhs, Default::default());
+        self.add_assign_round(rhs, Round::Nearest);
         self
     }
 }
@@ -8901,7 +8901,7 @@ where
 {
     #[inline]
     fn add_assign(&mut self, rhs: DotIncomplete<'a, I>) {
-        self.add_assign_round(rhs, Default::default());
+        self.add_assign_round(rhs, Round::Nearest);
     }
 }
 
@@ -9067,14 +9067,14 @@ impl AssignRound<LnAbsGammaIncomplete<'_>> for (Float, Ordering) {
 impl Assign<LnAbsGammaIncomplete<'_>> for (&mut Float, &mut Ordering) {
     #[inline]
     fn assign(&mut self, src: LnAbsGammaIncomplete<'_>) {
-        self.assign_round(src, Default::default());
+        self.assign_round(src, Round::Nearest);
     }
 }
 
 impl Assign<LnAbsGammaIncomplete<'_>> for (Float, Ordering) {
     #[inline]
     fn assign(&mut self, src: LnAbsGammaIncomplete<'_>) {
-        (&mut self.0, &mut self.1).assign_round(src, Default::default());
+        (&mut self.0, &mut self.1).assign_round(src, Round::Nearest);
     }
 }
 

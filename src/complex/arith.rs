@@ -20,7 +20,7 @@ use crate::Integer;
 use crate::Rational;
 use crate::{
     complex::SmallComplex,
-    ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2},
+    ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2, NEAREST2},
     float::SmallFloat,
     ops::{
         AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
@@ -51,7 +51,7 @@ impl Neg for Complex {
 impl NegAssign for Complex {
     #[inline]
     fn neg_assign(&mut self) {
-        xmpc::neg(self, None, Default::default());
+        xmpc::neg(self, None, NEAREST2);
     }
 }
 
@@ -88,7 +88,7 @@ macro_rules! arith_binary_self_complex {
         $Incomplete:ident
     ) => {
         arith_binary_self_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func, raw_round2 => ordering2;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -111,7 +111,7 @@ macro_rules! arith_forward_complex {
         $OwnedIncomplete:ident
     ) => {
         arith_forward_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func, raw_round2 => ordering2;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -135,7 +135,7 @@ macro_rules! arith_commut_complex {
         $OwnedIncomplete:ident
     ) => {
         arith_commut_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func, raw_round2 => ordering2;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -162,7 +162,7 @@ macro_rules! arith_noncommut_complex {
         $FromIncomplete:ident, $FromOwnedIncomplete:ident
     ) => {
         arith_noncommut_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func, $func_from, raw_round2 => ordering2;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -290,7 +290,7 @@ macro_rules! arith_prim_exact_complex {
         $($T:ty, $Incomplete:ident;)*
     ) => {
         arith_prim_exact_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func, raw_round2 => ordering2;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -310,7 +310,7 @@ macro_rules! arith_prim_commut_complex {
         $($T:ty, $Incomplete:ident;)*
     ) => {
         arith_prim_commut_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func, raw_round2 => ordering2;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -334,7 +334,7 @@ macro_rules! arith_prim_noncommut_complex {
         $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
     ) => {
         arith_prim_noncommut_round! {
-            Complex, Round2 => Ordering2;
+            Complex, Round2, NEAREST2 => Ordering2;
             $func, $func_from, raw_round2 => ordering2;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -560,7 +560,7 @@ arith_prim_exact_complex! {
 }
 
 mul_op_commut_round! {
-    Complex, Round2 => Ordering2;
+    Complex, Round2, NEAREST2 => Ordering2;
     add_mul, raw_round2 => ordering2;
     Add { add }
     AddAssign { add_assign }
@@ -571,7 +571,7 @@ mul_op_commut_round! {
     AddMulIncomplete
 }
 mul_op_noncommut_round! {
-    Complex, Round2 => Ordering2;
+    Complex, Round2, NEAREST2 => Ordering2;
     sub_mul, mul_sub, raw_round2 => ordering2;
     Sub { sub }
     SubAssign { sub_assign }

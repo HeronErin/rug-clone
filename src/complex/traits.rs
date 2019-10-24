@@ -187,7 +187,7 @@ where
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        self.assign_round(src, Default::default());
+        self.assign_round(src, (Round::Nearest, Round::Nearest));
     }
 }
 
