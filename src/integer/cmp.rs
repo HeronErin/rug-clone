@@ -29,14 +29,14 @@ impl Ord for Integer {
 impl PartialEq for Integer {
     #[inline]
     fn eq(&self, other: &Integer) -> bool {
-        <Integer as Ord>::cmp(self, other) == Ordering::Equal
+        self.cmp(other) == Ordering::Equal
     }
 }
 
 impl PartialOrd for Integer {
     #[inline]
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        Some(<Integer as Ord>::cmp(self, other))
+        Some(self.cmp(other))
     }
 }
 
@@ -45,14 +45,14 @@ macro_rules! cmp {
         impl PartialEq<$T> for Integer {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                <Integer as PartialOrd<$T>>::partial_cmp(self, other) == Some(Ordering::Equal)
+                self.partial_cmp(other) == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Integer> for $T {
             #[inline]
             fn eq(&self, other: &Integer) -> bool {
-                <Integer as PartialOrd<$T>>::partial_cmp(other, self) == Some(Ordering::Equal)
+                other.partial_cmp(self) == Some(Ordering::Equal)
             }
         }
 
@@ -66,7 +66,7 @@ macro_rules! cmp {
         impl PartialOrd<Integer> for $T {
             #[inline]
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-                <Integer as PartialOrd<$T>>::partial_cmp(other, self).map(Ordering::reverse)
+                other.partial_cmp(self).map(Ordering::reverse)
             }
         }
     };
@@ -77,30 +77,29 @@ macro_rules! cmp_cast {
         impl PartialEq<$New> for Integer {
             #[inline]
             fn eq(&self, other: &$New) -> bool {
-                <Integer as PartialOrd<$Existing>>::partial_cmp(self, &(*other).as_or_panic())
-                    == Some(Ordering::Equal)
+                self.partial_cmp(&(*other).as_or_panic::<$Existing>()) == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Integer> for $New {
             #[inline]
             fn eq(&self, other: &Integer) -> bool {
-                <Integer as PartialOrd<$Existing>>::partial_cmp(other, &(*self).as_or_panic())
-                    == Some(Ordering::Equal)
+                other.partial_cmp(&(*self).as_or_panic::<$Existing>()) == Some(Ordering::Equal)
             }
         }
 
         impl PartialOrd<$New> for Integer {
             #[inline]
             fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
-                <Integer as PartialOrd<$Existing>>::partial_cmp(self, &(*other).as_or_panic())
+                self.partial_cmp(&(*other).as_or_panic::<$Existing>())
             }
         }
 
         impl PartialOrd<Integer> for $New {
             #[inline]
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-                <Integer as PartialOrd<$Existing>>::partial_cmp(other, &(*self).as_or_panic())
+                other
+                    .partial_cmp(&(*self).as_or_panic::<$Existing>())
                     .map(Ordering::reverse)
             }
         }
@@ -132,14 +131,14 @@ cmp_cast! { f32, f64 }
 impl PartialEq<f64> for Integer {
     #[inline]
     fn eq(&self, other: &f64) -> bool {
-        <Integer as PartialOrd<f64>>::partial_cmp(self, other) == Some(Ordering::Equal)
+        self.partial_cmp(other) == Some(Ordering::Equal)
     }
 }
 
 impl PartialEq<Integer> for f64 {
     #[inline]
     fn eq(&self, other: &Integer) -> bool {
-        <Integer as PartialOrd<f64>>::partial_cmp(other, self) == Some(Ordering::Equal)
+        other.partial_cmp(self) == Some(Ordering::Equal)
     }
 }
 
@@ -153,7 +152,7 @@ impl PartialOrd<f64> for Integer {
 impl PartialOrd<Integer> for f64 {
     #[inline]
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        <Integer as PartialOrd<f64>>::partial_cmp(other, self).map(Ordering::reverse)
+        other.partial_cmp(self).map(Ordering::reverse)
     }
 }
 
@@ -173,20 +172,20 @@ mod tests {
         for op in s {
             let iop = Integer::from(*op);
             for b in against {
-                assert_eq!(b.eq(op), <Integer as PartialEq>::eq(&b, &iop));
-                assert_eq!(op.eq(&b), <Integer as PartialEq>::eq(&iop, &b));
-                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(b.eq(op), <Integer as PartialEq>::eq(b, &iop));
+                assert_eq!(op.eq(b), <Integer as PartialEq>::eq(&iop, b));
+                assert_eq!(b.eq(op), op.eq(b));
                 assert_eq!(
                     b.partial_cmp(op),
-                    <Integer as PartialOrd>::partial_cmp(&b, &iop)
+                    <Integer as PartialOrd>::partial_cmp(b, &iop)
                 );
                 assert_eq!(
-                    op.partial_cmp(&b),
-                    <Integer as PartialOrd>::partial_cmp(&iop, &b)
+                    op.partial_cmp(b),
+                    <Integer as PartialOrd>::partial_cmp(&iop, b)
                 );
                 assert_eq!(
                     b.partial_cmp(op).unwrap(),
-                    op.partial_cmp(&b).unwrap().reverse()
+                    op.partial_cmp(b).unwrap().reverse()
                 );
             }
         }

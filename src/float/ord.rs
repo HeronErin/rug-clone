@@ -178,7 +178,7 @@ impl PartialEq for OrdFloat {
 impl PartialOrd for OrdFloat {
     #[inline]
     fn partial_cmp(&self, other: &OrdFloat) -> Option<Ordering> {
-        Some(<OrdFloat as Ord>::cmp(self, other))
+        Some(self.cmp(other))
     }
 }
 

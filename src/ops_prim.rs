@@ -256,19 +256,19 @@ macro_rules! rounding_fill {
             type Output = <$T as $Imp>::Output;
             #[inline]
             fn $trunc(self, rhs: &$T) -> Self::Output {
-                <$T as $Imp>::$trunc(self, *rhs)
+                $Imp::$trunc(self, *rhs)
             }
             #[inline]
             fn $ceil(self, rhs: &$T) -> Self::Output {
-                <$T as $Imp>::$ceil(self, *rhs)
+                $Imp::$ceil(self, *rhs)
             }
             #[inline]
             fn $floor(self, rhs: &$T) -> Self::Output {
-                <$T as $Imp>::$floor(self, *rhs)
+                $Imp::$floor(self, *rhs)
             }
             #[inline]
             fn $euc(self, rhs: &$T) -> Self::Output {
-                <$T as $Imp>::$euc(self, *rhs)
+                $Imp::$euc(self, *rhs)
             }
         }
 
@@ -276,19 +276,19 @@ macro_rules! rounding_fill {
             type Output = <$T as $Imp>::Output;
             #[inline]
             fn $trunc(self, rhs: $T) -> Self::Output {
-                <$T as $Imp>::$trunc(*self, rhs)
+                $Imp::$trunc(*self, rhs)
             }
             #[inline]
             fn $ceil(self, rhs: $T) -> Self::Output {
-                <$T as $Imp>::$ceil(*self, rhs)
+                $Imp::$ceil(*self, rhs)
             }
             #[inline]
             fn $floor(self, rhs: $T) -> Self::Output {
-                <$T as $Imp>::$floor(*self, rhs)
+                $Imp::$floor(*self, rhs)
             }
             #[inline]
             fn $euc(self, rhs: $T) -> Self::Output {
-                <$T as $Imp>::$euc(*self, rhs)
+                $Imp::$euc(*self, rhs)
             }
         }
 
@@ -296,95 +296,95 @@ macro_rules! rounding_fill {
             type Output = <$T as $Imp>::Output;
             #[inline]
             fn $trunc(self, rhs: &$T) -> Self::Output {
-                <$T as $Imp>::$trunc(*self, *rhs)
+                $Imp::$trunc(*self, *rhs)
             }
             #[inline]
             fn $ceil(self, rhs: &$T) -> Self::Output {
-                <$T as $Imp>::$ceil(*self, *rhs)
+                $Imp::$ceil(*self, *rhs)
             }
             #[inline]
             fn $floor(self, rhs: &$T) -> Self::Output {
-                <$T as $Imp>::$floor(*self, *rhs)
+                $Imp::$floor(*self, *rhs)
             }
             #[inline]
             fn $euc(self, rhs: &$T) -> Self::Output {
-                <$T as $Imp>::$euc(*self, *rhs)
+                $Imp::$euc(*self, *rhs)
             }
         }
 
         impl $ImpAssign for $T {
             #[inline]
             fn $trunc_ass(&mut self, rhs: $T) {
-                *self = <$T as $Imp>::$trunc(*self, rhs);
+                *self = $Imp::$trunc(*self, rhs);
             }
             #[inline]
             fn $ceil_ass(&mut self, rhs: $T) {
-                *self = <$T as $Imp>::$ceil(*self, rhs);
+                *self = $Imp::$ceil(*self, rhs);
             }
             #[inline]
             fn $floor_ass(&mut self, rhs: $T) {
-                *self = <$T as $Imp>::$floor(*self, rhs);
+                *self = $Imp::$floor(*self, rhs);
             }
             #[inline]
             fn $euc_ass(&mut self, rhs: $T) {
-                *self = <$T as $Imp>::$euc(*self, rhs);
+                *self = $Imp::$euc(*self, rhs);
             }
         }
 
         impl $ImpAssign<&$T> for $T {
             #[inline]
             fn $trunc_ass(&mut self, rhs: &$T) {
-                *self = <$T as $Imp>::$trunc(*self, *rhs);
+                *self = $Imp::$trunc(*self, *rhs);
             }
             #[inline]
             fn $ceil_ass(&mut self, rhs: &$T) {
-                *self = <$T as $Imp>::$ceil(*self, *rhs);
+                *self = $Imp::$ceil(*self, *rhs);
             }
             #[inline]
             fn $floor_ass(&mut self, rhs: &$T) {
-                *self = <$T as $Imp>::$floor(*self, *rhs);
+                *self = $Imp::$floor(*self, *rhs);
             }
             #[inline]
             fn $euc_ass(&mut self, rhs: &$T) {
-                *self = <$T as $Imp>::$euc(*self, *rhs);
+                *self = $Imp::$euc(*self, *rhs);
             }
         }
 
         impl $ImpFrom for $T {
             #[inline]
             fn $trunc_from(&mut self, lhs: $T) {
-                *self = <$T as $Imp>::$trunc(lhs, *self);
+                *self = $Imp::$trunc(lhs, *self);
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: $T) {
-                *self = <$T as $Imp>::$ceil(lhs, *self);
+                *self = $Imp::$ceil(lhs, *self);
             }
             #[inline]
             fn $floor_from(&mut self, lhs: $T) {
-                *self = <$T as $Imp>::$floor(lhs, *self);
+                *self = $Imp::$floor(lhs, *self);
             }
             #[inline]
             fn $euc_from(&mut self, lhs: $T) {
-                *self = <$T as $Imp>::$euc(lhs, *self);
+                *self = $Imp::$euc(lhs, *self);
             }
         }
 
         impl $ImpFrom<&$T> for $T {
             #[inline]
             fn $trunc_from(&mut self, lhs: &$T) {
-                *self = <$T as $Imp>::$trunc(*lhs, *self);
+                *self = $Imp::$trunc(*lhs, *self);
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: &$T) {
-                *self = <$T as $Imp>::$ceil(*lhs, *self);
+                *self = $Imp::$ceil(*lhs, *self);
             }
             #[inline]
             fn $floor_from(&mut self, lhs: &$T) {
-                *self = <$T as $Imp>::$floor(*lhs, *self);
+                *self = $Imp::$floor(*lhs, *self);
             }
             #[inline]
             fn $euc_from(&mut self, lhs: &$T) {
-                *self = <$T as $Imp>::$euc(*lhs, *self);
+                *self = $Imp::$euc(*lhs, *self);
             }
         }
     };

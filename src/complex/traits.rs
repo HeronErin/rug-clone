@@ -233,7 +233,7 @@ where
     #[inline]
     fn assign_round(&mut self, src: Re, round: Round2) -> Ordering2 {
         let real_ord = self.mut_real().assign_round(src, round.0);
-        <Float as Assign<Special>>::assign(self.mut_imag(), Special::Zero);
+        self.mut_imag().assign(Special::Zero);
         (real_ord, Ordering::Equal)
     }
 }

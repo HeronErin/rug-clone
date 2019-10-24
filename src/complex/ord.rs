@@ -133,7 +133,7 @@ impl PartialEq for OrdComplex {
 impl PartialOrd for OrdComplex {
     #[inline]
     fn partial_cmp(&self, other: &OrdComplex) -> Option<Ordering> {
-        Some(<OrdComplex as Ord>::cmp(self, other))
+        Some(self.cmp(other))
     }
 }
 

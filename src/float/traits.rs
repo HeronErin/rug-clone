@@ -233,7 +233,7 @@ impl AssignRound for Float {
             drop(mem::replace(self, src));
             Ordering::Equal
         } else {
-            <Float as AssignRound<&Float>>::assign_round(self, &src, round)
+            self.assign_round(&src, round)
         }
     }
 }
@@ -266,7 +266,7 @@ macro_rules! assign {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: $T, round: Round) -> Ordering {
-                <Float as AssignRound<&$T>>::assign_round(self, &src, round)
+                self.assign_round(&src, round)
             }
         }
     };
@@ -300,7 +300,7 @@ macro_rules! conv_ops_cast {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: $New, round: Round) -> Ordering {
-                <Float as AssignRound<$Existing>>::assign_round(self, src.as_or_panic(), round)
+                self.assign_round(src.as_or_panic::<$Existing>(), round)
             }
         }
 

@@ -311,20 +311,20 @@ mod tests {
         for op in s {
             let iop = Rational::from(*op);
             for b in against {
-                assert_eq!(b.eq(op), <Rational as PartialEq>::eq(&b, &iop));
-                assert_eq!(op.eq(&b), <Rational as PartialEq>::eq(&iop, &b));
-                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(b.eq(op), <Rational as PartialEq>::eq(b, &iop));
+                assert_eq!(op.eq(b), <Rational as PartialEq>::eq(&iop, b));
+                assert_eq!(b.eq(op), op.eq(b));
                 assert_eq!(
                     b.partial_cmp(op),
-                    <Rational as PartialOrd>::partial_cmp(&b, &iop)
+                    <Rational as PartialOrd>::partial_cmp(b, &iop)
                 );
                 assert_eq!(
-                    op.partial_cmp(&b),
-                    <Rational as PartialOrd>::partial_cmp(&iop, &b)
+                    op.partial_cmp(b),
+                    <Rational as PartialOrd>::partial_cmp(&iop, b)
                 );
                 assert_eq!(
                     b.partial_cmp(op).unwrap(),
-                    op.partial_cmp(&b).unwrap().reverse()
+                    op.partial_cmp(b).unwrap().reverse()
                 );
             }
         }
@@ -367,20 +367,20 @@ mod tests {
                 let op = (*n, *d);
                 let iop = Rational::from(op);
                 for b in against {
-                    assert_eq!(b.eq(&op), <Rational as PartialEq>::eq(&b, &iop));
-                    assert_eq!(op.eq(&b), <Rational as PartialEq>::eq(&iop, &b));
-                    assert_eq!(b.eq(&op), op.eq(&b));
+                    assert_eq!(b.eq(&op), <Rational as PartialEq>::eq(b, &iop));
+                    assert_eq!(op.eq(b), <Rational as PartialEq>::eq(&iop, b));
+                    assert_eq!(b.eq(&op), op.eq(b));
                     assert_eq!(
                         b.partial_cmp(&op),
-                        <Rational as PartialOrd>::partial_cmp(&b, &iop)
+                        <Rational as PartialOrd>::partial_cmp(b, &iop)
                     );
                     assert_eq!(
-                        op.partial_cmp(&b),
-                        <Rational as PartialOrd>::partial_cmp(&iop, &b)
+                        op.partial_cmp(b),
+                        <Rational as PartialOrd>::partial_cmp(&iop, b)
                     );
                     assert_eq!(
                         b.partial_cmp(&op).unwrap(),
-                        op.partial_cmp(&b).unwrap().reverse()
+                        op.partial_cmp(b).unwrap().reverse()
                     );
                 }
             }

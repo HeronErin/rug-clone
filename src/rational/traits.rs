@@ -155,7 +155,7 @@ where
         // no need to canonicalize, as denominator will be 1.
         let num_den = unsafe { self.as_mut_numer_denom_no_canonicalization() };
         num_den.0.assign(src);
-        <Integer as Assign<u32>>::assign(num_den.1, 1);
+        xmpz::set_1(num_den.1);
     }
 }
 

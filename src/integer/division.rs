@@ -50,22 +50,22 @@ macro_rules! div_op {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$trunc_assign(&mut self, &rhs);
+                self.$trunc_assign(&rhs);
                 self
             }
             #[inline]
             fn $ceil(mut self, rhs: Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$ceil_assign(&mut self, &rhs);
+                self.$ceil_assign(&rhs);
                 self
             }
             #[inline]
             fn $floor(mut self, rhs: Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$floor_assign(&mut self, &rhs);
+                self.$floor_assign(&rhs);
                 self
             }
             #[inline]
             fn $euc(mut self, rhs: Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$euc_assign(&mut self, &rhs);
+                self.$euc_assign(&rhs);
                 self
             }
         }
@@ -74,22 +74,22 @@ macro_rules! div_op {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: &Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$trunc_assign(&mut self, rhs);
+                self.$trunc_assign(rhs);
                 self
             }
             #[inline]
             fn $ceil(mut self, rhs: &Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$ceil_assign(&mut self, rhs);
+                self.$ceil_assign(rhs);
                 self
             }
             #[inline]
             fn $floor(mut self, rhs: &Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$floor_assign(&mut self, rhs);
+                self.$floor_assign(rhs);
                 self
             }
             #[inline]
             fn $euc(mut self, rhs: &Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$euc_assign(&mut self, rhs);
+                self.$euc_assign(rhs);
                 self
             }
         }
@@ -98,22 +98,22 @@ macro_rules! div_op {
             type Output = Integer;
             #[inline]
             fn $trunc(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<&Integer>>::$trunc_from(&mut rhs, self);
+                rhs.$trunc_from(self);
                 rhs
             }
             #[inline]
             fn $ceil(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<&Integer>>::$ceil_from(&mut rhs, self);
+                rhs.$ceil_from(self);
                 rhs
             }
             #[inline]
             fn $floor(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<&Integer>>::$floor_from(&mut rhs, self);
+                rhs.$floor_from(self);
                 rhs
             }
             #[inline]
             fn $euc(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<&Integer>>::$euc_from(&mut rhs, self);
+                rhs.$euc_from(self);
                 rhs
             }
         }
@@ -141,19 +141,19 @@ macro_rules! div_op {
         impl $ImpAssign for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: Integer) {
-                <Integer as $ImpAssign<&Integer>>::$trunc_assign(self, &rhs);
+                self.$trunc_assign(&rhs);
             }
             #[inline]
             fn $ceil_assign(&mut self, rhs: Integer) {
-                <Integer as $ImpAssign<&Integer>>::$ceil_assign(self, &rhs);
+                self.$ceil_assign(&rhs);
             }
             #[inline]
             fn $floor_assign(&mut self, rhs: Integer) {
-                <Integer as $ImpAssign<&Integer>>::$floor_assign(self, &rhs);
+                self.$floor_assign(&rhs);
             }
             #[inline]
             fn $euc_assign(&mut self, rhs: Integer) {
-                <Integer as $ImpAssign<&Integer>>::$euc_assign(self, &rhs);
+                self.$euc_assign(&rhs);
             }
         }
 
@@ -179,19 +179,19 @@ macro_rules! div_op {
         impl $ImpFrom for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: Integer) {
-                <Integer as $ImpFrom<&Integer>>::$trunc_from(self, &lhs);
+                self.$trunc_from(&lhs);
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: Integer) {
-                <Integer as $ImpFrom<&Integer>>::$ceil_from(self, &lhs);
+                self.$ceil_from(&lhs);
             }
             #[inline]
             fn $floor_from(&mut self, lhs: Integer) {
-                <Integer as $ImpFrom<&Integer>>::$floor_from(self, &lhs);
+                self.$floor_from(&lhs);
             }
             #[inline]
             fn $euc_from(&mut self, lhs: Integer) {
-                <Integer as $ImpFrom<&Integer>>::$euc_from(self, &lhs);
+                self.$euc_from(&lhs);
             }
         }
 
@@ -285,22 +285,22 @@ macro_rules! div_prim {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: $T) -> Integer {
-                <Integer as $ImpAssign<$T>>::$trunc_assign(&mut self, rhs);
+                self.$trunc_assign(rhs);
                 self
             }
             #[inline]
             fn $ceil(mut self, rhs: $T) -> Integer {
-                <Integer as $ImpAssign<$T>>::$ceil_assign(&mut self, rhs);
+                self.$ceil_assign(rhs);
                 self
             }
             #[inline]
             fn $floor(mut self, rhs: $T) -> Integer {
-                <Integer as $ImpAssign<$T>>::$floor_assign(&mut self, rhs);
+                self.$floor_assign(rhs);
                 self
             }
             #[inline]
             fn $euc(mut self, rhs: $T) -> Integer {
-                <Integer as $ImpAssign<$T>>::$euc_assign(&mut self, rhs);
+                self.$euc_assign(rhs);
                 self
             }
         }
@@ -309,22 +309,22 @@ macro_rules! div_prim {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: &$T) -> Integer {
-                <Integer as $ImpAssign<$T>>::$trunc_assign(&mut self, *rhs);
+                self.$trunc_assign(*rhs);
                 self
             }
             #[inline]
             fn $ceil(mut self, rhs: &$T) -> Integer {
-                <Integer as $ImpAssign<$T>>::$ceil_assign(&mut self, *rhs);
+                self.$ceil_assign(*rhs);
                 self
             }
             #[inline]
             fn $floor(mut self, rhs: &$T) -> Integer {
-                <Integer as $ImpAssign<$T>>::$floor_assign(&mut self, *rhs);
+                self.$floor_assign(*rhs);
                 self
             }
             #[inline]
             fn $euc(mut self, rhs: &$T) -> Integer {
-                <Integer as $ImpAssign<$T>>::$euc_assign(&mut self, *rhs);
+                self.$euc_assign(*rhs);
                 self
             }
         }
@@ -353,19 +353,19 @@ macro_rules! div_prim {
             type Output = $Incomplete<'i>;
             #[inline]
             fn $trunc(self, rhs: &$T) -> $Incomplete<'i> {
-                <&Integer as $Imp<$T>>::$trunc(self, *rhs)
+                self.$trunc(*rhs)
             }
             #[inline]
             fn $ceil(self, rhs: &$T) -> $Incomplete<'i> {
-                <&Integer as $Imp<$T>>::$ceil(self, *rhs)
+                self.$ceil(*rhs)
             }
             #[inline]
             fn $floor(self, rhs: &$T) -> $Incomplete<'i> {
-                <&Integer as $Imp<$T>>::$floor(self, *rhs)
+                self.$floor(*rhs)
             }
             #[inline]
             fn $euc(self, rhs: &$T) -> $Incomplete<'i> {
-                <&Integer as $Imp<$T>>::$euc(self, *rhs)
+                self.$euc(*rhs)
             }
         }
 
@@ -391,19 +391,19 @@ macro_rules! div_prim {
         impl $ImpAssign<&$T> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: &$T) {
-                <Integer as $ImpAssign<$T>>::$trunc_assign(self, *rhs);
+                self.$trunc_assign(*rhs);
             }
             #[inline]
             fn $ceil_assign(&mut self, rhs: &$T) {
-                <Integer as $ImpAssign<$T>>::$ceil_assign(self, *rhs);
+                self.$ceil_assign(*rhs);
             }
             #[inline]
             fn $floor_assign(&mut self, rhs: &$T) {
-                <Integer as $ImpAssign<$T>>::$floor_assign(self, *rhs);
+                self.$floor_assign(*rhs);
             }
             #[inline]
             fn $euc_assign(&mut self, rhs: &$T) {
-                <Integer as $ImpAssign<$T>>::$euc_assign(self, *rhs);
+                self.$euc_assign(*rhs);
             }
         }
 
@@ -448,22 +448,22 @@ macro_rules! div_prim {
             type Output = Integer;
             #[inline]
             fn $trunc(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<$T>>::$trunc_from(&mut rhs, self);
+                rhs.$trunc_from(self);
                 rhs
             }
             #[inline]
             fn $ceil(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<$T>>::$ceil_from(&mut rhs, self);
+                rhs.$ceil_from(self);
                 rhs
             }
             #[inline]
             fn $floor(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<$T>>::$floor_from(&mut rhs, self);
+                rhs.$floor_from(self);
                 rhs
             }
             #[inline]
             fn $euc(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<$T>>::$euc_from(&mut rhs, self);
+                rhs.$euc_from(self);
                 rhs
             }
         }
@@ -492,22 +492,22 @@ macro_rules! div_prim {
             type Output = Integer;
             #[inline]
             fn $trunc(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<$T>>::$trunc_from(&mut rhs, *self);
+                rhs.$trunc_from(*self);
                 rhs
             }
             #[inline]
             fn $ceil(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<$T>>::$ceil_from(&mut rhs, *self);
+                rhs.$ceil_from(*self);
                 rhs
             }
             #[inline]
             fn $floor(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<$T>>::$floor_from(&mut rhs, *self);
+                rhs.$floor_from(*self);
                 rhs
             }
             #[inline]
             fn $euc(self, mut rhs: Integer) -> Integer {
-                <Integer as $ImpFrom<$T>>::$euc_from(&mut rhs, *self);
+                rhs.$euc_from(*self);
                 rhs
             }
         }
@@ -516,19 +516,19 @@ macro_rules! div_prim {
             type Output = $FromIncomplete<'i>;
             #[inline]
             fn $trunc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
-                <$T as $Imp<&Integer>>::$trunc(*self, rhs)
+                $Imp::$trunc(*self, rhs)
             }
             #[inline]
             fn $ceil(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
-                <$T as $Imp<&Integer>>::$ceil(*self, rhs)
+                $Imp::$ceil(*self, rhs)
             }
             #[inline]
             fn $floor(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
-                <$T as $Imp<&Integer>>::$floor(*self, rhs)
+                $Imp::$floor(*self, rhs)
             }
             #[inline]
             fn $euc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
-                <$T as $Imp<&Integer>>::$euc(*self, rhs)
+                $Imp::$euc(*self, rhs)
             }
         }
 
@@ -554,19 +554,19 @@ macro_rules! div_prim {
         impl $ImpFrom<&$T> for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: &$T) {
-                <Integer as $ImpFrom<$T>>::$trunc_from(self, *lhs);
+                self.$trunc_from(*lhs);
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: &$T) {
-                <Integer as $ImpFrom<$T>>::$ceil_from(self, *lhs);
+                self.$ceil_from(*lhs);
             }
             #[inline]
             fn $floor_from(&mut self, lhs: &$T) {
-                <Integer as $ImpFrom<$T>>::$floor_from(self, *lhs);
+                self.$floor_from(*lhs);
             }
             #[inline]
             fn $euc_from(&mut self, lhs: &$T) {
-                <Integer as $ImpFrom<$T>>::$euc_from(self, *lhs);
+                self.$euc_from(*lhs);
             }
         }
 

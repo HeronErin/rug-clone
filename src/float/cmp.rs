@@ -74,21 +74,21 @@ macro_rules! cmp {
         impl PartialEq<$T> for Float {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                <Float as PartialOrd<$T>>::partial_cmp(self, other) == Some(Ordering::Equal)
+                self.partial_cmp(other) == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Float> for $T {
             #[inline]
             fn eq(&self, other: &Float) -> bool {
-                <Float as PartialOrd<$T>>::partial_cmp(other, self) == Some(Ordering::Equal)
+                other.partial_cmp(self) == Some(Ordering::Equal)
             }
         }
 
         impl PartialOrd<Float> for $T {
             #[inline]
             fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
-                <Float as PartialOrd<$T>>::partial_cmp(other, self).map(Ordering::reverse)
+                other.partial_cmp(self).map(Ordering::reverse)
             }
         }
     };
@@ -209,18 +209,18 @@ mod tests {
         for op in s {
             let fop = Float::with_val(150, *op);
             for b in against {
-                assert_eq!(b.eq(op), <Float as PartialEq>::eq(&b, &fop));
-                assert_eq!(op.eq(&b), <Float as PartialEq>::eq(&fop, &b));
-                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(b.eq(op), <Float as PartialEq>::eq(b, &fop));
+                assert_eq!(op.eq(b), <Float as PartialEq>::eq(&fop, b));
+                assert_eq!(b.eq(op), op.eq(b));
                 assert_eq!(
                     b.partial_cmp(op),
-                    <Float as PartialOrd>::partial_cmp(&b, &fop)
+                    <Float as PartialOrd>::partial_cmp(b, &fop)
                 );
                 assert_eq!(
-                    op.partial_cmp(&b),
-                    <Float as PartialOrd>::partial_cmp(&fop, &b)
+                    op.partial_cmp(b),
+                    <Float as PartialOrd>::partial_cmp(&fop, b)
                 );
-                assert_eq!(b.partial_cmp(op), op.partial_cmp(&b).map(Ordering::reverse));
+                assert_eq!(b.partial_cmp(op), op.partial_cmp(b).map(Ordering::reverse));
             }
         }
     }
@@ -234,18 +234,18 @@ mod tests {
         for op in s {
             let fop = Float::with_val(150, op);
             for b in against {
-                assert_eq!(b.eq(op), <Float as PartialEq>::eq(&b, &fop));
-                assert_eq!(op.eq(&b), <Float as PartialEq>::eq(&fop, &b));
-                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(b.eq(op), <Float as PartialEq>::eq(b, &fop));
+                assert_eq!(op.eq(b), <Float as PartialEq>::eq(&fop, b));
+                assert_eq!(b.eq(op), op.eq(b));
                 assert_eq!(
                     b.partial_cmp(op),
-                    <Float as PartialOrd>::partial_cmp(&b, &fop)
+                    <Float as PartialOrd>::partial_cmp(b, &fop)
                 );
                 assert_eq!(
-                    op.partial_cmp(&b),
-                    <Float as PartialOrd>::partial_cmp(&fop, &b)
+                    op.partial_cmp(b),
+                    <Float as PartialOrd>::partial_cmp(&fop, b)
                 );
-                assert_eq!(b.partial_cmp(op), op.partial_cmp(&b).map(Ordering::reverse));
+                assert_eq!(b.partial_cmp(op), op.partial_cmp(b).map(Ordering::reverse));
             }
         }
     }

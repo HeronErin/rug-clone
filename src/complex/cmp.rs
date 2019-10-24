@@ -101,17 +101,17 @@ mod tests {
         for op in s {
             let fop = Complex::with_val(150, *op);
             for b in against {
-                assert_eq!(b.eq(op), <Complex as PartialEq>::eq(&b, &fop));
-                assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
-                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(b.eq(op), b.eq(&fop));
+                assert_eq!(op.eq(b), fop.eq(b));
+                assert_eq!(b.eq(op), op.eq(b));
             }
         }
         for op in combinations(s) {
             let fop = Complex::with_val(150, op);
             for b in against {
-                assert_eq!(b.eq(&op), <Complex as PartialEq>::eq(&b, &fop));
-                assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
-                assert_eq!(b.eq(&op), op.eq(&b));
+                assert_eq!(b.eq(&op), b.eq(&fop));
+                assert_eq!(op.eq(b), fop.eq(b));
+                assert_eq!(b.eq(&op), op.eq(b));
             }
         }
     }
@@ -126,17 +126,17 @@ mod tests {
         for op in s {
             let fop = Complex::with_val(150, op);
             for b in against {
-                assert_eq!(b.eq(op), <Complex as PartialEq>::eq(&b, &fop));
-                assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
-                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(b.eq(op), b.eq(&fop));
+                assert_eq!(op.eq(b), fop.eq(b));
+                assert_eq!(b.eq(op), op.eq(b));
             }
         }
         for op in combinations(s) {
             let fop = Complex::with_val(150, &op);
             for b in against {
-                assert_eq!(b.eq(&op), <Complex as PartialEq>::eq(&b, &fop));
-                assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
-                assert_eq!(b.eq(&op), op.eq(&b));
+                assert_eq!(b.eq(&op), b.eq(&fop));
+                assert_eq!(op.eq(b), fop.eq(b));
+                assert_eq!(b.eq(&op), op.eq(b));
             }
         }
     }
