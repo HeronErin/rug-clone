@@ -690,67 +690,67 @@ mod tests {
 
     #[test]
     fn check_ref_op() {
-        let lhs = Integer::from(0x00ff);
-        let rhs = Integer::from(0x0f0f);
+        let lhs = &Integer::from(0x00ff);
+        let rhs = &Integer::from(0x0f0f);
         let pu = 30_u32;
         let pi = -15_i32;
-        test_ref_op!(-&lhs, -lhs.clone());
-        test_ref_op!(&lhs + &rhs, lhs.clone() + &rhs);
-        test_ref_op!(&lhs - &rhs, lhs.clone() - &rhs);
-        test_ref_op!(&lhs * &rhs, lhs.clone() * &rhs);
-        test_ref_op!(&lhs / &rhs, lhs.clone() / &rhs);
-        test_ref_op!(&lhs % &rhs, lhs.clone() % &rhs);
-        test_ref_op!(!&lhs, !lhs.clone());
-        test_ref_op!(&lhs & &rhs, lhs.clone() & &rhs);
-        test_ref_op!(&lhs | &rhs, lhs.clone() | &rhs);
-        test_ref_op!(&lhs ^ &rhs, lhs.clone() ^ &rhs);
+        test_ref_op!(-lhs, -lhs.clone());
+        test_ref_op!(lhs + rhs, lhs.clone() + rhs);
+        test_ref_op!(lhs - rhs, lhs.clone() - rhs);
+        test_ref_op!(lhs * rhs, lhs.clone() * rhs);
+        test_ref_op!(lhs / rhs, lhs.clone() / rhs);
+        test_ref_op!(lhs % rhs, lhs.clone() % rhs);
+        test_ref_op!(!lhs, !lhs.clone());
+        test_ref_op!(lhs & rhs, lhs.clone() & rhs);
+        test_ref_op!(lhs | rhs, lhs.clone() | rhs);
+        test_ref_op!(lhs ^ rhs, lhs.clone() ^ rhs);
 
-        test_ref_op!(&lhs + pu, lhs.clone() + pu);
-        test_ref_op!(&lhs - pu, lhs.clone() - pu);
-        test_ref_op!(&lhs * pu, lhs.clone() * pu);
-        test_ref_op!(&lhs / pu, lhs.clone() / pu);
-        test_ref_op!(&lhs % pu, lhs.clone() % pu);
-        test_ref_op!(&lhs & pu, lhs.clone() & pu);
-        test_ref_op!(&lhs | pu, lhs.clone() | pu);
-        test_ref_op!(&lhs ^ pu, lhs.clone() ^ pu);
-        test_ref_op!(&lhs << pu, lhs.clone() << pu);
-        test_ref_op!(&lhs >> pu, lhs.clone() >> pu);
-        test_ref_op!((&lhs).pow(pu), lhs.clone().pow(pu));
+        test_ref_op!(lhs + pu, lhs.clone() + pu);
+        test_ref_op!(lhs - pu, lhs.clone() - pu);
+        test_ref_op!(lhs * pu, lhs.clone() * pu);
+        test_ref_op!(lhs / pu, lhs.clone() / pu);
+        test_ref_op!(lhs % pu, lhs.clone() % pu);
+        test_ref_op!(lhs & pu, lhs.clone() & pu);
+        test_ref_op!(lhs | pu, lhs.clone() | pu);
+        test_ref_op!(lhs ^ pu, lhs.clone() ^ pu);
+        test_ref_op!(lhs << pu, lhs.clone() << pu);
+        test_ref_op!(lhs >> pu, lhs.clone() >> pu);
+        test_ref_op!(lhs.pow(pu), lhs.clone().pow(pu));
 
-        test_ref_op!(&lhs + pi, lhs.clone() + pi);
-        test_ref_op!(&lhs - pi, lhs.clone() - pi);
-        test_ref_op!(&lhs * pi, lhs.clone() * pi);
-        test_ref_op!(&lhs / pi, lhs.clone() / pi);
-        test_ref_op!(&lhs % pi, lhs.clone() % pi);
-        test_ref_op!(&lhs & pi, lhs.clone() & pi);
-        test_ref_op!(&lhs | pi, lhs.clone() | pi);
-        test_ref_op!(&lhs ^ pi, lhs.clone() ^ pi);
-        test_ref_op!(&lhs << pi, lhs.clone() << pi);
-        test_ref_op!(&lhs >> pi, lhs.clone() >> pi);
+        test_ref_op!(lhs + pi, lhs.clone() + pi);
+        test_ref_op!(lhs - pi, lhs.clone() - pi);
+        test_ref_op!(lhs * pi, lhs.clone() * pi);
+        test_ref_op!(lhs / pi, lhs.clone() / pi);
+        test_ref_op!(lhs % pi, lhs.clone() % pi);
+        test_ref_op!(lhs & pi, lhs.clone() & pi);
+        test_ref_op!(lhs | pi, lhs.clone() | pi);
+        test_ref_op!(lhs ^ pi, lhs.clone() ^ pi);
+        test_ref_op!(lhs << pi, lhs.clone() << pi);
+        test_ref_op!(lhs >> pi, lhs.clone() >> pi);
 
-        test_ref_op!(pu + &lhs, pu + lhs.clone());
-        test_ref_op!(pu - &lhs, pu - lhs.clone());
-        test_ref_op!(pu * &lhs, pu * lhs.clone());
-        test_ref_op!(pu / &lhs, pu / lhs.clone());
-        test_ref_op!(pu % &lhs, pu % lhs.clone());
-        test_ref_op!(pu & &lhs, pu & lhs.clone());
-        test_ref_op!(pu | &lhs, pu | lhs.clone());
-        test_ref_op!(pu ^ &lhs, pu ^ lhs.clone());
+        test_ref_op!(pu + lhs, pu + lhs.clone());
+        test_ref_op!(pu - lhs, pu - lhs.clone());
+        test_ref_op!(pu * lhs, pu * lhs.clone());
+        test_ref_op!(pu / lhs, pu / lhs.clone());
+        test_ref_op!(pu % lhs, pu % lhs.clone());
+        test_ref_op!(pu & lhs, pu & lhs.clone());
+        test_ref_op!(pu | lhs, pu | lhs.clone());
+        test_ref_op!(pu ^ lhs, pu ^ lhs.clone());
 
-        test_ref_op!(pi + &lhs, pi + lhs.clone());
-        test_ref_op!(pi - &lhs, pi - lhs.clone());
-        test_ref_op!(pi * &lhs, pi * lhs.clone());
-        test_ref_op!(pi / &lhs, pi / lhs.clone());
-        test_ref_op!(pi % &lhs, pi % lhs.clone());
-        test_ref_op!(pi & &lhs, pi & lhs.clone());
-        test_ref_op!(pi | &lhs, pi | lhs.clone());
-        test_ref_op!(pi ^ &lhs, pi ^ lhs.clone());
+        test_ref_op!(pi + lhs, pi + lhs.clone());
+        test_ref_op!(pi - lhs, pi - lhs.clone());
+        test_ref_op!(pi * lhs, pi * lhs.clone());
+        test_ref_op!(pi / lhs, pi / lhs.clone());
+        test_ref_op!(pi % lhs, pi % lhs.clone());
+        test_ref_op!(pi & lhs, pi & lhs.clone());
+        test_ref_op!(pi | lhs, pi | lhs.clone());
+        test_ref_op!(pi ^ lhs, pi ^ lhs.clone());
     }
 
     #[test]
     fn check_shift_u_s() {
-        let pos: Integer = Integer::from(11) << 100;
-        let neg: Integer = Integer::from(-33) << 50;
+        let pos = &(Integer::from(11) << 100u32);
+        let neg = &(Integer::from(-33) << 50u32);
         assert_eq!(pos.clone() << 10, pos.clone() >> -10);
         assert_eq!(pos.clone() << 10, Integer::from(11) << 110);
         assert_eq!(pos.clone() << -100, pos.clone() >> 100);

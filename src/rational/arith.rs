@@ -427,7 +427,7 @@ mod tests {
         let a = Rational::from((-12, 7));
         let pow_pos = a.clone().pow(3i32);
         assert_eq!(pow_pos, ((-12i32).pow(3), 7i32.pow(3u32)));
-        let pow_neg = a.clone().pow(-3i32);
+        let pow_neg = a.pow(-3i32);
         assert_eq!(pow_neg, ((-7i32).pow(3), 12i32.pow(3)));
     }
 

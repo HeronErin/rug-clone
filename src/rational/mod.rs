@@ -60,6 +60,7 @@ println!("Error: {}", error);
 
 [`Rational`]: ../struct.Rational.html
 */
+#[allow(clippy::needless_doctest_main)]
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromFloatError {
     pub(crate) _unused: (),

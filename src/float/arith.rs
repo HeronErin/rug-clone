@@ -787,65 +787,65 @@ pub(crate) mod tests {
 
     #[test]
     fn check_ref_op() {
-        let lhs = Float::with_val(53, 12.25);
-        let rhs = Float::with_val(53, -1.375);
+        let lhs = &Float::with_val(53, 12.25);
+        let rhs = &Float::with_val(53, -1.375);
         let pu = 30_u32;
         let pi = -15_i32;
         let ps = 31.625_f32;
         let pd = -1.5_f64;
-        test_ref_op!(-&lhs, -lhs.clone());
-        test_ref_op!(&lhs + &rhs, lhs.clone() + &rhs);
-        test_ref_op!(&lhs - &rhs, lhs.clone() - &rhs);
-        test_ref_op!(&lhs * &rhs, lhs.clone() * &rhs);
-        test_ref_op!(&lhs / &rhs, lhs.clone() / &rhs);
-        test_ref_op!((&lhs).pow(&rhs), lhs.clone().pow(&rhs));
+        test_ref_op!(-lhs, -lhs.clone());
+        test_ref_op!(lhs + rhs, lhs.clone() + rhs);
+        test_ref_op!(lhs - rhs, lhs.clone() - rhs);
+        test_ref_op!(lhs * rhs, lhs.clone() * rhs);
+        test_ref_op!(lhs / rhs, lhs.clone() / rhs);
+        test_ref_op!(lhs.pow(rhs), lhs.clone().pow(rhs));
 
-        test_ref_op!(&lhs + pu, lhs.clone() + pu);
-        test_ref_op!(&lhs - pu, lhs.clone() - pu);
-        test_ref_op!(&lhs * pu, lhs.clone() * pu);
-        test_ref_op!(&lhs / pu, lhs.clone() / pu);
-        test_ref_op!(&lhs << pu, lhs.clone() << pu);
-        test_ref_op!(&lhs >> pu, lhs.clone() >> pu);
-        test_ref_op!((&lhs).pow(pu), lhs.clone().pow(pu));
+        test_ref_op!(lhs + pu, lhs.clone() + pu);
+        test_ref_op!(lhs - pu, lhs.clone() - pu);
+        test_ref_op!(lhs * pu, lhs.clone() * pu);
+        test_ref_op!(lhs / pu, lhs.clone() / pu);
+        test_ref_op!(lhs << pu, lhs.clone() << pu);
+        test_ref_op!(lhs >> pu, lhs.clone() >> pu);
+        test_ref_op!(lhs.pow(pu), lhs.clone().pow(pu));
 
-        test_ref_op!(pu + &lhs, pu + lhs.clone());
-        test_ref_op!(pu - &lhs, pu - lhs.clone());
-        test_ref_op!(pu * &lhs, pu * lhs.clone());
-        test_ref_op!(pu / &lhs, pu / lhs.clone());
-        test_ref_op!(Pow::pow(pu, &lhs), Pow::pow(pu, lhs.clone()));
+        test_ref_op!(pu + lhs, pu + lhs.clone());
+        test_ref_op!(pu - lhs, pu - lhs.clone());
+        test_ref_op!(pu * lhs, pu * lhs.clone());
+        test_ref_op!(pu / lhs, pu / lhs.clone());
+        test_ref_op!(Pow::pow(pu, lhs), Pow::pow(pu, lhs.clone()));
 
-        test_ref_op!(&lhs + pi, lhs.clone() + pi);
-        test_ref_op!(&lhs - pi, lhs.clone() - pi);
-        test_ref_op!(&lhs * pi, lhs.clone() * pi);
-        test_ref_op!(&lhs / pi, lhs.clone() / pi);
-        test_ref_op!(&lhs << pi, lhs.clone() << pi);
-        test_ref_op!(&lhs >> pi, lhs.clone() >> pi);
-        test_ref_op!((&lhs).pow(pi), lhs.clone().pow(pi));
+        test_ref_op!(lhs + pi, lhs.clone() + pi);
+        test_ref_op!(lhs - pi, lhs.clone() - pi);
+        test_ref_op!(lhs * pi, lhs.clone() * pi);
+        test_ref_op!(lhs / pi, lhs.clone() / pi);
+        test_ref_op!(lhs << pi, lhs.clone() << pi);
+        test_ref_op!(lhs >> pi, lhs.clone() >> pi);
+        test_ref_op!(lhs.pow(pi), lhs.clone().pow(pi));
 
-        test_ref_op!(pi + &lhs, pi + lhs.clone());
-        test_ref_op!(pi - &lhs, pi - lhs.clone());
-        test_ref_op!(pi * &lhs, pi * lhs.clone());
-        test_ref_op!(pi / &lhs, pi / lhs.clone());
+        test_ref_op!(pi + lhs, pi + lhs.clone());
+        test_ref_op!(pi - lhs, pi - lhs.clone());
+        test_ref_op!(pi * lhs, pi * lhs.clone());
+        test_ref_op!(pi / lhs, pi / lhs.clone());
 
-        test_ref_op!(&lhs + ps, lhs.clone() + ps);
-        test_ref_op!(&lhs - ps, lhs.clone() - ps);
-        test_ref_op!(&lhs * ps, lhs.clone() * ps);
-        test_ref_op!(&lhs / ps, lhs.clone() / ps);
+        test_ref_op!(lhs + ps, lhs.clone() + ps);
+        test_ref_op!(lhs - ps, lhs.clone() - ps);
+        test_ref_op!(lhs * ps, lhs.clone() * ps);
+        test_ref_op!(lhs / ps, lhs.clone() / ps);
 
-        test_ref_op!(ps + &lhs, ps + lhs.clone());
-        test_ref_op!(ps - &lhs, ps - lhs.clone());
-        test_ref_op!(ps * &lhs, ps * lhs.clone());
-        test_ref_op!(ps / &lhs, ps / lhs.clone());
+        test_ref_op!(ps + lhs, ps + lhs.clone());
+        test_ref_op!(ps - lhs, ps - lhs.clone());
+        test_ref_op!(ps * lhs, ps * lhs.clone());
+        test_ref_op!(ps / lhs, ps / lhs.clone());
 
-        test_ref_op!(&lhs + pd, lhs.clone() + pd);
-        test_ref_op!(&lhs - pd, lhs.clone() - pd);
-        test_ref_op!(&lhs * pd, lhs.clone() * pd);
-        test_ref_op!(&lhs / pd, lhs.clone() / pd);
+        test_ref_op!(lhs + pd, lhs.clone() + pd);
+        test_ref_op!(lhs - pd, lhs.clone() - pd);
+        test_ref_op!(lhs * pd, lhs.clone() * pd);
+        test_ref_op!(lhs / pd, lhs.clone() / pd);
 
-        test_ref_op!(pd + &lhs, pd + lhs.clone());
-        test_ref_op!(pd - &lhs, pd - lhs.clone());
-        test_ref_op!(pd * &lhs, pd * lhs.clone());
-        test_ref_op!(pd / &lhs, pd / lhs.clone());
+        test_ref_op!(pd + lhs, pd + lhs.clone());
+        test_ref_op!(pd - lhs, pd - lhs.clone());
+        test_ref_op!(pd * lhs, pd * lhs.clone());
+        test_ref_op!(pd / lhs, pd / lhs.clone());
 
         float::free_cache(FreeCache::All);
     }

@@ -80,6 +80,7 @@ println!("Error: {}", error);
 
 [`Integer`]: ../struct.Integer.html
 */
+#[allow(clippy::needless_doctest_main)]
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromIntegerError {
     _unused: (),

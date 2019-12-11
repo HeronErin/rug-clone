@@ -425,6 +425,7 @@ impl Complex {
     ///
     /// [`Complex`]: struct.Complex.html
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }

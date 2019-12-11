@@ -394,6 +394,7 @@ impl RandState<'_> {
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     /// [`zeroed`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html#method.zeroed
+    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> RandState<'static> {
         RandState {
@@ -845,6 +846,7 @@ impl ThreadRandState<'_> {
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     /// [`zeroed`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html#method.zeroed
+    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> ThreadRandState<'static> {
         ThreadRandState {

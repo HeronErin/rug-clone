@@ -223,6 +223,7 @@ impl Rational {
     /// [`Rational`]: struct.Rational.html
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
+    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }

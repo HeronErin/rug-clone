@@ -379,6 +379,7 @@ impl Integer {
     ///
     /// [`Integer`]: struct.Integer.html
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }

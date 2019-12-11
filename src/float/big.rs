@@ -524,6 +524,7 @@ impl Float {
     ///
     /// [`Float`]: struct.Float.html
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: mpfr_t) -> Self {
         Float { inner: raw }

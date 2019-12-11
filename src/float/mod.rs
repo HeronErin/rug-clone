@@ -266,6 +266,7 @@ fn main() {
 }
 ```
 */
+#[allow(clippy::needless_doctest_main)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum FreeCache {
     /// Free caches local to the current thread.
@@ -304,6 +305,7 @@ fn main() {
 
 [Valgrind]: http://www.valgrind.org/
 */
+#[allow(clippy::needless_doctest_main)]
 #[inline]
 pub fn free_cache(which: FreeCache) {
     let way = match which {

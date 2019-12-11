@@ -118,13 +118,10 @@ pub fn si_pow_ui(rop: &mut Integer, base: i32, exp: u32) {
 
 #[inline]
 pub fn signum(rop: &mut Integer, op: Option<&Integer>) {
-    let size = op.unwrap_or(rop).inner().size;
-    if size < 0 {
-        set_m1(rop);
-    } else if size > 0 {
-        set_1(rop);
-    } else {
-        set_0(rop);
+    match op.unwrap_or(rop).inner().size.cmp(&0) {
+        Ordering::Less => set_m1(rop),
+        Ordering::Equal => set_0(rop),
+        Ordering::Greater => set_1(rop),
     }
 }
 
