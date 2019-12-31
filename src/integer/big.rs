@@ -6163,8 +6163,8 @@ enum ParseErrorKind {
     NoDigits,
 }
 
-impl Error for ParseIntegerError {
-    fn description(&self) -> &str {
+impl ParseIntegerError {
+    fn desc(&self) -> &str {
         use self::ParseErrorKind::*;
         match self.kind {
             InvalidDigit => "invalid digit found in string",
@@ -6173,9 +6173,15 @@ impl Error for ParseIntegerError {
     }
 }
 
+impl Error for ParseIntegerError {
+    fn description(&self) -> &str {
+        self.desc()
+    }
+}
+
 impl Display for ParseIntegerError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(self.description(), f)
+        Display::fmt(self.desc(), f)
     }
 }
 

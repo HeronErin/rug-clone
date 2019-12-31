@@ -9605,8 +9605,8 @@ enum ParseErrorKind {
     TooManyExp,
 }
 
-impl Error for ParseFloatError {
-    fn description(&self) -> &str {
+impl ParseFloatError {
+    fn desc(&self) -> &str {
         use self::ParseErrorKind::*;
         match self.kind {
             InvalidDigit => "invalid digit found in string",
@@ -9620,9 +9620,15 @@ impl Error for ParseFloatError {
     }
 }
 
+impl Error for ParseFloatError {
+    fn description(&self) -> &str {
+        self.desc()
+    }
+}
+
 impl Display for ParseFloatError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(self.description(), f)
+        Display::fmt(self.desc(), f)
     }
 }
 

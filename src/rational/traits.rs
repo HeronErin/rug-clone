@@ -270,15 +270,21 @@ fn fmt_radix(
     f.pad_integral(!neg, prefix, buf)
 }
 
+impl TryFromFloatError {
+    fn desc(&self) -> &str {
+        "conversion of infinite or NaN value attempted"
+    }
+}
+
 impl Error for TryFromFloatError {
     fn description(&self) -> &str {
-        "conversion of infinite or NaN value attempted"
+        self.desc()
     }
 }
 
 impl Display for TryFromFloatError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        Display::fmt(self.description(), f)
+        Display::fmt(self.desc(), f)
     }
 }
 

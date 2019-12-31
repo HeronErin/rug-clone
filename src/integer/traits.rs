@@ -256,15 +256,21 @@ fn fmt_radix(
     f.pad_integral(!neg, prefix, buf)
 }
 
+impl TryFromIntegerError {
+    fn desc(&self) -> &str {
+        "out of range conversion attempted"
+    }
+}
+
 impl Error for TryFromIntegerError {
     fn description(&self) -> &str {
-        "out of range conversion attempted"
+        self.desc()
     }
 }
 
 impl Display for TryFromIntegerError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        Display::fmt(self.description(), f)
+        Display::fmt(self.desc(), f)
     }
 }
 

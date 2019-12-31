@@ -2886,8 +2886,8 @@ enum ParseErrorKind {
     DenomZero,
 }
 
-impl Error for ParseRationalError {
-    fn description(&self) -> &str {
+impl ParseRationalError {
+    fn desc(&self) -> &str {
         use self::ParseErrorKind::*;
         match self.kind {
             InvalidDigit => "invalid digit found in string",
@@ -2900,8 +2900,14 @@ impl Error for ParseRationalError {
     }
 }
 
+impl Error for ParseRationalError {
+    fn description(&self) -> &str {
+        self.desc()
+    }
+}
+
 impl Display for ParseRationalError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(self.description(), f)
+        Display::fmt(self.desc(), f)
     }
 }
