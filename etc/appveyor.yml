@@ -52,6 +52,7 @@ test_script:
   - cargo +beta-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
   - cargo +beta-%TARGET% fmt -- --check
   - cargo +beta-%TARGET% clippy --all-targets --features "fail-on-warnings serde"
+  - rm Cargo.lock
   - cargo +1.37.0-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
 
 after_test:
