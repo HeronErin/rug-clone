@@ -25,9 +25,10 @@ use gmp_mpfr_sys::{
     mpfr::mpfr_t,
 };
 use std::{
+    cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
-    sync::atomic::Ordering,
+    ptr,
 };
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
@@ -90,13 +91,14 @@ assert_eq!(*a.imag(), -18.5);
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
 */
-#[repr(C)]
 pub struct SmallComplex {
     inner: Mpc,
     // real part is first in limbs if inner.re.d <= inner.im.d
     first_limbs: Limbs,
     last_limbs: Limbs,
 }
+
+unsafe impl Send for SmallComplex {}
 
 impl Clone for SmallComplex {
     #[inline]
@@ -158,8 +160,7 @@ impl SmallComplex {
 
     #[inline]
     fn re_is_first(&self) -> bool {
-        (self.inner.re.d.load(Ordering::Relaxed) as usize)
-            <= (self.inner.im.d.load(Ordering::Relaxed) as usize)
+        unsafe { (*self.inner.re.d.get() as usize) <= (*self.inner.im.d.get() as usize) }
     }
 
     // To be used when offsetting re and im in case the struct has
@@ -177,8 +178,10 @@ impl SmallComplex {
         } else {
             (last, first)
         };
-        self.inner.re.d.store(re_d, Ordering::Relaxed);
-        self.inner.im.d.store(im_d, Ordering::Relaxed);
+        unsafe {
+            *self.inner.re.d.get() = re_d;
+            *self.inner.im.d.get() = im_d;
+        }
     }
 }
 
@@ -213,13 +216,13 @@ impl<Re: ToSmall> From<Re> for SmallComplex {
                     prec: 0,
                     sign: 0,
                     exp: 0,
-                    d: Default::default(),
+                    d: UnsafeCell::new(ptr::null_mut()),
                 },
                 im: Mpfr {
                     prec: 0,
                     sign: 0,
                     exp: 0,
-                    d: Default::default(),
+                    d: UnsafeCell::new(ptr::null_mut()),
                 },
             },
             first_limbs: small_limbs![],
@@ -254,13 +257,13 @@ impl<Re: ToSmall, Im: ToSmall> From<(Re, Im)> for SmallComplex {
                     prec: 0,
                     sign: 0,
                     exp: 0,
-                    d: Default::default(),
+                    d: UnsafeCell::new(ptr::null_mut()),
                 },
                 im: Mpfr {
                     prec: 0,
                     sign: 0,
                     exp: 0,
-                    d: Default::default(),
+                    d: UnsafeCell::new(ptr::null_mut()),
                 },
             },
             first_limbs: small_limbs![],

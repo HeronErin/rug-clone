@@ -26,10 +26,11 @@ use gmp_mpfr_sys::{
     mpfr::{self, exp_t, mpfr_t, prec_t},
 };
 use std::{
+    cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
     os::raw::c_int,
-    sync::atomic::{AtomicPtr, Ordering},
+    ptr,
 };
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
@@ -91,7 +92,6 @@ assert_eq!(a, -15000);
 [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
 */
 #[derive(Clone)]
-#[repr(C)]
 pub struct SmallFloat {
     inner: Mpfr,
     limbs: Limbs,
@@ -102,7 +102,7 @@ pub struct Mpfr {
     pub prec: prec_t,
     pub sign: c_int,
     pub exp: exp_t,
-    pub d: AtomicPtr<limb_t>,
+    pub d: UnsafeCell<*mut limb_t>,
 }
 
 fn _static_assertions() {
@@ -120,10 +120,12 @@ impl Clone for Mpfr {
             prec: self.prec,
             sign: self.sign,
             exp: self.exp,
-            d: Default::default(),
+            d: UnsafeCell::new(ptr::null_mut()),
         }
     }
 }
+
+unsafe impl Send for SmallFloat {}
 
 impl SmallFloat {
     /// Returns a mutable reference to a [`Float`] for simple
@@ -161,7 +163,9 @@ impl SmallFloat {
         // Since this is borrowed, the limb won't move around, and we
         // can set the d field.
         let d = self.limbs[0].as_ptr() as *mut limb_t;
-        self.inner.d.store(d, Ordering::Relaxed);
+        unsafe {
+            *self.inner.d.get() = d;
+        }
     }
 }
 
@@ -367,7 +371,7 @@ impl<T: ToSmall> From<T> for SmallFloat {
                 prec: 0,
                 sign: 0,
                 exp: 0,
-                d: Default::default(),
+                d: UnsafeCell::new(ptr::null_mut()),
             },
             limbs: small_limbs![],
         };

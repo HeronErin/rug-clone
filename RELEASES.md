@@ -16,6 +16,15 @@ Verison 1.7.0 (unreleased)
   * The methods `Integer::lcm_u`, `Integer::lcm_u_mut` and
     `Integer::lcm_u_ref` were added.
 
+Compatibility note
+------------------
+
+  * `SmallInteger`, `SmallRational`, `SmallFloat` and `SmallComplex`
+    are no longer `Sync` to avoid the possibility of a race condition.
+    References obtained by dereferencing them, for example the
+    `&Integer` returned from `SmallInteger::deref`, are still `Send`
+    and `Sync`.
+
 Verison 1.6.0 (2019-09-03)
 ==========================
 

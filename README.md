@@ -55,6 +55,24 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`lcm_u_ref`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_ref
 [`lcm_u`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u
 
+#### Compatibility note
+
+  * [`SmallInteger`], [`SmallRational`], [`SmallFloat`] and
+    [`SmallComplex`] are no longer [`Sync`] to avoid the possibility
+    of a race condition. References obtained by dereferencing them,
+    for example the <code>&amp;[Integer][`Integer`]</code> returned
+    from
+    <code>[SmallInteger][`SmallInteger`]::[deref][`deref`]</code>, are
+    still [`Send`] and [`Sync`].
+
+[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+[`SmallComplex`]: https://docs.rs/rug/~1.6/rug/complex/struct.SmallComplex.html
+[`SmallFloat`]: https://docs.rs/rug/~1.6/rug/float/struct.SmallFloat.html
+[`SmallInteger`]: https://docs.rs/rug/~1.6/rug/integer/struct.SmallInteger.html
+[`SmallRational`]: https://docs.rs/rug/~1.6/rug/rational/struct.SmallRational.html
+[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
+[`deref`]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref
+
 ### Version 1.6.0 news (2019-09-03)
 
   * Arithmetic operator implementations for [`i8`], [`i16`], [`i64`],

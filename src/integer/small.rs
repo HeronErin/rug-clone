@@ -18,10 +18,11 @@ use crate::{misc::NegAbs, Assign, Integer};
 use az::Az;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use std::{
+    cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
     os::raw::c_int,
-    sync::atomic::{AtomicPtr, Ordering},
+    ptr,
 };
 
 pub const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
@@ -66,7 +67,6 @@ assert_eq!(a, 1500);
 [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
 */
 #[derive(Clone)]
-#[repr(C)]
 pub struct SmallInteger {
     inner: Mpz,
     limbs: Limbs,
@@ -76,7 +76,7 @@ pub struct SmallInteger {
 pub struct Mpz {
     pub alloc: c_int,
     pub size: c_int,
-    pub d: AtomicPtr<limb_t>,
+    pub d: UnsafeCell<*mut limb_t>,
 }
 
 fn _static_assertions() {
@@ -93,10 +93,12 @@ impl Clone for Mpz {
         Mpz {
             alloc: LIMBS_IN_SMALL.az(),
             size: self.size,
-            d: Default::default(),
+            d: UnsafeCell::new(ptr::null_mut()),
         }
     }
 }
+
+unsafe impl Send for SmallInteger {}
 
 impl Default for SmallInteger {
     #[inline]
@@ -124,7 +126,7 @@ impl SmallInteger {
             inner: Mpz {
                 alloc: LIMBS_IN_SMALL.az(),
                 size: 0,
-                d: Default::default(),
+                d: UnsafeCell::new(ptr::null_mut()),
             },
             limbs: small_limbs![0],
         }
@@ -171,7 +173,9 @@ impl SmallInteger {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d field.
         let d = self.limbs[0].as_ptr() as *mut limb_t;
-        self.inner.d.store(d, Ordering::Relaxed);
+        unsafe {
+            *self.inner.d.get() = d;
+        }
     }
 }
 

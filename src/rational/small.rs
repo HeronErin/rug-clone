@@ -21,9 +21,10 @@ use crate::{
 use az::Az;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
 use std::{
+    cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
-    sync::atomic::Ordering,
+    ptr,
 };
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
@@ -63,13 +64,14 @@ assert_eq!(*a.denom(), 13);
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 */
-#[repr(C)]
 pub struct SmallRational {
     inner: Mpq,
     // numerator is first in limbs if inner.num.d <= inner.den.d
     first_limbs: Limbs,
     last_limbs: Limbs,
 }
+
+unsafe impl Send for SmallRational {}
 
 impl Clone for SmallRational {
     #[inline]
@@ -126,12 +128,12 @@ impl SmallRational {
                 num: Mpz {
                     alloc: LIMBS_IN_SMALL.az(),
                     size: 0,
-                    d: Default::default(),
+                    d: UnsafeCell::new(ptr::null_mut()),
                 },
                 den: Mpz {
                     alloc: LIMBS_IN_SMALL.az(),
                     size: 1,
-                    d: Default::default(),
+                    d: UnsafeCell::new(ptr::null_mut()),
                 },
             },
             first_limbs: small_limbs![0],
@@ -242,8 +244,7 @@ impl SmallRational {
 
     #[inline]
     fn num_is_first(&self) -> bool {
-        (self.inner.num.d.load(Ordering::Relaxed) as usize)
-            <= (self.inner.den.d.load(Ordering::Relaxed) as usize)
+        unsafe { (*self.inner.num.d.get() as usize) <= (*self.inner.den.d.get() as usize) }
     }
 
     // To be used when offsetting num and den in case the struct has
@@ -262,8 +263,10 @@ impl SmallRational {
         } else {
             (last, first)
         };
-        self.inner.num.d.store(num_d, Ordering::Relaxed);
-        self.inner.den.d.store(den_d, Ordering::Relaxed);
+        unsafe {
+            *self.inner.num.d.get() = num_d;
+            *self.inner.den.d.get() = den_d;
+        }
     }
 }
 
