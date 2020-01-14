@@ -8,6 +8,7 @@ as-is, without any warranty. -->
 Verison 1.7.0 (unreleased)
 ==========================
 
+  * Require rustc version 1.37.0.
   * Arithmetic operations with one `Integer` or integer primitive
     operand and one `Rational` operand were added.
   * The method `Integer::div_exact_from` was added.
