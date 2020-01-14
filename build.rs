@@ -28,7 +28,6 @@ fn main() {
         out_dir: PathBuf::from(cargo_env("OUT_DIR")),
         rustc: cargo_env("RUSTC"),
     };
-    env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits =
             env::var_os("DEP_GMP_LIMB_BITS").expect("DEP_GMP_LIMB_BITS not set by gmp-mfpr-sys");
@@ -86,46 +85,6 @@ impl Environment {
 
         remove_dir_or_panic(&try_dir);
     }
-
-    fn check_ffi_panic_aborts(&self) {
-        let ident = "ffi_panic_aborts";
-        // try two different codes to make sure code is set by us
-        let codes = &[1, 2];
-        let try_dir = self.out_dir.join(format!("try_{}", ident));
-        create_dir_or_panic(&try_dir);
-        let mut panic_aborts = true;
-        for code in codes {
-            let contents = format!("{}\nconst CODE: i32 = {};\n", TRY_FFI_PANIC_ABORTS, code);
-            let filename = format!("try_{}_{}.rs", ident, code);
-            let out = format!("out_{}.exe", code);
-            create_file_or_panic(&try_dir.join(&filename), &contents);
-            let mut cmd = Command::new(&self.rustc);
-            cmd.current_dir(&try_dir).args(&[&filename, "-o", &out]);
-            println!("$ cd {:?}", try_dir);
-            println!("$ {:?}", cmd);
-            let status = cmd
-                .status()
-                .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
-            assert!(status.success(), "Compiling failed: {:?}", cmd);
-            cmd = Command::new(try_dir.join(&out));
-            cmd.stdout(Stdio::null()).stderr(Stdio::null());
-            println!("$ {:?} >& /dev/null", cmd);
-            let status = cmd
-                .status()
-                .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
-            if status.code() != Some(*code) {
-                panic_aborts = false;
-                break;
-            }
-        }
-        if panic_aborts {
-            println!("cargo:rustc-cfg=ffi_panic_aborts");
-        }
-        // Do not panic if this directory cannot be removed, AppVeyor
-        // fails trying for Windows.
-        remove_dir(&try_dir)
-            .unwrap_or_else(|_| println!("Unable to remove directory: {:?}", try_dir));
-    }
 }
 
 fn cargo_env(name: &str) -> OsString {
@@ -162,30 +121,3 @@ fn create_file_or_panic(filename: &Path, contents: &str) {
     file.write_all(contents.as_bytes())
         .unwrap_or_else(|_| panic!("Unable to write to file: {:?}", filename));
 }
-
-const TRY_FFI_PANIC_ABORTS: &str = r#"// try_ffi_panic_aborts.rs
-extern "C" fn ffi_panic() {
-    panic!();
-}
-
-type Handler = Option<unsafe extern "C" fn(i: i32)>;
-extern "C" {
-    pub fn signal(signum: i32, handler: Handler) -> Handler;
-}
-extern "C" fn handler(_: i32) {
-    std::process::exit(CODE);
-}
-
-fn main() {
-    // catch some signals and exit(CODE) instead
-    unsafe {
-        // SIGILL
-        signal(4, Some(handler));
-        // unix SIGABRT
-        signal(6, Some(handler));
-        // windows SIGABRT
-        signal(22, Some(handler));
-    }
-    let _ = std::panic::catch_unwind(|| ffi_panic());
-}
-"#;

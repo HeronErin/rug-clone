@@ -56,8 +56,6 @@ use core::{
 };
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randfnptr_t, randseed_t, randstate_t};
 use libc::{c_ulong, c_void};
-#[cfg(not(ffi_panic_aborts))]
-use std::panic::{self, AssertUnwindSafe};
 use std::process;
 
 /**
@@ -1457,23 +1455,6 @@ fn _static_assertions() {
     static_assert_same_layout!(ThreadRandState<'_>, randstate_t);
 }
 
-#[cfg(not(ffi_panic_aborts))]
-macro_rules! c_callback {
-    ($(fn $func:ident($($param:tt)*) $body:block)*) => { $(
-        unsafe extern "C" fn $func($($param)*) {
-            panic::catch_unwind(AssertUnwindSafe(|| $body))
-                .unwrap_or_else(|_| process::abort())
-        }
-    )* };
-}
-
-#[cfg(ffi_panic_aborts)]
-macro_rules! c_callback {
-    ($(fn $func:ident($($param:tt)*) $body:block)*) => { $(
-        unsafe extern "C" fn $func($($param)*) $body
-    )* };
-}
-
 // abort functions do not need a wrapper to abort on panic, they never panic and always abort
 unsafe extern "C" fn abort_seed(_: *mut randstate_t, _: *const mpz_t) {
     process::abort();
@@ -1491,94 +1472,92 @@ unsafe extern "C" fn abort_iset(_: *mut randstate_t, _: *const randstate_t) {
     process::abort();
 }
 
-c_callback! {
-    fn custom_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-        let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
-        (*r_ptr).seed(&*cast_ptr!(seed, Integer));
-    }
+unsafe extern "C" fn custom_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
+    let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
+    (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+}
 
-    fn custom_get(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong) {
-        let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
-        gen_bits(*r_ptr, dest, nbits);
-    }
+unsafe extern "C" fn custom_get(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong) {
+    let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
+    gen_bits(*r_ptr, dest, nbits);
+}
 
-    fn custom_clear(rstate: *mut randstate_t) {
-        let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
-        drop(Box::from_raw(r_ptr));
-    }
+unsafe extern "C" fn custom_clear(rstate: *mut randstate_t) {
+    let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
+    drop(Box::from_raw(r_ptr));
+}
 
-    fn custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
-        let r_ptr = (*src).seed.d as *const &mut dyn RandGen;
-        gen_copy(*r_ptr, dst);
-    }
+unsafe extern "C" fn custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
+    let r_ptr = (*src).seed.d as *const &mut dyn RandGen;
+    gen_copy(*r_ptr, dst);
+}
 
-    fn custom_boxed_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-        let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
-        (*r_ptr).seed(&*cast_ptr!(seed, Integer));
-    }
+unsafe extern "C" fn custom_boxed_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
+    let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
+    (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+}
 
-    fn custom_boxed_get(
-        rstate: *mut randstate_t,
-        dest: *mut limb_t,
-        nbits: c_ulong,
-    ) {
-        let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
-        gen_bits(&mut **r_ptr, dest, nbits);
-    }
+unsafe extern "C" fn custom_boxed_get(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong) {
+    let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
+    gen_bits(&mut **r_ptr, dest, nbits);
+}
 
-    fn custom_boxed_clear(rstate: *mut randstate_t) {
-        let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
-        drop(Box::from_raw(r_ptr));
-    }
+unsafe extern "C" fn custom_boxed_clear(rstate: *mut randstate_t) {
+    let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
+    drop(Box::from_raw(r_ptr));
+}
 
-    fn custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
-        let r_ptr = (*src).seed.d as *const Box<dyn RandGen>;
-        gen_copy(&**r_ptr, dst);
-    }
+unsafe extern "C" fn custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
+    let r_ptr = (*src).seed.d as *const Box<dyn RandGen>;
+    gen_copy(&**r_ptr, dst);
+}
 
-    fn thread_custom_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-        let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
-        (*r_ptr).seed(&*cast_ptr!(seed, Integer));
-    }
+unsafe extern "C" fn thread_custom_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
+    let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
+    (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+}
 
-    fn thread_custom_get(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong) {
-        let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
-        thread_gen_bits(*r_ptr, dest, nbits);
-    }
+unsafe extern "C" fn thread_custom_get(
+    rstate: *mut randstate_t,
+    dest: *mut limb_t,
+    nbits: c_ulong,
+) {
+    let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
+    thread_gen_bits(*r_ptr, dest, nbits);
+}
 
-    fn thread_custom_clear(rstate: *mut randstate_t) {
-        let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
-        drop(Box::from_raw(r_ptr));
-    }
+unsafe extern "C" fn thread_custom_clear(rstate: *mut randstate_t) {
+    let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
+    drop(Box::from_raw(r_ptr));
+}
 
-    fn thread_custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
-        let r_ptr = (*src).seed.d as *const &mut dyn ThreadRandGen;
-        thread_gen_copy(*r_ptr, dst);
-    }
+unsafe extern "C" fn thread_custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
+    let r_ptr = (*src).seed.d as *const &mut dyn ThreadRandGen;
+    thread_gen_copy(*r_ptr, dst);
+}
 
-    fn thread_custom_boxed_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-        let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
-        (*r_ptr).seed(&*cast_ptr!(seed, Integer));
-    }
+unsafe extern "C" fn thread_custom_boxed_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
+    let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
+    (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+}
 
-    fn thread_custom_boxed_get(
-        rstate: *mut randstate_t,
-        dest: *mut limb_t,
-        nbits: c_ulong,
-    ) {
-        let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
-        thread_gen_bits(&mut **r_ptr, dest, nbits);
-    }
+unsafe extern "C" fn thread_custom_boxed_get(
+    rstate: *mut randstate_t,
+    dest: *mut limb_t,
+    nbits: c_ulong,
+) {
+    let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
+    thread_gen_bits(&mut **r_ptr, dest, nbits);
+}
 
-    fn thread_custom_boxed_clear(rstate: *mut randstate_t) {
-        let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
-        drop(Box::from_raw(r_ptr));
-    }
+unsafe extern "C" fn thread_custom_boxed_clear(rstate: *mut randstate_t) {
+    let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
+    drop(Box::from_raw(r_ptr));
+}
 
-    fn thread_custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
-        let r_ptr = (*src).seed.d as *const Box<dyn ThreadRandGen>;
-        thread_gen_copy(&**r_ptr, dst);
-    }
+unsafe extern "C" fn thread_custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
+    let r_ptr = (*src).seed.d as *const Box<dyn ThreadRandGen>;
+    thread_gen_copy(&**r_ptr, dst);
 }
 
 #[cfg(gmp_limb_bits_64)]
