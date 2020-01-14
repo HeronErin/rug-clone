@@ -167,10 +167,8 @@ pub struct Complex {
     inner: mpc_t,
 }
 
-fn _static_assertions() {
-    static_assert_same_layout!(Complex, mpc_t);
-    static_assert_same_layout!(BorrowComplex<'_>, mpc_t);
-}
+static_assert_same_layout!(Complex, mpc_t);
+static_assert_same_layout!(BorrowComplex<'_>, mpc_t);
 
 macro_rules! ref_math_op0_complex {
     (

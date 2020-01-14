@@ -2455,7 +2455,7 @@ macro_rules! mul_op_noncommut_round {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! static_assert {
     ($cond:expr) => {
-        let _: [(); (!$cond) as usize] = [];
+        const _: [(); (!$cond) as usize] = [];
     };
 }
 

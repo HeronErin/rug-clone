@@ -1450,10 +1450,8 @@ pub trait ThreadRandGen {
     }
 }
 
-fn _static_assertions() {
-    static_assert_same_layout!(RandState<'_>, randstate_t);
-    static_assert_same_layout!(ThreadRandState<'_>, randstate_t);
-}
+static_assert_same_layout!(RandState<'_>, randstate_t);
+static_assert_same_layout!(ThreadRandState<'_>, randstate_t);
 
 // abort functions do not need a wrapper to abort on panic, they never panic and always abort
 unsafe extern "C" fn abort_seed(_: *mut randstate_t, _: *const mpz_t) {

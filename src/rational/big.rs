@@ -91,10 +91,8 @@ pub struct Rational {
     inner: mpq_t,
 }
 
-fn _static_assertions() {
-    static_assert_same_layout!(Rational, mpq_t);
-    static_assert_same_layout!(BorrowRational<'_>, mpq_t);
-}
+static_assert_same_layout!(Rational, mpq_t);
+static_assert_same_layout!(BorrowRational<'_>, mpq_t);
 
 macro_rules! ref_rat_op_int {
     (

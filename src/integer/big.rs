@@ -211,10 +211,8 @@ impl Integer {
     }
 }
 
-fn _static_assertions() {
-    static_assert_same_layout!(Integer, mpz_t);
-    static_assert_same_layout!(BorrowInteger<'_>, mpz_t);
-}
+static_assert_same_layout!(Integer, mpz_t);
+static_assert_same_layout!(BorrowInteger<'_>, mpz_t);
 
 impl Integer {
     /// Constructs a new arbitrary-precision [`Integer`] with value 0.

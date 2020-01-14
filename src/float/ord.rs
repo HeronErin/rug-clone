@@ -67,9 +67,7 @@ pub struct OrdFloat {
     inner: Float,
 }
 
-fn _static_assertions() {
-    static_assert_same_layout!(OrdFloat, Float);
-}
+static_assert_same_layout!(OrdFloat, Float);
 
 impl OrdFloat {
     /// Extracts the underlying [`Float`].

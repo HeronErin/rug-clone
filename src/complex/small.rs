@@ -123,9 +123,7 @@ struct Mpc {
     im: Mpfr,
 }
 
-fn _static_assertions() {
-    static_assert_same_layout!(Mpc, mpc_t);
-}
+static_assert_same_layout!(Mpc, mpc_t);
 
 impl SmallComplex {
     /// Returns a mutable reference to a [`Complex`] number for simple

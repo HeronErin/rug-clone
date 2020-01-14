@@ -105,10 +105,8 @@ pub struct Mpfr {
     pub d: UnsafeCell<*mut limb_t>,
 }
 
-fn _static_assertions() {
-    static_assert!(mem::size_of::<Limbs>() == 16);
-    static_assert_same_layout!(Mpfr, mpfr_t);
-}
+static_assert!(mem::size_of::<Limbs>() == 16);
+static_assert_same_layout!(Mpfr, mpfr_t);
 
 // Mpfr is only used inside SmallFloat and SmallComplex. The d field
 // does not need to be copied from self. SmallComplex::clone is

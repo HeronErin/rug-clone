@@ -57,9 +57,7 @@ pub struct OrdComplex {
     inner: Complex,
 }
 
-fn _static_assertions() {
-    static_assert_same_layout!(OrdComplex, Complex);
-}
+static_assert_same_layout!(OrdComplex, Complex);
 
 impl OrdComplex {
     /// Extracts the underlying [`Complex`].

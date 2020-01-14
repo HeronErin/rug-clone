@@ -96,9 +96,7 @@ struct Mpq {
     den: Mpz,
 }
 
-fn _static_assertions() {
-    static_assert_same_layout!(Mpq, mpq_t);
-}
+static_assert_same_layout!(Mpq, mpq_t);
 
 impl Default for SmallRational {
     #[inline]

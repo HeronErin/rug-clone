@@ -79,10 +79,8 @@ pub struct Mpz {
     pub d: UnsafeCell<*mut limb_t>,
 }
 
-fn _static_assertions() {
-    static_assert!(mem::size_of::<Limbs>() == 16);
-    static_assert_same_layout!(Mpz, mpz_t);
-}
+static_assert!(mem::size_of::<Limbs>() == 16);
+static_assert_same_layout!(Mpz, mpz_t);
 
 // Mpz is only used inside SmallInteger and SmallRational. The only
 // field that needs to be actually copied from self is size.

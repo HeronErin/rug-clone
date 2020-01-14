@@ -472,14 +472,14 @@ pub use crate::complex::big::Complex;
 pub mod rand;
 
 #[cfg(any(feature = "integer", feature = "float"))]
-fn _static_assertions() {
+mod static_assertions {
     use core::mem;
     use gmp_mpfr_sys::gmp::{limb_t, LIMB_BITS, NAIL_BITS, NUMB_BITS};
 
     static_assert!(NAIL_BITS == 0);
     static_assert!(NUMB_BITS == LIMB_BITS);
-    static_assert!(cfg!(target_pointer_width = "32") != cfg!(target_pointer_width = "64"));
-    static_assert!(cfg!(gmp_limb_bits_32) != cfg!(gmp_limb_bits_64));
+    static_assert!(cfg!(target_pointer_width = "32") ^ cfg!(target_pointer_width = "64"));
+    static_assert!(cfg!(gmp_limb_bits_32) ^ cfg!(gmp_limb_bits_64));
     #[cfg(gmp_limb_bits_64)]
     static_assert!(NUMB_BITS == 64);
     #[cfg(gmp_limb_bits_32)]
