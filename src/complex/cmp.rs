@@ -90,7 +90,7 @@ mod tests {
         Assign, Complex, Float,
     };
     #[cfg(feature = "integer")]
-    use {crate::Integer, std::str::FromStr};
+    use {crate::Integer, core::str::FromStr};
 
     fn check_eq_prim<T>(s: &[T], against: &[Complex])
     where

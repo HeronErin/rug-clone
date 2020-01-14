@@ -473,8 +473,8 @@ pub mod rand;
 
 #[cfg(any(feature = "integer", feature = "float"))]
 fn _static_assertions() {
+    use core::mem;
     use gmp_mpfr_sys::gmp::{limb_t, LIMB_BITS, NAIL_BITS, NUMB_BITS};
-    use std::mem;
 
     static_assert!(NAIL_BITS == 0);
     static_assert!(NUMB_BITS == LIMB_BITS);
@@ -491,8 +491,8 @@ fn _static_assertions() {
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
     #[cfg(any(feature = "rational", feature = "float"))]
-    use std::{f32, f64};
-    use std::{i128, i16, i32, i64, i8, u128, u16, u32, u64, u8};
+    use core::{f32, f64};
+    use core::{i128, i16, i32, i64, i8, u128, u16, u32, u64, u8};
 
     pub const U8: &[u8] = &[0, 1, 100, 101, i8::MAX as u8 + 1, u8::MAX];
     pub const I8: &[i8] = &[i8::MIN, -101, -100, -1, 0, 1, 100, 101, i8::MAX];

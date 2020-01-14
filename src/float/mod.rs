@@ -37,8 +37,8 @@ pub use crate::float::{
     ord::OrdFloat,
     small::{SmallFloat, ToSmall},
 };
+use core::{i32, u32};
 use gmp_mpfr_sys::mpfr::{self, exp_t, prec_t};
-use std::{i32, u32};
 
 /**
 Returns the minimum value for the exponent.
@@ -328,12 +328,12 @@ pub(crate) mod tests {
         float::{self, FreeCache, Round, Special},
         Assign, Float,
     };
-    use gmp_mpfr_sys::{gmp, mpfr};
-    use std::{
+    use core::{
         cmp::Ordering,
         f64,
         fmt::{Debug, Error as FmtError, Formatter},
     };
+    use gmp_mpfr_sys::{gmp, mpfr};
 
     #[derive(Clone, Copy)]
     pub enum Cmp {

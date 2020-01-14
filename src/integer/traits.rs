@@ -19,14 +19,14 @@ use crate::{
     integer::{big, ParseIntegerError, TryFromIntegerError},
     Assign, Integer,
 };
-use std::{
+use core::{
     convert::TryFrom,
-    error::Error,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
     hash::{Hash, Hasher},
     mem::{self, MaybeUninit},
     str::FromStr,
 };
+use std::error::Error;
 
 impl Default for Integer {
     #[inline]
@@ -281,7 +281,7 @@ unsafe impl Sync for Integer {}
 #[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::{Assign, Integer};
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[test]
     fn check_assign() {

@@ -20,15 +20,15 @@ use crate::{
     misc::{self, AsOrPanic},
     Assign, Integer,
 };
-use gmp_mpfr_sys::gmp::{self, mpq_t};
-use std::{
+use core::{
     cmp::Ordering,
-    error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
     mem::{self, ManuallyDrop, MaybeUninit},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
 };
+use gmp_mpfr_sys::gmp::{self, mpq_t};
+use std::error::Error;
 
 /**
 An arbitrary-precision rational number.
@@ -199,9 +199,9 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// use core::mem::MaybeUninit;
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Rational;
-    /// use std::mem::MaybeUninit;
     /// let r = unsafe {
     ///     let mut q = MaybeUninit::uninit();
     ///     gmp::mpq_init(q.as_mut_ptr());
@@ -312,8 +312,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f32;
     /// use rug::Rational;
-    /// use std::f32;
     /// // −17.125 can be stored exactly as f32
     /// let r = Rational::from_f32(-17.125).unwrap();
     /// assert_eq!(r, (-17125, 1000));
@@ -339,8 +339,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f64;
     /// use rug::Rational;
-    /// use std::f64;
     /// // −17.125 can be stored exactly as f64
     /// let r = Rational::from_f64(-17.125).unwrap();
     /// assert_eq!(r, (-17125, 1000));
@@ -494,8 +494,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f32;
     /// use rug::{rational::SmallRational, Rational};
-    /// use std::f32;
     /// let min = Rational::from_f32(f32::MIN).unwrap();
     /// let minus_small = min - &*SmallRational::from((7, 2));
     /// // minus_small is truncated to f32::MIN
@@ -516,8 +516,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f64;
     /// use rug::{rational::SmallRational, Rational};
-    /// use std::f64;
     ///
     /// // An `f64` has 53 bits of precision.
     /// let exact = 0x1f_1234_5678_9aff_u64;
@@ -578,8 +578,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f32;
     /// use rug::Rational;
-    /// use std::f32;
     /// let mut r = Rational::new();
     /// let ret = r.assign_f32(12.75);
     /// assert!(ret.is_ok());
@@ -979,8 +979,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// use core::cmp::Ordering;
     /// use rug::Rational;
-    /// use std::cmp::Ordering;
     /// assert_eq!(Rational::from((-5, 7)).cmp0(), Ordering::Less);
     /// assert_eq!(Rational::from(0).cmp0(), Ordering::Equal);
     /// assert_eq!(Rational::from((5, 7)).cmp0(), Ordering::Greater);
@@ -998,8 +998,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// use core::cmp::Ordering;
     /// use rug::Rational;
-    /// use std::cmp::Ordering;
     /// let a = Rational::from((-23, 10));
     /// let b = Rational::from((-47, 5));
     /// assert_eq!(a.cmp(&b), Ordering::Greater);

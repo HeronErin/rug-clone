@@ -19,7 +19,7 @@ use crate::{
     misc::{AsOrPanic, NegAbs},
     Integer, Rational,
 };
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
 impl Eq for Rational {}
 
@@ -301,7 +301,7 @@ mod tests {
         Rational,
     };
     use az::{Az, Cast};
-    use std::{cmp::Ordering, f32, f64, ops::Neg};
+    use core::{cmp::Ordering, f32, f64, ops::Neg};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])
     where

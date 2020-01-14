@@ -21,8 +21,7 @@ use crate::{
     ops::AssignRound,
     Assign, Complex, Float,
 };
-use gmp_mpfr_sys::mpc::{self, mpc_t};
-use std::{
+use core::{
     cmp::Ordering,
     fmt::{
         Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
@@ -30,6 +29,7 @@ use std::{
     },
     mem::{self, MaybeUninit},
 };
+use gmp_mpfr_sys::mpc::{self, mpc_t};
 
 impl Clone for Complex {
     #[inline]
@@ -313,7 +313,7 @@ mod tests {
         ops::AssignRound,
         Assign, Complex,
     };
-    use std::cmp::Ordering;
+    use core::cmp::Ordering;
 
     #[test]
     fn check_assign() {

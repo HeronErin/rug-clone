@@ -19,16 +19,16 @@ use crate::{
     rational::{big, ParseRationalError, TryFromFloatError},
     Assign, Integer, Rational,
 };
-use gmp_mpfr_sys::gmp::{self, mpq_t};
-use std::{
+use core::{
     cmp::Ordering,
     convert::TryFrom,
-    error::Error,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
     hash::{Hash, Hasher},
     mem::{self, MaybeUninit},
     str::FromStr,
 };
+use gmp_mpfr_sys::gmp::{self, mpq_t};
+use std::error::Error;
 
 impl Default for Rational {
     #[inline]
@@ -295,7 +295,7 @@ unsafe impl Sync for Rational {}
 #[allow(clippy::float_cmp)]
 mod tests {
     use crate::{Assign, Rational};
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[test]
     fn check_assign() {

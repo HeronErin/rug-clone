@@ -14,11 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::fmt::{Display, Formatter, Result as FmtResult};
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor},
     ser::{SerializeStruct, Serializer},
 };
-use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[allow(dead_code)]
 pub enum PrecReq {

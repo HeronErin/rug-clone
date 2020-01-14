@@ -24,17 +24,17 @@ use crate::{
     Assign,
 };
 use az::{Az, CheckedAs};
-use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
-use std::{
+use core::{
     cmp::Ordering,
-    error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
     mem::{self, ManuallyDrop, MaybeUninit},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
-    os::raw::{c_char, c_int, c_long, c_void},
     slice,
 };
+use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
+use libc::{c_char, c_int, c_long, c_void};
+use std::error::Error;
 
 /**
 An arbitrary-precision integer.
@@ -358,9 +358,9 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use core::mem::MaybeUninit;
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
-    /// use std::mem::MaybeUninit;
     /// let i = unsafe {
     ///     let mut z = MaybeUninit::uninit();
     ///     gmp::mpz_init_set_ui(z.as_mut_ptr(), 15);
@@ -768,8 +768,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f32;
     /// use rug::Integer;
-    /// use std::f32;
     /// let i = Integer::from_f32(-5.6).unwrap();
     /// assert_eq!(i, -5);
     /// let neg_inf = Integer::from_f32(f32::NEG_INFINITY);
@@ -790,8 +790,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f64;
     /// use rug::Integer;
-    /// use std::f64;
     /// let i = Integer::from_f64(1e20).unwrap();
     /// assert_eq!(i, "100000000000000000000".parse::<Integer>().unwrap());
     /// let inf = Integer::from_f64(f64::INFINITY);
@@ -1530,8 +1530,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f32;
     /// use rug::Integer;
-    /// use std::f32;
     /// let min = Integer::from_f32(f32::MIN).unwrap();
     /// let min_minus_one = min - 1u32;
     /// // min_minus_one is truncated to f32::MIN
@@ -1552,8 +1552,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f64;
     /// use rug::Integer;
-    /// use std::f64;
     ///
     /// // An `f64` has 53 bits of precision.
     /// let exact = 0x1f_ffff_ffff_ffff_u64;
@@ -1665,8 +1665,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use core::f32;
     /// use rug::Integer;
-    /// use std::f32;
     /// let mut i = Integer::new();
     /// let ret = i.assign_f64(-12.7);
     /// assert!(ret.is_ok());
@@ -1990,8 +1990,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use core::cmp::Ordering;
     /// use rug::Integer;
-    /// use std::cmp::Ordering;
     /// assert_eq!(Integer::from(-5).cmp0(), Ordering::Less);
     /// assert_eq!(Integer::from(0).cmp0(), Ordering::Equal);
     /// assert_eq!(Integer::from(5).cmp0(), Ordering::Greater);
@@ -2009,8 +2009,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use core::cmp::Ordering;
     /// use rug::Integer;
-    /// use std::cmp::Ordering;
     /// let a = Integer::from(-10);
     /// let b = Integer::from(4);
     /// assert_eq!(a.cmp(&b), Ordering::Less);

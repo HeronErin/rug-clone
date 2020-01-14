@@ -27,8 +27,8 @@ use crate::{
     Float,
 };
 use az::Az;
+use core::cmp::Ordering;
 use gmp_mpfr_sys::mpfr;
-use std::cmp::Ordering;
 
 impl PartialEq for Float {
     #[inline]
@@ -197,9 +197,9 @@ mod tests {
         float::{self, FreeCache, Special},
         Assign, Float,
     };
-    use std::cmp::Ordering;
+    use core::cmp::Ordering;
     #[cfg(feature = "integer")]
-    use {crate::Integer, std::str::FromStr};
+    use {crate::Integer, core::str::FromStr};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Float])
     where

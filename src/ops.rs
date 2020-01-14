@@ -403,8 +403,8 @@ Compound left shift and assignment to the rhs operand.
 
 ```rust
 # #[cfg(feature = "integer")] {
+use core::mem;
 use rug::{ops::ShlFrom, Integer};
-use std::mem;
 struct I(Integer);
 impl ShlFrom for I {
     fn shl_from(&mut self, mut lhs: I) {
@@ -444,8 +444,8 @@ Compound right shift and assignment to the rhs operand.
 
 ```rust
 # #[cfg(feature = "integer")] {
+use core::mem;
 use rug::{ops::ShrFrom, Integer};
-use std::mem;
 struct I(Integer);
 impl ShrFrom for I {
     fn shr_from(&mut self, mut lhs: I) {
@@ -590,8 +590,8 @@ Assignment with a specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{float::Round, ops::AssignRound};
-use std::cmp::Ordering;
 struct F(f64);
 impl AssignRound<f64> for F {
     type Round = Round;
@@ -619,8 +619,8 @@ pub trait AssignRound<Src = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::AssignRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::new(4);
     /// let dir = f.assign_round(3.3, Round::Nearest);
@@ -643,8 +643,8 @@ Compound addition and assignment with a specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{float::Round, ops::AddAssignRound, Float};
-use std::cmp::Ordering;
 struct F(f64);
 impl AddAssignRound<f64> for F {
     type Round = Round;
@@ -675,8 +675,8 @@ pub trait AddAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::AddAssignRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.add_assign_round(-0.3, Round::Nearest);
@@ -696,12 +696,12 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{
     float::Round,
     ops::{AddAssignRound, AddFromRound},
     Float,
 };
-use std::cmp::Ordering;
 struct F(f64);
 impl AddFromRound<f64> for F {
     type Round = Round;
@@ -732,8 +732,8 @@ pub trait AddFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::AddFromRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -0.3);
     /// let dir = f.add_from_round(-3, Round::Nearest);
@@ -753,8 +753,8 @@ method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{float::Round, ops::SubAssignRound, Float};
-use std::cmp::Ordering;
 struct F(f64);
 impl SubAssignRound<f64> for F {
     type Round = Round;
@@ -785,8 +785,8 @@ pub trait SubAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::SubAssignRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.sub_assign_round(0.3, Round::Nearest);
@@ -806,12 +806,12 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{
     float::Round,
     ops::{SubAssignRound, SubFromRound},
     Float,
 };
-use std::cmp::Ordering;
 struct F(f64);
 impl SubFromRound<f64> for F {
     type Round = Round;
@@ -842,8 +842,8 @@ pub trait SubFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::SubFromRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 0.3);
     /// let dir = f.sub_from_round(-3, Round::Nearest);
@@ -863,8 +863,8 @@ method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{float::Round, ops::MulAssignRound, Float};
-use std::cmp::Ordering;
 struct F(f64);
 impl MulAssignRound<f64> for F {
     type Round = Round;
@@ -895,8 +895,8 @@ pub trait MulAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::MulAssignRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.mul_assign_round(13, Round::Nearest);
@@ -916,12 +916,12 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{
     float::Round,
     ops::{MulAssignRound, MulFromRound},
     Float,
 };
-use std::cmp::Ordering;
 struct F(f64);
 impl MulFromRound<f64> for F {
     type Round = Round;
@@ -952,8 +952,8 @@ pub trait MulFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::MulFromRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 13);
     /// let dir = f.mul_from_round(-3, Round::Nearest);
@@ -972,8 +972,8 @@ Compound division and assignment with a specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{float::Round, ops::DivAssignRound, Float};
-use std::cmp::Ordering;
 struct F(f64);
 impl DivAssignRound<f64> for F {
     type Round = Round;
@@ -1004,8 +1004,8 @@ pub trait DivAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::DivAssignRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.div_assign_round(5, Round::Nearest);
@@ -1025,12 +1025,12 @@ rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{
     float::Round,
     ops::{DivAssignRound, DivFromRound},
     Float,
 };
-use std::cmp::Ordering;
 struct F(f64);
 impl DivFromRound<f64> for F {
     type Round = Round;
@@ -1061,8 +1061,8 @@ pub trait DivFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::DivFromRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 5);
     /// let dir = f.div_from_round(-3, Round::Nearest);
@@ -1082,8 +1082,8 @@ method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{Float, float::Round, ops::PowAssignRound};
-use std::cmp::Ordering;
 struct F(f64);
 impl PowAssignRound<f64> for F {
     type Round = Round;
@@ -1114,8 +1114,8 @@ pub trait PowAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::PowAssignRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.pow_assign_round(5, Round::Nearest);
@@ -1135,12 +1135,12 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
+use core::cmp::Ordering;
 use rug::{
     float::Round,
     ops::{PowAssignRound, PowFromRound},
     Float,
 };
-use std::cmp::Ordering;
 struct F(f64);
 impl PowFromRound<f64> for F {
     type Round = Round;
@@ -1171,8 +1171,8 @@ pub trait PowFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
     /// use rug::{float::Round, ops::PowFromRound, Float};
-    /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 5);
     /// let dir = f.pow_from_round(-3, Round::Nearest);

@@ -24,7 +24,7 @@ use crate::{
     Assign, Integer,
 };
 use az::{CheckedAs, CheckedCast};
-use std::os::raw::{c_long, c_ulong};
+use libc::{c_long, c_ulong};
 
 // big / big -> Big
 // big / &big -> Big

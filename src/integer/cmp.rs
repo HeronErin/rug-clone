@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ext::xmpz, misc::AsOrPanic, Integer};
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
 impl Eq for Integer {}
 
@@ -162,7 +162,7 @@ mod tests {
         tests::{I128, I32, I64, U128, U32, U64},
         Integer,
     };
-    use std::{cmp::Ordering, f32, f64, ops::Neg};
+    use core::{cmp::Ordering, f32, f64, ops::Neg};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])
     where

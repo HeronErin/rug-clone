@@ -19,13 +19,13 @@ use crate::{
     Assign, Rational,
 };
 use az::Az;
-use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
-use std::{
+use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
     ptr,
 };
+use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
 type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];

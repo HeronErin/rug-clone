@@ -26,20 +26,20 @@ use crate::{
     ops::AssignRound,
     Assign, Float,
 };
-use gmp_mpfr_sys::mpfr;
-use std::{
+use core::{
     cmp::Ordering,
     fmt::{
         Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult,
         UpperExp, UpperHex,
     },
     mem,
-    os::raw::{c_long, c_ulong},
 };
+use gmp_mpfr_sys::mpfr;
+use libc::{c_long, c_ulong};
 #[cfg(feature = "rational")]
 use {
     crate::{rational::TryFromFloatError, Rational},
-    std::convert::TryFrom,
+    core::convert::TryFrom,
 };
 
 impl Clone for Float {
@@ -378,7 +378,7 @@ mod tests {
         ops::AssignRound,
         Assign, Float,
     };
-    use std::cmp::Ordering;
+    use core::cmp::Ordering;
 
     #[test]
     fn check_assign() {
@@ -404,7 +404,7 @@ mod tests {
     #[test]
     fn check_fallible_conversions() {
         use crate::{float::Special, Float, Rational};
-        use std::convert::TryFrom;
+        use core::convert::TryFrom;
         let large = [
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),

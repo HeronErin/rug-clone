@@ -15,8 +15,8 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ext::xmpz::*, misc::NegAbs, Integer};
+use core::{cmp::Ordering, i32, i64, u32, u64};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use std::{cmp::Ordering, i32, i64, u32, u64};
 
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {

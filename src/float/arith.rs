@@ -29,15 +29,15 @@ use crate::{
     Float,
 };
 use az::{CheckedAs, CheckedCast};
-use gmp_mpfr_sys::mpfr::{self, mpfr_t, rnd_t};
-use std::{
+use core::{
     cmp::Ordering,
     ops::{
         Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
         SubAssign,
     },
-    os::raw::{c_int, c_long, c_ulong},
 };
+use gmp_mpfr_sys::mpfr::{self, mpfr_t, rnd_t};
+use libc::{c_int, c_long, c_ulong};
 
 impl Neg for Float {
     type Output = Float;
@@ -758,7 +758,7 @@ pub(crate) mod tests {
         Float,
     };
     #[cfg(feature = "integer")]
-    use {crate::Integer, std::str::FromStr};
+    use {crate::Integer, core::str::FromStr};
 
     pub fn same(a: Float, b: Float) -> bool {
         if a.is_nan() && b.is_nan() {

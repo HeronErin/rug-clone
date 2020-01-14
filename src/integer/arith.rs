@@ -25,8 +25,7 @@ use crate::{
     Assign, Integer,
 };
 use az::{Az, CheckedAs, CheckedCast};
-use gmp_mpfr_sys::gmp;
-use std::{
+use core::{
     cmp,
     iter::{Product, Sum},
     ops::{
@@ -34,8 +33,9 @@ use std::{
         DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub,
         SubAssign,
     },
-    os::raw::{c_long, c_ulong},
 };
+use gmp_mpfr_sys::gmp;
+use libc::{c_long, c_ulong};
 
 // Specialize From implementation so that allocation is done with the
 // right capacity, as Integer::from(&Integer) allocates properly.
@@ -579,7 +579,7 @@ mod tests {
         ops::{AddFrom, Pow, SubFrom},
         Integer,
     };
-    use std::{
+    use core::{
         cmp::Ordering,
         ops::{AddAssign, SubAssign},
     };

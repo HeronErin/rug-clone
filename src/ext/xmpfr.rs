@@ -21,22 +21,19 @@ use crate::{
     Float,
 };
 use az::CheckedAs;
+use core::{cmp::Ordering, mem::MaybeUninit};
 #[cfg(feature = "rational")]
 use gmp_mpfr_sys::gmp::mpq_t;
 use gmp_mpfr_sys::{
     gmp::limb_t,
     mpfr::{self, exp_t, mpfr_t, prec_t, rnd_t},
 };
-use std::{
-    cmp::Ordering,
-    mem::MaybeUninit,
-    os::raw::{c_int, c_void},
-};
+use libc::{c_int, c_void};
 #[cfg(feature = "integer")]
 use {
     crate::{float, misc::AsOrPanic},
+    core::cmp,
     gmp_mpfr_sys::gmp::{self, mpz_t},
-    std::cmp,
 };
 
 #[inline]

@@ -16,14 +16,14 @@
 
 use crate::{misc::NegAbs, Assign, Integer};
 use az::Az;
-use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
-use std::{
+use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
-    os::raw::c_int,
     ptr,
 };
+use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
+use libc::c_int;
 
 pub const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
 pub type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];

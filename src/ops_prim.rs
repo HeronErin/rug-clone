@@ -22,10 +22,8 @@ use crate::{
     },
     Assign,
 };
-use std::{
-    borrow::Cow,
-    ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub},
-};
+use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
+use std::borrow::Cow;
 
 macro_rules! assign_from {
     ($T:ty; $op:ident; $Imp:ident $method:ident) => {

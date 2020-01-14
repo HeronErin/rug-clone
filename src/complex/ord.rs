@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::Complex;
-use std::{
+use core::{
     cmp::Ordering,
     hash::{Hash, Hasher},
 };
@@ -32,8 +32,8 @@ positive NaNs produces equality.
 # Examples
 
 ```rust
+use core::cmp::Ordering;
 use rug::{complex::OrdComplex, float::Special, Complex};
-use std::cmp::Ordering;
 
 let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
 let nan = OrdComplex::from(nan_c);
@@ -157,10 +157,8 @@ mod tests {
         float::{self, FreeCache, Special},
         Complex,
     };
-    use std::{
-        collections::hash_map::DefaultHasher,
-        hash::{Hash, Hasher},
-    };
+    use core::hash::{Hash, Hasher};
+    use std::collections::hash_map::DefaultHasher;
 
     fn calculate_hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();

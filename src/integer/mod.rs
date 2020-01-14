@@ -52,7 +52,7 @@ pub use crate::integer::{
     small::{SmallInteger, ToSmall},
 };
 
-use std::os::raw::c_int;
+use libc::c_int;
 
 /**
 An error which can be returned when a checked conversion from
@@ -61,8 +61,8 @@ An error which can be returned when a checked conversion from
 # Examples
 
 ```rust
+use core::convert::TryFrom;
 use rug::{integer::TryFromIntegerError, Integer};
-use std::convert::TryFrom;
 // This is negative and cannot be converted to u32.
 let i = Integer::from(-5);
 let error: TryFromIntegerError = match u32::try_from(&i) {
@@ -140,7 +140,7 @@ impl Order {
 #[allow(clippy::cognitive_complexity, clippy::float_cmp)]
 mod tests {
     use crate::{integer::Order, ops::NegAssign, Assign, Integer};
-    use std::{f32, f64, i128, i32, i64, u128, u32, u64};
+    use core::{f32, f64, i128, i32, i64, u128, u32, u64};
 
     #[test]
     fn check_int_conversions() {

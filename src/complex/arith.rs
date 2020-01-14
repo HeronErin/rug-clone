@@ -30,14 +30,12 @@ use crate::{
     Complex, Float,
 };
 use az::{CheckedAs, CheckedCast};
-use gmp_mpfr_sys::mpc::{self, mpc_t, rnd_t};
-use std::{
-    ops::{
-        Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
-        SubAssign,
-    },
-    os::raw::{c_int, c_long, c_ulong},
+use core::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
+    SubAssign,
 };
+use gmp_mpfr_sys::mpc::{self, mpc_t, rnd_t};
+use libc::{c_int, c_long, c_ulong};
 
 impl Neg for Complex {
     type Output = Complex;
@@ -734,7 +732,7 @@ mod tests {
         Complex, Float,
     };
     #[cfg(feature = "integer")]
-    use {crate::Integer, std::str::FromStr};
+    use {crate::Integer, core::str::FromStr};
 
     #[test]
     fn check_neg() {
@@ -952,7 +950,7 @@ mod tests {
     #[test]
     fn check_pow() {
         use crate::tests::{F32, I32};
-        use std::f64;
+        use core::f64;
         let large = [
             Complex::with_val(20, (Special::Zero, 1.0)),
             Complex::with_val(20, (Special::NegZero, 1.0)),

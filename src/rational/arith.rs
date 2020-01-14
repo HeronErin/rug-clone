@@ -21,14 +21,14 @@ use crate::{
     Assign, Integer, Rational,
 };
 use az::{CheckedAs, CheckedCast};
-use std::{
+use core::{
     iter::{Product, Sum},
     ops::{
         Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
         SubAssign,
     },
-    os::raw::{c_long, c_ulong},
 };
+use libc::{c_long, c_ulong};
 
 // Specialize From implementation so that allocation is done with the
 // right capacity, as Rational::from(&Rational) allocates properly.
@@ -342,7 +342,7 @@ fn rhs_has_more_alloc(lhs: &Rational, rhs: &Rational) -> bool {
 #[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::{ops::Pow, Integer, Rational};
-    use std::cmp::Ordering;
+    use core::cmp::Ordering;
 
     macro_rules! test_ref_op {
         ($first:expr, $second:expr) => {

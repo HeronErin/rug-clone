@@ -49,15 +49,16 @@ Both [`RandState`] and [`ThreadRandState`] implement the
 */
 
 use crate::{misc::AsOrPanic, Integer};
-use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randfnptr_t, randseed_t, randstate_t};
-#[cfg(not(ffi_panic_aborts))]
-use std::panic::{self, AssertUnwindSafe};
-use std::{
+use core::{
     marker::PhantomData,
     mem::{self, MaybeUninit},
-    os::raw::{c_ulong, c_void},
-    process, ptr,
+    ptr,
 };
+use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randfnptr_t, randseed_t, randstate_t};
+use libc::{c_ulong, c_void};
+#[cfg(not(ffi_panic_aborts))]
+use std::panic::{self, AssertUnwindSafe};
+use std::process;
 
 /**
 The state of a random number generator.
@@ -346,9 +347,9 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
+    /// use core::mem::MaybeUninit;
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
-    /// use std::mem::MaybeUninit;
     /// let mut rand = unsafe {
     ///     let mut raw = MaybeUninit::uninit();
     ///     gmp::randinit_default(raw.as_mut_ptr());
@@ -775,9 +776,9 @@ impl ThreadRandState<'_> {
     /// # Examples
     ///
     /// ```rust
+    /// use core::mem::MaybeUninit;
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::ThreadRandState;
-    /// use std::mem::MaybeUninit;
     /// let mut rand = unsafe {
     ///     let mut raw = MaybeUninit::uninit();
     ///     gmp::randinit_default(raw.as_mut_ptr());
@@ -1772,8 +1773,8 @@ impl SealedMutRandState for ThreadRandState<'_> {
 #[cfg(test)]
 mod tests {
     use crate::rand::{RandGen, RandState, ThreadRandGen, ThreadRandState};
+    use core::ptr;
     use gmp_mpfr_sys::gmp;
-    use std::ptr;
 
     struct SimpleGenerator {
         seed: u64,

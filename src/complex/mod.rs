@@ -88,7 +88,7 @@ mod tests {
         float::{self, tests::Cmp, FreeCache, Special},
         Assign, Complex,
     };
-    use std::f64;
+    use core::f64;
 
     #[test]
     fn check_from_str() {

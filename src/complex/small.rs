@@ -19,16 +19,16 @@ use crate::{
     float::{small::Mpfr, ToSmall},
     Assign, Complex,
 };
-use gmp_mpfr_sys::{
-    gmp::{self, limb_t},
-    mpc::mpc_t,
-    mpfr::mpfr_t,
-};
-use std::{
+use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
     ptr,
+};
+use gmp_mpfr_sys::{
+    gmp::{self, limb_t},
+    mpc::mpc_t,
+    mpfr::mpfr_t,
 };
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;

@@ -15,6 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{complex::SmallComplex, ext::xmpfr, float::Round, Complex};
+use core::cmp::Ordering;
 #[cfg(feature = "rational")]
 use gmp_mpfr_sys::gmp::mpq_t;
 #[cfg(feature = "integer")]
@@ -23,10 +24,7 @@ use gmp_mpfr_sys::{
     mpc::{self, mpc_t, rnd_t},
     mpfr::{self, rnd_t as mpfr_rnd_t},
 };
-use std::{
-    cmp::Ordering,
-    os::raw::{c_int, c_long, c_ulong},
-};
+use libc::{c_int, c_long, c_ulong};
 
 pub type Round2 = (Round, Round);
 pub const NEAREST2: Round2 = (Round::Nearest, Round::Nearest);

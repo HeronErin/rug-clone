@@ -15,11 +15,11 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::Float;
-use gmp_mpfr_sys::mpfr;
-use std::{
+use core::{
     cmp::Ordering,
     hash::{Hash, Hasher},
 };
+use gmp_mpfr_sys::mpfr;
 
 /**
 A float that supports total ordering and hashing.
@@ -32,11 +32,11 @@ positive NaNs produces equality.
 # Examples
 
 ```rust
+use core::cmp::Ordering;
 use rug::{
     float::{OrdFloat, Special},
     Float,
 };
-use std::cmp::Ordering;
 
 let pos_nan_f = Float::with_val(53, Special::Nan);
 let pos_inf_f = Float::with_val(53, Special::Infinity);
@@ -202,10 +202,8 @@ mod tests {
         float::{self, FreeCache, Special},
         Float,
     };
-    use std::{
-        collections::hash_map::DefaultHasher,
-        hash::{Hash, Hasher},
-    };
+    use core::hash::{Hash, Hasher};
+    use std::collections::hash_map::DefaultHasher;
 
     fn calculate_hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();

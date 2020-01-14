@@ -21,17 +21,17 @@ use crate::{
     Assign, Float,
 };
 use az::Az;
+use core::{
+    cell::UnsafeCell,
+    mem::{self, MaybeUninit},
+    ops::Deref,
+    ptr,
+};
 use gmp_mpfr_sys::{
     gmp::{self, limb_t},
     mpfr::{self, exp_t, mpfr_t, prec_t},
 };
-use std::{
-    cell::UnsafeCell,
-    mem::{self, MaybeUninit},
-    ops::Deref,
-    os::raw::c_int,
-    ptr,
-};
+use libc::c_int;
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
 type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];

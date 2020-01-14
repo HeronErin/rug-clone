@@ -2462,8 +2462,8 @@ macro_rules! static_assert {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! static_assert_same_layout {
     ($T:ty, $U:ty) => {
-        static_assert!(std::mem::size_of::<$T>() == std::mem::size_of::<$U>());
-        static_assert!(std::mem::align_of::<$T>() == std::mem::align_of::<$U>());
+        static_assert!(core::mem::size_of::<$T>() == core::mem::size_of::<$U>());
+        static_assert!(core::mem::align_of::<$T>() == core::mem::align_of::<$U>());
     };
 }
 
@@ -2477,7 +2477,7 @@ macro_rules! cast_ptr {
             }
             #[inline(always)]
             fn get(self) -> *const $T {
-                debug_assert_eq!(std::mem::align_of::<$T>(), std::mem::align_of::<T>());
+                debug_assert_eq!(core::mem::align_of::<$T>(), core::mem::align_of::<T>());
                 self.0 as *const $T
             }
         }
@@ -2486,7 +2486,7 @@ macro_rules! cast_ptr {
             #[allow(unused_unsafe)]
             #[allow(clippy::transmute_ptr_to_ptr)]
             unsafe {
-                let _ = std::mem::transmute::<_, $T>(ptr.static_check_size());
+                let _ = core::mem::transmute::<_, $T>(ptr.static_check_size());
             }
         }
         ptr.get()
@@ -2503,7 +2503,7 @@ macro_rules! cast_ptr_mut {
             }
             #[inline(always)]
             fn get(self) -> *mut $T {
-                debug_assert_eq!(std::mem::align_of::<$T>(), std::mem::align_of::<T>());
+                debug_assert_eq!(core::mem::align_of::<$T>(), core::mem::align_of::<T>());
                 self.0 as *mut $T
             }
         }
@@ -2512,7 +2512,7 @@ macro_rules! cast_ptr_mut {
             #[allow(unused_unsafe)]
             #[allow(clippy::transmute_ptr_to_ptr)]
             unsafe {
-                let _ = std::mem::transmute::<_, $T>(ptr.static_check_size());
+                let _ = core::mem::transmute::<_, $T>(ptr.static_check_size());
             }
         }
         ptr.get()
@@ -2524,14 +2524,14 @@ macro_rules! cast_ptr_mut {
 macro_rules! small_limbs {
     () => {
         [
-            std::mem::MaybeUninit::uninit(),
-            std::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::uninit(),
         ]
     };
     ($limb:expr) => {
         [
-            std::mem::MaybeUninit::new($limb),
-            std::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::new($limb),
+            core::mem::MaybeUninit::uninit(),
         ]
     };
 }
@@ -2541,18 +2541,18 @@ macro_rules! small_limbs {
 macro_rules! small_limbs {
     () => {
         [
-            std::mem::MaybeUninit::uninit(),
-            std::mem::MaybeUninit::uninit(),
-            std::mem::MaybeUninit::uninit(),
-            std::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::uninit(),
         ]
     };
     ($limb:expr) => {
         [
-            std::mem::MaybeUninit::new($limb),
-            std::mem::MaybeUninit::uninit(),
-            std::mem::MaybeUninit::uninit(),
-            std::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::new($limb),
+            core::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::uninit(),
+            core::mem::MaybeUninit::uninit(),
         ]
     };
 }

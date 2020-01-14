@@ -22,12 +22,12 @@ use crate::{
     Assign, Integer, Rational,
 };
 use az::{Az, CheckedAs};
-use gmp_mpfr_sys::gmp::{self, mpq_t};
-use std::{
+use core::{
     cmp::Ordering,
     mem::{self, MaybeUninit},
-    os::raw::{c_int, c_long, c_ulong},
 };
+use gmp_mpfr_sys::gmp::{self, mpq_t};
+use libc::{c_int, c_long, c_ulong};
 
 macro_rules! wrap {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {

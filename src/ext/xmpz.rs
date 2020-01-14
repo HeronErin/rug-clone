@@ -20,15 +20,11 @@ use crate::{
     Integer,
 };
 use az::Az;
+use core::{cmp::Ordering, i16, i8, ptr, u16, u8};
 #[cfg(feature = "rand")]
 use gmp_mpfr_sys::gmp::randstate_t;
 use gmp_mpfr_sys::gmp::{self, bitcnt_t, limb_t, mpz_t, size_t};
-use std::{
-    cmp::Ordering,
-    i16, i8,
-    os::raw::{c_long, c_ulong},
-    ptr, u16, u8,
-};
+use libc::{c_long, c_ulong};
 
 #[cfg(gmp_limb_bits_32)]
 pub use crate::ext::xmpz32::*;
