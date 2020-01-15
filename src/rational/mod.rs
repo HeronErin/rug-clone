@@ -212,41 +212,47 @@ mod tests {
         assert_eq!("-13/7".parse::<Rational>().unwrap(), (-13, 7));
 
         let bad_strings = [
-            ("_1", None),
-            ("+_1", None),
-            ("-_1", None),
-            ("1/_1", None),
-            ("+-3", None),
-            ("-+3", None),
-            ("++3", None),
-            ("--3", None),
-            ("0+3", None),
-            ("", None),
-            ("1/-1", None),
-            ("1/+3", None),
-            ("1/0", None),
-            ("/2", None),
-            ("2/", None),
-            ("2/2/", None),
-            ("1/80", Some(8)),
-            ("0xf", Some(16)),
-            ("9", Some(9)),
-            (":0", Some(36)),
-            ("/0", Some(36)),
-            (":0", Some(36)),
-            ("@0", Some(36)),
-            ("[0", Some(36)),
-            ("`0", Some(36)),
-            ("{0", Some(36)),
-            ("Z0", Some(35)),
-            ("z0", Some(35)),
+            ("_1", 10, "invalid digit found in string"),
+            ("+_1", 10, "invalid digit found in string"),
+            ("-_1", 10, "invalid digit found in string"),
+            ("1/_1", 10, "invalid digit found in string"),
+            ("+-3", 10, "invalid digit found in string"),
+            ("-+3", 10, "invalid digit found in string"),
+            ("++3", 10, "invalid digit found in string"),
+            ("--3", 10, "invalid digit found in string"),
+            ("0+3", 10, "invalid digit found in string"),
+            ("", 10, "string has no digits"),
+            (" ", 10, "string has no digits"),
+            ("1/-1", 10, "invalid digit found in string"),
+            ("1/+3", 10, "invalid digit found in string"),
+            ("1/0", 10, "string has zero denominator"),
+            ("/2", 10, "string has no digits for numerator"),
+            ("2/", 10, "string has no digits for denominator"),
+            ("2/2/", 10, "more than one / found in string"),
+            ("1/80", 8, "invalid digit found in string"),
+            ("0xf", 16, "invalid digit found in string"),
+            ("9", 9, "invalid digit found in string"),
+            (":0", 36, "invalid digit found in string"),
+            ("/0", 36, "string has no digits for numerator"),
+            (":0", 36, "invalid digit found in string"),
+            ("@0", 36, "invalid digit found in string"),
+            ("[0", 36, "invalid digit found in string"),
+            ("`0", 36, "invalid digit found in string"),
+            ("{0", 36, "invalid digit found in string"),
+            ("Z0", 35, "invalid digit found in string"),
+            ("z0", 35, "invalid digit found in string"),
         ];
-        for &(s, radix) in bad_strings.iter() {
-            assert!(
-                Rational::parse_radix(s, radix.unwrap_or(10)).is_err(),
-                "{} parsed correctly",
-                s
-            );
+        for &(s, radix, msg) in bad_strings.iter() {
+            match Rational::parse_radix(s, radix) {
+                Ok(o) => panic!(
+                    "\"{}\" (radix {}) parsed correctly as {}, expected: {}",
+                    s,
+                    radix,
+                    Rational::from(o),
+                    msg
+                ),
+                Err(e) => assert_eq!(e.to_string(), msg, "\"{}\" (radix {})", s, radix),
+            }
         }
         let good_strings = [
             ("0", 10, 0, 1),

@@ -111,27 +111,60 @@ mod tests {
         assert_eq!(c, (0x33, 0));
 
         let bad_strings = [
-            ("", None),
-            ("(0 0) 0", None),
-            ("(0 0 0)", None),
-            ("(0) ", None),
-            ("(, 0)", None),
-            ("(0 )", None),
-            ("(0, )", None),
-            ("(0,,0 )", None),
-            (" ( 2)", None),
-            ("+(1 1)", None),
-            ("-(1. 1.)", None),
-            ("(f 1)", None),
-            ("(1 1@1a)", Some(16)),
-            ("(8 )", Some(9)),
+            ("", 10, "string has no digits"),
+            (
+                "(0 0) 0",
+                10,
+                "string has more characters after closing bracket",
+            ),
+            (
+                "(0 0 0)",
+                10,
+                "string has more than one separator inside brackets",
+            ),
+            ("(0) ", 10, "string has no separator inside brackets"),
+            ("(, 0)", 10, "string has no real digits"),
+            ("(0 )", 10, "string has no separator inside brackets"),
+            ("(0, )", 10, "string has no imaginary digits"),
+            (
+                "(0,,0 )",
+                10,
+                "string has more than one separator inside brackets",
+            ),
+            (" ( 2)", 10, "string has no separator inside brackets"),
+            (
+                "+(1 1)",
+                10,
+                "string is not a valid float: invalid digit found in string",
+            ),
+            (
+                "-(1. 1.)",
+                10,
+                "string is not a valid float: invalid digit found in string",
+            ),
+            (
+                "(f 1)",
+                10,
+                "real part of string is not a valid float: invalid digit found in string",
+            ),
+            (
+                "(1 1@1a)",
+                16,
+                "imaginary part of string is not a valid float: invalid digit found in string",
+            ),
+            ("(8 )", 9, "string has no separator inside brackets"),
         ];
-        for &(s, radix) in bad_strings.iter() {
-            assert!(
-                Complex::parse_radix(s, radix.unwrap_or(10)).is_err(),
-                "{} parsed correctly",
-                s
-            );
+        for &(s, radix, msg) in bad_strings.iter() {
+            match Complex::parse_radix(s, radix) {
+                Ok(o) => panic!(
+                    "\"{}\" (radix {}) parsed correctly as {}, expected: {}",
+                    s,
+                    radix,
+                    Complex::with_val(53, o),
+                    msg
+                ),
+                Err(e) => assert_eq!(e.to_string(), msg, "\"{}\" (radix {})", s, radix),
+            }
         }
         let good_strings = [
             ("(inf -@inf@)", 10, Cmp::inf(false), Cmp::inf(true)),

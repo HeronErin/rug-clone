@@ -304,34 +304,40 @@ mod tests {
         assert_eq!(i.significant_bits(), 129);
 
         let bad_strings = [
-            ("_1", None),
-            ("+_1", None),
-            ("-_1", None),
-            ("+-3", None),
-            ("-+3", None),
-            ("++3", None),
-            ("--3", None),
-            ("0+3", None),
-            ("", None),
-            ("9\09", None),
-            ("80", Some(8)),
-            ("0xf", Some(16)),
-            ("9", Some(9)),
-            ("/0", Some(36)),
-            (":0", Some(36)),
-            ("@0", Some(36)),
-            ("[0", Some(36)),
-            ("`0", Some(36)),
-            ("{0", Some(36)),
-            ("Z0", Some(35)),
-            ("z0", Some(35)),
+            ("_1", 10, "invalid digit found in string"),
+            ("+_1", 10, "invalid digit found in string"),
+            ("-_1", 10, "invalid digit found in string"),
+            ("+-3", 10, "invalid digit found in string"),
+            ("-+3", 10, "invalid digit found in string"),
+            ("++3", 10, "invalid digit found in string"),
+            ("--3", 10, "invalid digit found in string"),
+            ("0+3", 10, "invalid digit found in string"),
+            ("", 10, "string has no digits"),
+            (" ", 10, "string has no digits"),
+            ("9\09", 10, "invalid digit found in string"),
+            ("80", 8, "invalid digit found in string"),
+            ("0xf", 16, "invalid digit found in string"),
+            ("9", 9, "invalid digit found in string"),
+            ("/0", 36, "invalid digit found in string"),
+            (":0", 36, "invalid digit found in string"),
+            ("@0", 36, "invalid digit found in string"),
+            ("[0", 36, "invalid digit found in string"),
+            ("`0", 36, "invalid digit found in string"),
+            ("{0", 36, "invalid digit found in string"),
+            ("Z0", 35, "invalid digit found in string"),
+            ("z0", 35, "invalid digit found in string"),
         ];
-        for &(s, radix) in bad_strings.iter() {
-            assert!(
-                Integer::parse_radix(s, radix.unwrap_or(10)).is_err(),
-                "{} parsed correctly",
-                s
-            );
+        for &(s, radix, msg) in bad_strings.iter() {
+            match Integer::parse_radix(s, radix) {
+                Ok(o) => panic!(
+                    "\"{}\" (radix {}) parsed correctly as {}, expected: {}",
+                    s,
+                    radix,
+                    Integer::from(o),
+                    msg
+                ),
+                Err(e) => assert_eq!(e.to_string(), msg, "\"{}\" (radix {})", s, radix),
+            }
         }
         let good_strings = [
             ("0", 10, 0),

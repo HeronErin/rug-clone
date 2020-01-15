@@ -392,34 +392,39 @@ pub(crate) mod tests {
         assert!(Float::with_val(53, Float::parse_radix(huge_hex, 16).unwrap()).is_infinite());
 
         let bad_strings = [
-            ("", 10),
-            ("-", 10),
-            ("+", 10),
-            (".", 10),
-            ("inf", 11),
-            ("@ nan @", 10),
-            ("inf", 16),
-            ("1.1.", 10),
-            ("1e", 10),
-            ("e10", 10),
-            (".e10", 10),
-            ("1e1.", 10),
-            ("1e1e1", 10),
-            ("1e+-1", 10),
-            ("1e-+1", 10),
-            ("+-1", 10),
-            ("-+1", 10),
-            ("infinit", 10),
-            ("1@1a", 16),
-            ("9", 9),
-            ("nan(20) x", 10),
+            ("", 10, "string has no digits"),
+            ("-", 10, "string has no digits"),
+            ("+", 10, "string has no digits"),
+            (".", 10, "string has no digits"),
+            ("inf", 11, "invalid digit found in string"),
+            ("@ nan @", 10, "string has no digits for significand"),
+            ("inf", 16, "invalid digit found in string"),
+            ("1.1.", 10, "more than one point found in string"),
+            ("1e", 10, "string has no digits for exponent"),
+            ("e10", 10, "string has no digits for significand"),
+            (".e10", 10, "string has no digits for significand"),
+            ("1e1.", 10, "string has point in exponent"),
+            ("1e1e1", 10, "more than one exponent found in string"),
+            ("1e+-1", 10, "invalid digit found in string"),
+            ("1e-+1", 10, "invalid digit found in string"),
+            ("+-1", 10, "invalid digit found in string"),
+            ("-+1", 10, "invalid digit found in string"),
+            ("infinit", 10, "invalid digit found in string"),
+            ("1@1a", 16, "invalid digit found in string"),
+            ("9", 9, "invalid digit found in string"),
+            ("nan(20) x", 10, "invalid digit found in string"),
         ];
-        for &(s, radix) in bad_strings.iter() {
-            assert!(
-                Float::parse_radix(s, radix).is_err(),
-                "{} parsed correctly",
-                s
-            );
+        for &(s, radix, msg) in bad_strings.iter() {
+            match Float::parse_radix(s, radix) {
+                Ok(o) => panic!(
+                    "\"{}\" (radix {}) parsed correctly as {}, expected: {}",
+                    s,
+                    radix,
+                    Float::with_val(53, o),
+                    msg
+                ),
+                Err(e) => assert_eq!(e.to_string(), msg, "\"{}\" (radix {})", s, radix),
+            }
         }
         let good_strings = [
             ("INF", 10, Cmp::inf(false)),
