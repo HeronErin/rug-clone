@@ -538,6 +538,15 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn check_i_pow_u() {
+        for &(i, u) in &[(13, 4), (13, 5), (-13, 4), (-13, 5)] {
+            let p = Float::i_pow_u(i, u);
+            let f = Float::with_val(53, p);
+            assert_eq!(f, i.pow(u));
+        }
+    }
+
+    #[test]
     fn check_nanflag() {
         clear_nanflag();
         let nan = Float::with_val(53, Special::Nan);
