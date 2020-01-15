@@ -200,6 +200,11 @@ mod tests {
         assert_eq!(format!("{:?}", c), "(0.0 -0.0)");
         assert_eq!(format!("{:+}", c), "(+0.0 -0.0)");
         assert_eq!(format!("{:+}", *c.as_neg()), "(-0.0 +0.0)");
+        assert_eq!(format!("{:<15}", c), "(0.0 -0.0)     ");
+        assert_eq!(format!("{:>15}", c), "     (0.0 -0.0)");
+        assert_eq!(format!("{:15}", c), "     (0.0 -0.0)");
+        assert_eq!(format!("{:^15}", c), "  (0.0 -0.0)   ");
+        assert_eq!(format!("{:^16}", c), "   (0.0 -0.0)   ");
         c.assign((2.7, f64::NEG_INFINITY));
         assert_eq!(format!("{:.2}", c), "(2.7 -inf)");
         assert_eq!(format!("{:+.8}", c), "(+2.7000000 -inf)");

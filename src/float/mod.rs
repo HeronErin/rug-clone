@@ -496,6 +496,11 @@ pub(crate) mod tests {
         assert_eq!(format!("{}", f), "0.0");
         assert_eq!(format!("{:?}", f), "0.0");
         assert_eq!(format!("{:+?}", f), "+0.0");
+        assert_eq!(format!("{:<10}", f), "0.0       ");
+        assert_eq!(format!("{:>10}", f), "       0.0");
+        assert_eq!(format!("{:10}", f), "       0.0");
+        assert_eq!(format!("{:^10}", f), "   0.0    ");
+        assert_eq!(format!("{:^11}", f), "    0.0    ");
         f.assign(Special::NegZero);
         assert_eq!(format!("{}", f), "-0.0");
         assert_eq!(format!("{:?}", f), "-0.0");

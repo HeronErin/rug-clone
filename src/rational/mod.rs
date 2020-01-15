@@ -60,6 +60,7 @@ pub struct TryFromFloatError {
 }
 
 #[cfg(test)]
+#[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::{rational::SmallRational, Integer, Rational};
 
@@ -282,6 +283,11 @@ mod tests {
         let r = Rational::from((-11, 15));
         assert_eq!(format!("{}", r), "-11/15");
         assert_eq!(format!("{:?}", r), "-11/15");
+        assert_eq!(format!("{:<10}", r), "-11/15    ");
+        assert_eq!(format!("{:>10}", r), "    -11/15");
+        assert_eq!(format!("{:10}", r), "    -11/15");
+        assert_eq!(format!("{:^10}", r), "  -11/15  ");
+        assert_eq!(format!("{:^11}", r), "  -11/15   ");
         assert_eq!(format!("{:b}", r), "-1011/1111");
         assert_eq!(format!("{:#b}", r), "-0b1011/1111");
         assert_eq!(format!("{:o}", r), "-13/17");
