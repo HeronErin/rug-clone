@@ -45,8 +45,10 @@ use {
 impl Clone for Float {
     #[inline]
     fn clone(&self) -> Float {
-        let mut ret = Float::new(self.prec());
-        ret.assign(self);
+        let mut ret = Float::new_nan(self.prec());
+        if !self.is_nan() {
+            ret.assign(self);
+        }
         ret
     }
 
@@ -55,7 +57,9 @@ impl Clone for Float {
         unsafe {
             mpfr::set_prec(self.as_raw_mut(), source.prec().as_or_panic());
         }
-        self.assign(source);
+        if !source.is_nan() {
+            self.assign(source);
+        }
     }
 }
 
@@ -232,6 +236,11 @@ impl AssignRound for Float {
     fn assign_round(&mut self, src: Float, round: Round) -> Ordering {
         if self.prec() == src.prec() {
             drop(mem::replace(self, src));
+            if self.is_nan() {
+                unsafe {
+                    mpfr::set_nanflag();
+                }
+            }
             Ordering::Equal
         } else {
             self.assign_round(&src, round)

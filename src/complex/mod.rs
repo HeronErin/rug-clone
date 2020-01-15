@@ -83,9 +83,15 @@ impl Prec for (u32, u32) {
 }
 
 #[cfg(test)]
+#[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::{
-        float::{self, tests::Cmp, FreeCache, Special},
+        float::{
+            self,
+            tests::{clear_nanflag, nanflag, Cmp},
+            FreeCache, Special,
+        },
+        ops::NegAssign,
         Assign, Complex,
     };
     use core::f64;
@@ -179,5 +185,90 @@ mod tests {
         assert_eq!(format!("{:#.2X}", c), "(0x3.8 -0xB.0)");
 
         float::free_cache(FreeCache::All);
+    }
+
+    #[test]
+    fn check_nanflag() {
+        clear_nanflag();
+        let re_nan = Complex::with_val(53, (Special::Nan, Special::Zero));
+        let im_nan = Complex::with_val(53, (Special::Zero, Special::Nan));
+        assert!(!nanflag());
+
+        clear_nanflag();
+        let c = re_nan.clone();
+        assert!(c.real().is_nan() && !c.imag().is_nan());
+        assert!(!nanflag());
+        clear_nanflag();
+        let c = im_nan.clone();
+        assert!(!c.real().is_nan() && c.imag().is_nan());
+        assert!(!nanflag());
+
+        clear_nanflag();
+        let mut m = Complex::new(53);
+        assert!(!m.real().is_nan() && !m.imag().is_nan());
+        assert!(!nanflag());
+        m.clone_from(&re_nan);
+        assert!(m.real().is_nan() && !m.imag().is_nan());
+        assert!(!nanflag());
+        m.assign(&re_nan);
+        assert!(m.real().is_nan() && !m.imag().is_nan());
+        assert!(nanflag());
+        clear_nanflag();
+        let mut m = Complex::new(53);
+        assert!(!m.real().is_nan() && !m.imag().is_nan());
+        assert!(!nanflag());
+        m.clone_from(&im_nan);
+        assert!(!m.real().is_nan() && m.imag().is_nan());
+        assert!(!nanflag());
+        m.assign(&im_nan);
+        assert!(!m.real().is_nan() && m.imag().is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let c = Complex::with_val(53, -&re_nan);
+        assert!(c.real().is_nan() && !c.imag().is_nan());
+        assert!(nanflag());
+        clear_nanflag();
+        let c = Complex::with_val(53, -&im_nan);
+        assert!(!c.real().is_nan() && c.imag().is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let mut m = re_nan.clone();
+        m.neg_assign();
+        assert!(m.real().is_nan() && !m.imag().is_nan());
+        assert!(nanflag());
+        clear_nanflag();
+        let mut m = im_nan.clone();
+        m.neg_assign();
+        assert!(!m.real().is_nan() && m.imag().is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let a = re_nan.as_neg();
+        assert!(a.real().is_nan() && !a.imag().is_nan());
+        assert!(nanflag());
+        clear_nanflag();
+        let a = im_nan.as_neg();
+        assert!(!a.real().is_nan() && a.imag().is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let a = re_nan.as_conj();
+        assert!(a.real().is_nan() && !a.imag().is_nan());
+        assert!(!nanflag());
+        clear_nanflag();
+        let a = im_nan.as_conj();
+        assert!(!a.real().is_nan() && a.imag().is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let a = re_nan.as_mul_i(false);
+        assert!(!a.real().is_nan() && a.imag().is_nan());
+        assert!(nanflag());
+        clear_nanflag();
+        let a = im_nan.as_mul_i(true);
+        assert!(a.real().is_nan() && !a.imag().is_nan());
+        assert!(nanflag());
     }
 }

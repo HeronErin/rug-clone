@@ -326,6 +326,7 @@ pub(crate) mod tests {
     use crate::rand::{RandGen, RandState};
     use crate::{
         float::{self, FreeCache, Round, Special},
+        ops::NegAssign,
         Assign, Float,
     };
     use core::{
@@ -334,6 +335,16 @@ pub(crate) mod tests {
         fmt::{Debug, Error as FmtError, Formatter},
     };
     use gmp_mpfr_sys::{gmp, mpfr};
+
+    pub fn nanflag() -> bool {
+        unsafe { mpfr::nanflag_p() != 0 }
+    }
+
+    pub fn clear_nanflag() {
+        unsafe {
+            mpfr::clear_nanflag();
+        }
+    }
 
     #[derive(Clone, Copy)]
     pub enum Cmp {
@@ -524,6 +535,61 @@ pub(crate) mod tests {
         assert!(unsafe { mpfr::custom_get_size(32) } <= gmp::NUMB_BITS as usize);
 
         float::free_cache(FreeCache::All);
+    }
+
+    #[test]
+    fn check_nanflag() {
+        clear_nanflag();
+        let nan = Float::with_val(53, Special::Nan);
+        assert!(!nanflag());
+
+        clear_nanflag();
+        let c = nan.clone();
+        assert!(c.is_nan());
+        assert!(!nanflag());
+
+        clear_nanflag();
+        let mut m = Float::new(53);
+        assert!(!m.is_nan());
+        assert!(!nanflag());
+        m.clone_from(&nan);
+        assert!(m.is_nan());
+        assert!(!nanflag());
+        m.assign(&nan);
+        assert!(m.is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let c = Float::with_val(53, -&nan);
+        assert!(c.is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let mut m = nan.clone();
+        m.neg_assign();
+        assert!(m.is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let c = Float::with_val(53, nan.clamp_ref(&0, &0));
+        assert!(c.is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let mut m = nan.clone();
+        m.clamp_mut(&0, &0);
+        assert!(m.is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let a = nan.as_neg();
+        assert!(a.is_nan());
+        assert!(nanflag());
+
+        clear_nanflag();
+        let a = nan.as_abs();
+        assert!(a.is_nan());
+        assert!(nanflag());
     }
 
     #[cfg(feature = "rand")]

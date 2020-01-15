@@ -34,15 +34,21 @@ use gmp_mpfr_sys::mpc::{self, mpc_t};
 impl Clone for Complex {
     #[inline]
     fn clone(&self) -> Complex {
-        let prec = self.prec();
-        let mut ret = Complex::new(prec);
-        ret.assign(self);
+        let mut ret = Complex::new_nan(self.prec());
+        let (real, imag) = (self.real(), self.imag());
+        if !real.is_nan() {
+            ret.mut_real().assign(real);
+        }
+        if !imag.is_nan() {
+            ret.mut_imag().assign(imag);
+        }
         ret
     }
 
     #[inline]
     fn clone_from(&mut self, source: &Complex) {
-        self.assign(source);
+        self.mut_real().clone_from(source.real());
+        self.mut_imag().clone_from(source.imag());
     }
 }
 

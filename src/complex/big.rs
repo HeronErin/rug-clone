@@ -217,7 +217,7 @@ macro_rules! ref_math_op1_2_complex {
 
 impl Complex {
     #[inline]
-    fn new_nan<P: Prec>(prec: P) -> Self {
+    pub(crate) fn new_nan<P: Prec>(prec: P) -> Self {
         let p = prec.prec();
         assert!(
             p.0 >= float::prec_min()

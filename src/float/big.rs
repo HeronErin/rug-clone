@@ -412,7 +412,7 @@ impl Float {
     }
 
     #[inline]
-    fn new_nan(prec: u32) -> Self {
+    pub(crate) fn new_nan(prec: u32) -> Self {
         assert!(
             prec >= float::prec_min() && prec <= float::prec_max(),
             "precision out of range"
