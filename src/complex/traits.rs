@@ -27,7 +27,7 @@ use core::{
         Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
         Result as FmtResult, UpperExp, UpperHex,
     },
-    mem::{self, MaybeUninit},
+    mem::MaybeUninit,
 };
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 
@@ -204,19 +204,10 @@ impl AssignRound for Complex {
     fn assign_round(&mut self, src: Complex, round: Round2) -> Ordering2 {
         let (dst_real, dst_imag) = self.as_mut_real_imag();
         let (src_real, src_imag) = src.into_real_imag();
-        let real_ord = if dst_real.prec() == src_real.prec() {
-            drop(mem::replace(dst_real, src_real));
-            Ordering::Equal
-        } else {
-            dst_real.assign_round(src_real, round.0)
-        };
-        let imag_ord = if dst_imag.prec() == src_imag.prec() {
-            drop(mem::replace(dst_imag, src_imag));
-            Ordering::Equal
-        } else {
-            dst_imag.assign_round(src_imag, round.1)
-        };
-        (real_ord, imag_ord)
+        (
+            dst_real.assign_round(src_real, round.0),
+            dst_imag.assign_round(src_imag, round.1),
+        )
     }
 }
 

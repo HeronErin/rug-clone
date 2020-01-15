@@ -214,6 +214,10 @@ mod tests {
         assert!(m.real().is_nan() && !m.imag().is_nan());
         assert!(nanflag());
         clear_nanflag();
+        m.assign(re_nan.clone());
+        assert!(m.real().is_nan() && !m.imag().is_nan());
+        assert!(nanflag());
+        clear_nanflag();
         let mut m = Complex::new(53);
         assert!(!m.real().is_nan() && !m.imag().is_nan());
         assert!(!nanflag());
@@ -221,6 +225,10 @@ mod tests {
         assert!(!m.real().is_nan() && m.imag().is_nan());
         assert!(!nanflag());
         m.assign(&im_nan);
+        assert!(!m.real().is_nan() && m.imag().is_nan());
+        assert!(nanflag());
+        clear_nanflag();
+        m.assign(im_nan.clone());
         assert!(!m.real().is_nan() && m.imag().is_nan());
         assert!(nanflag());
 

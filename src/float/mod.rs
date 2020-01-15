@@ -567,6 +567,10 @@ pub(crate) mod tests {
         m.assign(&nan);
         assert!(m.is_nan());
         assert!(nanflag());
+        clear_nanflag();
+        m.assign(nan.clone());
+        assert!(m.is_nan());
+        assert!(nanflag());
 
         clear_nanflag();
         let c = Float::with_val(53, -&nan);
