@@ -1075,6 +1075,116 @@ pub trait DivFromRound<Lhs = Self> {
 }
 
 /**
+Compound remainder operation and assignment with a specified rounding
+method.
+
+# Examples
+
+```rust
+# #[cfg(feature = "float")] {
+use core::cmp::Ordering;
+use rug::{float::Round, ops::RemAssignRound, Float};
+struct F(f64);
+impl RemAssignRound<f64> for F {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn rem_assign_round(&mut self, rhs: f64, round: Round) -> Ordering {
+        let mut f = Float::with_val(53, self.0);
+        let dir = f.rem_assign_round(rhs, round);
+        self.0 = f.to_f64();
+        dir
+    }
+}
+let mut f = F(3.25);
+let dir = f.rem_assign_round(1.25, Round::Nearest);
+// 3.25 % 1.25 = 0.75
+assert_eq!(f.0, 0.75);
+assert_eq!(dir, Ordering::Equal);
+# }
+```
+*/
+pub trait RemAssignRound<Rhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Performs the remainder operation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, ops::RemAssignRound, Float};
+    /// // only four significant bits
+    /// let mut f = Float::with_val(4, 64);
+    /// let dir = f.rem_assign_round(33, Round::Nearest);
+    /// // 31 rounded up to 32
+    /// assert_eq!(f, 32);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// # }
+    /// ```
+    fn rem_assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+}
+
+/**
+Compound remainder operation and assignment to the rhs operand with a
+specified rounding method.
+
+# Examples
+
+```rust
+# #[cfg(feature = "float")] {
+use core::cmp::Ordering;
+use rug::{
+    float::Round,
+    ops::{RemAssignRound, RemFromRound},
+    Float,
+};
+struct F(f64);
+impl RemFromRound<f64> for F {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn rem_from_round(&mut self, lhs: f64, round: Round) -> Ordering {
+        let mut f = Float::with_val(53, lhs);
+        let dir = f.rem_assign_round(self.0, round);
+        self.0 = f.to_f64();
+        dir
+    }
+}
+let mut f = F(1.25);
+let dir = f.rem_from_round(3.25, Round::Nearest);
+// 3.25 % 1.25 = 0.75
+assert_eq!(f.0, 0.75);
+assert_eq!(dir, Ordering::Equal);
+# }
+```
+*/
+pub trait RemFromRound<Lhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Performs the remainder operation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, ops::RemFromRound, Float};
+    /// // only four significant bits
+    /// let mut f = Float::with_val(4, 32);
+    /// let dir = f.rem_from_round(17, Round::Nearest);
+    /// // 17 rounded down to 16
+    /// assert_eq!(f, 16);
+    /// assert_eq!(dir, Ordering::Less);
+    /// # }
+    /// ```
+    fn rem_from_round(&mut self, rhs: Lhs, round: Self::Round) -> Self::Ordering;
+}
+
+/**
 Compound power operation and assignment with a specified rounding
 method.
 

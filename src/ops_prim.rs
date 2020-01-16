@@ -227,6 +227,7 @@ macro_rules! float_ops {
         assign_from! { $T; sub; SubFrom sub_from }
         assign_from! { $T; mul; MulFrom mul_from }
         assign_from! { $T; div; DivFrom div_from }
+        assign_from! { $T; rem; RemFrom rem_from }
         assign_from! { $T; pow; PowFrom pow_from }
     )* };
 }

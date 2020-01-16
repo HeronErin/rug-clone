@@ -24,7 +24,7 @@ use crate::{
     ops::{
         AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
         MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
-        PowFromRound, SubAssignRound, SubFrom, SubFromRound,
+        PowFromRound, RemAssignRound, RemFrom, RemFromRound, SubAssignRound, SubFrom, SubFromRound,
     },
     Float,
 };
@@ -32,8 +32,8 @@ use az::{CheckedAs, CheckedCast};
 use core::{
     cmp::Ordering,
     ops::{
-        Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
-        SubAssign,
+        Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Shl, ShlAssign, Shr,
+        ShrAssign, Sub, SubAssign,
     },
 };
 use gmp_mpfr_sys::mpfr::{self, mpfr_t, rnd_t};
@@ -214,6 +214,15 @@ arith_binary_self_float! {
     DivFrom { div_from }
     DivFromRound { div_from_round }
     DivIncomplete
+}
+arith_binary_self_float! {
+    mpfr::fmod;
+    Rem { rem }
+    RemAssign { rem_assign }
+    RemAssignRound { rem_assign_round }
+    RemFrom { rem_from }
+    RemFromRound { rem_from_round }
+    RemIncomplete
 }
 arith_binary_self_float! {
     mpfr::pow;
@@ -473,6 +482,26 @@ arith_prim_noncommut_float! {
     f64, DivF64Incomplete, DivFromF64Incomplete;
 }
 arith_prim_noncommut_float! {
+    PrimOps::rem, PrimOps::rem_from;
+    Rem { rem }
+    RemAssign { rem_assign }
+    RemAssignRound { rem_assign_round }
+    RemFrom { rem_from }
+    RemFromRound { rem_from_round }
+    i8, RemI8Incomplete, RemFromI8Incomplete;
+    i16, RemI16Incomplete, RemFromI16Incomplete;
+    i32, RemI32Incomplete, RemFromI32Incomplete;
+    i64, RemI64Incomplete, RemFromI64Incomplete;
+    i128, RemI128Incomplete, RemFromI128Incomplete;
+    u8, RemU8Incomplete, RemFromU8Incomplete;
+    u16, RemU16Incomplete, RemFromU16Incomplete;
+    u32, RemU32Incomplete, RemFromU32Incomplete;
+    u64, RemU64Incomplete, RemFromU64Incomplete;
+    u128, RemU128Incomplete, RemFromU128Incomplete;
+    f32, RemF32Incomplete, RemFromF32Incomplete;
+    f64, RemF64Incomplete, RemFromF64Incomplete;
+}
+arith_prim_noncommut_float! {
     PrimOps::pow, PrimOps::pow_from;
     Pow { pow }
     PowAssign { pow_assign }
@@ -547,6 +576,8 @@ trait PrimOps<Long>: AsLong {
     unsafe fn mul(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
     unsafe fn div(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
     unsafe fn div_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
+    unsafe fn rem(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
+    unsafe fn rem_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
     unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
     unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
 }
@@ -579,6 +610,13 @@ macro_rules! forward {
             }
         }
     };
+    (fn $fn:ident() -> $deleg:path) => {
+        #[inline]
+        unsafe fn $fn(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int {
+            let small: SmallFloat = op2.into();
+            $deleg(rop, op1, small.as_raw(), rnd)
+        }
+    };
 }
 macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
@@ -590,6 +628,13 @@ macro_rules! reverse {
                 let small: SmallFloat = op1.into();
                 $deleg(rop, small.as_raw(), op2, rnd)
             }
+        }
+    };
+    (fn $fn:ident() -> $deleg:path) => {
+        #[inline]
+        unsafe fn $fn(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int {
+            let small: SmallFloat = op1.into();
+            $deleg(rop, small.as_raw(), op2, rnd)
         }
     };
 }
@@ -604,13 +649,10 @@ where
     forward! { fn mul() -> mpfr::mul_si, mpfr::mul }
     forward! { fn div() -> mpfr::div_si, mpfr::div }
     reverse! { fn div_from() -> mpfr::si_div, mpfr::div }
+    forward! { fn rem() -> mpfr::fmod }
+    reverse! { fn rem_from() -> mpfr::fmod }
     forward! { fn pow() -> mpfr::pow_si, mpfr::pow }
-
-    #[inline]
-    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int {
-        let small: SmallFloat = op1.into();
-        mpfr::pow(rop, small.as_raw(), op2, rnd)
-    }
+    reverse! { fn pow_from() -> mpfr::pow }
 }
 
 impl<T> PrimOps<c_ulong> for T
@@ -623,6 +665,8 @@ where
     forward! { fn mul() -> mpfr::mul_ui, mpfr::mul }
     forward! { fn div() -> mpfr::div_ui, mpfr::div }
     reverse! { fn div_from() -> mpfr::ui_div, mpfr::div }
+    forward! { fn rem() -> mpfr::fmod }
+    reverse! { fn rem_from() -> mpfr::fmod }
     forward! { fn pow() -> mpfr::pow_ui, mpfr::pow }
     reverse! { fn pow_from() -> mpfr::ui_pow, mpfr::pow }
 }
@@ -637,18 +681,10 @@ where
     forward! { fn mul() -> mpfr::mul_d, mpfr::mul }
     forward! { fn div() -> mpfr::div_d, mpfr::div }
     reverse! { fn div_from() -> mpfr::d_div, mpfr::div }
-
-    #[inline]
-    unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int {
-        let small: SmallFloat = op2.into();
-        mpfr::pow(rop, op1, small.as_raw(), rnd)
-    }
-
-    #[inline]
-    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int {
-        let small: SmallFloat = op1.into();
-        mpfr::pow(rop, small.as_raw(), op2, rnd)
-    }
+    forward! { fn rem() -> mpfr::fmod }
+    reverse! { fn rem_from() -> mpfr::fmod }
+    forward! { fn pow() -> mpfr::pow }
+    reverse! { fn pow_from() -> mpfr::pow }
 }
 
 impl<'a> Add for MulIncomplete<'a> {
@@ -798,12 +834,14 @@ pub(crate) mod tests {
         test_ref_op!(lhs - rhs, lhs.clone() - rhs);
         test_ref_op!(lhs * rhs, lhs.clone() * rhs);
         test_ref_op!(lhs / rhs, lhs.clone() / rhs);
+        test_ref_op!(lhs % rhs, lhs.clone() % rhs);
         test_ref_op!(lhs.pow(rhs), lhs.clone().pow(rhs));
 
         test_ref_op!(lhs + pu, lhs.clone() + pu);
         test_ref_op!(lhs - pu, lhs.clone() - pu);
         test_ref_op!(lhs * pu, lhs.clone() * pu);
         test_ref_op!(lhs / pu, lhs.clone() / pu);
+        test_ref_op!(lhs % pu, lhs.clone() % pu);
         test_ref_op!(lhs << pu, lhs.clone() << pu);
         test_ref_op!(lhs >> pu, lhs.clone() >> pu);
         test_ref_op!(lhs.pow(pu), lhs.clone().pow(pu));
@@ -812,12 +850,14 @@ pub(crate) mod tests {
         test_ref_op!(pu - lhs, pu - lhs.clone());
         test_ref_op!(pu * lhs, pu * lhs.clone());
         test_ref_op!(pu / lhs, pu / lhs.clone());
+        test_ref_op!(pu % lhs, pu % lhs.clone());
         test_ref_op!(Pow::pow(pu, lhs), Pow::pow(pu, lhs.clone()));
 
         test_ref_op!(lhs + pi, lhs.clone() + pi);
         test_ref_op!(lhs - pi, lhs.clone() - pi);
         test_ref_op!(lhs * pi, lhs.clone() * pi);
         test_ref_op!(lhs / pi, lhs.clone() / pi);
+        test_ref_op!(lhs % pi, lhs.clone() % pi);
         test_ref_op!(lhs << pi, lhs.clone() << pi);
         test_ref_op!(lhs >> pi, lhs.clone() >> pi);
         test_ref_op!(lhs.pow(pi), lhs.clone().pow(pi));
@@ -826,26 +866,31 @@ pub(crate) mod tests {
         test_ref_op!(pi - lhs, pi - lhs.clone());
         test_ref_op!(pi * lhs, pi * lhs.clone());
         test_ref_op!(pi / lhs, pi / lhs.clone());
+        test_ref_op!(pi % lhs, pi % lhs.clone());
 
         test_ref_op!(lhs + ps, lhs.clone() + ps);
         test_ref_op!(lhs - ps, lhs.clone() - ps);
         test_ref_op!(lhs * ps, lhs.clone() * ps);
         test_ref_op!(lhs / ps, lhs.clone() / ps);
+        test_ref_op!(lhs % ps, lhs.clone() % ps);
 
         test_ref_op!(ps + lhs, ps + lhs.clone());
         test_ref_op!(ps - lhs, ps - lhs.clone());
         test_ref_op!(ps * lhs, ps * lhs.clone());
         test_ref_op!(ps / lhs, ps / lhs.clone());
+        test_ref_op!(ps % lhs, ps % lhs.clone());
 
         test_ref_op!(lhs + pd, lhs.clone() + pd);
         test_ref_op!(lhs - pd, lhs.clone() - pd);
         test_ref_op!(lhs * pd, lhs.clone() * pd);
         test_ref_op!(lhs / pd, lhs.clone() / pd);
+        test_ref_op!(lhs % pd, lhs.clone() % pd);
 
         test_ref_op!(pd + lhs, pd + lhs.clone());
         test_ref_op!(pd - lhs, pd - lhs.clone());
         test_ref_op!(pd * lhs, pd * lhs.clone());
         test_ref_op!(pd / lhs, pd / lhs.clone());
+        test_ref_op!(pd % lhs, pd % lhs.clone());
 
         float::free_cache(FreeCache::All);
     }
@@ -874,10 +919,12 @@ pub(crate) mod tests {
                     assert!(same(b.clone() - *op, b.clone() - &fop));
                     assert!(same(b.clone() * *op, b.clone() * &fop));
                     assert!(same(b.clone() / *op, b.clone() / &fop));
+                    assert!(same(b.clone() % *op, b.clone() % &fop));
                     assert!(same(*op + b.clone(), fop.clone() + b));
                     assert!(same(*op - b.clone(), fop.clone() - b));
                     assert!(same(*op * b.clone(), fop.clone() * b));
                     assert!(same(*op / b.clone(), fop.clone() / b));
+                    assert!(same(*op % b.clone(), fop.clone() % b));
                     assert!(same(b.clone().pow(*op), b.clone().pow(&fop)));
                     assert!(same(op.pow(b.clone()), fop.clone().pow(b)));
                 }

@@ -34,6 +34,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 ### Version 1.7.0 news (unreleased)
 
   * Require rustc version 1.37.0.
+  * The [`RemAssignRound`] and [`RemFromRound`] traits were added.
+  * The [`Rem`], [`RemAssign`], [`RemFrom`], [`RemAssignRound`] and
+    [`RemFromRound`] traits were implemented for [`Float`].
   * Arithmetic operations with one [`Integer`] or integer primitive
     operand and one [`Rational`] operand were added.
   * The method
@@ -48,6 +51,11 @@ option) any later version. See the full text of the [GNU LGPL] and
     <code>[Integer][`Integer`]::[lcm_u_ref][`lcm_u_ref`]</code> were
     added.
 
+[`RemAssignRound`]: https://docs.rs/rug/~1.6/rug/ops/trait.RemAssignRound.html
+[`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
+[`RemFromRound`]: https://docs.rs/rug/~1.6/rug/ops/trait.RemFromRound.html
+[`RemFrom`]: https://docs.rs/rug/~1.6/rug/ops/trait.RemFrom.html
+[`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
 [`div_exact_from`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.div_exact_from
 [`gcd_u_mut`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.gcd_u_mut
 [`gcd_u_ref`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.gcd_u_ref

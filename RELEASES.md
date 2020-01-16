@@ -9,6 +9,9 @@ Verison 1.7.0 (unreleased)
 ==========================
 
   * Require rustc version 1.37.0.
+  * The `RemAssignRound` and `RemFromRound` traits were added.
+  * The `Rem`, `RemAssign`, `RemFrom`, `RemAssignRound` and
+    `RemFromRound` traits were implemented for `Float`.
   * Arithmetic operations with one `Integer` or integer primitive
     operand and one `Rational` operand were added.
   * The method `Integer::div_exact_from` was added.
