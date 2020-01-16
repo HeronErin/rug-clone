@@ -4257,21 +4257,23 @@ impl Integer {
         SqrtRemIncomplete { ref_self: self }
     }
 
-    /// Determines wheter a number is prime using some trial
-    /// divisions, then `reps` Miller-Rabin probabilistic primality
-    /// tests.
+    /// Determines wheter a number is prime.
+    ///
+    /// This function uses some trial divisions, a Baille-PSW probable
+    /// prime test, then `reps` − 24 Miller-Rabin probabilistic
+    /// primality tests.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::{integer::IsPrime, Integer};
     /// let no = Integer::from(163 * 4003);
-    /// assert_eq!(no.is_probably_prime(15), IsPrime::No);
-    /// let yes = Integer::from(21_751);
-    /// assert_eq!(yes.is_probably_prime(15), IsPrime::Yes);
-    /// // 817_504_243 is actually a prime.
-    /// let probably = Integer::from(817_504_243);
-    /// assert_eq!(probably.is_probably_prime(15), IsPrime::Probably);
+    /// assert_eq!(no.is_probably_prime(30), IsPrime::No);
+    /// let yes = Integer::from(817_504_243);
+    /// assert_eq!(yes.is_probably_prime(30), IsPrime::Yes);
+    /// // 16_412_292_043_871_650_369 is actually a prime.
+    /// let probably = Integer::from(16_412_292_043_871_650_369_u64);
+    /// assert_eq!(probably.is_probably_prime(30), IsPrime::Probably);
     /// ```
     #[inline]
     pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
@@ -6196,12 +6198,12 @@ method.
 ```rust
 use rug::{integer::IsPrime, Integer};
 let no = Integer::from(163 * 4003);
-assert_eq!(no.is_probably_prime(15), IsPrime::No);
-let yes = Integer::from(21_751);
-assert_eq!(yes.is_probably_prime(15), IsPrime::Yes);
-// 817_504_243 is actually a prime.
-let probably = Integer::from(817_504_243);
-assert_eq!(probably.is_probably_prime(15), IsPrime::Probably);
+assert_eq!(no.is_probably_prime(30), IsPrime::No);
+let yes = Integer::from(817_504_243);
+assert_eq!(yes.is_probably_prime(30), IsPrime::Yes);
+// 16_412_292_043_871_650_369 is actually a prime.
+let probably = Integer::from(16_412_292_043_871_650_369_u64);
+assert_eq!(probably.is_probably_prime(30), IsPrime::Probably);
 ```
 
 [`Integer`]: ../struct.Integer.html
