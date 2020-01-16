@@ -2042,6 +2042,128 @@ impl Float {
         DotIncomplete { values }
     }
 
+    /// Computes the remainder, rounding to the nearest.
+    ///
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
+    /// where <i>n</i> is the integer quotient of `self` / `divisor`
+    /// rounded to the nearest integer (ties rounded to even). This is
+    /// different from the remainder obtained using the `%` operator
+    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// rounded to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let num = Float::with_val(53, 589.4);
+    /// let den = Float::with_val(53, 100);
+    /// let remainder = num.remainder(&den);
+    /// let expected = -10.6_f64;
+    /// assert!((remainder - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    #[inline]
+    pub fn remainder(mut self, divisor: &Self) -> Self {
+        self.remainder_round(divisor, Round::Nearest);
+        self
+    }
+
+    /// Computes the remainder, rounding to the nearest.
+    ///
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
+    /// where <i>n</i> is the integer quotient of `self` / `divisor`
+    /// rounded to the nearest integer (ties rounded to even). This is
+    /// different from the remainder obtained using the `%` operator
+    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// rounded to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 589.4);
+    /// let g = Float::with_val(53, 100);
+    /// f.remainder_mut(&g);
+    /// let expected = -10.6_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    #[inline]
+    pub fn remainder_mut(&mut self, divisor: &Self) {
+        self.remainder_round(divisor, Round::Nearest);
+    }
+
+    /// Computes the remainder, applying the specified rounding
+    /// method.
+    ///
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
+    /// where <i>n</i> is the integer quotient of `self` / `divisor`
+    /// rounded to the nearest integer (ties rounded to even). This is
+    /// different from the remainder obtained using the `%` operator
+    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// rounded to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 128);
+    /// let g = Float::with_val(6, 49);
+    /// // remainder of 128 / 49 is 128 − 3 × 49 = −19
+    /// // using 4 significant bits: −20
+    /// let dir = f.remainder_round(&g, Round::Nearest);
+    /// assert_eq!(f, -20.0);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    ///
+    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    #[inline]
+    pub fn remainder_round(&mut self, divisor: &Self, round: Round) -> Ordering {
+        xmpfr::remainder(self, None, Some(divisor), round)
+    }
+
+    /// Computes the remainder.
+    ///
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
+    /// where <i>n</i> is the integer quotient of `self` / `divisor`
+    /// rounded to the nearest integer (ties rounded to even). This is
+    /// different from the remainder obtained using the `%` operator
+    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// rounded to the nearest.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 589.4);
+    /// let g = Float::with_val(53, 100);
+    /// let remainder = Float::with_val(53, f.remainder_ref(&g));
+    /// let expected = -10.6_f64;
+    /// assert!((remainder - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn remainder_ref<'a>(&'a self, divisor: &'a Self) -> RemainderIncomplete<'_> {
+        RemainderIncomplete {
+            ref_self: self,
+            divisor,
+        }
+    }
+
     /// Multiplies and adds in one fused operation, rounding to the
     /// nearest with only one rounding error.
     ///
@@ -8913,6 +9035,7 @@ where
     }
 }
 
+ref_math_op2_float! { xmpfr::remainder; struct RemainderIncomplete { divisor } }
 ref_math_op0_float! { xmpfr::ui_2exp; struct UExpIncomplete { u: u32, exp: i32 } }
 ref_math_op0_float! { xmpfr::si_2exp; struct IExpIncomplete { i: i32, exp: i32 } }
 ref_math_op0_float! { xmpfr::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 } }

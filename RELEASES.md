@@ -19,6 +19,8 @@ Verison 1.7.0 (unreleased)
     `Integer::gcd_u_ref` were added.
   * The methods `Integer::lcm_u`, `Integer::lcm_u_mut` and
     `Integer::lcm_u_ref` were added.
+  * The methods `Float::remainder`, `Float::remainder_mut`,
+    `Float::remainder_round` and `Float::remainder_ref` were added.
 
 Compatibility note
 ------------------

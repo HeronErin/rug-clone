@@ -50,6 +50,13 @@ option) any later version. See the full text of the [GNU LGPL] and
     <code>[Integer][`Integer`]::[lcm_u_mut][`lcm_u_mut`]</code> and
     <code>[Integer][`Integer`]::[lcm_u_ref][`lcm_u_ref`]</code> were
     added.
+  * The methods
+    <code>[Float][`Float`]::[remainder][`remainder`]</code>,
+    <code>[Float][`Float`]::[remainder_mut][`remainder_mut`]</code>,
+    <code>[Float][`Float`]::[remainder_round][`remainder_round`]</code>
+    and
+    <code>[Float][`Float`]::[remainder_ref][`remainder_ref`]</code>
+    were added.
 
 [`RemAssignRound`]: https://docs.rs/rug/~1.6/rug/ops/trait.RemAssignRound.html
 [`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
@@ -63,6 +70,10 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`lcm_u_mut`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_mut
 [`lcm_u_ref`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_ref
 [`lcm_u`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u
+[`remainder_mut`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_mut
+[`remainder_ref`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_ref
+[`remainder_round`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_round
+[`remainder`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder
 
 #### Compatibility note
 
@@ -88,7 +99,7 @@ option) any later version. See the full text of the [GNU LGPL] and
     [`i128`], [`u8`], [`u16`], [`u64`] and [`u128`] were added to the
     existing implementations for [`i32`] and [`u32`].
   * The function
-    <code>[float][`float`]::[free_cache][`free_cache`]</code> was
+    <code>[float][`rug::float`]::[free_cache][`free_cache`]</code> was
     added.
   * The method
     <code>[RandState][`RandState`]::[into_custom_boxed][`into_custom_boxed`]</code>
@@ -106,7 +117,7 @@ option) any later version. See the full text of the [GNU LGPL] and
     <code>&mut dyn [MutRandState][`MutRandState`]</code> instead.
     Under normal use, this does not have any affect apart from
     allowing the use of
-	<code>&mut [ThreadRandState][`ThreadRandState`]</code> as well.
+    <code>&mut [ThreadRandState][`ThreadRandState`]</code> as well.
     With function inlining and optimization, the generated code should
     have the same performance.
 
@@ -116,7 +127,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`ThreadRandGen`]: https://docs.rs/rug/~1.6/rug/rand/trait.ThreadRandGen.html
 [`ThreadRandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.ThreadRandState.html
-[`float`]: https://docs.rs/rug/~1.6/rug/float/index.html
+[`rug::float`]: https://docs.rs/rug/~1.6/rug/float/index.html
 [`free_cache`]: https://docs.rs/rug/~1.6/rug/float/fn.free_cache.html
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
 [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html

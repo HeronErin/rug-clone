@@ -259,6 +259,7 @@ pub fn modf(
     })
 }
 
+wrap! { fn remainder(x, y) -> mpfr::remainder }
 wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> mpfr::ui_pow_ui }
 wrap0! { fn ui_2exp(ui: u32, exponent: i32) -> mpfr::set_ui_2exp }
 wrap0! { fn si_2exp(si: i32, exponent: i32) -> mpfr::set_si_2exp }
