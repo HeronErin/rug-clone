@@ -308,7 +308,7 @@ mod tests {
     use crate::{
         float::{self, FreeCache, Round},
         ops::AssignRound,
-        Assign, Complex,
+        Assign, Complex, Float,
     };
     use core::cmp::Ordering;
 
@@ -331,5 +331,17 @@ mod tests {
         assert_eq!(c, (15.0, 15.0));
 
         float::free_cache(FreeCache::All);
+    }
+
+    #[test]
+    fn check_from() {
+        let r = Float::with_val(53, 1.0);
+        let i = Float::with_val(53, 2.0);
+        let cr = Complex::from(r.clone());
+        assert_eq!(cr, r);
+        let ci = Complex::from((Float::new(53), i.clone()));
+        let cri = Complex::from((r, i));
+        let cr_ci = cr + ci;
+        assert_eq!(cri, cr_ci);
     }
 }
