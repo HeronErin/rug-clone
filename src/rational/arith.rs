@@ -30,19 +30,12 @@ use core::{
 };
 use libc::{c_long, c_ulong};
 
-// Specialize From implementation so that allocation is done with the
-// right capacity, as Rational::from(&Rational) allocates properly.
 arith_unary! {
     Rational;
     xmpq::neg;
     Neg { neg }
     NegAssign { neg_assign }
-    NegIncomplete;
-    fn from_incomplete(src) {
-        let mut dst = Rational::from(src.op);
-        dst.neg_assign();
-        dst
-    }
+    NegIncomplete
 }
 arith_binary_self! {
     Rational;

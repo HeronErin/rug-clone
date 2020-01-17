@@ -17,16 +17,14 @@
 use crate::{
     ext::xmpz,
     integer::SmallInteger,
-    misc::{AsOrPanic, NegAbs},
     ops::{
         AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
         PowAssign, RemFrom, SubFrom,
     },
     Assign, Integer,
 };
-use az::{Az, CheckedAs, CheckedCast};
+use az::{CheckedAs, CheckedCast};
 use core::{
-    cmp,
     iter::{Product, Sum},
     ops::{
         Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div,
@@ -34,24 +32,14 @@ use core::{
         SubAssign,
     },
 };
-use gmp_mpfr_sys::gmp;
 use libc::{c_long, c_ulong};
 
-// Specialize From implementation so that allocation is done with the
-// right capacity, as Integer::from(&Integer) allocates properly.
 arith_unary! {
     Integer;
     xmpz::neg;
     Neg { neg }
     NegAssign { neg_assign }
-    NegIncomplete;
-    // Specialize so that allocation is done with the right capacity,
-    // as Integer::from(&Integer) allocates properly.
-    fn from_incomplete(src) {
-        let mut dst = Integer::from(src.op);
-        dst.neg_assign();
-        dst
-    }
+    NegIncomplete
 }
 arith_binary_self! {
     Integer;
@@ -60,13 +48,7 @@ arith_binary_self! {
     AddAssign { add_assign }
     AddFrom { add_from }
     AddIncomplete;
-    rhs_has_more_alloc;
-    // Specialize so that allocation is done with the right capacity.
-    fn from_incomplete(src) {
-        let mut dst = alloc_for_add(&src.lhs, &src.rhs);
-        dst.assign(src);
-        dst
-    }
+    rhs_has_more_alloc
 }
 arith_binary_self! {
     Integer;
@@ -75,13 +57,7 @@ arith_binary_self! {
     SubAssign { sub_assign }
     SubFrom { sub_from }
     SubIncomplete;
-    rhs_has_more_alloc;
-    // Specialize so that allocation is done with the right capacity.
-    fn from_incomplete(src) {
-        let mut dst = alloc_for_add(&src.lhs, &src.rhs);
-        dst.assign(src);
-        dst
-    }
+    rhs_has_more_alloc
 }
 arith_binary_self! {
     Integer;
@@ -552,19 +528,6 @@ where
         }
         ret
     }
-}
-
-#[inline]
-fn alloc_for_add(lhs: &Integer, rhs: &Integer) -> Integer {
-    let lhs_size = lhs.inner().size.neg_abs().1;
-    let rhs_size = rhs.inner().size.neg_abs().1;
-    let size = cmp::max(lhs_size, rhs_size).as_or_panic::<usize>();
-    // size must be < max, not just ≤ max, because we need to add 1 to it
-    assert!(
-        size < usize::max_value() / gmp::LIMB_BITS.az::<usize>(),
-        "overflow"
-    );
-    Integer::with_capacity((size + 1) * gmp::LIMB_BITS.az::<usize>())
 }
 
 #[inline]
