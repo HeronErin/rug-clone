@@ -303,7 +303,7 @@ fn main() {
 }
 ```
 
-[Valgrind]: http://www.valgrind.org/
+[Valgrind]: https://www.valgrind.org/
 */
 #[allow(clippy::needless_doctest_main)]
 #[inline]
