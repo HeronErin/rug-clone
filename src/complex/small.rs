@@ -313,4 +313,35 @@ mod tests {
 
         float::free_cache(FreeCache::All);
     }
+
+    fn swapped_parts(small: &SmallComplex) -> bool {
+        unsafe {
+            let re = (*small.real().as_raw()).d;
+            let im = (*small.imag().as_raw()).d;
+            (re as usize) > (im as usize)
+        }
+    }
+
+    #[test]
+    fn check_swapped_parts() {
+        let mut c = SmallComplex::from((1, 2));
+        assert!(!swapped_parts(&c));
+        assert_eq!(*c.clone(), *c);
+        unsafe {
+            c.as_nonreallocating_complex().mul_i_mut(false);
+        }
+        assert!(swapped_parts(&c));
+        assert_eq!(*c, (-2, 1));
+        assert_eq!(*c.clone(), *c);
+        c.assign(12);
+        assert!(!swapped_parts(&c));
+        assert_eq!(*c, 12);
+        unsafe {
+            c.as_nonreallocating_complex().mul_i_mut(false);
+        }
+        assert!(swapped_parts(&c));
+        c.assign((4, 5));
+        assert!(!swapped_parts(&c));
+        assert_eq!(*c, (4, 5));
+    }
 }

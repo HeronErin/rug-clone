@@ -360,4 +360,36 @@ mod tests {
         r.assign(other);
         assert_eq!(*r, (4, 5));
     }
+
+    fn swapped_parts(small: &SmallRational) -> bool {
+        unsafe {
+            let num = (*small.numer().as_raw()).d;
+            let den = (*small.denom().as_raw()).d;
+            (num as usize) > (den as usize)
+        }
+    }
+
+    #[test]
+    fn check_swapped_parts() {
+        let mut r = SmallRational::from((2, 3));
+        assert!(!swapped_parts(&r));
+        assert_eq!(*r.clone(), *r);
+        unsafe {
+            r.as_nonreallocating_rational().recip_mut();
+        }
+        assert!(swapped_parts(&r));
+        assert_eq!(*r, (3, 2));
+        assert_eq!(*r.clone(), *r);
+        unsafe {
+            r.assign_canonical(5, 7);
+        }
+        assert!(swapped_parts(&r));
+        assert_eq!(*r, (5, 7));
+        r.assign(2);
+        assert!(swapped_parts(&r));
+        assert_eq!(*r, 2);
+        r.assign((3, 5));
+        assert!(swapped_parts(&r));
+        assert_eq!(*r, (3, 5));
+    }
 }

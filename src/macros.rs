@@ -267,7 +267,7 @@ macro_rules! arith_unary {
             }
         }
 
-        from_assign!{ $Incomplete<'_> => $Big }
+        from_assign! { $Incomplete<'_> => $Big }
     };
 }
 
