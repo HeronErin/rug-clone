@@ -306,6 +306,8 @@ mod tests {
         assert_eq!(r, (-2, 3));
         r.assign(-other);
         assert_eq!(r, (2, 3));
+        let another = Rational::from(&r);
+        assert_eq!(another, r);
     }
 
     #[test]
