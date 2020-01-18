@@ -8,7 +8,7 @@ as-is, without any warranty. -->
 Verison 1.7.0 (unreleased)
 ==========================
 
-  * Require rustc version 1.37.0.
+  * The crate now requires rustc version 1.37.0 or later.
   * The `RemAssignRound` and `RemFromRound` traits were added.
   * The `Rem`, `RemAssign`, `RemFrom`, `RemAssignRound` and
     `RemFromRound` traits were implemented for `Float`.
