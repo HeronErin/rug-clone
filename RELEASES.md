@@ -26,7 +26,7 @@ Compatibility note
 ------------------
 
   * `SmallInteger`, `SmallRational`, `SmallFloat` and `SmallComplex`
-    are no longer `Sync` to avoid the possibility of a race condition.
+    are no longer `Sync` to avoid the possibility of a data race.
     References obtained by dereferencing them, for example the
     `&Integer` returned from `SmallInteger::deref`, are still `Send`
     and `Sync`.

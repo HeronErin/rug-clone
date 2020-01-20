@@ -79,9 +79,8 @@ option) any later version. See the full text of the [GNU LGPL] and
 
   * [`SmallInteger`], [`SmallRational`], [`SmallFloat`] and
     [`SmallComplex`] are no longer [`Sync`] to avoid the possibility
-    of a race condition. References obtained by dereferencing them,
-    for example the <code>&amp;[Integer][`Integer`]</code> returned
-    from
+    of a [data race]. References obtained by dereferencing them, for
+    example the <code>&amp;[Integer][`Integer`]</code> returned from
     <code>[SmallInteger][`SmallInteger`]::[deref][`deref`]</code>, are
     still [`Send`] and [`Sync`].
 
@@ -92,6 +91,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`SmallRational`]: https://docs.rs/rug/~1.6/rug/rational/struct.SmallRational.html
 [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`deref`]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref
+[data race]: https://internals.rust-lang.org/t/is-this-a-data-race/11582
 
 ### Version 1.6.0 news (2019-09-03)
 
