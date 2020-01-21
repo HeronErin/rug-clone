@@ -290,7 +290,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.6"
+rug = "1.7"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -329,7 +329,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.6"
+version = "1.7"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -389,13 +389,13 @@ provided by the crate.
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
-[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-gnulinux
-[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-macos
-[sys win]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-windows
-[sys]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html
+[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-gnulinux
+[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-macos
+[sys win]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-windows
+[sys]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html
 */
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/~1.6")]
+#![doc(html_root_url = "https://docs.rs/rug/~1.7")]
 #![doc(html_logo_url = "https://tspiteri.gitlab.io/gmp-mpfr-sys/rug.svg")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]

@@ -360,7 +360,7 @@ impl RandState<'_> {
     /// // since rand is a RandState now, deallocation is automatic
     /// ```
     ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> RandState<'static> {
         RandState {
@@ -401,7 +401,7 @@ impl RandState<'_> {
     /// [`RandState`]: struct.RandState.html
     /// [`new_custom_boxed`]: #method.new_custom_boxed
     /// [`new_custom`]: #method.new_custom
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         let ret = self.inner;
@@ -432,7 +432,7 @@ impl RandState<'_> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw(&self) -> *const randstate_t {
         &self.inner
@@ -459,7 +459,7 @@ impl RandState<'_> {
     /// println!("another 32 random bits: {:032b}", u2);
     /// ```
     ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         &mut self.inner
@@ -791,7 +791,7 @@ impl ThreadRandState<'_> {
     ///
     /// [`RandState`]: struct.RandState.html
     /// [`from_raw`]: struct.RandState.html#method.from_raw
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> ThreadRandState<'static> {
         ThreadRandState {
@@ -850,7 +850,7 @@ impl ThreadRandState<'_> {
     /// [`into_raw`]: struct.RandState.html#method.into_raw
     /// [`new_custom_boxed`]: #method.new_custom_boxed
     /// [`new_custom`]: #method.new_custom
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         let ret = self.inner;
@@ -894,7 +894,7 @@ impl ThreadRandState<'_> {
     ///
     /// [`RandState`]: struct.RandState.html
     /// [`as_raw`]: struct.RandState.html#method.as_raw
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw(&self) -> *const randstate_t {
         &self.inner
@@ -935,7 +935,7 @@ impl ThreadRandState<'_> {
     ///
     /// [`RandState`]: struct.RandState.html
     /// [`as_raw_mut`]: struct.RandState.html#method.as_raw_mut
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         &mut self.inner

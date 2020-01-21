@@ -31,7 +31,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
-### Version 1.7.0 news (unreleased)
+### Version 1.7.0 news (2019-01-21)
 
   * The crate now requires rustc version 1.37.0 or later.
   * The [`RemAssignRound`] and [`RemFromRound`] traits were added.
@@ -54,30 +54,30 @@ option) any later version. See the full text of the [GNU LGPL] and
     <code>[Float][`Float`]::[remainder][`remainder`]</code>,
     <code>[Float][`Float`]::[remainder_mut][`remainder_mut`]</code>,
     <code>[Float][`Float`]::[remainder_round][`remainder_round`]</code>,
-    <code>[Float][`Float`]::[remainder_ref][`remainder_ref`]</code>,
-    <code>[Float][`Float`]::[remainder_from][`remainder_from`]</code>
-    and
+    <code>[Float][`Float`]::[remainder_from][`remainder_from`]</code>,
     <code>[Float][`Float`]::[remainder_from_round][`remainder_from_round`]</code>
+    and
+    <code>[Float][`Float`]::[remainder_ref][`remainder_ref`]</code>
     were added.
 
-[`RemAssignRound`]: https://docs.rs/rug/~1.6/rug/ops/trait.RemAssignRound.html
+[`RemAssignRound`]: https://docs.rs/rug/~1.7/rug/ops/trait.RemAssignRound.html
 [`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
-[`RemFromRound`]: https://docs.rs/rug/~1.6/rug/ops/trait.RemFromRound.html
-[`RemFrom`]: https://docs.rs/rug/~1.6/rug/ops/trait.RemFrom.html
+[`RemFromRound`]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFromRound.html
+[`RemFrom`]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFrom.html
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
-[`div_exact_from`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.div_exact_from
-[`gcd_u_mut`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.gcd_u_mut
-[`gcd_u_ref`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.gcd_u_ref
-[`gcd_u`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.gcd_u
-[`lcm_u_mut`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_mut
-[`lcm_u_ref`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_ref
-[`lcm_u`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u
-[`remainder_from_round`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_from_round
-[`remainder_from`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_from
-[`remainder_mut`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_mut
-[`remainder_ref`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_ref
-[`remainder_round`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_round
-[`remainder`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder
+[`div_exact_from`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.div_exact_from
+[`gcd_u_mut`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_mut
+[`gcd_u_ref`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_ref
+[`gcd_u`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u
+[`lcm_u_mut`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_mut
+[`lcm_u_ref`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_ref
+[`lcm_u`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u
+[`remainder_from_round`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from_round
+[`remainder_from`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from
+[`remainder_mut`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_mut
+[`remainder_ref`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_ref
+[`remainder_round`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_round
+[`remainder`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder
 
 #### Compatibility note
 
@@ -89,62 +89,13 @@ option) any later version. See the full text of the [GNU LGPL] and
     still [`Send`] and [`Sync`].
 
 [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-[`SmallComplex`]: https://docs.rs/rug/~1.6/rug/complex/struct.SmallComplex.html
-[`SmallFloat`]: https://docs.rs/rug/~1.6/rug/float/struct.SmallFloat.html
-[`SmallInteger`]: https://docs.rs/rug/~1.6/rug/integer/struct.SmallInteger.html
-[`SmallRational`]: https://docs.rs/rug/~1.6/rug/rational/struct.SmallRational.html
+[`SmallComplex`]: https://docs.rs/rug/~1.7/rug/complex/struct.SmallComplex.html
+[`SmallFloat`]: https://docs.rs/rug/~1.7/rug/float/struct.SmallFloat.html
+[`SmallInteger`]: https://docs.rs/rug/~1.7/rug/integer/struct.SmallInteger.html
+[`SmallRational`]: https://docs.rs/rug/~1.7/rug/rational/struct.SmallRational.html
 [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`deref`]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref
 [data race]: https://internals.rust-lang.org/t/is-this-a-data-race/11582
-
-### Version 1.6.0 news (2019-09-03)
-
-  * Arithmetic operator implementations for [`i8`], [`i16`], [`i64`],
-    [`i128`], [`u8`], [`u16`], [`u64`] and [`u128`] were added to the
-    existing implementations for [`i32`] and [`u32`].
-  * The function
-    <code>[float][`rug::float`]::[free_cache][`free_cache`]</code> was
-    added.
-  * The method
-    <code>[RandState][`RandState`]::[into_custom_boxed][`into_custom_boxed`]</code>
-    was added.
-  * [`ThreadRandState`] and [`ThreadRandGen`] were added to the
-    [`rand`] module to enable the use of custom random generators that
-    are not [`Send`] and [`Sync`].
-  * Numeric type methods which take [`RandState`] now can also take
-    [`ThreadRandState`].
-
-#### Compatibility note
-
-  * The numeric type methods which took
-    <code>&mut [RandState][`RandState`]</code> were changed to take
-    <code>&mut dyn [MutRandState][`MutRandState`]</code> instead.
-    Under normal use, this does not have any affect apart from
-    allowing the use of
-    <code>&mut [ThreadRandState][`ThreadRandState`]</code> as well.
-    With function inlining and optimization, the generated code should
-    have the same performance.
-
-[`MutRandState`]: https://docs.rs/rug/~1.6/rug/rand/trait.MutRandState.html
-[`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
-[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
-[`ThreadRandGen`]: https://docs.rs/rug/~1.6/rug/rand/trait.ThreadRandGen.html
-[`ThreadRandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.ThreadRandState.html
-[`rug::float`]: https://docs.rs/rug/~1.6/rug/float/index.html
-[`free_cache`]: https://docs.rs/rug/~1.6/rug/float/fn.free_cache.html
-[`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
-[`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
-[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-[`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
-[`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
-[`into_custom_boxed`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html#method.into_custom_boxed
-[`rand`]: https://docs.rs/rug/~1.6/rug/rand/index.html
-[`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-[`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
-[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-[`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 
 ### Other releases
 
@@ -244,7 +195,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.6"
+rug = "1.7"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -283,7 +234,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.6"
+version = "1.7"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -295,7 +246,7 @@ is not required and thus not enabled. In that case, only the
 provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.6/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.7/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -303,24 +254,24 @@ provided by the crate.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.6/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.6/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.6/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.6/rug/struct.Float.html
-[`Integer`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.6/rug/struct.Rational.html
-[`new`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.new
-[`ops`]: https://docs.rs/rug/~1.6/rug/ops/index.html
-[`parse_radix`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.parse_radix
-[`parse`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.parse
+[`Assign::assign`]: https://docs.rs/rug/~1.7/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.7/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.7/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.7/rug/struct.Float.html
+[`Integer`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.7/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.7/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.new
+[`ops`]: https://docs.rs/rug/~1.7/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.6/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.6/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.7/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.7/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
-[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-gnulinux
-[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-macos
-[sys win]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-windows
-[sys]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html
+[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-gnulinux
+[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-macos
+[sys win]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-windows
+[sys]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html

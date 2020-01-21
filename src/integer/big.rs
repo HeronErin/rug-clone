@@ -371,7 +371,7 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }
@@ -397,7 +397,7 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn into_raw(self) -> mpz_t {
         let ret = self.inner;
@@ -425,7 +425,7 @@ impl Integer {
     /// assert_eq!(i, 15);
     /// ```
     ///
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpz_t {
         &self.inner
@@ -450,7 +450,7 @@ impl Integer {
     /// assert_eq!(i, 35);
     /// ```
     ///
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpz_t {
         &mut self.inner

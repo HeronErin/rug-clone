@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Verison 1.7.0 (unreleased)
+Verison 1.7.0 (2019-01-21)
 ==========================
 
   * The crate now requires rustc version 1.37.0 or later.
@@ -20,8 +20,8 @@ Verison 1.7.0 (unreleased)
   * The methods `Integer::lcm_u`, `Integer::lcm_u_mut` and
     `Integer::lcm_u_ref` were added.
   * The methods `Float::remainder`, `Float::remainder_mut`,
-    `Float::remainder_round`, `Float::remainder_ref`,
-    `Float::remainder_from` and `Float::remainder_from_round` were
+    `Float::remainder_round`, `Float::remainder_from`,
+    `Float::remainder_from_round` and `Float::remainder_ref` were
     added.
 
 Compatibility note
