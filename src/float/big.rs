@@ -2081,8 +2081,8 @@ impl Float {
     /// The remainder is the value of `self` − <i>n</i> × `divisor`,
     /// where <i>n</i> is the integer quotient of `self` / `divisor`
     /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the `%` operator
-    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// different from the remainder obtained using the `%=` operator
+    /// or the [`RemAssign`] trait, where <i>n</i> is truncated instead of
     /// rounded to the nearest.
     ///
     /// # Examples
@@ -2103,7 +2103,7 @@ impl Float {
     /// assert!((f - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    /// [`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
     #[inline]
     pub fn remainder_mut(&mut self, divisor: &Self) {
         self.remainder_round(divisor, Round::Nearest);
@@ -2115,9 +2115,9 @@ impl Float {
     /// The remainder is the value of `self` − <i>n</i> × `divisor`,
     /// where <i>n</i> is the integer quotient of `self` / `divisor`
     /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the `%` operator
-    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
-    /// rounded to the nearest.
+    /// different from the remainder obtained using the
+    /// [`RemAssignRound`] trait, where <i>n</i> is truncated instead
+    /// of rounded to the nearest.
     ///
     /// # Examples
     ///
@@ -2143,7 +2143,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Equal);
     /// ```
     ///
-    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    /// [`RemAssignRound`]: ops/trait.RemAssignRound.html
     #[inline]
     pub fn remainder_round(&mut self, divisor: &Self, round: Round) -> Ordering {
         xmpfr::remainder(self, None, Some(divisor), round)
@@ -2199,9 +2199,9 @@ impl Float {
     /// The remainder is the value of `dividend` − <i>n</i> × `self`,
     /// where <i>n</i> is the integer quotient of `dividend` / `self`
     /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the `%` operator
-    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
-    /// rounded to the nearest.
+    /// different from the remainder obtained using the [`RemFrom`]
+    /// trait, where <i>n</i> is truncated instead of rounded to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -2221,7 +2221,7 @@ impl Float {
     /// assert!((g - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    /// [`RemFrom`]: ops/trait.RemFrom.html
     #[inline]
     pub fn remainder_from(&mut self, dividend: &Self) {
         self.remainder_from_round(dividend, Round::Nearest);
@@ -2233,8 +2233,8 @@ impl Float {
     /// The remainder is the value of `dividend` − <i>n</i> × `self`,
     /// where <i>n</i> is the integer quotient of `dividend` / `self`
     /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the `%` operator
-    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// different from the remainder obtained using the
+    /// [`RemFromRound`] trait, where <i>n</i> is truncated instead of
     /// rounded to the nearest.
     ///
     /// # Examples
@@ -2261,7 +2261,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
     ///
-    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    /// [`RemFromRound`]: ops/trait.RemFromRound.html
     #[inline]
     pub fn remainder_from_round(&mut self, dividend: &Self, round: Round) -> Ordering {
         xmpfr::remainder(self, Some(dividend), None, round)
