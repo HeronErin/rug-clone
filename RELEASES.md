@@ -20,7 +20,9 @@ Verison 1.7.0 (unreleased)
   * The methods `Integer::lcm_u`, `Integer::lcm_u_mut` and
     `Integer::lcm_u_ref` were added.
   * The methods `Float::remainder`, `Float::remainder_mut`,
-    `Float::remainder_round` and `Float::remainder_ref` were added.
+    `Float::remainder_round`, `Float::remainder_ref`,
+    `Float::remainder_from` and `Float::remainder_from_round` were
+    added.
 
 Compatibility note
 ------------------

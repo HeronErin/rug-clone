@@ -2194,6 +2194,79 @@ impl Float {
         }
     }
 
+    /// Computes the remainder, rounding to the nearest.
+    ///
+    /// The remainder is the value of `dividend` − <i>n</i> × `self`,
+    /// where <i>n</i> is the integer quotient of `dividend` / `self`
+    /// rounded to the nearest integer (ties rounded to even). This is
+    /// different from the remainder obtained using the `%` operator
+    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// rounded to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{ops::RemFrom, Float};
+    /// let f = Float::with_val(53, 589.4);
+    /// let mut g = Float::with_val(53, 100);
+    /// g.remainder_from(&f);
+    /// let expected = -10.6_f64;
+    /// assert!((g - expected).abs() < 0.0001);
+    ///
+    /// // compare to RemFrom::rem_from
+    /// let f = Float::with_val(53, 589.4);
+    /// let mut g = Float::with_val(53, 100);
+    /// g.rem_from(&f);
+    /// let expected = 89.4_f64;
+    /// assert!((g - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    #[inline]
+    pub fn remainder_from(&mut self, dividend: &Self) {
+        self.remainder_from_round(dividend, Round::Nearest);
+    }
+
+    /// Computes the remainder, applying the specified rounding
+    /// method.
+    ///
+    /// The remainder is the value of `dividend` − <i>n</i> × `self`,
+    /// where <i>n</i> is the integer quotient of `dividend` / `self`
+    /// rounded to the nearest integer (ties rounded to even). This is
+    /// different from the remainder obtained using the `%` operator
+    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// rounded to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, ops::RemFromRound, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let f = Float::with_val(8, 171);
+    /// let mut g = Float::with_val(4, 64);
+    /// // remainder of 171 / 64 is 171 − 3 × 64 = −21
+    /// // using 4 significant bits: −20
+    /// let dir = g.remainder_from_round(&f, Round::Nearest);
+    /// assert_eq!(g, -20.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    ///
+    /// // compare to RemFromRound::rem_from_round
+    /// let f = Float::with_val(8, 171);
+    /// let mut g = Float::with_val(4, 64);
+    /// // with RemFromRound, remainder of 171 / 64 is 171 − 2 × 64 = 43
+    /// // using 4 significant bits: 44
+    /// let dir = g.rem_from_round(&f, Round::Nearest);
+    /// assert_eq!(g, 44.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    ///
+    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    #[inline]
+    pub fn remainder_from_round(&mut self, dividend: &Self, round: Round) -> Ordering {
+        xmpfr::remainder(self, Some(dividend), None, round)
+    }
+
     /// Multiplies and adds in one fused operation, rounding to the
     /// nearest with only one rounding error.
     ///

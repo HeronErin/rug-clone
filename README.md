@@ -53,9 +53,11 @@ option) any later version. See the full text of the [GNU LGPL] and
   * The methods
     <code>[Float][`Float`]::[remainder][`remainder`]</code>,
     <code>[Float][`Float`]::[remainder_mut][`remainder_mut`]</code>,
-    <code>[Float][`Float`]::[remainder_round][`remainder_round`]</code>
+    <code>[Float][`Float`]::[remainder_round][`remainder_round`]</code>,
+    <code>[Float][`Float`]::[remainder_ref][`remainder_ref`]</code>,
+    <code>[Float][`Float`]::[remainder_from][`remainder_from`]</code>
     and
-    <code>[Float][`Float`]::[remainder_ref][`remainder_ref`]</code>
+    <code>[Float][`Float`]::[remainder_from_round][`remainder_from_round`]</code>
     were added.
 
 [`RemAssignRound`]: https://docs.rs/rug/~1.6/rug/ops/trait.RemAssignRound.html
@@ -70,6 +72,8 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`lcm_u_mut`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_mut
 [`lcm_u_ref`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_ref
 [`lcm_u`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u
+[`remainder_from_round`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_from_round
+[`remainder_from`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_from
 [`remainder_mut`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_mut
 [`remainder_ref`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_ref
 [`remainder_round`]: https://docs.rs/rug/~1.6/rug/struct.Float.html#method.remainder_round
