@@ -2149,51 +2149,6 @@ impl Float {
         xmpfr::remainder(self, None, Some(divisor), round)
     }
 
-    /// Computes the remainder.
-    ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
-    /// where <i>n</i> is the integer quotient of `self` / `divisor`
-    /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the `%` operator
-    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
-    /// rounded to the nearest.
-    ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let f = Float::with_val(53, 589.4);
-    /// let g = Float::with_val(53, 100);
-    /// let remainder = Float::with_val(53, f.remainder_ref(&g));
-    /// let expected = -10.6_f64;
-    /// assert!((remainder - expected).abs() < 0.0001);
-    ///
-    /// // compare to % operator
-    /// let f = Float::with_val(53, 589.4);
-    /// let g = Float::with_val(53, 100);
-    /// let rem_op = Float::with_val(53, &f % &g);
-    /// let expected = 89.4_f64;
-    /// assert!((rem_op - expected).abs() < 0.0001);
-    /// ```
-    ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
-    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
-    /// [icv]: index.html#incomplete-computation-values
-    #[inline]
-    pub fn remainder_ref<'a>(&'a self, divisor: &'a Self) -> RemainderIncomplete<'_> {
-        RemainderIncomplete {
-            ref_self: self,
-            divisor,
-        }
-    }
-
     /// Computes the remainder, rounding to the nearest.
     ///
     /// The remainder is the value of `dividend` − <i>n</i> × `self`,
@@ -2265,6 +2220,51 @@ impl Float {
     #[inline]
     pub fn remainder_from_round(&mut self, dividend: &Self, round: Round) -> Ordering {
         xmpfr::remainder(self, Some(dividend), None, round)
+    }
+
+    /// Computes the remainder.
+    ///
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
+    /// where <i>n</i> is the integer quotient of `self` / `divisor`
+    /// rounded to the nearest integer (ties rounded to even). This is
+    /// different from the remainder obtained using the `%` operator
+    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
+    /// rounded to the nearest.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 589.4);
+    /// let g = Float::with_val(53, 100);
+    /// let remainder = Float::with_val(53, f.remainder_ref(&g));
+    /// let expected = -10.6_f64;
+    /// assert!((remainder - expected).abs() < 0.0001);
+    ///
+    /// // compare to % operator
+    /// let f = Float::with_val(53, 589.4);
+    /// let g = Float::with_val(53, 100);
+    /// let rem_op = Float::with_val(53, &f % &g);
+    /// let expected = 89.4_f64;
+    /// assert!((rem_op - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn remainder_ref<'a>(&'a self, divisor: &'a Self) -> RemainderIncomplete<'_> {
+        RemainderIncomplete {
+            ref_self: self,
+            divisor,
+        }
     }
 
     /// Multiplies and adds in one fused operation, rounding to the
