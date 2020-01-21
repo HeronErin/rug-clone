@@ -2060,6 +2060,13 @@ impl Float {
     /// let remainder = num.remainder(&den);
     /// let expected = -10.6_f64;
     /// assert!((remainder - expected).abs() < 0.0001);
+    ///
+    /// // compare to % operator
+    /// let num = Float::with_val(53, 589.4);
+    /// let den = Float::with_val(53, 100);
+    /// let rem_op = num % &den;
+    /// let expected = 89.4_f64;
+    /// assert!((rem_op - expected).abs() < 0.0001);
     /// ```
     ///
     /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
@@ -2087,6 +2094,13 @@ impl Float {
     /// f.remainder_mut(&g);
     /// let expected = -10.6_f64;
     /// assert!((f - expected).abs() < 0.0001);
+    ///
+    /// // compare to %= operator
+    /// let mut f = Float::with_val(53, 589.4);
+    /// let g = Float::with_val(53, 100);
+    /// f %= &g;
+    /// let expected = 89.4_f64;
+    /// assert!((f - expected).abs() < 0.0001);
     /// ```
     ///
     /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
@@ -2109,7 +2123,7 @@ impl Float {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Float};
+    /// use rug::{float::Round, ops::RemAssignRound, Float};
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, 128);
     /// let g = Float::with_val(6, 49);
@@ -2118,6 +2132,15 @@ impl Float {
     /// let dir = f.remainder_round(&g, Round::Nearest);
     /// assert_eq!(f, -20.0);
     /// assert_eq!(dir, Ordering::Less);
+    ///
+    /// // compare to RemAssignRound::rem_assign_round
+    /// let mut f = Float::with_val(4, 128);
+    /// let g = Float::with_val(6, 49);
+    /// // with RemAssignRound, remainder of 128 / 49 is 128 − 2 × 49 = 30
+    /// // using 4 significant bits: 30
+    /// let dir = f.rem_assign_round(&g, Round::Nearest);
+    /// assert_eq!(f, 30.0);
+    /// assert_eq!(dir, Ordering::Equal);
     /// ```
     ///
     /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
@@ -2149,6 +2172,13 @@ impl Float {
     /// let remainder = Float::with_val(53, f.remainder_ref(&g));
     /// let expected = -10.6_f64;
     /// assert!((remainder - expected).abs() < 0.0001);
+    ///
+    /// // compare to % operator
+    /// let f = Float::with_val(53, 589.4);
+    /// let g = Float::with_val(53, 100);
+    /// let rem_op = Float::with_val(53, &f % &g);
+    /// let expected = 89.4_f64;
+    /// assert!((rem_op - expected).abs() < 0.0001);
     /// ```
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
