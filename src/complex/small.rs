@@ -158,7 +158,7 @@ impl SmallComplex {
 
     #[inline]
     fn re_is_first(&self) -> bool {
-        unsafe { (*self.inner.re.d.get() as usize) <= (*self.inner.im.d.get() as usize) }
+        unsafe { *self.inner.re.d.get() <= *self.inner.im.d.get() }
     }
 
     // To be used when offsetting re and im in case the struct has
@@ -318,7 +318,7 @@ mod tests {
         unsafe {
             let re = (*small.real().as_raw()).d;
             let im = (*small.imag().as_raw()).d;
-            (re as usize) > (im as usize)
+            re > im
         }
     }
 

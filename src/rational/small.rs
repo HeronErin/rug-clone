@@ -242,7 +242,7 @@ impl SmallRational {
 
     #[inline]
     fn num_is_first(&self) -> bool {
-        unsafe { (*self.inner.num.d.get() as usize) <= (*self.inner.den.d.get() as usize) }
+        unsafe { *self.inner.num.d.get() <= *self.inner.den.d.get() }
     }
 
     // To be used when offsetting num and den in case the struct has
@@ -365,7 +365,7 @@ mod tests {
         unsafe {
             let num = (*small.numer().as_raw()).d;
             let den = (*small.denom().as_raw()).d;
-            (num as usize) > (den as usize)
+            num > den
         }
     }
 
