@@ -16,11 +16,12 @@ before_script:
   - if [ -n "$TOOLCHAIN" ]; then rustup toolchain install --profile minimal $TOOLCHAIN; fi
   - if [[ "$TOOLCHAIN" == beta* ]]; then rustup component add --toolchain $TOOLCHAIN rustfmt clippy; fi
   - if [ -d cargo/registry/cache ]; then rm -rf $CARGO_HOME/registry/cache && mkdir -p $CARGO_HOME/registry && cp -R cargo/registry/cache $CARGO_HOME/registry/ && echo Copied registry/cache; fi
-  - (if cd $CARGO_HOME/registry && [ -d cache ]; then find cache -name \*.crate; fi)
+  - (if cd $CARGO_HOME/registry && [ -d src ]; then rm -r src; fi)
+  - (if cd $CARGO_HOME/registry && [ -d cache ]; then find cache -name \*.crate | sort; fi)
   - export GMP_MPFR_SYS_CACHE=$CI_PROJECT_DIR/gmp-mpfr-sys-cache
 
 after_script:
-  - (cd $CARGO_HOME/registry && find cache -name \*.crate)
+  - (if cd $CARGO_HOME/registry && [ -d cache ]; then for c in cache/*/*.crate; do s=src/${c#cache/}; if [ ! -e ${s%.crate} ]; then rm -v $c; fi; done; find cache -name \*.crate | sort; fi)
   - rm -rf cargo
   - mkdir -p cargo/registry
   - cp -R $CARGO_HOME/registry/cache cargo/registry/ && echo Updated registry/cache
