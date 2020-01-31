@@ -110,7 +110,7 @@ stable-x86_64-gnulinux-valgrind:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: stable-x86_64
-    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --error-exitcode=1 --suppressions=etc/dlsym.supp
+    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --error-exitcode=1
   script:
   - apt-get update -qq && apt-get install -y -qq valgrind
   - etc/extract-doc-tests.sh
@@ -184,12 +184,12 @@ stable-i686-gnulinux-valgrind:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: stable-i686
-    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --error-exitcode=1 --suppressions=etc/dlsym.supp
+    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --error-exitcode=1
   script:
   - apt-get update -qq && apt-get install -y -qq valgrind
   - etc/extract-doc-tests.sh
   - cargo +$TOOLCHAIN test --features serde --lib
   - valgrind $VALGRIND_OPTIONS "$(ls target/debug/deps/rug* | grep -v '\.d')"
   - cargo +$TOOLCHAIN test --release --features serde --lib
-  - valgrind $VALGRIND_OPTIONS --suppressions=etc/i686-release.supp "$(ls target/release/deps/rug* | grep -v '\.d')"
+  - valgrind $VALGRIND_OPTIONS "$(ls target/release/deps/rug* | grep -v '\.d')"
   - etc/extract-doc-tests.sh restore
