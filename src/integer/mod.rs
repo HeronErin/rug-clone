@@ -356,7 +356,7 @@ mod tests {
         for &(s, radix, i) in good_strings.iter() {
             match Integer::parse_radix(s, radix) {
                 Ok(ok) => assert_eq!(Integer::from(ok), i),
-                Err(_err) => panic!("could not parse {}", s),
+                Err(err) => panic!("could not parse {}: {}", s, err),
             }
         }
     }

@@ -443,7 +443,7 @@ pub(crate) mod tests {
         for &(s, radix, f) in good_strings.iter() {
             match Float::parse_radix(s, radix) {
                 Ok(ok) => assert_eq!(Float::with_val(53, ok), f),
-                Err(_err) => panic!("could not parse {}", s),
+                Err(err) => panic!("could not parse {}: {}", s, err),
             }
         }
 

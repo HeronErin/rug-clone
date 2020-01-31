@@ -273,7 +273,7 @@ mod tests {
                     assert_eq!(*r.numer(), n, "numerator mismatch for {}", s);
                     assert_eq!(*r.denom(), d, "denominator mismatch for {}", s);
                 }
-                Err(_err) => panic!("could not parse {}", s),
+                Err(err) => panic!("could not parse {}: {}", s, err),
             }
         }
     }
