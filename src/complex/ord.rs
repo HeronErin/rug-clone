@@ -149,9 +149,24 @@ impl From<OrdComplex> for Complex {
     }
 }
 
+impl AsRef<Complex> for OrdComplex {
+    #[inline]
+    fn as_ref(&self) -> &Complex {
+        self.as_complex()
+    }
+}
+
+impl AsMut<Complex> for OrdComplex {
+    #[inline]
+    fn as_mut(&mut self) -> &mut Complex {
+        self.as_complex_mut()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
+        complex::OrdComplex,
         float::{self, FreeCache, Special},
         Complex,
     };
@@ -196,5 +211,35 @@ mod tests {
         assert_ne!(calculate_hash(ord_nn), calculate_hash(ord_pp));
 
         float::free_cache(FreeCache::All);
+    }
+
+    #[test]
+    fn check_refs() {
+        let f = Complex::with_val(53, (23.5, 32.5));
+        assert_eq!(
+            &f as *const Complex as *const OrdComplex,
+            f.as_ord() as *const OrdComplex
+        );
+        assert_eq!(
+            &f as *const Complex as *const OrdComplex,
+            AsRef::<OrdComplex>::as_ref(&f) as *const OrdComplex
+        );
+        let mut o = OrdComplex::from(f);
+        assert_eq!(
+            &o as *const OrdComplex as *const Complex,
+            o.as_complex() as *const Complex
+        );
+        assert_eq!(
+            &o as *const OrdComplex as *const Complex,
+            AsRef::<Complex>::as_ref(&o) as *const Complex
+        );
+        assert_eq!(
+            &mut o as *mut OrdComplex as *mut Complex,
+            o.as_complex_mut() as *mut Complex
+        );
+        assert_eq!(
+            &mut o as *mut OrdComplex as *mut Complex,
+            AsMut::<Complex>::as_mut(&mut o) as *mut Complex
+        );
     }
 }

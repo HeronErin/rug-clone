@@ -15,7 +15,10 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    complex::big::{self, Format},
+    complex::{
+        big::{self, Format},
+        OrdComplex,
+    },
     ext::xmpc::{ordering2, raw_round2, Ordering2, Round2},
     float::{big::ExpFormat, Round, Special},
     ops::AssignRound,
@@ -184,6 +187,13 @@ impl UpperHex for Complex {
             ..Format::default()
         };
         fmt_radix(self, f, format)
+    }
+}
+
+impl AsRef<OrdComplex> for Complex {
+    #[inline]
+    fn as_ref(&self) -> &OrdComplex {
+        self.as_ord()
     }
 }
 
