@@ -31,6 +31,26 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.8.0 news (unreleased)
+
+  * The implementations
+    <code>[AsRef][`AsRef`]&lt;[Float][`Float`]&gt;</code> and
+    <code>[AsMut][`AsMut`]&lt;[Float][`Float`]&gt;</code> for
+    [`OrdFloat`], and
+    <code>[AsRef][`AsRef`]&lt;[OrdFloat][`OrdFloat`]&gt;</code> for
+    [`Float`], were added.
+  * The implementations
+    <code>[AsRef][`AsRef`]&lt;[Complex][`Complex`]&gt;</code> and
+    <code>[AsMut][`AsMut`]&lt;[Complex][`Complex`]&gt;</code> for
+    [`OrdComplex`], and
+    <code>[AsRef][`AsRef`]&lt;[OrdComplex][`OrdComplex`]&gt;</code>
+    for [`Complex`], were added.
+
+[`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
+[`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
+[`OrdFloat`]: https://docs.rs/rug/~1.7/rug/float/struct.OrdFloat.html
+[`OrdComplex`]: https://docs.rs/rug/~1.7/rug/complex/struct.OrdComplex.html
+
 ### Version 1.7.0 news (2019-01-21)
 
   * The crate now requires rustc version 1.37.0 or later.

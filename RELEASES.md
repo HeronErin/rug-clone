@@ -5,6 +5,14 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Verison 1.8.0 (unreleased)
+==========================
+
+  * The implementations `AsRef<Float>` and `AsMut<Float>` for
+    `OrdFloat`, and `AsRef<OrdFloat>` for `Float`, were added.
+  * The implementations `AsRef<Complex>` and `AsMut<Complex>` for
+    `OrdComplex`, and `AsRef<OrdComplex>` for `Complex`, were added.
+
 Verison 1.7.0 (2019-01-21)
 ==========================
 
