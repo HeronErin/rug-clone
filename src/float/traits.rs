@@ -20,7 +20,7 @@ use crate::{
     ext::xmpfr::{self, ordering1, raw_round},
     float::{
         big::{self, ExpFormat, Format},
-        Constant, Round, Special,
+        Constant, OrdFloat, Round, Special,
     },
     misc::AsOrPanic,
     ops::AssignRound,
@@ -155,6 +155,13 @@ impl UpperHex for Float {
             ..Format::default()
         };
         fmt_radix(self, f, format, "0x")
+    }
+}
+
+impl AsRef<OrdFloat> for Float {
+    #[inline]
+    fn as_ref(&self) -> &OrdFloat {
+        self.as_ord()
     }
 }
 
