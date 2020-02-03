@@ -207,7 +207,7 @@ Version 1.3.0 (2019-01-26)
 ==========================
 
   * A new method
-    <code>[SmallRational][smr-1-3]::[assign\_canonical][int-ac-1-3]</code>
+    <code>[SmallRational][smr-1-3]::[assign\_canonical][smr-ac-1-3]</code>
     was added.
 
 [smr-1-3]: https://docs.rs/rug/~1.3/rug/rational/struct.SmallRational.html
@@ -224,7 +224,7 @@ Version 1.2.2 (2018-10-18)
 ==========================
 
   * The [`NotAssign`][noa-1-2], [`BitAndFrom`][baf-1-2],
-    [`BitOrFrom`][bof-1-2] and [`BitXorFrom`][bxf-1-2] traits are were
+    [`BitOrFrom`][bof-1-2] and [`BitXorFrom`][bxf-1-2] traits were
     implemented for [`bool`].
   * The [`NegAssign`][nea-1-2] trait was implemented for [`f32`] and
     [`f64`].
