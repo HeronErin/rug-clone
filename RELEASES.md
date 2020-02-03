@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Verison 1.8.0 (unreleased)
+Version 1.8.0 (unreleased)
 ==========================
 
   * The implementations `AsRef<Float>` and `AsMut<Float>` for
@@ -13,7 +13,7 @@ Verison 1.8.0 (unreleased)
   * The implementations `AsRef<Complex>` and `AsMut<Complex>` for
     `OrdComplex`, and `AsRef<OrdComplex>` for `Complex`, were added.
 
-Verison 1.7.0 (2019-01-21)
+Version 1.7.0 (2019-01-21)
 ==========================
 
   * The crate now requires rustc version 1.37.0 or later.
@@ -41,7 +41,7 @@ Compatibility note
     `&Integer` returned from `SmallInteger::deref`, are still `Send`
     and `Sync`.
 
-Verison 1.6.0 (2019-09-03)
+Version 1.6.0 (2019-09-03)
 ==========================
 
   * Arithmetic operator implementations for `i8`, `i16`, `i64`,
@@ -64,19 +64,19 @@ Compatibility note
 	`&mut ThreadRandState` as well. With function inlining and
     optimization, the generated code should have the same performance.
 
-Verison 1.5.2 (2019-07-26)
+Version 1.5.2 (2019-07-26)
 ==========================
 
   * Bug fix: `Pow<i32> for Rational` was returning the reciprocal of
     the correct result.
 
-Verison 1.5.1 (2019-07-10)
+Version 1.5.1 (2019-07-10)
 ==========================
 
   * Bug fix: a memory leak in conversions of `Float` to string was
     fixed (https://gitlab.com/tspiteri/rug/issues/11).
 
-Verison 1.5.0 (2019-07-04)
+Version 1.5.0 (2019-07-04)
 ==========================
 
   * The method `Integer::assign_digits_unaligned` was added to enable
@@ -88,7 +88,7 @@ Verison 1.5.0 (2019-07-04)
   * The documentation examples on `from_raw` methods now use
     `MaybeUninit` instead of `mem::uninitialized`.
 
-Verison 1.4.0 (2019-04-24)
+Version 1.4.0 (2019-04-24)
 ==========================
 
   * Require rustc version 1.31.0.
