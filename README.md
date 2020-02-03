@@ -34,88 +34,95 @@ option) any later version. See the full text of the [GNU LGPL] and
 ### Version 1.8.0 news (unreleased)
 
   * The implementations
-    <code>[AsRef][`AsRef`]&lt;[Float][`Float`]&gt;</code> and
-    <code>[AsMut][`AsMut`]&lt;[Float][`Float`]&gt;</code> for
-    [`OrdFloat`], and
-    <code>[AsRef][`AsRef`]&lt;[OrdFloat][`OrdFloat`]&gt;</code> for
-    [`Float`], were added.
+    <code>[AsRef][`AsRef`]&lt;[Float][flo-1-8]&gt;</code> and
+    <code>[AsMut][`AsMut`]&lt;[Float][flo-1-8]&gt;</code> for
+    [`OrdFloat`][of-1-8], and
+    <code>[AsRef][`AsRef`]&lt;[OrdFloat][of-1-8]&gt;</code> for
+    [`Float`][flo-1-8], were added.
   * The implementations
-    <code>[AsRef][`AsRef`]&lt;[Complex][`Complex`]&gt;</code> and
-    <code>[AsMut][`AsMut`]&lt;[Complex][`Complex`]&gt;</code> for
-    [`OrdComplex`], and
-    <code>[AsRef][`AsRef`]&lt;[OrdComplex][`OrdComplex`]&gt;</code>
-    for [`Complex`], were added.
+    <code>[AsRef][`AsRef`]&lt;[Complex][com-1-8]&gt;</code> and
+    <code>[AsMut][`AsMut`]&lt;[Complex][com-1-8]&gt;</code> for
+    [`OrdComplex`][oc-1-8], and
+    <code>[AsRef][`AsRef`]&lt;[OrdComplex][oc-1-8]&gt;</code> for
+    [`Complex`][com-1-8], were added.
 
-[`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
 [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
-[`OrdFloat`]: https://docs.rs/rug/~1.7/rug/float/struct.OrdFloat.html
-[`OrdComplex`]: https://docs.rs/rug/~1.7/rug/complex/struct.OrdComplex.html
+[`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
+[com-1-8]: https://docs.rs/rug/~1.8/rug/struct.Complex.html
+[flo-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html
+[oc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.OrdComplex.html
+[of-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.OrdFloat.html
 
 ### Version 1.7.0 news (2019-01-21)
 
   * The crate now requires rustc version 1.37.0 or later.
-  * The [`RemAssignRound`] and [`RemFromRound`] traits were added.
-  * The [`Rem`], [`RemAssign`], [`RemFrom`], [`RemAssignRound`] and
-    [`RemFromRound`] traits were implemented for [`Float`].
-  * Arithmetic operations with one [`Integer`] or integer primitive
-    operand and one [`Rational`] operand were added.
-  * The method
-    <code>[Integer][`Integer`]::[div_exact_from][`div_exact_from`]</code>
+  * The [`RemAssignRound`][rar-1-7] and [`RemFromRound`][rfr-1-7]
+    traits were added.
+  * The [`Rem`], [`RemAssign`], [`RemFrom`][rf-1-7],
+    [`RemAssignRound`][rar-1-7] and [`RemFromRound`][rfr-1-7] traits
+    were implemented for [`Float`][flo-1-7].
+  * Arithmetic operations with one [`Integer`][int-1-7] or integer
+    primitive operand and one [`Rational`][rat-1-7] operand were
+    added.
+  * A new method
+    <code>[Integer][int-1-7]::[div\_exact\_from][int-def-1-7]</code>
     was added.
-  * The methods <code>[Integer][`Integer`]::[gcd_u][`gcd_u`]</code>,
-    <code>[Integer][`Integer`]::[gcd_u_mut][`gcd_u_mut`]</code> and
-    <code>[Integer][`Integer`]::[gcd_u_ref][`gcd_u_ref`]</code> were
-    added.
-  * The methods <code>[Integer][`Integer`]::[lcm_u][`lcm_u`]</code>,
-    <code>[Integer][`Integer`]::[lcm_u_mut][`lcm_u_mut`]</code> and
-    <code>[Integer][`Integer`]::[lcm_u_ref][`lcm_u_ref`]</code> were
-    added.
-  * The methods
-    <code>[Float][`Float`]::[remainder][`remainder`]</code>,
-    <code>[Float][`Float`]::[remainder_mut][`remainder_mut`]</code>,
-    <code>[Float][`Float`]::[remainder_round][`remainder_round`]</code>,
-    <code>[Float][`Float`]::[remainder_from][`remainder_from`]</code>,
-    <code>[Float][`Float`]::[remainder_from_round][`remainder_from_round`]</code>
-    and
-    <code>[Float][`Float`]::[remainder_ref][`remainder_ref`]</code>
+  * New methods <code>[Integer][int-1-7]::[gcd\_u][int-gu-1-7]</code>,
+	<code>[Integer][int-1-7]::[gcd\_u\_mut][int-gum-1-7]</code> and
+	<code>[Integer][int-1-7]::[gcd\_u\_ref][int-gur-1-7]</code>were
+	added.
+  * New methods <code>[Integer][int-1-7]::[lcm\_u][int-lu-1-7]</code>,
+	<code>[Integer][int-1-7]::[lcm\_u\_mut][int-lum-1-7]</code> and
+	<code>[Integer][int-1-7]::[lcm\_u\_ref][int-lur-1-7]</code>were
+	added.
+  * New methods <code>[Float][flo-1-7]::[remainder][flo-r-1-7]</code>,
+    <code>[Float][flo-1-7]::[remainder\_mut][flo-rm-1-7]</code>,
+    <code>[Float][flo-1-7]::[remainder\_round][flo-rr-1-7]</code>,
+    <code>[Float][flo-1-7]::[remainder\_from][flo-rf-1-7]</code>,
+    <code>[Float][flo-1-7]::[remainder\_from\_round][flo-rfr-1-7]</code>
+    and <code>[Float][flo-1-7]::[remainder\_ref][flo-rre-1-7]</code>
     were added.
 
-[`RemAssignRound`]: https://docs.rs/rug/~1.7/rug/ops/trait.RemAssignRound.html
+Compatibility note
+------------------
+
+  * [`SmallInteger`][smi-1-7], [`SmallRational`][smr-1-7],
+    [`SmallFloat`][smf-1-7] and [`SmallComplex`][smc-1-7] are no
+    longer [`Sync`] to avoid the possibility of a [data race][dr-1-7].
+    References obtained by dereferencing them, for example the
+    <code>&amp;[Integer][int-1-7]</code> returned from
+    <code>[SmallInteger][smi-1-7]::[deref][`deref`]</code>, are still
+    [`Send`] and [`Sync`].
+
 [`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
-[`RemFromRound`]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFromRound.html
-[`RemFrom`]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFrom.html
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
-[`div_exact_from`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.div_exact_from
-[`gcd_u_mut`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_mut
-[`gcd_u_ref`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_ref
-[`gcd_u`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u
-[`lcm_u_mut`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_mut
-[`lcm_u_ref`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_ref
-[`lcm_u`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u
-[`remainder_from_round`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from_round
-[`remainder_from`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from
-[`remainder_mut`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_mut
-[`remainder_ref`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_ref
-[`remainder_round`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_round
-[`remainder`]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder
-
-#### Compatibility note
-
-  * [`SmallInteger`], [`SmallRational`], [`SmallFloat`] and
-    [`SmallComplex`] are no longer [`Sync`] to avoid the possibility
-    of a [data race]. References obtained by dereferencing them, for
-    example the <code>&amp;[Integer][`Integer`]</code> returned from
-    <code>[SmallInteger][`SmallInteger`]::[deref][`deref`]</code>, are
-    still [`Send`] and [`Sync`].
-
 [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-[`SmallComplex`]: https://docs.rs/rug/~1.7/rug/complex/struct.SmallComplex.html
-[`SmallFloat`]: https://docs.rs/rug/~1.7/rug/float/struct.SmallFloat.html
-[`SmallInteger`]: https://docs.rs/rug/~1.7/rug/integer/struct.SmallInteger.html
-[`SmallRational`]: https://docs.rs/rug/~1.7/rug/rational/struct.SmallRational.html
 [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`deref`]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref
-[data race]: https://internals.rust-lang.org/t/is-this-a-data-race/11582
+[dr-1-7]: https://internals.rust-lang.org/t/is-this-a-data-race/11582
+[flo-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html
+[flo-r-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder
+[flo-rf-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from
+[flo-rfr-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from_round
+[flo-rm-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_mut
+[flo-rr-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_round
+[flo-rre-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_ref
+[int-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html
+[int-def-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.div_exact_from
+[int-gu-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u
+[int-gum-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_mut
+[int-gur-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_ref
+[int-lu-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u
+[int-lum-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_mut
+[int-lur-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_ref
+[rar-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemAssignRound.html
+[rat-1-7]: https://docs.rs/rug/~1.7/rug/struct.Rational.html
+[rf-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFrom.html
+[rfr-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFromRound.html
+[smc-1-7]: https://docs.rs/rug/~1.7/rug/complex/struct.SmallComplex.html
+[smf-1-7]: https://docs.rs/rug/~1.7/rug/float/struct.SmallFloat.html
+[smi-1-7]: https://docs.rs/rug/~1.7/rug/integer/struct.SmallInteger.html
+[smr-1-7]: https://docs.rs/rug/~1.7/rug/rational/struct.SmallRational.html
 
 ### Other releases
 

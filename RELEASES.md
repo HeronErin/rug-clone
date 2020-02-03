@@ -8,179 +8,403 @@ as-is, without any warranty. -->
 Version 1.8.0 (unreleased)
 ==========================
 
-  * The implementations `AsRef<Float>` and `AsMut<Float>` for
-    `OrdFloat`, and `AsRef<OrdFloat>` for `Float`, were added.
-  * The implementations `AsRef<Complex>` and `AsMut<Complex>` for
-    `OrdComplex`, and `AsRef<OrdComplex>` for `Complex`, were added.
+  * The implementations
+    <code>[AsRef][`AsRef`]&lt;[Float][flo-1-8]&gt;</code> and
+    <code>[AsMut][`AsMut`]&lt;[Float][flo-1-8]&gt;</code> for
+    [`OrdFloat`][of-1-8], and
+    <code>[AsRef][`AsRef`]&lt;[OrdFloat][of-1-8]&gt;</code> for
+    [`Float`][flo-1-8], were added.
+  * The implementations
+    <code>[AsRef][`AsRef`]&lt;[Complex][com-1-8]&gt;</code> and
+    <code>[AsMut][`AsMut`]&lt;[Complex][com-1-8]&gt;</code> for
+    [`OrdComplex`][oc-1-8], and
+    <code>[AsRef][`AsRef`]&lt;[OrdComplex][oc-1-8]&gt;</code> for
+    [`Complex`][com-1-8], were added.
+
+[com-1-8]: https://docs.rs/rug/~1.8/rug/struct.Complex.html
+[flo-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html
+[oc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.OrdComplex.html
+[of-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.OrdFloat.html
 
 Version 1.7.0 (2019-01-21)
 ==========================
 
   * The crate now requires rustc version 1.37.0 or later.
-  * The `RemAssignRound` and `RemFromRound` traits were added.
-  * The `Rem`, `RemAssign`, `RemFrom`, `RemAssignRound` and
-    `RemFromRound` traits were implemented for `Float`.
-  * Arithmetic operations with one `Integer` or integer primitive
-    operand and one `Rational` operand were added.
-  * The method `Integer::div_exact_from` was added.
-  * The methods `Integer::gcd_u`, `Integer::gcd_u_mut` and
-    `Integer::gcd_u_ref` were added.
-  * The methods `Integer::lcm_u`, `Integer::lcm_u_mut` and
-    `Integer::lcm_u_ref` were added.
-  * The methods `Float::remainder`, `Float::remainder_mut`,
-    `Float::remainder_round`, `Float::remainder_from`,
-    `Float::remainder_from_round` and `Float::remainder_ref` were
+  * The [`RemAssignRound`][rar-1-7] and [`RemFromRound`][rfr-1-7]
+    traits were added.
+  * The [`Rem`], [`RemAssign`], [`RemFrom`][rf-1-7],
+    [`RemAssignRound`][rar-1-7] and [`RemFromRound`][rfr-1-7] traits
+    were implemented for [`Float`][flo-1-7].
+  * Arithmetic operations with one [`Integer`][int-1-7] or integer
+    primitive operand and one [`Rational`][rat-1-7] operand were
     added.
+  * A new method
+    <code>[Integer][int-1-7]::[div\_exact\_from][int-def-1-7]</code>
+    was added.
+  * New methods <code>[Integer][int-1-7]::[gcd\_u][int-gu-1-7]</code>,
+	<code>[Integer][int-1-7]::[gcd\_u\_mut][int-gum-1-7]</code> and
+	<code>[Integer][int-1-7]::[gcd\_u\_ref][int-gur-1-7]</code>were
+	added.
+  * New methods <code>[Integer][int-1-7]::[lcm\_u][int-lu-1-7]</code>,
+	<code>[Integer][int-1-7]::[lcm\_u\_mut][int-lum-1-7]</code> and
+	<code>[Integer][int-1-7]::[lcm\_u\_ref][int-lur-1-7]</code>were
+	added.
+  * New methods <code>[Float][flo-1-7]::[remainder][flo-r-1-7]</code>,
+    <code>[Float][flo-1-7]::[remainder\_mut][flo-rm-1-7]</code>,
+    <code>[Float][flo-1-7]::[remainder\_round][flo-rr-1-7]</code>,
+    <code>[Float][flo-1-7]::[remainder\_from][flo-rf-1-7]</code>,
+    <code>[Float][flo-1-7]::[remainder\_from\_round][flo-rfr-1-7]</code>
+    and <code>[Float][flo-1-7]::[remainder\_ref][flo-rre-1-7]</code>
+    were added.
 
 Compatibility note
 ------------------
 
-  * `SmallInteger`, `SmallRational`, `SmallFloat` and `SmallComplex`
-    are no longer `Sync` to avoid the possibility of a data race.
+  * [`SmallInteger`][smi-1-7], [`SmallRational`][smr-1-7],
+    [`SmallFloat`][smf-1-7] and [`SmallComplex`][smc-1-7] are no
+    longer [`Sync`] to avoid the possibility of a [data race][dr-1-7].
     References obtained by dereferencing them, for example the
-    `&Integer` returned from `SmallInteger::deref`, are still `Send`
-    and `Sync`.
+    <code>&amp;[Integer][int-1-7]</code> returned from
+    <code>[SmallInteger][smi-1-7]::[deref][`deref`]</code>, are still
+    [`Send`] and [`Sync`].
+
+[dr-1-7]: https://internals.rust-lang.org/t/is-this-a-data-race/11582
+[flo-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html
+[flo-r-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder
+[flo-rf-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from
+[flo-rfr-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from_round
+[flo-rm-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_mut
+[flo-rr-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_round
+[flo-rre-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_ref
+[int-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html
+[int-def-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.div_exact_from
+[int-gu-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u
+[int-gum-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_mut
+[int-gur-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_ref
+[int-lu-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u
+[int-lum-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_mut
+[int-lur-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_ref
+[rar-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemAssignRound.html
+[rat-1-7]: https://docs.rs/rug/~1.7/rug/struct.Rational.html
+[rf-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFrom.html
+[rfr-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFromRound.html
+[smc-1-7]: https://docs.rs/rug/~1.7/rug/complex/struct.SmallComplex.html
+[smf-1-7]: https://docs.rs/rug/~1.7/rug/float/struct.SmallFloat.html
+[smi-1-7]: https://docs.rs/rug/~1.7/rug/integer/struct.SmallInteger.html
+[smr-1-7]: https://docs.rs/rug/~1.7/rug/rational/struct.SmallRational.html
 
 Version 1.6.0 (2019-09-03)
 ==========================
 
-  * Arithmetic operator implementations for `i8`, `i16`, `i64`,
-    `i128`, `u8`, `u16`, `u64` and `u128` were added to the existing
-    implementations for `i32` and `u32`.
-  * The function `float::free_cache` was added.
-  * The method `RandState::into_custom_boxed` was added.
-  * `ThreadRandState` and `ThreadRandGen` were added to the `rand`
+  * Arithmetic operator implementations for [`i8`], [`i16`], [`i64`],
+    [`i128`], [`u8`], [`u16`], [`u64`] and [`u128`] were added to the
+    existing implementations for [`i32`] and [`u32`].
+  * A new function
+    <code>[float][flom-1-6]::[free\_cache][fc-1-6]</code> and its
+    supporting enum [`FreeCache`][fce-1-6] were added.
+  * A new method
+    <code>[RandState][ras-1-6]::[into\_custom\_boxed][ras-icb-1-6]</code>
+    was added.
+  * A new struct [`ThreadRandState`][trs-1-6] and a new trait
+    [`ThreadRandGen`][trg-1-6] were added to the [`rand`][ram-1-6]
     module to enable the use of custom random generators that are not
-    `Send` and `Sync`.
-  * Numeric type methods which take `RandState` now can also take
-    `ThreadRandState`.
+    [`Send`] and [`Sync`].
+  * Numeric type methods which take [`RandState`][ras-1-6] now can
+    also take [`ThreadRandState`][trs-1-6].
 
 Compatibility note
 ------------------
 
-  * The numeric type methods which took `&mut RandState` were changed
-    to take `&mut dyn MutRandState` instead. Under normal use, this
-    does not have any affect apart from allowing the use of
-	`&mut ThreadRandState` as well. With function inlining and
-    optimization, the generated code should have the same performance.
+  * The numeric type methods which took
+    <code>&mut [RandState][ras-1-6]</code> were changed to take
+    <code>&mut dyn [MutRandState][mrs-1-6]</code> instead. Under
+    normal use, this does not have any affect apart from allowing the
+    use of <code>&mut [ThreadRandState][trs-1-6]</code> as well. With
+    function inlining and optimization, the generated code should have
+    the same performance.
+
+[fc-1-6]: https://docs.rs/rug/~1.6/rug/float/fn.free_cache.html
+[fce-1-6]: https://docs.rs/rug/~1.6/rug/float/enum.FreeCache.html
+[flom-1-6]: https://docs.rs/rug/~1.6/rug/float/index.html
+[mrs-1-6]: https://docs.rs/rug/~1.6/rug/rand/trait.MutRandState.html
+[ram-1-6]: https://docs.rs/rug/~1.6/rug/rand/index.html
+[ras-1-6]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
+[ras-icb-1-6]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html#method.into_custom_boxed
+[trg-1-6]: https://docs.rs/rug/~1.6/rug/rand/trait.ThreadRandGen.html
+[trs-1-6]: https://docs.rs/rug/~1.6/rug/rand/struct.ThreadRandState.html
 
 Version 1.5.2 (2019-07-26)
 ==========================
 
-  * Bug fix: `Pow<i32> for Rational` was returning the reciprocal of
-    the correct result.
+  * Bug fix:
+    <code>[Pow][pow-1-5]&lt;[i32][`i32`]&gt; for [Rational][rat-1-5]</code>
+	was returning the reciprocal of the correct result.
 
 Version 1.5.1 (2019-07-10)
 ==========================
 
-  * Bug fix: a memory leak in conversions of `Float` to string was
-    fixed (https://gitlab.com/tspiteri/rug/issues/11).
+  * Bug fix: a memory leak in conversions of [`Float`][flo-1-5] to
+    string was fixed (https://gitlab.com/tspiteri/rug/issues/11).
 
 Version 1.5.0 (2019-07-04)
 ==========================
 
-  * The method `Integer::assign_digits_unaligned` was added to enable
-    reading digits from unaligned memory.
-  * The method `Integer::write_digits_unaligned` was added to enable
-    writing digits to unaligned and  uninitialized memory.
-  * The methods `Float::u_exp` and `Float::i_exp` were added.
-  * The method `Complex::abs_round` was added.
-  * The documentation examples on `from_raw` methods now use
-    `MaybeUninit` instead of `mem::uninitialized`.
+  * A new method
+    <code>[Integer][int-1-5]::[assign\_digits\_unaligned][int-adu-1-5]</code>
+    was added to enable reading digits from unaligned memory.
+  * A new method
+    <code>[Integer][int-1-5]::[write\_digits\_unaligned][int-wdu-1-5]</code>
+    was added to enable writing digits to unaligned and uninitialized
+    memory.
+  * New methods <code>[Float][flo-1-5]::[u\_exp][flo-ue-1-5]</code>
+    and <code>[Float][flo-1-5]::[i\_exp][flo-ie-1-5]</code> were
+    added.
+  * A new method
+    <code>[Complex][com-1-5]::[abs\_round][com-ar-1-5]</code> was
+    added.
+  * The documentation examples on [`from_raw`][fr-1-5] methods now use
+    [`MaybeUninit`] instead of
+    <code>[mem][`mem`]::[uninitialized][`uninitialized`]</code>.
+
+[com-1-5]: https://docs.rs/rug/~1.5/rug/struct.Complex.html
+[com-ar-1-5]: https://docs.rs/rug/~1.5/rug/struct.Complex.html#method.abs_round
+[flo-1-5]: https://docs.rs/rug/~1.5/rug/struct.Float.html
+[flo-ie-1-5]: https://docs.rs/rug/~1.5/rug/struct.Float.html#method.i_exp
+[flo-ue-1-5]: https://docs.rs/rug/~1.5/rug/struct.Float.html#method.u_exp
+[fr-1-5]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.from_raw
+[int-1-5]: https://docs.rs/rug/~1.5/rug/struct.Integer.html
+[int-adu-1-5]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.assign_digits_unaligned
+[int-wdu-1-5]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.write_digits_unaligned
+[pow-1-5]: https://docs.rs/rug/~1.5/rug/ops/trait.Pow.html
+[rat-1-5]: https://docs.rs/rug/~1.5/rug/struct.Rational.html
 
 Version 1.4.0 (2019-04-24)
 ==========================
 
-  * Require rustc version 1.31.0.
-  * The method `RandState::as_raw` was fixed to take `&self` instead
-    of `&mut self`.
-  * `float::prec_min` and `float::prec_max` are now const functions.
-  * Add `Float::copysign` methods.
+  * The crate now requires rustc version 1.31.0 or later.
+  * The method
+    <code>[RandState][ras-1-4]::[as\_raw][ras-ar-1-4]</code> was fixed
+    to take `&self` instead of `&mut self`.
+  * <code>[float][flom-1-0]::[prec\_min][flom-pmin-1-4]</code> and
+    <code>[float][flom-1-0]::[prec\_max][flom-pmax-1-4]</code> are now
+    const functions.
+  * New methods <code>[Float][flo-1-4]::[copysign][flo-cs-1-4]</code>,
+    <code>[Float][flo-1-4]::[copysign\_mut][flo-csm-1-4]</code> and
+    <code>[Float][flo-1-4]::[copysign\_ref][flo-csr-1-4]</code> were
+    added.
+
+[flo-1-4]: https://docs.rs/rug/~1.4/rug/struct.Float.html
+[flo-cs-1-4]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.copysign
+[flo-csm-1-4]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.copysign_mut
+[flo-csr-1-4]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.copysign_ref
+[flom-1-4]: https://docs.rs/rug/~1.4/rug/float/index.html
+[flom-pmax-1-4]: https://docs.rs/rug/~1.4/rug/float/fn.prec_max.html
+[flom-pmin-1-4]: https://docs.rs/rug/~1.4/rug/float/fn.prec_min.html
+[ras-1-4]: https://docs.rs/rug/~1.4/rug/rand/struct.RandState.html
+[ras-ar-1-4]: https://docs.rs/rug/~1.4/rug/rand/struct.RandState.html#method.as_raw
 
 Version 1.3.0 (2019-01-26)
 ==========================
 
-  * Add `SmallRational::assign_canonical`.
+  * A new method
+    <code>[SmallRational][smr-1-3]::[assign\_canonical][int-ac-1-3]</code>
+    was added.
+
+[smr-1-3]: https://docs.rs/rug/~1.3/rug/rational/struct.SmallRational.html
+[smr-ac-1-3]: https://docs.rs/rug/~1.3/rug/rational/struct.SmallRational.html#method.assign_canonical
 
 Version 1.2.3 (2019-01-21)
 ==========================
 
-  * Fixed bug in `Integer::assign_digits`. (Thanks: Eric Scrivner)
+  * Fixed bug in
+    <code>[Integer][int-1-2]::[assign\_digits][int-ad-1-2]</code>.
+    (Thanks: Eric Scrivner)
 
 Version 1.2.2 (2018-10-18)
 ==========================
 
-  * Implement `NotAssign`, `BitAndFrom`, `BitOrFrom` and `BitXorFrom`
-    for `bool`.
-  * Implement `NegAssign` for `f32` and `f64`.
+  * The [`NotAssign`][noa-1-2], [`BitAndFrom`][baf-1-2],
+    [`BitOrFrom`][bof-1-2] and [`BitXorFrom`][bxf-1-2] traits are were
+    implemented for [`bool`].
+  * The [`NegAssign`][nea-1-2] trait was implemented for [`f32`] and
+    [`f64`].
 
 Version 1.2.1 (2018-08-16)
 ==========================
 
-  * Add `bool` support to the `Integer::from_digits`,
-    `Integer::assign_digits`, `Integer::significant_digits`,
-    `Integer::to_digits` and `Integer::write_digits` methods.
+  * The [`Integer`][int-1-2] methods [`from_digits`][int-fd-1-2],
+    [`assign_digits`][int-ad-1-2], [`significant_digits`][int-sd-1-2],
+    [`to_digits`][int-td-1-2] and [`write_digits`][int-wd-1-2] now
+    support [`bool`] [slices][slice].
 
 Version 1.2.0 (2018-06-30)
 ==========================
 
-  * Generalize implementations of `Sum` and `Product` for `Integer`
-    and `Rational`.
-  * Add `Integer::keep_signed_bits` methods.
-  * Add `Integer::sum`, `Integer::dot` and `Integer::product` methods.
-  * Add `Rational::sum`, `Rational::dot` and `Rational::product`
-    methods.
-  * Add `Float::dot` and `Complex::dot` methods.
+  * The implementations of [`Sum`] and [`Product`] for
+    [`Integer`][int-1-2] and [`Rational`][rat-1-2] were generalized to
+    accept more types of elements.
+  * New methods
+    <code>[Integer][int-1-2]::[keep\_signed\_bits][int-ksb-1-2]</code>,
+    <code>[Integer][int-1-2]::[keep\_signed\_bits\_mut][int-ksbm-1-2]</code>
+    and
+    <code>[Integer][int-1-2]::[keep\_signed\_bits\_ref][int-ksbr-1-2]</code>
+    were added.
+  * New methods <code>[Integer][int-1-2]::[sum][int-s-1-2]</code>,
+    <code>[Integer][int-1-2]::[dot][int-d-1-2]</code> and
+    <code>[Integer][int-1-2]::[product][int-p-1-2]</code> were added
+  * New methods <code>[Rational][rat-1-2]::[sum][rat-s-1-2]</code>,
+    <code>[Rational][rat-1-2]::[dot][rat-d-1-2]</code> and
+    <code>[Rational][rat-1-2]::[product][rat-p-1-2]</code> were added.
+  * New methods <code>[Float][flo-1-2]::[dot][flo-d-1-2]</code> and
+    <code>[Complex][com-1-2]::[dot][com-d-1-2]</code> were added.
+
+[baf-1-2]: https://docs.rs/rug/~1.2/rug/ops/trait.BitAndFrom.html
+[bof-1-2]: https://docs.rs/rug/~1.2/rug/ops/trait.BitOrFrom.html
+[bxf-1-2]: https://docs.rs/rug/~1.2/rug/ops/trait.BitXorFrom.html
+[com-1-2]: https://docs.rs/rug/~1.2/rug/struct.Complex.html
+[com-d-1-2]: https://docs.rs/rug/~1.2/rug/struct.Complex.html#method.dot
+[flo-1-2]: https://docs.rs/rug/~1.2/rug/struct.Float.html
+[flo-d-1-2]: https://docs.rs/rug/~1.2/rug/struct.Float.html#method.dot
+[int-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html
+[int-ad-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.assign_digits
+[int-d-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.dot
+[int-fd-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.from_digits
+[int-ksb-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits
+[int-ksbm-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits_mut
+[int-ksbr-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits_ref
+[int-p-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.product
+[int-s-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.sum
+[int-sd-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.significant_digits
+[int-td-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.to_digits
+[int-wd-1-2]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.write_digits
+[nea-1-2]: https://docs.rs/rug/~1.2/rug/ops/trait.NegAssign.html
+[noa-1-2]: https://docs.rs/rug/~1.2/rug/ops/trait.NotAssign.html
+[rat-1-2]: https://docs.rs/rug/~1.2/rug/struct.Rational.html
+[rat-d-1-2]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.dot
+[rat-p-1-2]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.product
+[rat-s-1-2]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.sum
 
 Version 1.1.1 (2018-05-20)
 ==========================
 
-  * Enable unstable `i128`, `u128` and `TryFrom` in nightly.
+  * Support for unstable [`i128`], [`u128`] and [`TryFrom`] was added
+    in nightly.
 
 Version 1.1.0 (2018-04-23)
 ==========================
 
-  * Add `i128` and `u128` support, conditional on compiler support.
-  * Implement `TryFrom::<Integer>` and `TryFrom::<&Integer>` for
-    integer primitives, conditional on compiler support.
-  * Implement `TryFrom::<f32>`, `TryFrom::<f64>`, `TryFrom::<Float>`
-    and `TryFrom::<&Float>` for `Rational`, conditional on compiler
-    support.
-  * Add `Float::get_significand` method.
-  * Add `Float::u_pow_u` and `Float::i_pow_u` methods.
-  * Add `Integer::from_digits`, `Integer::to_digits`,
-    `Integer::assign_digits`, `Integer::write_digits` and
-    `Integer::significant_digits` methods.
+  * Support for [`i128`] and [`u128`] conversions and comparisons was
+    added, conditional on compiler support.
+  * Conditional on compiler support, [`TryFrom`] conversions were
+    implemented for conversions
+      * from [`Integer`][int-1-1] values to integer primitives,
+      * from floating-point primitives to [`Rational`][rat-1-1] numbers, and
+      * from [`Float`][flo-1-1] values to [`Rational`][rat-1-1] numbers.
+  * A new method
+    <code>[Float][flo-1-1]::[get\_significand][flo-gs-1-1]</code> was
+    added.
+  * New methods
+    <code>[Float][flo-1-1]::[u\_pow\_u][flo-upu-1-1]</code> and
+    <code>[Float][flo-1-1]::[i\_pow\_u][flo-ipu-1-1]</code> were
+    added.
+  * New methods
+    <code>[Integer][int-1-1]::[from\_digits][int-fd-1-1]</code>,
+    <code>[Integer][int-1-1]::[to\_digits][int-td-1-1]</code>,
+    <code>[Integer][int-1-1]::[assign\_digits][int-ad-1-1]</code>,
+    <code>[Integer][int-1-1]::[write\_digits][int-wd-1-1]</code> and
+    <code>[Integer][int-1-1]::[significant\_digits][int-sd-1-1]</code>
+    were added, providing reading from and writing to slices of
+    unsigned integer primitives.
+
+[flo-1-1]: https://docs.rs/rug/~1.1/rug/struct.Float.html
+[flo-gs-1-1]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.get_significand
+[flo-ipu-1-1]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.i_pow_u
+[flo-upu-1-1]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.u_pow_u
+[int-1-1]: https://docs.rs/rug/~1.1/rug/struct.Integer.html
+[int-ad-1-1]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.assign_digits
+[int-fd-1-1]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.from_digits
+[int-sd-1-1]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.significant_digits
+[int-td-1-1]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.to_digits
+[int-wd-1-1]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.write_digits
+[rat-1-1]: https://docs.rs/rug/~1.1/rug/struct.Rational.html
 
 Version 1.0.2 (2018-04-09)
 ==========================
 
-  * Bug fix: `Integer::reserve` was shrinking the allocation in some
-    cases.
-  * Bug fix: Change gmp-mpfr-sys dependency from caret to tilde, since
-    Rug uses internal implementation details.
+  * A bug in
+    <code>[Integer][int-1-0]::[reserve][int-r-1-0]</code>,
+    which was shrinking the capacity in some cases, was fixed.
+  * The [gmp-mpfr-sys] dependency in [*Cargo.toml*] was fixed to use
+    tilde instead of caret, since Rug uses internal implementation
+    details.
 
 Version 1.0.1 (2018-03-10)
 ==========================
 
-  * Add `Integer::is_power_of_two` method.
-  * Add `Integer::signed_bits` method.
-  * Add `Integer::secure_pow_mod` methods.
-  * Add `Integer::div_rem_round` methods.
-  * Add `Complex::eq0` method.
-  * Improve documentation.
+  * A new method
+    <code>[Integer][int-1-0]::[is\_power\_of\_two][int-ipot-1-0]</code>
+    was added.
+  * A new method
+    <code>[Integer][int-1-0]::[signed\_bits][int-sb-1-0]</code> was
+    added.
+  * New methods
+    <code>[Integer][int-1-0]::[secure\_pow\_mod][int-spm-1-0]</code>,
+    <code>[Integer][int-1-0]::[secure\_pow\_mod\_mut][int-spmm-1-0]</code>
+    and
+    <code>[Integer][int-1-0]::[secure\_pow\_mod\_ref][int-spmr-1-0]</code>
+    were added.
+  * New methods
+    <code>[Integer][int-1-0]::[div\_rem\_round][int-drr-1-0]</code>,
+    <code>[Integer][int-1-0]::[div\_rem\_round\_mut][int-drrm-1-0]</code>
+    and
+    <code>[Integer][int-1-0]::[div\_rem\_round\_ref][int-drrr-1-0]</code>
+    were added.
+  * A new method <code>[Complex][com-1-0]::[eq0][com-e-1-0]</code> was
+    added.
+  * Documentation was improved.
 
 Version 1.0.0 (2018-03-03)
 ==========================
 
-  * `Integer::invert_mut` and `Integer::pow_mod_mut` now return
-    `Result<(), ()>` instead of `bool`.
-  * `float::Round`, `float::Constant` and `float::Special` enums are
-    now marked as non-exhaustive.
-  * Remove all deprecated items.
-  * Remove unsound blanket implementations constrained on
-    `T where SmallInteger: Assign<T>` inside `SmallRational` and on
-    `T where SmallFloat: Assign<T>` inside `SmallComplex`.
+  * The methods
+    <code>[Integer][int-1-0]::[invert\_mut][int-im-1-0]</code> and
+    <code>[Integer][int-1-0]::[pow\_mod\_mut][int-pmm-1-0]</code> were
+    changed to return <code>[Result][`Result`]&lt;(), ()&gt;</code>
+    instead of [`bool`].
+  * The <code>[float][flom-1-0]::[Round][rou-1-0]</code>,
+    <code>[float][flom-1-0]::[Constant][con-1-0]</code> and
+    <code>[float][flom-1-0]::[Special][spe-1-0]</code> enums are now
+    marked as non-exhaustive.
+  * All deprecated items were removed.
+  * Unsound blanket implementations constrained on
+    <code>T where [SmallInteger][smi-1-0]: [Assign][ass-1-0]&lt;T&gt;</code>
+	inside [`SmallRational`][smr-1-0] and on
+    <code>T where [SmallFloat][smf-1-0]: [Assign][ass-1-0]&lt;T&gt;</code>
+	inside [`SmallComplex`][smc-1-0] were removed.
+
+[ass-1-0]: https://docs.rs/rug/~1.0/rug/trait.Assign.html
+[com-1-0]: https://docs.rs/rug/~1.0/rug/struct.Complex.html
+[com-e-1-0]: https://docs.rs/rug/~1.0/rug/struct.Complex.html#method.eq0
+[con-1-0]: https://docs.rs/rug/~1.0/rug/float/enum.Constant.html
+[flom-1-0]: https://docs.rs/rug/~1.0/rug/float/index.html
+[int-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html
+[int-drr-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.div_rem_round
+[int-drrm-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.div_rem_round_mut
+[int-drrr-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.div_rem_round_ref
+[int-im-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.invert_mut
+[int-ipot-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.is_power_of_two
+[int-pmm-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.pow_mod_mut
+[int-r-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.reserve
+[int-sb-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.signed_bits
+[int-spm-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.secure_pow_mod
+[int-spmm-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.secure_pow_mod_mut
+[int-spmr-1-0]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.secure_pow_mod_ref
+[rou-1-0]: https://docs.rs/rug/~1.0/rug/float/enum.Round.html
+[smc-1-0]: https://docs.rs/rug/~1.0/rug/complex/struct.SmallComplex.html
+[smf-1-0]: https://docs.rs/rug/~1.0/rug/float/struct.SmallFloat.html
+[smi-1-0]: https://docs.rs/rug/~1.0/rug/integer/struct.SmallInteger.html
+[smr-1-0]: https://docs.rs/rug/~1.0/rug/rational/struct.SmallRational.html
+[spe-1-0]: https://docs.rs/rug/~1.0/rug/float/enum.Special.html
 
 Version 0.10.0 (2018-02-17)
 ===========================
@@ -326,3 +550,34 @@ Version 0.6.0 (2017-08-09)
     `Float::is_sign_negative`.
   * Add various `as_neg`, `as_abs` and `as_conj` methods.
   * Add `OrdFloat` and `OrdComplex` for complete ordering.
+
+[*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
+[`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
+[`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
+[`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
+[`Product`]: https://doc.rust-lang.org/nightly/core/iter/trait.Product.html
+[`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
+[`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
+[`Result`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html
+[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+[`Sum`]: https://doc.rust-lang.org/nightly/core/iter/trait.Sum.html
+[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
+[`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+[`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
+[`deref`]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref
+[`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+[`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+[`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
+[`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
+[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
+[`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
+[`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
+[`mem`]: https://doc.rust-lang.org/nightly/core/mem/index.html
+[`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
+[`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
+[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
+[`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
+[`uninitialized`]: https://doc.rust-lang.org/nightly/core/mem/fn.uninitialized.html
+[gmp-mpfr-sys]: https://crates.io/crates/gmp-mpfr-sys
+[slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
