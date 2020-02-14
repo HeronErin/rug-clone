@@ -26,6 +26,7 @@ use core::{
     mem::{self, MaybeUninit},
     str::FromStr,
 };
+use gmp_mpfr_sys::gmp::limb_t;
 use std::error::Error;
 
 impl Default for Integer {
@@ -254,6 +255,12 @@ fn fmt_radix(
         (false, &s[..])
     };
     f.pad_integral(!neg, prefix, buf)
+}
+
+impl AsRef<[limb_t]> for Integer {
+    fn as_ref(&self) -> &[limb_t] {
+        self.inner_data()
+    }
 }
 
 impl TryFromIntegerError {

@@ -8,21 +8,23 @@ as-is, without any warranty. -->
 Version 1.8.0 (unreleased)
 ==========================
 
-  * The implementations
+  * [`Integer`][int-1-8] now implements
+    <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][gmp-limb-1-2][\]][slice]&gt;</code>.
+  * [`Float`][flo-1-8] now implements
+    <code>[AsRef][`AsRef`]&lt;[OrdFloat][of-1-8]&gt;</code>, and
+    [`OrdFloat`][of-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[Float][flo-1-8]&gt;</code> and
-    <code>[AsMut][`AsMut`]&lt;[Float][flo-1-8]&gt;</code> for
-    [`OrdFloat`][of-1-8], and
-    <code>[AsRef][`AsRef`]&lt;[OrdFloat][of-1-8]&gt;</code> for
-    [`Float`][flo-1-8], were added.
-  * The implementations
+    <code>[AsMut][`AsMut`]&lt;[Float][flo-1-8]&gt;</code>.
+  * [`Complex`][com-1-8] now implements
+    <code>[AsRef][`AsRef`]&lt;[OrdComplex][oc-1-8]&gt;</code>, and
+    [`OrdComplex`][oc-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[Complex][com-1-8]&gt;</code> and
-    <code>[AsMut][`AsMut`]&lt;[Complex][com-1-8]&gt;</code> for
-    [`OrdComplex`][oc-1-8], and
-    <code>[AsRef][`AsRef`]&lt;[OrdComplex][oc-1-8]&gt;</code> for
-    [`Complex`][com-1-8], were added.
+    <code>[AsMut][`AsMut`]&lt;[Complex][com-1-8]&gt;</code>.
 
 [com-1-8]: https://docs.rs/rug/~1.8/rug/struct.Complex.html
 [flo-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html
+[gmp-limb-1-2]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/type.limb_t.html
+[int-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html
 [oc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.OrdComplex.html
 [of-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.OrdFloat.html
 
