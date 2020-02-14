@@ -257,9 +257,13 @@ impl Float {
     }
     #[inline]
     pub(crate) fn inner_data(&self) -> &[limb_t] {
-        let prec = self.inner.prec.as_or_panic::<usize>();
-        let limbs = prec.div_ceil(gmp::LIMB_BITS.az::<usize>());
-        unsafe { slice::from_raw_parts(self.inner.d, limbs) }
+        if self.is_normal() {
+            let prec = self.inner.prec.as_or_panic::<usize>();
+            let limbs = prec.div_ceil(gmp::LIMB_BITS.az::<usize>());
+            unsafe { slice::from_raw_parts(self.inner.d, limbs) }
+        } else {
+            &[]
+        }
     }
 }
 

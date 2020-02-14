@@ -112,16 +112,15 @@ impl Hash for OrdFloat {
         let float = &self.inner;
         float.inner().sign.hash(state);
         float.inner().exp.hash(state);
-        if float.is_normal() {
-            let slice = float.inner_data();
-            //   * Do not hash the least significant zero limbs, as
-            //     equal numbers with different precisions must have
-            //     equal hashes.
-            //   * MPFR keeps unused bits set to zero, so there is no
-            //     need to mask least significant limb.
-            if let Some(first) = slice.iter().position(|&limb| limb != 0) {
-                slice[first..].hash(state);
-            }
+
+        let slice = float.inner_data();
+        //   * Do not hash the least significant zero limbs, as
+        //     equal numbers with different precisions must have
+        //     equal hashes.
+        //   * MPFR keeps unused bits set to zero, so there is no
+        //     need to mask least significant limb.
+        if let Some(first) = slice.iter().position(|&limb| limb != 0) {
+            slice[first..].hash(state);
         }
     }
 }
@@ -212,7 +211,8 @@ impl AsMut<Float> for OrdFloat {
 mod tests {
     use crate::{
         float::{self, FreeCache, OrdFloat, Special},
-        Float,
+        ops::NegAssign,
+        Assign, Float,
     };
     use core::hash::{Hash, Hasher};
     use std::collections::hash_map::DefaultHasher;
@@ -240,21 +240,46 @@ mod tests {
         float::free_cache(FreeCache::All);
     }
 
+    fn hash(f: &OrdFloat) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        f.hash(&mut hasher);
+        hasher.finish()
+    }
+
     #[test]
     fn check_hash_different_prec() {
-        let f = Float::with_val(53, 23.5);
-        let g = Float::with_val(5301, 23.5);
+        let mut f = Float::new(53);
+        let mut g = Float::new(5301);
         assert_eq!(f, g);
-        let ord_f = f.as_ord();
-        let ord_g = g.as_ord();
-        assert_eq!(ord_f, ord_g);
-        let mut hasher_f = DefaultHasher::new();
-        ord_f.hash(&mut hasher_f);
-        let hash_f = hasher_f.finish();
-        let mut hasher_g = DefaultHasher::new();
-        ord_g.hash(&mut hasher_g);
-        let hash_g = hasher_g.finish();
-        assert_eq!(hash_f, hash_g);
+        assert_eq!(f.as_ord(), g.as_ord());
+        assert_eq!(hash(f.as_ord()), hash(g.as_ord()));
+
+        g.neg_assign();
+        assert_eq!(f, g);
+        assert_ne!(f.as_ord(), g.as_ord());
+        assert_ne!(hash(f.as_ord()), hash(g.as_ord()));
+
+        f.assign(23.5);
+        g.assign(23.5);
+        assert_eq!(f, g);
+        assert_eq!(f.as_ord(), g.as_ord());
+        assert_eq!(hash(f.as_ord()), hash(g.as_ord()));
+
+        g.neg_assign();
+        assert_ne!(f, g);
+        assert_ne!(f.as_ord(), g.as_ord());
+        assert_ne!(hash(f.as_ord()), hash(g.as_ord()));
+
+        f.assign(Special::Nan);
+        g.assign(Special::Nan);
+        assert_ne!(f, g);
+        assert_eq!(f.as_ord(), g.as_ord());
+        assert_eq!(hash(f.as_ord()), hash(g.as_ord()));
+
+        g.neg_assign();
+        assert_ne!(f, g);
+        assert_ne!(f.as_ord(), g.as_ord());
+        assert_ne!(hash(f.as_ord()), hash(g.as_ord()));
     }
 
     #[test]
