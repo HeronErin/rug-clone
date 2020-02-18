@@ -1345,6 +1345,10 @@ impl Float {
     /// Borrows the [`Float`] as an ordered floating-point number of
     /// type [`OrdFloat`].
     ///
+    /// The same result can be obtained using the implementation of
+    /// <code>[AsRef][`AsRef`]&lt;[OrdFloat][`OrdFloat`]&gt;</code>
+    /// which is provided for [`Float`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1366,6 +1370,7 @@ impl Float {
     /// assert_eq!(zero.cmp(neg_zero), Ordering::Greater);
     /// ```
     ///
+    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
     /// [`Float`]: struct.Float.html
     /// [`OrdFloat`]: float/struct.OrdFloat.html
     #[inline]

@@ -72,6 +72,10 @@ static_assert_same_layout!(OrdFloat, Float);
 impl OrdFloat {
     /// Extracts the underlying [`Float`].
     ///
+    /// The same result can be obtained using the implementation of
+    /// <code>[AsRef][`AsRef`]&lt;[Float][`Float`]&gt;</code> which is
+    /// provided for [`OrdFloat`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -82,13 +86,19 @@ impl OrdFloat {
     /// assert_eq!(f_ref.to_f64(), 1.5);
     /// ```
     ///
+    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
     /// [`Float`]: ../struct.Float.html
+    /// [`OrdFloat`]: struct.OrdFloat.html
     #[inline]
     pub fn as_float(&self) -> &Float {
         &self.inner
     }
 
     /// Extracts the underlying [`Float`].
+    ///
+    /// The same result can be obtained using the implementation of
+    /// <code>[AsMut][`AsMut`]&lt;[Float][`Float`]&gt;</code> which is
+    /// provided for [`OrdFloat`].
     ///
     /// # Examples
     ///
@@ -100,7 +110,9 @@ impl OrdFloat {
     /// assert_eq!(ord.as_float().to_f64(), 1.5);
     /// ```
     ///
+    /// [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
     /// [`Float`]: ../struct.Float.html
+    /// [`OrdFloat`]: struct.OrdFloat.html
     #[inline]
     pub fn as_float_mut(&mut self) -> &mut Float {
         &mut self.inner

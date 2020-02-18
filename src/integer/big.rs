@@ -588,6 +588,19 @@ impl Integer {
     /// `T`, where `T` can be any
     /// [unsigned integer primitive type][upt].
     ///
+    /// The [`Integer`] type also implements
+    /// <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][`limb_t`][\]][slice]&gt;</code>,
+    /// which can be used to borrow the digits without copying them.
+    /// This does come with some disadvantages compared to
+    /// `to_digits`:
+    ///
+    ///  1. The digit width is not optional and depends on the
+    ///     implementation: [`limb_t`] is typically [`u64`] on 64-bit
+    ///     systems and [`u32`] on 32-bit systems.
+    ///  2. The order is not optional and is least significant digit
+    ///     first, with each digit in the target’s endianness,
+    ///     equivalent to <code>[Order][`Order`]::[Lsf][`Lsf`]</code>.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -601,7 +614,33 @@ impl Integer {
     /// assert!(digits_zero.is_empty());
     /// ```
     ///
+    /// <code>int.[as_ref][`as_ref`]()</code> is like a borrowing
+    /// non-copy version of
+    /// <code>int.to_digits::&lt;[limb_t][`limb_t`]&gt;([Order][`Order`]::[Lsf][`Lsf`])</code>.
+    ///
+    /// ```rust
+    /// use gmp_mpfr_sys::gmp::limb_t;
+    /// use rug::{integer::Order, Integer};
+    /// let int = Integer::from(0x1234_5678_9abc_def0u64);
+    /// // no copying for int_slice, which is borrowing int
+    /// let int_slice = int.as_ref();
+    /// // digits is a copy and does not borrow int
+    /// let digits = int.to_digits::<limb_t>(Order::Lsf);
+    /// // no copying for digits_slice, which is borrowing digits
+    /// let digits_slice = &digits[..];
+    /// assert_eq!(int_slice, digits_slice);
+    /// ```
+    ///
+    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`Lsf`]: integer/enum.Order.html#variant.Lsf
+    /// [`Order`]: integer/enum.Order.html
     /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
+    /// [`as_ref`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html#tymethod.as_ref
+    /// [`limb_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/type.limb_t.html
+    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+    /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn to_digits<T: UnsignedPrimitive>(&self, order: Order) -> Vec<T> {
         let digit_count = self.significant_digits::<T>();

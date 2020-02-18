@@ -945,6 +945,10 @@ impl Complex {
     /// Borrows the [`Complex`] number as an ordered complex number of
     /// type [`OrdComplex`].
     ///
+    /// The same result can be obtained using the implementation of
+    /// <code>[AsRef][`AsRef`]&lt;[OrdComplex][`OrdComplex`]&gt;</code>
+    /// which is provided for [`Complex`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -967,6 +971,7 @@ impl Complex {
     /// assert_eq!(one_pos0.cmp(zero_inf), Ordering::Greater);
     /// ```
     ///
+    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
     /// [`Complex`]: struct.Complex.html
     /// [`OrdComplex`]: complex/struct.OrdComplex.html
     #[inline]

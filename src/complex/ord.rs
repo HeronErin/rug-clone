@@ -62,6 +62,10 @@ static_assert_same_layout!(OrdComplex, Complex);
 impl OrdComplex {
     /// Extracts the underlying [`Complex`].
     ///
+    /// The same result can be obtained using the implementation of
+    /// <code>[AsRef][`AsRef`]&lt;[Complex][`Complex`]&gt;</code>
+    /// which is provided for [`OrdComplex`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -73,13 +77,19 @@ impl OrdComplex {
     /// assert_eq!(*c_ref.imag(), 2.5);
     /// ```
     ///
+    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
     /// [`Complex`]: ../struct.Complex.html
+    /// [`OrdComplex`]: struct.OrdComplex.html
     #[inline]
     pub fn as_complex(&self) -> &Complex {
         &self.inner
     }
 
     /// Extracts the underlying [`Complex`].
+    ///
+    /// The same result can be obtained using the implementation of
+    /// <code>[AsMut][`AsMut`]&lt;[Complex][`Complex`]&gt;</code>
+    /// which is provided for [`OrdComplex`].
     ///
     /// # Examples
     ///
@@ -93,7 +103,9 @@ impl OrdComplex {
     /// assert_eq!(*c_ref.imag(), 2.5);
     /// ```
     ///
+    /// [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
     /// [`Complex`]: ../struct.Complex.html
+    /// [`OrdComplex`]: struct.OrdComplex.html
     #[inline]
     pub fn as_complex_mut(&mut self) -> &mut Complex {
         &mut self.inner
