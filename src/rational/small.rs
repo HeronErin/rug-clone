@@ -254,8 +254,8 @@ impl SmallRational {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = self.first_limbs[0].as_ptr() as *mut limb_t;
-        let last = self.last_limbs[0].as_ptr() as *mut limb_t;
+        let first = self.first_limbs.as_ptr() as *mut limb_t;
+        let last = self.last_limbs.as_ptr() as *mut limb_t;
         let (num_d, den_d) = if self.num_is_first() {
             (first, last)
         } else {
