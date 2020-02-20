@@ -38,7 +38,7 @@ use core::{
     mem::{self, ManuallyDrop, MaybeUninit},
     num::FpCategory,
     ops::{Add, AddAssign, Deref},
-    ptr, slice, str, u32,
+    slice, str, u32,
 };
 use gmp_mpfr_sys::{
     gmp::{self, limb_t},
@@ -9612,18 +9612,18 @@ impl AssignRound<ParseIncomplete> for Float {
                 return Ordering::Equal;
             }
         };
-        let mut c_str_end: *const c_char = ptr::null();
+        let mut c_str_end = MaybeUninit::uninit();
         let ret = unsafe {
             mpfr::strtofr(
                 self.as_raw_mut(),
                 c_string.as_ptr(),
-                cast_ptr_mut!(&mut c_str_end, *mut c_char),
+                c_str_end.as_mut_ptr(),
                 radix.as_or_panic(),
                 raw_round(round),
             )
         };
         let nul = cast_ptr!(c_string.as_bytes_with_nul().last().unwrap(), c_char);
-        assert_eq!(c_str_end, nul);
+        assert_eq!(unsafe { c_str_end.assume_init() } as *const c_char, nul);
         ordering1(ret)
     }
 }
