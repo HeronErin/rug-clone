@@ -23,7 +23,7 @@ use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
-    ptr,
+    ptr::NonNull,
 };
 use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
 
@@ -64,6 +64,7 @@ assert_eq!(*a.denom(), 13);
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 */
+#[derive(Clone)]
 pub struct SmallRational {
     inner: Mpq,
     // numerator is first in limbs if inner.num.d <= inner.den.d
@@ -72,22 +73,6 @@ pub struct SmallRational {
 }
 
 unsafe impl Send for SmallRational {}
-
-impl Clone for SmallRational {
-    #[inline]
-    fn clone(&self) -> SmallRational {
-        let (first_limbs, last_limbs) = if self.num_is_first() {
-            (&self.first_limbs, &self.last_limbs)
-        } else {
-            (&self.last_limbs, &self.first_limbs)
-        };
-        SmallRational {
-            inner: self.inner.clone(),
-            first_limbs: *first_limbs,
-            last_limbs: *last_limbs,
-        }
-    }
-}
 
 #[derive(Clone)]
 #[repr(C)]
@@ -121,17 +106,18 @@ impl SmallRational {
     /// [`SmallRational`]: struct.SmallRational.html
     #[inline]
     pub fn new() -> Self {
+        let dangling = NonNull::dangling();
         SmallRational {
             inner: Mpq {
                 num: Mpz {
                     alloc: LIMBS_IN_SMALL.az(),
                     size: 0,
-                    d: UnsafeCell::new(ptr::null_mut()),
+                    d: UnsafeCell::new(dangling),
                 },
                 den: Mpz {
                     alloc: LIMBS_IN_SMALL.az(),
                     size: 1,
-                    d: UnsafeCell::new(ptr::null_mut()),
+                    d: UnsafeCell::new(dangling),
                 },
             },
             first_limbs: small_limbs![0],
@@ -262,8 +248,8 @@ impl SmallRational {
             (last, first)
         };
         unsafe {
-            *self.inner.num.d.get() = num_d;
-            *self.inner.den.d.get() = den_d;
+            *self.inner.num.d.get() = NonNull::new_unchecked(num_d);
+            *self.inner.den.d.get() = NonNull::new_unchecked(den_d);
         }
     }
 }

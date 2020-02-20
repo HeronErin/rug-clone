@@ -20,7 +20,7 @@ use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
-    ptr,
+    ptr::NonNull,
 };
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use libc::c_int;
@@ -76,25 +76,21 @@ pub struct SmallInteger {
 pub struct Mpz {
     pub alloc: c_int,
     pub size: c_int,
-    pub d: UnsafeCell<*mut limb_t>,
+    pub d: UnsafeCell<NonNull<limb_t>>,
+}
+
+impl Clone for Mpz {
+    fn clone(&self) -> Mpz {
+        Mpz {
+            alloc: self.alloc,
+            size: self.size,
+            d: UnsafeCell::new(unsafe { *self.d.get() }),
+        }
+    }
 }
 
 static_assert!(mem::size_of::<Limbs>() == 16);
 static_assert_same_layout!(Mpz, mpz_t);
-
-// Mpz is only used inside SmallInteger and SmallRational. The only
-// field that needs to be actually copied from self is size.
-// SmallRational::clone is responsible to keep num and den ordered.
-impl Clone for Mpz {
-    #[inline]
-    fn clone(&self) -> Mpz {
-        Mpz {
-            alloc: LIMBS_IN_SMALL.az(),
-            size: self.size,
-            d: UnsafeCell::new(ptr::null_mut()),
-        }
-    }
-}
 
 unsafe impl Send for SmallInteger {}
 
@@ -124,7 +120,7 @@ impl SmallInteger {
             inner: Mpz {
                 alloc: LIMBS_IN_SMALL.az(),
                 size: 0,
-                d: UnsafeCell::new(ptr::null_mut()),
+                d: UnsafeCell::new(NonNull::dangling()),
             },
             limbs: small_limbs![0],
         }
@@ -172,7 +168,7 @@ impl SmallInteger {
         // can set the d field.
         let d = self.limbs.as_ptr() as *mut limb_t;
         unsafe {
-            *self.inner.d.get() = d;
+            *self.inner.d.get() = NonNull::new_unchecked(d);
         }
     }
 }

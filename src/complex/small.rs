@@ -23,7 +23,7 @@ use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
-    ptr,
+    ptr::NonNull,
 };
 use gmp_mpfr_sys::{
     gmp::{self, limb_t},
@@ -91,6 +91,7 @@ assert_eq!(*a.imag(), -18.5);
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
 */
+#[derive(Clone)]
 pub struct SmallComplex {
     inner: Mpc,
     // real part is first in limbs if inner.re.d <= inner.im.d
@@ -99,22 +100,6 @@ pub struct SmallComplex {
 }
 
 unsafe impl Send for SmallComplex {}
-
-impl Clone for SmallComplex {
-    #[inline]
-    fn clone(&self) -> SmallComplex {
-        let (first_limbs, last_limbs) = if self.re_is_first() {
-            (&self.first_limbs, &self.last_limbs)
-        } else {
-            (&self.last_limbs, &self.first_limbs)
-        };
-        SmallComplex {
-            inner: self.inner.clone(),
-            first_limbs: *first_limbs,
-            last_limbs: *last_limbs,
-        }
-    }
-}
 
 #[derive(Clone)]
 #[repr(C)]
@@ -177,8 +162,8 @@ impl SmallComplex {
             (last, first)
         };
         unsafe {
-            *self.inner.re.d.get() = re_d;
-            *self.inner.im.d.get() = im_d;
+            *self.inner.re.d.get() = NonNull::new_unchecked(re_d);
+            *self.inner.im.d.get() = NonNull::new_unchecked(im_d);
         }
     }
 }
@@ -208,19 +193,20 @@ impl<Re: ToSmall> Assign<Re> for SmallComplex {
 
 impl<Re: ToSmall> From<Re> for SmallComplex {
     fn from(src: Re) -> Self {
+        let dangling = NonNull::dangling();
         let mut dst = SmallComplex {
             inner: Mpc {
                 re: Mpfr {
                     prec: 0,
                     sign: 0,
                     exp: 0,
-                    d: UnsafeCell::new(ptr::null_mut()),
+                    d: UnsafeCell::new(dangling),
                 },
                 im: Mpfr {
                     prec: 0,
                     sign: 0,
                     exp: 0,
-                    d: UnsafeCell::new(ptr::null_mut()),
+                    d: UnsafeCell::new(dangling),
                 },
             },
             first_limbs: small_limbs![],
@@ -249,19 +235,20 @@ impl<Re: ToSmall, Im: ToSmall> Assign<(Re, Im)> for SmallComplex {
 
 impl<Re: ToSmall, Im: ToSmall> From<(Re, Im)> for SmallComplex {
     fn from(src: (Re, Im)) -> Self {
+        let dangling = NonNull::dangling();
         let mut dst = SmallComplex {
             inner: Mpc {
                 re: Mpfr {
                     prec: 0,
                     sign: 0,
                     exp: 0,
-                    d: UnsafeCell::new(ptr::null_mut()),
+                    d: UnsafeCell::new(dangling),
                 },
                 im: Mpfr {
                     prec: 0,
                     sign: 0,
                     exp: 0,
-                    d: UnsafeCell::new(ptr::null_mut()),
+                    d: UnsafeCell::new(dangling),
                 },
             },
             first_limbs: small_limbs![],

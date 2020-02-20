@@ -25,7 +25,7 @@ use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
     ops::Deref,
-    ptr,
+    ptr::NonNull,
 };
 use gmp_mpfr_sys::{
     gmp::{self, limb_t},
@@ -102,26 +102,22 @@ pub struct Mpfr {
     pub prec: prec_t,
     pub sign: c_int,
     pub exp: exp_t,
-    pub d: UnsafeCell<*mut limb_t>,
+    pub d: UnsafeCell<NonNull<limb_t>>,
 }
 
-static_assert!(mem::size_of::<Limbs>() == 16);
-static_assert_same_layout!(Mpfr, mpfr_t);
-
-// Mpfr is only used inside SmallFloat and SmallComplex. The d field
-// does not need to be copied from self. SmallComplex::clone is
-// responsible to keep real and imag parts ordered.
 impl Clone for Mpfr {
-    #[inline]
     fn clone(&self) -> Mpfr {
         Mpfr {
             prec: self.prec,
             sign: self.sign,
             exp: self.exp,
-            d: UnsafeCell::new(ptr::null_mut()),
+            d: UnsafeCell::new(unsafe { *self.d.get() }),
         }
     }
 }
+
+static_assert!(mem::size_of::<Limbs>() == 16);
+static_assert_same_layout!(Mpfr, mpfr_t);
 
 unsafe impl Send for SmallFloat {}
 
@@ -162,7 +158,7 @@ impl SmallFloat {
         // can set the d field.
         let d = self.limbs.as_ptr() as *mut limb_t;
         unsafe {
-            *self.inner.d.get() = d;
+            *self.inner.d.get() = NonNull::new_unchecked(d);
         }
     }
 }
@@ -369,7 +365,7 @@ impl<T: ToSmall> From<T> for SmallFloat {
                 prec: 0,
                 sign: 0,
                 exp: 0,
-                d: UnsafeCell::new(ptr::null_mut()),
+                d: UnsafeCell::new(NonNull::dangling()),
             },
             limbs: small_limbs![],
         };
