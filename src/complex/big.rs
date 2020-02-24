@@ -454,9 +454,8 @@ impl Complex {
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn into_raw(self) -> mpc_t {
-        let ret = self.inner;
-        mem::forget(self);
-        ret
+        let m = ManuallyDrop::new(self);
+        m.inner
     }
 
     /// Returns a pointer to the inner [MPC complex number][`mpc_t`].

@@ -24,7 +24,7 @@ use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    mem::{self, ManuallyDrop, MaybeUninit},
+    mem::{ManuallyDrop, MaybeUninit},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
 };
 use gmp_mpfr_sys::gmp::{self, mpq_t};
@@ -245,9 +245,8 @@ impl Rational {
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn into_raw(self) -> mpq_t {
-        let ret = self.inner;
-        mem::forget(self);
-        ret
+        let m = ManuallyDrop::new(self);
+        m.inner
     }
 
     /// Returns a pointer to the inner [GMP rational number][`mpq_t`].

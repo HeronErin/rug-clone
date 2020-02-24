@@ -35,7 +35,7 @@ use core::{
     fmt::{Display, Formatter, Result as FmtResult},
     i32,
     marker::PhantomData,
-    mem::{self, ManuallyDrop, MaybeUninit},
+    mem::{ManuallyDrop, MaybeUninit},
     num::FpCategory,
     ops::{Add, AddAssign, Deref},
     slice, str, u32,
@@ -552,9 +552,8 @@ impl Float {
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn into_raw(self) -> mpfr_t {
-        let ret = self.inner;
-        mem::forget(self);
-        ret
+        let m = ManuallyDrop::new(self);
+        m.inner
     }
 
     /// Returns a pointer to the inner

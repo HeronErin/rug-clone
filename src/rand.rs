@@ -51,7 +51,7 @@ Both [`RandState`] and [`ThreadRandState`] implement the
 use crate::{misc::AsOrPanic, Integer};
 use core::{
     marker::PhantomData,
-    mem::{self, MaybeUninit},
+    mem::{ManuallyDrop, MaybeUninit},
     ptr,
 };
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randfnptr_t, randseed_t, randstate_t};
@@ -404,14 +404,14 @@ impl RandState<'_> {
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn into_raw(self) -> randstate_t {
-        let ret = self.inner;
         assert!(
-            !ptr::eq(ret.algdata, &CUSTOM_FUNCS) && !ptr::eq(ret.algdata, &THREAD_CUSTOM_FUNCS),
+            !ptr::eq(self.inner.algdata, &CUSTOM_FUNCS)
+                && !ptr::eq(self.inner.algdata, &THREAD_CUSTOM_FUNCS),
             "cannot convert custom `RandState` into raw, \
              consider using `new_custom_boxed` instead of `new_custom`"
         );
-        mem::forget(self);
-        ret
+        let m = ManuallyDrop::new(self);
+        m.inner
     }
 
     /// Returns a pointer to the inner
@@ -505,8 +505,8 @@ impl RandState<'_> {
         if !ptr::eq(self.inner.algdata, &CUSTOM_BOXED_FUNCS) {
             return Err(self);
         }
-        let r_ptr = self.inner.seed.d as *mut Box<dyn RandGen>;
-        mem::forget(self);
+        let m = ManuallyDrop::new(self);
+        let r_ptr = m.inner.seed.d as *mut Box<dyn RandGen>;
         let boxed_box: Box<Box<dyn RandGen>> = unsafe { Box::from_raw(r_ptr) };
         Ok(*boxed_box)
     }
@@ -853,14 +853,14 @@ impl ThreadRandState<'_> {
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn into_raw(self) -> randstate_t {
-        let ret = self.inner;
         assert!(
-            !ptr::eq(ret.algdata, &CUSTOM_FUNCS) && !ptr::eq(ret.algdata, &THREAD_CUSTOM_FUNCS),
+            !ptr::eq(self.inner.algdata, &CUSTOM_FUNCS)
+                && !ptr::eq(self.inner.algdata, &THREAD_CUSTOM_FUNCS),
             "cannot convert custom `ThreadRandState` into raw, \
              consider using `new_custom_boxed` instead of `new_custom`"
         );
-        mem::forget(self);
-        ret
+        let m = ManuallyDrop::new(self);
+        m.inner
     }
 
     /// Returns a pointer to the inner
@@ -986,8 +986,8 @@ impl ThreadRandState<'_> {
         if !ptr::eq(self.inner.algdata, &THREAD_CUSTOM_BOXED_FUNCS) {
             return Err(self);
         }
-        let r_ptr = self.inner.seed.d as *mut Box<dyn ThreadRandGen>;
-        mem::forget(self);
+        let m = ManuallyDrop::new(self);
+        let r_ptr = m.inner.seed.d as *mut Box<dyn ThreadRandGen>;
         let boxed_box: Box<Box<dyn ThreadRandGen>> = unsafe { Box::from_raw(r_ptr) };
         Ok(*boxed_box)
     }

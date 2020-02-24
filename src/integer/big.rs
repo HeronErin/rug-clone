@@ -400,9 +400,8 @@ impl Integer {
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn into_raw(self) -> mpz_t {
-        let ret = self.inner;
-        mem::forget(self);
-        ret
+        let m = ManuallyDrop::new(self);
+        m.inner
     }
 
     /// Returns a pointer to the inner [GMP integer][`mpz_t`].
