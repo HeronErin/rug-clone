@@ -240,16 +240,16 @@ impl SmallRational {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = self.first_limbs.as_ptr() as *mut limb_t;
-        let last = self.last_limbs.as_ptr() as *mut limb_t;
+        let first = NonNull::<[MaybeUninit<limb_t>]>::from(&self.first_limbs[..]);
+        let last = NonNull::<[MaybeUninit<limb_t>]>::from(&self.last_limbs[..]);
         let (num_d, den_d) = if self.num_is_first() {
             (first, last)
         } else {
             (last, first)
         };
         unsafe {
-            *self.inner.num.d.get() = NonNull::new_unchecked(num_d);
-            *self.inner.den.d.get() = NonNull::new_unchecked(den_d);
+            *self.inner.num.d.get() = num_d.cast();
+            *self.inner.den.d.get() = den_d.cast();
         }
     }
 }

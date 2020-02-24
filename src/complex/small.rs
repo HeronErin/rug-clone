@@ -154,16 +154,16 @@ impl SmallComplex {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = self.first_limbs.as_ptr() as *mut limb_t;
-        let last = self.last_limbs.as_ptr() as *mut limb_t;
+        let first = NonNull::<[MaybeUninit<limb_t>]>::from(&self.first_limbs[..]);
+        let last = NonNull::<[MaybeUninit<limb_t>]>::from(&self.last_limbs[..]);
         let (re_d, im_d) = if self.re_is_first() {
             (first, last)
         } else {
             (last, first)
         };
         unsafe {
-            *self.inner.re.d.get() = NonNull::new_unchecked(re_d);
-            *self.inner.im.d.get() = NonNull::new_unchecked(im_d);
+            *self.inner.re.d.get() = re_d.cast();
+            *self.inner.im.d.get() = im_d.cast();
         }
     }
 }

@@ -156,9 +156,9 @@ impl SmallFloat {
     fn update_d(&self) {
         // Since this is borrowed, the limb won't move around, and we
         // can set the d field.
-        let d = self.limbs.as_ptr() as *mut limb_t;
+        let d = NonNull::<[MaybeUninit<limb_t>]>::from(&self.limbs[..]);
         unsafe {
-            *self.inner.d.get() = NonNull::new_unchecked(d);
+            *self.inner.d.get() = d.cast();
         }
     }
 }
