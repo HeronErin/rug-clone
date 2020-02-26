@@ -45,6 +45,10 @@ option) any later version. See the full text of the [GNU LGPL] and
     [`OrdComplex`][oc-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[Complex][com-1-8]&gt;</code> and
     <code>[AsMut][`AsMut`]&lt;[Complex][com-1-8]&gt;</code>.
+  * <code>[Integer][int-1-8]::[new][int-n-1-8]</code>,
+    <code>[Integer][int-1-8]::[into\_raw][int-ir-1-8]</code> and
+    <code>[Integer][int-1-8]::[as\_raw][int-ar-1-8]</code> are now
+    const functions.
 
 [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
 [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
@@ -52,6 +56,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 [flo-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html
 [gmp-limb-1-2]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/type.limb_t.html
 [int-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html
+[int-ar-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.as_raw
+[int-ir-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.into_raw
+[int-n-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.new
 [oc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.OrdComplex.html
 [of-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.OrdFloat.html
 [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html

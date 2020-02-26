@@ -81,9 +81,12 @@ pub fn set(rop: &mut Integer, op: Option<&Integer>) {
 }
 
 #[inline]
-pub unsafe fn init(rop: *mut Integer) {
-    let rop = cast_ptr_mut!(rop, mpz_t);
-    gmp::mpz_init(rop);
+pub const fn owned_init() -> mpz_t {
+    mpz_t {
+        alloc: 0,
+        size: 0,
+        d: &(0xC1A0 as limb_t) as *const limb_t as *mut limb_t,
+    }
 }
 
 #[inline]

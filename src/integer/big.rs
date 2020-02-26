@@ -227,11 +227,9 @@ impl Integer {
     ///
     /// [`Integer`]: struct.Integer.html
     #[inline]
-    pub fn new() -> Self {
-        unsafe {
-            let mut dst = MaybeUninit::uninit();
-            xmpz::init(dst.as_mut_ptr());
-            dst.assume_init()
+    pub const fn new() -> Self {
+        Integer {
+            inner: xmpz::owned_init(),
         }
     }
 
@@ -373,6 +371,12 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
+    // Making from_raw const is dangerous. Let's say we have a const
+    // mpz_t which points to limbs stored in static memory. If we use
+    // a const from_raw, we could have a const Integer which points to
+    // limbs stored in static memory. This constant can then be
+    // dropped in safe but not sound code, which is UB as it frees
+    // static memory.
     pub unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }
     }
@@ -399,9 +403,10 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
-    pub fn into_raw(self) -> mpz_t {
-        let m = ManuallyDrop::new(self);
-        m.inner
+    pub const fn into_raw(self) -> mpz_t {
+        let ret = self.inner;
+        ManuallyDrop::new(self);
+        ret
     }
 
     /// Returns a pointer to the inner [GMP integer][`mpz_t`].
@@ -426,7 +431,7 @@ impl Integer {
     ///
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
-    pub fn as_raw(&self) -> *const mpz_t {
+    pub const fn as_raw(&self) -> *const mpz_t {
         &self.inner
     }
 
