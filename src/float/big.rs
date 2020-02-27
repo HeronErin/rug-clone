@@ -49,6 +49,8 @@ use std::{
     error::Error,
     ffi::{CStr, CString},
 };
+#[cfg(feature = "complex")]
+use {crate::complex::big::BorrowComplex, gmp_mpfr_sys::mpc::mpc_t};
 #[cfg(feature = "integer")]
 use {
     crate::{integer::big::BorrowInteger, Integer},
@@ -1375,6 +1377,40 @@ impl Float {
     #[inline]
     pub fn as_ord(&self) -> &OrdFloat {
         unsafe { &*cast_ptr!(self, OrdFloat) }
+    }
+
+    #[cfg(feature = "complex")]
+    /// Borrows a copy of the [`Float`] as a [`Complex`] number.
+    ///
+    /// The returned object implements
+    /// <code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
+    ///
+    /// This method performs a shallow copy and does not change the
+    /// allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 4.2);
+    /// let c = f.as_complex();
+    /// assert_eq!(*c, (4.2, 0.0));
+    /// // methods taking &self can be used on the returned object
+    /// let c_mul_i = c.as_mul_i(false);
+    /// assert_eq!(*c_mul_i, (0.0, 4.2));
+    /// ```
+    ///
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
+    /// [`Complex`]: struct.Complex.html
+    /// [`Float`]: struct.Float.html
+    pub fn as_complex(&self) -> BorrowComplex<'_> {
+        let zero = SmallFloat::from(Special::Zero);
+        let raw_complex = mpc_t {
+            re: self.inner,
+            im: (*zero).inner,
+        };
+        unsafe { BorrowComplex::from_raw(raw_complex) }
     }
 
     /// Returns [`true`] if `self` is an integer.

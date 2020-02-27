@@ -15,6 +15,9 @@ Version 1.8.0 (unreleased)
   * A new method
     <code>[Integer][int-1-8]::[as\_rational][int-arat-1-8]</code> was
     added.
+  * A new method
+    <code>[Float][flo-1-8]::[as\_complex][flo-ac-1-8]</code> was
+    added.
   * [`SmallFloat`][smf-1-8] and [`SmallComplex`][smc-1-8] can now be
     initialized with [`Special`][spe-1-8].
   * [`Integer`][int-1-8] now implements
@@ -32,6 +35,7 @@ Version 1.8.0 (unreleased)
 
 [com-1-8]: https://docs.rs/rug/~1.8/rug/struct.Complex.html
 [flo-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html
+[flo-ac-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html#method.as_complex
 [gmp-limb-1-2]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/type.limb_t.html
 [int-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html
 [int-arat-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.as_rational
