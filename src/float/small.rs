@@ -16,7 +16,7 @@
 
 use crate::{
     ext::xmpfr::{self, raw_round},
-    float::Round,
+    float::{self, Round, Special},
     misc::{AsOrPanic, NegAbs},
     Assign, Float,
 };
@@ -54,6 +54,8 @@ according to the type of the primitive used to set its value.
     precision, depending on the platform.
   * [`f32`]: the `SmallFloat` will have 24 bits of precision.
   * [`f64`]: the `SmallFloat` will have 53 bits of precision.
+  * [`Special`]: the `SmallFloat` will have the
+    [minimum possible precision][`prec_min`].
 
 The `SmallFloat` type can be coerced to a [`Float`], as it implements
 <code>[Deref]&lt;[Target] = [Float][`Float`]&gt;</code>.
@@ -76,6 +78,7 @@ assert_eq!(a, -15000);
 [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
 [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
 [`Float`]: ../struct.Float.html
+[`Special`]: enum.Special.html
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
@@ -84,6 +87,7 @@ assert_eq!(a, -15000);
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
 [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
+[`prec_min`]: fn.prec_min.html
 [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
@@ -348,6 +352,16 @@ impl SealedToSmall for f64 {
     }
 }
 
+impl ToSmall for Special {}
+impl SealedToSmall for Special {
+    #[inline]
+    unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
+        let ptr = cast_ptr_mut!(inner, mpfr_t);
+        let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
+        xmpfr::custom_special(ptr, limbs_ptr, self, float::prec_min().az());
+    }
+}
+
 impl<T: ToSmall> Assign<T> for SmallFloat {
     #[inline]
     fn assign(&mut self, src: T) {
@@ -394,7 +408,7 @@ impl Assign for SmallFloat {
 #[allow(clippy::float_cmp)]
 mod tests {
     use crate::{
-        float::{self, FreeCache, SmallFloat},
+        float::{self, FreeCache, SmallFloat, Special},
         Assign,
     };
 
@@ -433,6 +447,16 @@ mod tests {
         assert_eq!(*f, -6);
         f.assign(0u32);
         assert_eq!(*f, 0);
+        f.assign(Special::Infinity);
+        assert!(f.is_infinite() && f.is_sign_positive());
+        f.assign(Special::NegZero);
+        assert!(f.is_zero() && f.is_sign_negative());
+        f.assign(Special::NegInfinity);
+        assert!(f.is_infinite() && f.is_sign_negative());
+        f.assign(Special::Zero);
+        assert!(f.is_zero() && f.is_sign_positive());
+        f.assign(Special::Nan);
+        assert!(f.is_nan());
 
         float::free_cache(FreeCache::All);
     }

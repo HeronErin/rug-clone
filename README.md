@@ -40,6 +40,8 @@ option) any later version. See the full text of the [GNU LGPL] and
   * A new method
     <code>[Integer][int-1-8]::[as\_rational][int-arat-1-8]</code> was
     added.
+  * [`SmallFloat`][smf-1-8] and [`SmallComplex`][smc-1-8] can now be
+    initialized with [`Special`][spe-1-8].
   * [`Integer`][int-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][gmp-limb-1-2][\]][slice]&gt;</code>.
   * [`Float`][flo-1-8] now implements
@@ -66,6 +68,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 [oc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.OrdComplex.html
 [of-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.OrdFloat.html
 [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+[smc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallComplex.html
+[smf-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.SmallFloat.html
+[spe-1-8]: https://docs.rs/rug/~1.8/rug/float/enum.Special.html
 
 ### Version 1.7.0 news (2019-01-21)
 

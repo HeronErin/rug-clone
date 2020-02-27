@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    float::{Round, SmallFloat},
+    float::{Round, SmallFloat, Special},
     misc::NegAbs,
     ops::NegAssign,
     Float,
@@ -517,6 +517,20 @@ pub unsafe fn custom_zero(f: *mut mpfr_t, limbs: *mut limb_t, prec: prec_t) {
 pub unsafe fn custom_regular(f: *mut mpfr_t, limbs: *mut limb_t, exp: exp_t, prec: prec_t) {
     mpfr::custom_init(limbs as *mut c_void, prec);
     mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut c_void);
+}
+
+#[inline]
+pub unsafe fn custom_special(f: *mut mpfr_t, limbs: *mut limb_t, special: Special, prec: prec_t) {
+    mpfr::custom_init(limbs as *mut c_void, prec);
+    let kind = match special {
+        Special::Zero => mpfr::ZERO_KIND,
+        Special::NegZero => -mpfr::ZERO_KIND,
+        Special::Infinity => mpfr::INF_KIND,
+        Special::NegInfinity => -mpfr::INF_KIND,
+        Special::Nan => mpfr::NAN_KIND,
+        _ => unreachable!(),
+    };
+    mpfr::custom_init_set(f, kind, 0, prec, limbs as *mut c_void);
 }
 
 #[inline]

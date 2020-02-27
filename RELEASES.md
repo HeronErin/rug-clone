@@ -15,6 +15,8 @@ Version 1.8.0 (unreleased)
   * A new method
     <code>[Integer][int-1-8]::[as\_rational][int-arat-1-8]</code> was
     added.
+  * [`SmallFloat`][smf-1-8] and [`SmallComplex`][smc-1-8] can now be
+    initialized with [`Special`][spe-1-8].
   * [`Integer`][int-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][gmp-limb-1-2][\]][slice]&gt;</code>.
   * [`Float`][flo-1-8] now implements
@@ -38,6 +40,9 @@ Version 1.8.0 (unreleased)
 [int-n-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.new
 [oc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.OrdComplex.html
 [of-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.OrdFloat.html
+[smc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallComplex.html
+[smf-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.SmallFloat.html
+[spe-1-8]: https://docs.rs/rug/~1.8/rug/float/enum.Special.html
 
 Version 1.7.0 (2019-01-21)
 ==========================

@@ -55,6 +55,8 @@ different precisions.
     precision, depending on the platform.
   * [`f32`]: the part will have 24 bits of precision.
   * [`f64`]: the part will have 53 bits of precision.
+  * [`Special`]: the part will have the
+    [minimum possible precision][`prec_min`].
 
 The `SmallComplex` type can be coerced to a [`Complex`], as it
 implements
@@ -76,6 +78,7 @@ assert_eq!(*a.imag(), -18.5);
 [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
 [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
 [`Complex`]: ../struct.Complex.html
+[`Special`]: ../float/enum.Special.html
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
@@ -84,6 +87,7 @@ assert_eq!(*a.imag(), -18.5);
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
 [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
+[`prec_min`]: ../float/fn.prec_min.html
 [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
