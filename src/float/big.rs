@@ -1405,10 +1405,16 @@ impl Float {
     /// [`Complex`]: struct.Complex.html
     /// [`Float`]: struct.Float.html
     pub fn as_complex(&self) -> BorrowComplex<'_> {
-        let zero = SmallFloat::from(Special::Zero);
+        // im.d is set to be the same as re.d since the precision is equal;
+        // though it should not need to be read as the imaginary part is 0.
         let raw_complex = mpc_t {
             re: self.inner,
-            im: (*zero).inner,
+            im: mpfr_t {
+                prec: self.inner.prec,
+                sign: 1,
+                exp: xmpfr::EXP_ZERO,
+                d: self.inner.d,
+            },
         };
         unsafe { BorrowComplex::from_raw(raw_complex) }
     }

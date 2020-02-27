@@ -533,6 +533,8 @@ pub unsafe fn custom_special(f: *mut mpfr_t, limbs: *mut limb_t, special: Specia
     mpfr::custom_init_set(f, kind, 0, prec, limbs as *mut c_void);
 }
 
+pub const EXP_ZERO: mpfr::exp_t = -mpfr::exp_t::max_value();
+
 #[inline]
 pub unsafe fn shl_u32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u32, rnd: rnd_t) -> c_int {
     mpfr::mul_2ui(rop, op1, op2.into(), rnd)
