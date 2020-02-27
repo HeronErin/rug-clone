@@ -2417,6 +2417,7 @@ macro_rules! static_assert_same_layout {
 
 #[cfg(any(feature = "integer", feature = "float"))]
 pub struct CastPtr<Src>(pub *const Src);
+#[cfg(any(feature = "integer", feature = "float"))]
 impl<Src> CastPtr<Src> {
     #[inline(always)]
     pub fn static_check_size(&self) -> Src {
@@ -2431,6 +2432,7 @@ impl<Src> CastPtr<Src> {
 
 #[cfg(any(feature = "integer", feature = "float"))]
 pub struct CastPtrMut<Src>(pub *mut Src);
+#[cfg(any(feature = "integer", feature = "float"))]
 impl<Src> CastPtrMut<Src> {
     #[inline(always)]
     pub fn static_check_size(&self) -> Src {
