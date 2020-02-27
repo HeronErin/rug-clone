@@ -233,7 +233,7 @@ macro_rules! unsigned_32 {
             #[inline]
             unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
                 let ptr = cast_ptr_mut!(inner, mpfr_t);
-                let limbs_ptr = limbs[0].as_mut_ptr();
+                let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
                 if self == 0 {
                     xmpfr::custom_zero(ptr, limbs_ptr, $bits);
                 } else {
@@ -259,7 +259,7 @@ impl SealedToSmall for u64 {
     #[inline]
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
-        let limbs_ptr = limbs[0].as_mut_ptr();
+        let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
         if self == 0 {
             xmpfr::custom_zero(ptr, limbs_ptr, 64);
         } else {
@@ -284,7 +284,7 @@ impl SealedToSmall for u128 {
     #[inline]
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
-        let limbs_ptr = limbs[0].as_mut_ptr();
+        let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
         if self == 0 {
             xmpfr::custom_zero(ptr, limbs_ptr, 128);
         } else {
@@ -327,7 +327,7 @@ impl SealedToSmall for f32 {
     #[inline]
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
-        let limbs_ptr = limbs[0].as_mut_ptr();
+        let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
         xmpfr::custom_zero(ptr, limbs_ptr, 24);
         mpfr::set_d(ptr, self.into(), raw_round(Round::Nearest));
         // retain sign in case of NaN
@@ -342,7 +342,7 @@ impl SealedToSmall for f64 {
     #[inline]
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
-        let limbs_ptr = limbs[0].as_mut_ptr();
+        let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
         xmpfr::custom_zero(ptr, limbs_ptr, 53);
         mpfr::set_d(ptr, self, raw_round(Round::Nearest));
         // retain sign in case of NaN

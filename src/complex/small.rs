@@ -188,7 +188,7 @@ impl<Re: ToSmall> Assign<Re> for SmallComplex {
             src.copy(&mut self.inner.re, &mut self.first_limbs);
             xmpfr::custom_zero(
                 cast_ptr_mut!(&mut self.inner.im, mpfr_t),
-                self.last_limbs[0].as_mut_ptr(),
+                cast_ptr_mut!(self.last_limbs.as_mut_ptr(), limb_t),
                 self.inner.re.prec,
             );
         }
@@ -220,7 +220,7 @@ impl<Re: ToSmall> From<Re> for SmallComplex {
             src.copy(&mut dst.inner.re, &mut dst.first_limbs);
             xmpfr::custom_zero(
                 cast_ptr_mut!(&mut dst.inner.im, mpfr_t),
-                dst.last_limbs[0].as_mut_ptr(),
+                cast_ptr_mut!(dst.last_limbs.as_mut_ptr(), limb_t),
                 dst.inner.re.prec,
             );
         }
