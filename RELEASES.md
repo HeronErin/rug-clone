@@ -8,6 +8,13 @@ as-is, without any warranty. -->
 Version 1.8.0 (unreleased)
 ==========================
 
+  * <code>[Integer][int-1-8]::[new][int-n-1-8]</code>,
+    <code>[Integer][int-1-8]::[into\_raw][int-ir-1-8]</code> and
+    <code>[Integer][int-1-8]::[as\_raw][int-ar-1-8]</code> are now
+    const functions.
+  * A new method
+    <code>[Integer][int-1-8]::[as\_rational][int-arat-1-8]</code> was
+    added.
   * [`Integer`][int-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][gmp-limb-1-2][\]][slice]&gt;</code>.
   * [`Float`][flo-1-8] now implements
@@ -20,16 +27,13 @@ Version 1.8.0 (unreleased)
     [`OrdComplex`][oc-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[Complex][com-1-8]&gt;</code> and
     <code>[AsMut][`AsMut`]&lt;[Complex][com-1-8]&gt;</code>.
-  * <code>[Integer][int-1-8]::[new][int-n-1-8]</code>,
-    <code>[Integer][int-1-8]::[into\_raw][int-ir-1-8]</code> and
-    <code>[Integer][int-1-8]::[as\_raw][int-ar-1-8]</code> are now
-    const functions.
 
 [com-1-8]: https://docs.rs/rug/~1.8/rug/struct.Complex.html
 [flo-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html
 [gmp-limb-1-2]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/type.limb_t.html
 [int-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html
-[int-ar-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.as_raw
+[int-arat-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.as_rational
+[int-araw-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.as_raw
 [int-ir-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.into_raw
 [int-n-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.new
 [oc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.OrdComplex.html

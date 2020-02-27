@@ -35,6 +35,8 @@ use core::{
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use libc::{c_char, c_int, c_long, c_void};
 use std::error::Error;
+#[cfg(feature = "rational")]
+use {crate::rational::big::BorrowRational, gmp_mpfr_sys::gmp::mpq_t};
 
 /**
 An arbitrary-precision integer.
@@ -1805,6 +1807,44 @@ impl Integer {
         let mut raw = self.inner;
         raw.size = raw.size.checked_abs().expect("overflow");
         unsafe { BorrowInteger::from_raw(raw) }
+    }
+
+    #[cfg(feature = "rational")]
+    /// Borrows a copy of the [`Integer`] as a [`Rational`] number.
+    ///
+    /// The returned object implements
+    /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
+    ///
+    /// This method performs a shallow copy and does not change the
+    /// allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(42);
+    /// let r = i.as_rational();
+    /// assert_eq!(*r, (42, 1));
+    /// // methods taking &self can be used on the returned object
+    /// let recip_r = r.as_recip();
+    /// assert_eq!(*recip_r, (1, 42));
+    /// ```
+    ///
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
+    /// [`Integer`]: struct.Integer.html
+    /// [`Rational`]: struct.Rational.html
+    pub const fn as_rational(&self) -> BorrowRational<'_> {
+        const ONE: limb_t = 1;
+        let raw_rational = mpq_t {
+            num: self.inner,
+            den: mpz_t {
+                alloc: 1,
+                size: 1,
+                d: &ONE as *const limb_t as *mut limb_t,
+            },
+        };
+        unsafe { BorrowRational::from_raw(raw_rational) }
     }
 
     /// Returns [`true`] if the number is even.

@@ -2688,9 +2688,9 @@ pub struct BorrowRational<'a> {
 
 impl BorrowRational<'_> {
     // unsafe because the lifetime is obtained from return type
-    unsafe fn from_raw<'a>(raw: mpq_t) -> BorrowRational<'a> {
+    pub(crate) const unsafe fn from_raw<'a>(raw: mpq_t) -> BorrowRational<'a> {
         BorrowRational {
-            inner: ManuallyDrop::new(Rational::from_raw(raw)),
+            inner: ManuallyDrop::new(Rational { inner: raw }),
             phantom: PhantomData,
         }
     }
