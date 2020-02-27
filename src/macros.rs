@@ -2416,20 +2416,37 @@ macro_rules! static_assert_same_layout {
 }
 
 #[cfg(any(feature = "integer", feature = "float"))]
+pub struct CastPtr<Src>(pub *const Src);
+impl<Src> CastPtr<Src> {
+    #[inline(always)]
+    pub fn static_check_size(&self) -> Src {
+        unreachable!()
+    }
+    #[inline(always)]
+    pub fn get<Dst>(self) -> *const Dst {
+        debug_assert_eq!(core::mem::align_of::<Dst>(), core::mem::align_of::<Src>());
+        self.0 as *const Dst
+    }
+}
+
+#[cfg(any(feature = "integer", feature = "float"))]
+pub struct CastPtrMut<Src>(pub *mut Src);
+impl<Src> CastPtrMut<Src> {
+    #[inline(always)]
+    pub fn static_check_size(&self) -> Src {
+        unreachable!()
+    }
+    #[inline(always)]
+    pub fn get<Dst>(self) -> *mut Dst {
+        debug_assert_eq!(core::mem::align_of::<Dst>(), core::mem::align_of::<Src>());
+        self.0 as *mut Dst
+    }
+}
+
+#[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! cast_ptr {
     ($src:expr, $T:ty) => {{
-        struct Ptr<T>(*const T);
-        impl<T> Ptr<T> {
-            fn static_check_size(&self) -> T {
-                unreachable!()
-            }
-            #[inline(always)]
-            fn get(self) -> *const $T {
-                debug_assert_eq!(core::mem::align_of::<$T>(), core::mem::align_of::<T>());
-                self.0 as *const $T
-            }
-        }
-        let ptr = Ptr($src);
+        let ptr = crate::macros::CastPtr($src);
         if false {
             #[allow(unused_unsafe)]
             #[allow(clippy::transmute_ptr_to_ptr)]
@@ -2437,25 +2454,14 @@ macro_rules! cast_ptr {
                 let _ = core::mem::transmute::<_, $T>(ptr.static_check_size());
             }
         }
-        ptr.get()
+        ptr.get::<$T>()
     }};
 }
 
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! cast_ptr_mut {
     ($src:expr, $T:ty) => {{
-        struct Ptr<T>(*mut T);
-        impl<T> Ptr<T> {
-            fn static_check_size(&self) -> T {
-                unreachable!()
-            }
-            #[inline(always)]
-            fn get(self) -> *mut $T {
-                debug_assert_eq!(core::mem::align_of::<$T>(), core::mem::align_of::<T>());
-                self.0 as *mut $T
-            }
-        }
-        let ptr = Ptr($src);
+        let ptr = crate::macros::CastPtrMut($src);
         if false {
             #[allow(unused_unsafe)]
             #[allow(clippy::transmute_ptr_to_ptr)]
@@ -2463,7 +2469,7 @@ macro_rules! cast_ptr_mut {
                 let _ = core::mem::transmute::<_, $T>(ptr.static_check_size());
             }
         }
-        ptr.get()
+        ptr.get::<$T>()
     }};
 }
 
