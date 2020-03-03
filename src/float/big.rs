@@ -1385,8 +1385,10 @@ impl Float {
     /// The returned object implements
     /// <code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
     ///
-    /// This method performs a shallow copy and does not change the
-    /// allocated data.
+    /// The imaginary part of the return value has the same precision
+    /// as the real part. While this has no effect for the zero value
+    /// of the returned complex number, it could have an effect if the
+    /// return value is cloned.
     ///
     /// # Examples
     ///

@@ -1815,9 +1815,6 @@ impl Integer {
     /// The returned object implements
     /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
     ///
-    /// This method performs a shallow copy and does not change the
-    /// allocated data.
-    ///
     /// # Examples
     ///
     /// ```rust
