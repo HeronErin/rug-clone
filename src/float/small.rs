@@ -125,7 +125,41 @@ static_assert_same_layout!(Mpfr, mpfr_t);
 
 unsafe impl Send for SmallFloat {}
 
+impl Default for SmallFloat {
+    #[inline]
+    fn default() -> Self {
+        SmallFloat::new()
+    }
+}
+
 impl SmallFloat {
+    /// Creates a [`SmallFloat`] with value 0 and the
+    /// [minimum possible precision][`prec_min`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::float::SmallFloat;
+    /// let f = SmallFloat::new();
+    /// // Borrow f as if it were Float.
+    /// assert_eq!(*f, 0);
+    /// ```
+    ///
+    /// [`SmallFloat`]: struct.SmallFloat.html
+    /// [`prec_min`]: fn.prec_min.html
+    #[inline]
+    pub const fn new() -> Self {
+        SmallFloat {
+            inner: Mpfr {
+                prec: float::prec_min() as prec_t,
+                sign: 1,
+                exp: xmpfr::EXP_ZERO,
+                d: UnsafeCell::new(NonNull::dangling()),
+            },
+            limbs: small_limbs![],
+        }
+    }
+
     /// Returns a mutable reference to a [`Float`] for simple
     /// operations that do not need to change the precision of the
     /// number.

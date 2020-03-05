@@ -47,6 +47,11 @@ option) any later version. See the full text of the [GNU LGPL] and
     added.
   * [`SmallFloat`][smf-1-8] and [`SmallComplex`][smc-1-8] can now be
     initialized with [`Special`][spe-1-8].
+  * New methods <code>[SmallFloat][smf-1-8]::[new][smf-n-1-8]</code>
+    and <code>[SmallComplex][smc-1-8]::[new][smc-n-1-8]</code> were
+    added.
+  * [`SmallFloat`][smf-1-8] and [`SmallComplex`][smc-1-8] now
+    implement [`Default`].
   * [`Integer`][int-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][gmp-limb-1-2][\]][slice]&gt;</code>.
   * [`Float`][flo-1-8] now implements
@@ -62,6 +67,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
 [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
+[`Default`]: https://doc.rust-lang.org/nightly/core/default/trait.Default.html
 [com-1-8]: https://docs.rs/rug/~1.8/rug/struct.Complex.html
 [flo-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html
 [flo-ac-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html#method.as_complex
@@ -75,7 +81,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 [of-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.OrdFloat.html
 [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
 [smc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallComplex.html
+[smc-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallComplex.html#method.new
 [smf-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.SmallFloat.html
+[smf-n-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.SmallFloat.html#method.new
 [smi-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallInteger.html
 [smi-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallInteger.html#method.new
 [smr-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallRational.html

@@ -16,7 +16,7 @@
 
 use crate::{
     ext::xmpfr,
-    float::{small::Mpfr, ToSmall},
+    float::{self, small::Mpfr, ToSmall},
     Assign, Complex,
 };
 use core::{
@@ -28,7 +28,7 @@ use core::{
 use gmp_mpfr_sys::{
     gmp::{self, limb_t},
     mpc::mpc_t,
-    mpfr::mpfr_t,
+    mpfr::{mpfr_t, prec_t},
 };
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
@@ -105,6 +105,13 @@ pub struct SmallComplex {
 
 unsafe impl Send for SmallComplex {}
 
+impl Default for SmallComplex {
+    #[inline]
+    fn default() -> Self {
+        SmallComplex::new()
+    }
+}
+
 #[derive(Clone)]
 #[repr(C)]
 struct Mpc {
@@ -115,6 +122,43 @@ struct Mpc {
 static_assert_same_layout!(Mpc, mpc_t);
 
 impl SmallComplex {
+    /// Creates a [`SmallComplex`] with value 0 and the
+    /// [minimum possible precision][`prec_min`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::complex::SmallComplex;
+    /// let c = SmallComplex::new();
+    /// // Borrow c as if it were Complex.
+    /// assert_eq!(*c, 0);
+    /// ```
+    ///
+    /// [`SmallComplex`]: struct.SmallComplex.html
+    /// [`prec_min`]: ../float/fn.prec_min.html
+    #[inline]
+    pub const fn new() -> Self {
+        let dangling = NonNull::dangling();
+        SmallComplex {
+            inner: Mpc {
+                re: Mpfr {
+                    prec: float::prec_min() as prec_t,
+                    sign: 1,
+                    exp: xmpfr::EXP_ZERO,
+                    d: UnsafeCell::new(dangling),
+                },
+                im: Mpfr {
+                    prec: float::prec_min() as prec_t,
+                    sign: 1,
+                    exp: xmpfr::EXP_ZERO,
+                    d: UnsafeCell::new(dangling),
+                },
+            },
+            first_limbs: small_limbs![],
+            last_limbs: small_limbs![],
+        }
+    }
+
     /// Returns a mutable reference to a [`Complex`] number for simple
     /// operations that do not need to change the precision of the
     /// real or imaginary part.
