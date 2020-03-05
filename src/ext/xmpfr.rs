@@ -533,7 +533,6 @@ pub unsafe fn custom_special(f: *mut mpfr_t, limbs: *mut limb_t, special: Specia
     mpfr::custom_init_set(f, kind, 0, prec, limbs as *mut c_void);
 }
 
-#[cfg(feature = "complex")]
 pub const EXP_ZERO: mpfr::exp_t = -mpfr::exp_t::max_value();
 
 #[inline]
