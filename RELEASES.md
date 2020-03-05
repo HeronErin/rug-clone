@@ -8,10 +8,12 @@ as-is, without any warranty. -->
 Version 1.8.0 (unreleased)
 ==========================
 
-  * <code>[Integer][int-1-8]::[new][int-n-1-8]</code>,
-    <code>[Integer][int-1-8]::[into\_raw][int-ir-1-8]</code> and
-    <code>[Integer][int-1-8]::[as\_raw][int-ar-1-8]</code> are now
-    const functions.
+  * The following methods are now const functions:
+      * <code>[Integer][int-1-8]::[new][int-n-1-8]</code>,
+	    <code>[Integer][int-1-8]::[into\_raw][int-ir-1-8]</code>,
+	    <code>[Integer][int-1-8]::[as\_raw][int-araw-1-8]</code>
+      * <code>[SmallInteger][smi-1-8]::[new][smi-n-1-8]</code>,
+        <code>[SmallRational][smr-1-8]::[new][smr-n-1-8]</code>
   * A new method
     <code>[Integer][int-1-8]::[as\_rational][int-arat-1-8]</code> was
     added.
@@ -46,6 +48,10 @@ Version 1.8.0 (unreleased)
 [of-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.OrdFloat.html
 [smc-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallComplex.html
 [smf-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.SmallFloat.html
+[smi-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallInteger.html
+[smi-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallInteger.html#method.new
+[smr-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallRational.html
+[smr-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallRational.html#method.new
 [spe-1-8]: https://docs.rs/rug/~1.8/rug/float/enum.Special.html
 
 Version 1.7.0 (2019-01-21)

@@ -18,7 +18,6 @@ use crate::{
     integer::{small::Mpz, ToSmall},
     Assign, Rational,
 };
-use az::Az;
 use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
@@ -26,6 +25,7 @@ use core::{
     ptr::NonNull,
 };
 use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
+use libc::c_int;
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
 type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
@@ -105,17 +105,17 @@ impl SmallRational {
     ///
     /// [`SmallRational`]: struct.SmallRational.html
     #[inline]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         let dangling = NonNull::dangling();
         SmallRational {
             inner: Mpq {
                 num: Mpz {
-                    alloc: LIMBS_IN_SMALL.az(),
+                    alloc: LIMBS_IN_SMALL as c_int,
                     size: 0,
                     d: UnsafeCell::new(dangling),
                 },
                 den: Mpz {
-                    alloc: LIMBS_IN_SMALL.az(),
+                    alloc: LIMBS_IN_SMALL as c_int,
                     size: 1,
                     d: UnsafeCell::new(dangling),
                 },

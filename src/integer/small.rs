@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{misc::NegAbs, Assign, Integer};
-use az::Az;
 use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
@@ -115,10 +114,10 @@ impl SmallInteger {
     ///
     /// [`SmallInteger`]: struct.SmallInteger.html
     #[inline]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         SmallInteger {
             inner: Mpz {
-                alloc: LIMBS_IN_SMALL.az(),
+                alloc: LIMBS_IN_SMALL as c_int,
                 size: 0,
                 d: UnsafeCell::new(NonNull::dangling()),
             },
