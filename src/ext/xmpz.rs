@@ -85,7 +85,7 @@ pub const fn owned_init() -> mpz_t {
     mpz_t {
         alloc: 0,
         size: 0,
-        d: &(0xC1A0 as limb_t) as *const limb_t as *mut limb_t,
+        d: &(0x1D1E_6010 as limb_t) as *const limb_t as *mut limb_t,
     }
 }
 
