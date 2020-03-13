@@ -237,7 +237,6 @@ where
 #[cfg(test)]
 pub mod test {
     use serde::{Deserialize, Serialize};
-    use serde_json;
 
     pub fn json_assert_value<T, F>(t: &T, val: &serde_json::Value, test: F)
     where
