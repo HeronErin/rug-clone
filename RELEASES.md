@@ -61,7 +61,7 @@ Version 1.8.0 (unreleased)
 [smr-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallRational.html#method.new
 [spe-1-8]: https://docs.rs/rug/~1.8/rug/float/enum.Special.html
 
-Version 1.7.0 (2019-01-21)
+Version 1.7.0 (2020-01-21)
 ==========================
 
   * The crate now requires rustc version 1.37.0 or later.
