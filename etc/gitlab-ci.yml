@@ -94,9 +94,9 @@ stable-x86_64-gnulinux-tarpaulin:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: stable-x86_64
-    REQ_COVERAGE: "82.45"
+    REQ_COVERAGE: "82.4"
   script:
-  - cargo install --version 0.11.0 --locked cargo-tarpaulin
+  - cargo install --version 0.11.1 --locked cargo-tarpaulin
   - etc/extract-doc-tests.sh
   - stdbuf -oL etc/invoke-tarpaulin.sh | tee tarpaulin.log
   - etc/extract-doc-tests.sh restore
