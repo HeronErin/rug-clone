@@ -106,18 +106,17 @@ impl SmallRational {
     /// [`SmallRational`]: struct.SmallRational.html
     #[inline]
     pub const fn new() -> Self {
-        let dangling = NonNull::dangling();
         SmallRational {
             inner: Mpq {
                 num: Mpz {
                     alloc: LIMBS_IN_SMALL as c_int,
                     size: 0,
-                    d: UnsafeCell::new(dangling),
+                    d: UnsafeCell::new(NonNull::dangling()),
                 },
                 den: Mpz {
                     alloc: LIMBS_IN_SMALL as c_int,
                     size: 1,
-                    d: UnsafeCell::new(dangling),
+                    d: UnsafeCell::new(NonNull::dangling()),
                 },
             },
             first_limbs: small_limbs![0],
@@ -280,11 +279,27 @@ impl<Num: ToSmall> Assign<Num> for SmallRational {
 
 impl<Num: ToSmall> From<Num> for SmallRational {
     fn from(src: Num) -> Self {
-        let mut dst = SmallRational::default();
-        src.copy(&mut dst.inner.num.size, &mut dst.first_limbs);
-        dst.inner.den.size = 1;
-        dst.last_limbs[0] = MaybeUninit::new(1);
-        dst
+        let mut inner = Mpq {
+            num: Mpz {
+                alloc: LIMBS_IN_SMALL as c_int,
+                size: 0,
+                d: UnsafeCell::new(NonNull::dangling()),
+            },
+            den: Mpz {
+                alloc: LIMBS_IN_SMALL as c_int,
+                size: 1,
+                d: UnsafeCell::new(NonNull::dangling()),
+            },
+        };
+        let mut num_limbs = small_limbs![0];
+        let den_limbs = small_limbs![1];
+        src.copy(&mut inner.num.size, &mut num_limbs);
+        // since inner.num.d == inner.den.d, first_limbs are num_limbs
+        SmallRational {
+            inner,
+            first_limbs: num_limbs,
+            last_limbs: den_limbs,
+        }
     }
 }
 
@@ -308,9 +323,40 @@ impl<Num: ToSmall, Den: ToSmall> Assign<(Num, Den)> for SmallRational {
 
 impl<Num: ToSmall, Den: ToSmall> From<(Num, Den)> for SmallRational {
     fn from(src: (Num, Den)) -> Self {
-        let mut dst = SmallRational::default();
-        dst.assign(src);
-        dst
+        assert!(!src.1.is_zero(), "division by zero");
+        let mut num_limbs: Limbs = small_limbs![0];
+        let mut den_limbs: Limbs = small_limbs![0];
+        let mut inner = Mpq {
+            num: Mpz {
+                alloc: LIMBS_IN_SMALL as c_int,
+                size: 0,
+                d: UnsafeCell::new(NonNull::<[MaybeUninit<limb_t>]>::from(&num_limbs[..]).cast()),
+            },
+            den: Mpz {
+                alloc: LIMBS_IN_SMALL as c_int,
+                size: 0,
+                d: UnsafeCell::new(NonNull::<[MaybeUninit<limb_t>]>::from(&den_limbs[..]).cast()),
+            },
+        };
+        src.0.copy(&mut inner.num.size, &mut num_limbs);
+        src.1.copy(&mut inner.den.size, &mut den_limbs);
+        unsafe {
+            gmp::mpq_canonicalize(cast_ptr_mut!(&mut inner, mpq_t));
+        }
+        // order of limbs is important as inner.num.d != inner.den.d
+        if num_limbs.as_ptr() <= den_limbs.as_ptr() {
+            SmallRational {
+                inner,
+                first_limbs: num_limbs,
+                last_limbs: den_limbs,
+            }
+        } else {
+            SmallRational {
+                inner,
+                first_limbs: den_limbs,
+                last_limbs: num_limbs,
+            }
+        }
     }
 }
 

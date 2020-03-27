@@ -408,19 +408,17 @@ impl<T: ToSmall> Assign<T> for SmallFloat {
 impl<T: ToSmall> From<T> for SmallFloat {
     #[inline]
     fn from(src: T) -> Self {
-        let mut dst = SmallFloat {
-            inner: Mpfr {
-                prec: 0,
-                sign: 0,
-                exp: 0,
-                d: UnsafeCell::new(NonNull::dangling()),
-            },
-            limbs: small_limbs![],
+        let mut inner = Mpfr {
+            prec: 0,
+            sign: 0,
+            exp: 0,
+            d: UnsafeCell::new(NonNull::dangling()),
         };
+        let mut limbs = small_limbs![];
         unsafe {
-            src.copy(&mut dst.inner, &mut dst.limbs);
+            src.copy(&mut inner, &mut limbs);
         }
-        dst
+        SmallFloat { inner, limbs }
     }
 }
 

@@ -138,20 +138,19 @@ impl SmallComplex {
     /// [`prec_min`]: ../float/fn.prec_min.html
     #[inline]
     pub const fn new() -> Self {
-        let dangling = NonNull::dangling();
         SmallComplex {
             inner: Mpc {
                 re: Mpfr {
                     prec: float::prec_min() as prec_t,
                     sign: 1,
                     exp: xmpfr::EXP_ZERO,
-                    d: UnsafeCell::new(dangling),
+                    d: UnsafeCell::new(NonNull::dangling()),
                 },
                 im: Mpfr {
                     prec: float::prec_min() as prec_t,
                     sign: 1,
                     exp: xmpfr::EXP_ZERO,
-                    d: UnsafeCell::new(dangling),
+                    d: UnsafeCell::new(NonNull::dangling()),
                 },
             },
             first_limbs: small_limbs![],
@@ -241,34 +240,42 @@ impl<Re: ToSmall> Assign<Re> for SmallComplex {
 
 impl<Re: ToSmall> From<Re> for SmallComplex {
     fn from(src: Re) -> Self {
-        let dangling = NonNull::dangling();
-        let mut dst = SmallComplex {
-            inner: Mpc {
-                re: Mpfr {
-                    prec: 0,
-                    sign: 0,
-                    exp: 0,
-                    d: UnsafeCell::new(dangling),
-                },
-                im: Mpfr {
-                    prec: 0,
-                    sign: 0,
-                    exp: 0,
-                    d: UnsafeCell::new(dangling),
-                },
-            },
-            first_limbs: small_limbs![],
-            last_limbs: small_limbs![],
+        let mut re = Mpfr {
+            prec: 0,
+            sign: 0,
+            exp: 0,
+            d: UnsafeCell::new(NonNull::dangling()),
         };
+        let mut im = Mpfr {
+            prec: 0,
+            sign: 0,
+            exp: 0,
+            d: UnsafeCell::new(NonNull::dangling()),
+        };
+        let mut re_limbs = small_limbs![];
+        let mut im_limbs = small_limbs![];
         unsafe {
-            src.copy(&mut dst.inner.re, &mut dst.first_limbs);
+            src.copy(&mut re, &mut re_limbs);
             xmpfr::custom_zero(
-                cast_ptr_mut!(&mut dst.inner.im, mpfr_t),
-                cast_ptr_mut!(dst.last_limbs.as_mut_ptr(), limb_t),
-                dst.inner.re.prec,
+                cast_ptr_mut!(&mut im, mpfr_t),
+                cast_ptr_mut!(im_limbs.as_mut_ptr(), limb_t),
+                re.prec,
             );
         }
-        dst
+        // order of limbs is important as inner.num.d != inner.den.d
+        if re_limbs.as_ptr() <= im_limbs.as_ptr() {
+            SmallComplex {
+                inner: Mpc { re, im },
+                first_limbs: re_limbs,
+                last_limbs: im_limbs,
+            }
+        } else {
+            SmallComplex {
+                inner: Mpc { re, im },
+                first_limbs: im_limbs,
+                last_limbs: re_limbs,
+            }
+        }
     }
 }
 
@@ -283,30 +290,40 @@ impl<Re: ToSmall, Im: ToSmall> Assign<(Re, Im)> for SmallComplex {
 
 impl<Re: ToSmall, Im: ToSmall> From<(Re, Im)> for SmallComplex {
     fn from(src: (Re, Im)) -> Self {
-        let dangling = NonNull::dangling();
-        let mut dst = SmallComplex {
-            inner: Mpc {
-                re: Mpfr {
-                    prec: 0,
-                    sign: 0,
-                    exp: 0,
-                    d: UnsafeCell::new(dangling),
-                },
-                im: Mpfr {
-                    prec: 0,
-                    sign: 0,
-                    exp: 0,
-                    d: UnsafeCell::new(dangling),
-                },
+        let mut inner = Mpc {
+            re: Mpfr {
+                prec: 0,
+                sign: 0,
+                exp: 0,
+                d: UnsafeCell::new(NonNull::dangling()),
             },
-            first_limbs: small_limbs![],
-            last_limbs: small_limbs![],
+            im: Mpfr {
+                prec: 0,
+                sign: 0,
+                exp: 0,
+                d: UnsafeCell::new(NonNull::dangling()),
+            },
         };
+        let mut re_limbs = small_limbs![];
+        let mut im_limbs = small_limbs![];
         unsafe {
-            src.0.copy(&mut dst.inner.re, &mut dst.first_limbs);
-            src.1.copy(&mut dst.inner.im, &mut dst.last_limbs);
+            src.0.copy(&mut inner.re, &mut re_limbs);
+            src.1.copy(&mut inner.im, &mut im_limbs);
         }
-        dst
+        // order of limbs is important as inner.num.d != inner.den.d
+        if re_limbs.as_ptr() <= im_limbs.as_ptr() {
+            SmallComplex {
+                inner,
+                first_limbs: re_limbs,
+                last_limbs: im_limbs,
+            }
+        } else {
+            SmallComplex {
+                inner,
+                first_limbs: im_limbs,
+                last_limbs: re_limbs,
+            }
+        }
     }
 }
 

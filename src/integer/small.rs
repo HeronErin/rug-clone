@@ -376,9 +376,14 @@ impl<T: ToSmall> Assign<T> for SmallInteger {
 impl<T: ToSmall> From<T> for SmallInteger {
     #[inline]
     fn from(src: T) -> Self {
-        let mut dst = SmallInteger::default();
-        dst.assign(src);
-        dst
+        let mut inner = Mpz {
+            alloc: LIMBS_IN_SMALL as c_int,
+            size: 0,
+            d: UnsafeCell::new(NonNull::dangling()),
+        };
+        let mut limbs = small_limbs![0];
+        src.copy(&mut inner.size, &mut limbs);
+        SmallInteger { inner, limbs }
     }
 }
 
