@@ -186,9 +186,29 @@ impl SmallRational {
     ///
     /// [`SmallRational`]: struct.SmallRational.html
     pub unsafe fn from_canonical<Num: ToSmall, Den: ToSmall>(num: Num, den: Den) -> Self {
-        let mut dst = SmallRational::default();
-        dst.assign_canonical(num, den);
-        dst
+        let mut num_size = 0;
+        let mut den_size = 0;
+        let mut num_limbs: Limbs = small_limbs![0];
+        let mut den_limbs: Limbs = small_limbs![0];
+        num.copy(&mut num_size, &mut num_limbs);
+        den.copy(&mut den_size, &mut den_limbs);
+        // since inner.num.d == inner.den.d, first_limbs are num_limbs
+        SmallRational {
+            inner: Mpq {
+                num: Mpz {
+                    alloc: LIMBS_IN_SMALL as c_int,
+                    size: num_size,
+                    d: UnsafeCell::new(NonNull::dangling()),
+                },
+                den: Mpz {
+                    alloc: LIMBS_IN_SMALL as c_int,
+                    size: den_size,
+                    d: UnsafeCell::new(NonNull::dangling()),
+                },
+            },
+            first_limbs: num_limbs,
+            last_limbs: den_limbs,
+        }
     }
 
     /// Assigns a numerator and denominator to a [`SmallRational`],
