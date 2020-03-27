@@ -240,38 +240,40 @@ impl<Re: ToSmall> Assign<Re> for SmallComplex {
 
 impl<Re: ToSmall> From<Re> for SmallComplex {
     fn from(src: Re) -> Self {
-        let mut re = Mpfr {
-            prec: 0,
-            sign: 0,
-            exp: 0,
-            d: UnsafeCell::new(NonNull::dangling()),
-        };
-        let mut im = Mpfr {
-            prec: 0,
-            sign: 0,
-            exp: 0,
-            d: UnsafeCell::new(NonNull::dangling()),
+        let mut inner = Mpc {
+            re: Mpfr {
+                prec: 0,
+                sign: 0,
+                exp: 0,
+                d: UnsafeCell::new(NonNull::dangling()),
+            },
+            im: Mpfr {
+                prec: 0,
+                sign: 0,
+                exp: 0,
+                d: UnsafeCell::new(NonNull::dangling()),
+            },
         };
         let mut re_limbs = small_limbs![];
         let mut im_limbs = small_limbs![];
         unsafe {
-            src.copy(&mut re, &mut re_limbs);
+            src.copy(&mut inner.re, &mut re_limbs);
             xmpfr::custom_zero(
-                cast_ptr_mut!(&mut im, mpfr_t),
+                cast_ptr_mut!(&mut inner.im, mpfr_t),
                 cast_ptr_mut!(im_limbs.as_mut_ptr(), limb_t),
-                re.prec,
+                inner.re.prec,
             );
         }
         // order of limbs is important as inner.num.d != inner.den.d
         if re_limbs.as_ptr() <= im_limbs.as_ptr() {
             SmallComplex {
-                inner: Mpc { re, im },
+                inner,
                 first_limbs: re_limbs,
                 last_limbs: im_limbs,
             }
         } else {
             SmallComplex {
-                inner: Mpc { re, im },
+                inner,
                 first_limbs: im_limbs,
                 last_limbs: re_limbs,
             }
@@ -377,23 +379,36 @@ mod tests {
     #[test]
     fn check_swapped_parts() {
         let mut c = SmallComplex::from((1, 2));
-        assert!(!swapped_parts(&c));
+        assert_eq!(*c, (1, 2));
         assert_eq!(*c.clone(), *c);
+        let mut orig_swapped_parts = swapped_parts(&c);
         unsafe {
             c.as_nonreallocating_complex().mul_i_mut(false);
         }
-        assert!(swapped_parts(&c));
         assert_eq!(*c, (-2, 1));
         assert_eq!(*c.clone(), *c);
+        assert!(swapped_parts(&c) != orig_swapped_parts);
+
         c.assign(12);
-        assert!(!swapped_parts(&c));
         assert_eq!(*c, 12);
+        assert_eq!(*c.clone(), *c);
+        orig_swapped_parts = swapped_parts(&c);
         unsafe {
             c.as_nonreallocating_complex().mul_i_mut(false);
         }
-        assert!(swapped_parts(&c));
+        assert_eq!(*c, (0, 12));
+        assert_eq!(*c.clone(), *c);
+        assert!(swapped_parts(&c) != orig_swapped_parts);
+
         c.assign((4, 5));
-        assert!(!swapped_parts(&c));
         assert_eq!(*c, (4, 5));
+        assert_eq!(*c.clone(), *c);
+        orig_swapped_parts = swapped_parts(&c);
+        unsafe {
+            c.as_nonreallocating_complex().mul_i_mut(false);
+        }
+        assert_eq!(*c, (-5, 4));
+        assert_eq!(*c.clone(), *c);
+        assert!(swapped_parts(&c) != orig_swapped_parts);
     }
 }
