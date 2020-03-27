@@ -299,26 +299,25 @@ impl<Num: ToSmall> Assign<Num> for SmallRational {
 
 impl<Num: ToSmall> From<Num> for SmallRational {
     fn from(src: Num) -> Self {
-        let mut inner = Mpq {
-            num: Mpz {
-                alloc: LIMBS_IN_SMALL as c_int,
-                size: 0,
-                d: UnsafeCell::new(NonNull::dangling()),
-            },
-            den: Mpz {
-                alloc: LIMBS_IN_SMALL as c_int,
-                size: 1,
-                d: UnsafeCell::new(NonNull::dangling()),
-            },
-        };
+        let mut num_size = 0;
         let mut num_limbs = small_limbs![0];
-        let den_limbs = small_limbs![1];
-        src.copy(&mut inner.num.size, &mut num_limbs);
+        src.copy(&mut num_size, &mut num_limbs);
         // since inner.num.d == inner.den.d, first_limbs are num_limbs
         SmallRational {
-            inner,
+            inner: Mpq {
+                num: Mpz {
+                    alloc: LIMBS_IN_SMALL as c_int,
+                    size: num_size,
+                    d: UnsafeCell::new(NonNull::dangling()),
+                },
+                den: Mpz {
+                    alloc: LIMBS_IN_SMALL as c_int,
+                    size: 1,
+                    d: UnsafeCell::new(NonNull::dangling()),
+                },
+            },
             first_limbs: num_limbs,
-            last_limbs: den_limbs,
+            last_limbs: small_limbs![1],
         }
     }
 }
