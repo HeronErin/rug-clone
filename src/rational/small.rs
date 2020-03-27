@@ -324,22 +324,26 @@ impl<Num: ToSmall, Den: ToSmall> Assign<(Num, Den)> for SmallRational {
 impl<Num: ToSmall, Den: ToSmall> From<(Num, Den)> for SmallRational {
     fn from(src: (Num, Den)) -> Self {
         assert!(!src.1.is_zero(), "division by zero");
-        let mut num_limbs: Limbs = small_limbs![0];
-        let mut den_limbs: Limbs = small_limbs![0];
         let mut inner = Mpq {
             num: Mpz {
                 alloc: LIMBS_IN_SMALL as c_int,
                 size: 0,
-                d: UnsafeCell::new(NonNull::<[MaybeUninit<limb_t>]>::from(&num_limbs[..]).cast()),
+                d: UnsafeCell::new(NonNull::dangling()),
             },
             den: Mpz {
                 alloc: LIMBS_IN_SMALL as c_int,
                 size: 0,
-                d: UnsafeCell::new(NonNull::<[MaybeUninit<limb_t>]>::from(&den_limbs[..]).cast()),
+                d: UnsafeCell::new(NonNull::dangling()),
             },
         };
+        let mut num_limbs: Limbs = small_limbs![0];
+        let mut den_limbs: Limbs = small_limbs![0];
         src.0.copy(&mut inner.num.size, &mut num_limbs);
         src.1.copy(&mut inner.den.size, &mut den_limbs);
+        inner.num.d =
+            UnsafeCell::new(NonNull::<[MaybeUninit<limb_t>]>::from(&mut num_limbs[..]).cast());
+        inner.den.d =
+            UnsafeCell::new(NonNull::<[MaybeUninit<limb_t>]>::from(&mut den_limbs[..]).cast());
         unsafe {
             gmp::mpq_canonicalize(cast_ptr_mut!(&mut inner, mpq_t));
         }
