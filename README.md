@@ -31,7 +31,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
-### Version 1.8.0 news (unreleased)
+### Version 1.8.0 news (2020-04-08)
 
   * The following methods are now const functions:
       * <code>[Integer][int-1-8]::[new][int-n-1-8]</code>,
@@ -89,77 +89,6 @@ option) any later version. See the full text of the [GNU LGPL] and
 [smr-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallRational.html
 [smr-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallRational.html#method.new
 [spe-1-8]: https://docs.rs/rug/~1.8/rug/float/enum.Special.html
-
-### Version 1.7.0 news (2020-01-21)
-
-  * The crate now requires rustc version 1.37.0 or later.
-  * The [`RemAssignRound`][rar-1-7] and [`RemFromRound`][rfr-1-7]
-    traits were added.
-  * The [`Rem`], [`RemAssign`], [`RemFrom`][rf-1-7],
-    [`RemAssignRound`][rar-1-7] and [`RemFromRound`][rfr-1-7] traits
-    were implemented for [`Float`][flo-1-7].
-  * Arithmetic operations with one [`Integer`][int-1-7] or integer
-    primitive operand and one [`Rational`][rat-1-7] operand were
-    added.
-  * A new method
-    <code>[Integer][int-1-7]::[div\_exact\_from][int-def-1-7]</code>
-    was added.
-  * New methods <code>[Integer][int-1-7]::[gcd\_u][int-gu-1-7]</code>,
-	<code>[Integer][int-1-7]::[gcd\_u\_mut][int-gum-1-7]</code> and
-	<code>[Integer][int-1-7]::[gcd\_u\_ref][int-gur-1-7]</code>were
-	added.
-  * New methods <code>[Integer][int-1-7]::[lcm\_u][int-lu-1-7]</code>,
-	<code>[Integer][int-1-7]::[lcm\_u\_mut][int-lum-1-7]</code> and
-	<code>[Integer][int-1-7]::[lcm\_u\_ref][int-lur-1-7]</code>were
-	added.
-  * New methods <code>[Float][flo-1-7]::[remainder][flo-r-1-7]</code>,
-    <code>[Float][flo-1-7]::[remainder\_mut][flo-rm-1-7]</code>,
-    <code>[Float][flo-1-7]::[remainder\_round][flo-rr-1-7]</code>,
-    <code>[Float][flo-1-7]::[remainder\_from][flo-rf-1-7]</code>,
-    <code>[Float][flo-1-7]::[remainder\_from\_round][flo-rfr-1-7]</code>
-    and <code>[Float][flo-1-7]::[remainder\_ref][flo-rre-1-7]</code>
-    were added.
-
-Compatibility note
-------------------
-
-  * [`SmallInteger`][smi-1-7], [`SmallRational`][smr-1-7],
-    [`SmallFloat`][smf-1-7] and [`SmallComplex`][smc-1-7] are no
-    longer [`Sync`] to avoid the possibility of a [data race][dr-1-7].
-    References obtained by dereferencing them, for example the
-    <code>&amp;[Integer][int-1-7]</code> returned from
-    <code>[SmallInteger][smi-1-7]::[deref][`deref`]</code>, are still
-    [`Send`] and [`Sync`].
-
-[`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
-[`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
-[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
-[`deref`]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref
-[dr-1-7]: https://internals.rust-lang.org/t/is-this-a-data-race/11582
-[flo-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html
-[flo-r-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder
-[flo-rf-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from
-[flo-rfr-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_from_round
-[flo-rm-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_mut
-[flo-rr-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_round
-[flo-rre-1-7]: https://docs.rs/rug/~1.7/rug/struct.Float.html#method.remainder_ref
-[int-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html
-[int-def-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.div_exact_from
-[int-gu-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u
-[int-gum-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_mut
-[int-gur-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.gcd_u_ref
-[int-lu-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u
-[int-lum-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_mut
-[int-lur-1-7]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.lcm_u_ref
-[rar-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemAssignRound.html
-[rat-1-7]: https://docs.rs/rug/~1.7/rug/struct.Rational.html
-[rf-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFrom.html
-[rfr-1-7]: https://docs.rs/rug/~1.7/rug/ops/trait.RemFromRound.html
-[smc-1-7]: https://docs.rs/rug/~1.7/rug/complex/struct.SmallComplex.html
-[smf-1-7]: https://docs.rs/rug/~1.7/rug/float/struct.SmallFloat.html
-[smi-1-7]: https://docs.rs/rug/~1.7/rug/integer/struct.SmallInteger.html
-[smr-1-7]: https://docs.rs/rug/~1.7/rug/rational/struct.SmallRational.html
 
 ### Other releases
 
@@ -259,7 +188,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.7"
+rug = "1.8"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -298,7 +227,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.7"
+version = "1.8"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -310,7 +239,7 @@ is not required and thus not enabled. In that case, only the
 provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.7/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.8/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -318,20 +247,20 @@ provided by the crate.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.7/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.7/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.7/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.7/rug/struct.Float.html
-[`Integer`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.7/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.7/rug/struct.Rational.html
-[`new`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.new
-[`ops`]: https://docs.rs/rug/~1.7/rug/ops/index.html
-[`parse_radix`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.parse_radix
-[`parse`]: https://docs.rs/rug/~1.7/rug/struct.Integer.html#method.parse
+[`Assign::assign`]: https://docs.rs/rug/~1.8/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.8/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.8/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.8/rug/struct.Float.html
+[`Integer`]: https://docs.rs/rug/~1.8/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.8/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.8/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.new
+[`ops`]: https://docs.rs/rug/~1.8/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.7/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.7/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.8/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.8/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
