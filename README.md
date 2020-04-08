@@ -84,10 +84,10 @@ option) any later version. See the full text of the [GNU LGPL] and
 [smc-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallComplex.html#method.new
 [smf-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.SmallFloat.html
 [smf-n-1-8]: https://docs.rs/rug/~1.8/rug/float/struct.SmallFloat.html#method.new
-[smi-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallInteger.html
-[smi-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallInteger.html#method.new
-[smr-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallRational.html
-[smr-n-1-8]: https://docs.rs/rug/~1.8/rug/complex/struct.SmallRational.html#method.new
+[smi-1-8]: https://docs.rs/rug/~1.8/rug/integer/struct.SmallInteger.html
+[smi-n-1-8]: https://docs.rs/rug/~1.8/rug/integer/struct.SmallInteger.html#method.new
+[smr-1-8]: https://docs.rs/rug/~1.8/rug/rational/struct.SmallRational.html
+[smr-n-1-8]: https://docs.rs/rug/~1.8/rug/rational/struct.SmallRational.html#method.new
 [spe-1-8]: https://docs.rs/rug/~1.8/rug/float/enum.Special.html
 
 ### Other releases
