@@ -29,8 +29,8 @@ environment:
       MSYSTEM_PREFIX: C:/msys64/mingw32
 
 cache:
-  - '%USERPROFILE%\.cargo\registry\cache -> Cargo.toml'
-  - '%LOCALAPPDATA%\gmp-mpfr-sys -> etc\appveyor.yml'
+  - '%USERPROFILE%\.cargo\registry\cache'
+  - '%LOCALAPPDATA%\gmp-mpfr-sys'
 
 install:
   - set PATH=C:\msys64\%MSYSTEM%\bin;C:\msys64\usr\bin;%USERPROFILE%\.cargo\bin;%PATH%
@@ -58,3 +58,5 @@ test_script:
 after_test:
   - bash -c "cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate | sort"
   - bash -c "cd ""$LOCALAPPDATA""; find gmp-mpfr-sys -name \*.[ah] | sort"
+  # cache updating bug workaround
+  - bash -c "cd ""$LOCALAPPDATA""; find gmp-mpfr-sys -name \*.[ah] | sort > gmp-mpfr-sys/list"
