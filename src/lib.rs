@@ -396,7 +396,7 @@ provided by the crate.
 */
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/~1.8")]
-#![doc(html_logo_url = "https://tspiteri.gitlab.io/gmp-mpfr-sys/rug.svg")]
+#![doc(html_logo_url = "https://tspiteri.gitlab.io/rug/rug.svg")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64

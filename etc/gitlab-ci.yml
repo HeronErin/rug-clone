@@ -193,3 +193,24 @@ stable-i686-gnulinux-valgrind:
   - cargo +$TOOLCHAIN test --release --features serde --lib
   - valgrind $VALGRIND_OPTIONS "$(ls target/release/deps/rug* | grep -v '\.d')"
   - etc/extract-doc-tests.sh restore
+
+pages:
+  image: amd64/rust:1
+  stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+  dependencies:
+  - clibs-x86_64-gnulinux
+  variables:
+    TOOLCHAIN: nightly-x86_64
+  script:
+  - cargo +nightly-$TARGET doc --no-deps --features serde
+  - cp etc/{index.html,rug.svg} target/doc
+  - mv target/doc public
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
