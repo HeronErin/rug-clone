@@ -206,9 +206,11 @@ pages:
   variables:
     TOOLCHAIN: nightly-x86_64
   script:
-  - cargo +nightly-$TARGET doc --no-deps --features serde
-  - cp etc/{index.html,rug.svg} target/doc
-  - mv target/doc public
+  - rm -rf public
+  - mkdir public
+  - cp etc/{index.html,rug.svg} public
+  - cargo +$TOOLCHAIN doc --no-deps --features serde
+  - mv target/doc public/dev
   artifacts:
     paths:
     - public
