@@ -28,7 +28,7 @@ rand = ["integer"]
 fail-on-warnings = []
 
 [dependencies.az]
-version = "0.3.0"
+version = "1"
 
 [dependencies.libc]
 version = "0.2.44"
