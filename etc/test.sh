@@ -71,7 +71,7 @@ function tc {
 # Cache all C libraries.
 print_eval_check \
     cargo $(tc "${toolchains[0]}") check \
-    --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" \
+    --no-default-features --features gmp-mpfr-sys/mpc \
     -p gmp-mpfr-sys -p rug
 
 # For all toolchains, check with default features and serde.

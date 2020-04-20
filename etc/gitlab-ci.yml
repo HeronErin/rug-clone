@@ -110,7 +110,8 @@ stable-x86_64-gnulinux-valgrind:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: stable-x86_64
-    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --error-exitcode=1
+    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --track-origins=yes --error-exitcode=1 --gen-suppressions=all
+    RUSTFLAGS: -g
   script:
   - apt-get update -qq && apt-get install -y -qq valgrind
   - etc/extract-doc-tests.sh
@@ -184,7 +185,8 @@ stable-i686-gnulinux-valgrind:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: stable-i686
-    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --error-exitcode=1
+    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --track-origins=yes --error-exitcode=1 --gen-suppressions=all
+    RUSTFLAGS: -g
   script:
   - apt-get update -qq && apt-get install -y -qq valgrind
   - etc/extract-doc-tests.sh
