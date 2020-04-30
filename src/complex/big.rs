@@ -41,7 +41,7 @@ use core::{
     cmp::{self, Ordering},
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    mem::{self, ManuallyDrop, MaybeUninit},
+    mem::{ManuallyDrop, MaybeUninit},
     ops::{Add, AddAssign, Deref},
     slice,
 };
@@ -1731,6 +1731,8 @@ impl Complex {
     /// ```
     #[inline]
     pub fn abs_round(&mut self, round: Round2) -> Ordering2 {
+        // Use mpfr::hypot rather than mpc::abs because mpc::abs does not
+        // document that the result can be stored in one of its parts.
         let (real, imag) = self.as_mut_real_imag();
         let dir_re = real.hypot_round(imag, round.0);
         let dir_im = imag.assign_round(Special::Zero, round.1);
@@ -2106,9 +2108,11 @@ impl Complex {
     /// ```
     #[inline]
     pub fn norm_round(&mut self, round: Round2) -> Ordering2 {
+        // Since mpc::norm mpc::norm does not document that the result
+        // can be stored in one of its parts, we allocate a new Float.
         let (norm, dir_re) = Float::with_val_round(self.real().prec(), self.norm_ref(), round.0);
         let (real, imag) = self.as_mut_real_imag();
-        mem::replace(real, norm);
+        *real = norm;
         let dir_im = imag.assign_round(Special::Zero, round.1);
         (dir_re, dir_im)
     }
