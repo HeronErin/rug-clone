@@ -9972,9 +9972,10 @@ impl PartialOrd<IExpIncomplete> for Float {
     }
 }
 
-#[cfg(tests)]
+#[cfg(test)]
 mod tests {
     use super::ieee_storage_bits_for_prec;
+
     #[test]
     fn check_ieee_storage_bits() {
         assert_eq!(ieee_storage_bits_for_prec(0), None);
@@ -9989,10 +9990,13 @@ mod tests {
             ieee_storage_bits_for_prec(u32::max_value() - 178),
             Some(u32::max_value() - 63)
         );
+        assert_eq!(ieee_storage_bits_for_prec(u32::max_value() - 145), None);
         assert_eq!(
             ieee_storage_bits_for_prec(u32::max_value() - 146),
             Some(u32::max_value() - 31)
         );
+        assert_eq!(ieee_storage_bits_for_prec(u32::max_value() - 147), None);
         assert_eq!(ieee_storage_bits_for_prec(u32::max_value() - 114), None);
+        assert_eq!(ieee_storage_bits_for_prec(u32::max_value()), None);
     }
 }
