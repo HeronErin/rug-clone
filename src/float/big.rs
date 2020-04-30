@@ -9912,21 +9912,29 @@ impl Display for ParseFloatError {
 }
 
 fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
+    // p = prec, k = storage bits
     match prec {
         11 => return Some(16),
         24 => return Some(32),
         53 => return Some(64),
         _ => {}
     }
-    if prec < 113 {
+    // When k > 64, k must be a multiple of 32 ≥ 128 (96 is skipped by the standard).
+    // p = k - round(4 log2 k) + 13
+    // When k = 128, p = 113.
+    // When k = 2^32 (overflow), p = 2^32 - 115 = MAX - 114.
+    // When k = max allowed = 2^32 - 32, p = 2^32 - 32 - 115 = MAX - 146.
+    if prec < 113 || prec > u32::max_value() - 146 {
         return None;
     }
-    // p = k - round(4 log2 k) + 13
+
     // k = p - 13 + round(4 log2 k)
     // But we only need to find an approximation for k with error < 16,
     // and log2 k - log2 p < 1/5 when p ≥ 113.
     // estimate = p - 13 + 4 * log2 p
     // log2 p is approximately 31.5 - prec.leading_zeros()
+    // estimate = p - 13 + 4 * (31.5 - zeros) = p - 4 * zeros + 113.
+    // Since we already checked that p <= MAX - 146, p + 113 never overflows.
     let estimate = prec - 4 * prec.leading_zeros() + 113;
     // k must be a multiple of 32
     let k = (estimate + 16) & !31;
@@ -9961,5 +9969,30 @@ impl PartialOrd<IExpIncomplete> for Float {
                 xmpfr::cmp_i32_2exp(self.as_raw(), other.i, other.exp)
             }))
         }
+    }
+}
+
+#[cfg(tests)]
+mod tests {
+    use super::ieee_storage_bits_for_prec;
+    #[test]
+    fn check_ieee_storage_bits() {
+        assert_eq!(ieee_storage_bits_for_prec(0), None);
+        assert_eq!(ieee_storage_bits_for_prec(11), Some(16));
+        assert_eq!(ieee_storage_bits_for_prec(24), Some(32));
+        assert_eq!(ieee_storage_bits_for_prec(53), Some(64));
+        assert_eq!(ieee_storage_bits_for_prec(83), None); // no 96
+        assert_eq!(ieee_storage_bits_for_prec(113), Some(128));
+        assert_eq!(ieee_storage_bits_for_prec(144), Some(160));
+        assert_eq!(ieee_storage_bits_for_prec(237), Some(256));
+        assert_eq!(
+            ieee_storage_bits_for_prec(u32::max_value() - 178),
+            Some(u32::max_value() - 63)
+        );
+        assert_eq!(
+            ieee_storage_bits_for_prec(u32::max_value() - 146),
+            Some(u32::max_value() - 31)
+        );
+        assert_eq!(ieee_storage_bits_for_prec(u32::max_value() - 114), None);
     }
 }
