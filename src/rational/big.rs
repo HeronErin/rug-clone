@@ -183,6 +183,11 @@ impl Rational {
     ///
     /// # Safety
     ///
+    ///   * The function must *not* be used to create a constant
+    ///     [`Rational`] number, thought it can be used to create a
+    ///     static [`Rational`] number. This is because constant
+    ///     values are *copied* on use, leading to undefined behaviour
+    ///     when they are dropped.
     ///   * The value must be initialized.
     ///   * The [`mpq_t`] type can be considered as a kind of pointer,
     ///     so there can be multiple copies of it. Since this function
@@ -213,11 +218,38 @@ impl Rational {
     /// // since r is a Rational now, deallocation is automatic
     /// ```
     ///
+    /// This can be used to create a static [`Rational`] number.
+    ///
+    /// ```rust
+    /// use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
+    /// use rug::{Integer, Rational};
+    /// const NUMER_LIMBS: [limb_t; 2] = [0, 5];
+    /// const DENOM_LIMBS: [limb_t; 1] = [3];
+    /// const MPQ: mpq_t = unsafe {
+    ///     mpq_t {
+    ///         num: gmp::MPZ_ROINIT_N(NUMER_LIMBS.as_ptr() as *mut limb_t, -2),
+    ///         den: gmp::MPZ_ROINIT_N(DENOM_LIMBS.as_ptr() as *mut limb_t, 1),
+    ///     }
+    /// };
+    /// // Must *not* be const, otherwise it would lead to undefined
+    /// // behavior on use, as it would create a copy that is dropped.
+    /// static R: Rational = unsafe { Rational::from_raw(MPQ) };
+    /// let numer_check =
+    ///     -((Integer::from(NUMER_LIMBS[1]) << gmp::NUMB_BITS) + NUMER_LIMBS[0]);
+    /// let denom_check = Integer::from(DENOM_LIMBS[0]);
+    /// assert_eq!(*R.numer(), numer_check);
+    /// assert_eq!(*R.denom(), denom_check);
+    /// let check = Rational::from((&numer_check, &denom_check));
+    /// assert_eq!(R, check);
+    /// assert_eq!(*R.numer(), *check.numer());
+    /// assert_eq!(*R.denom(), *check.denom());
+    /// ```
+    ///
     /// [`Rational`]: struct.Rational.html
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpq_t.html
     /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
     #[inline]
-    pub unsafe fn from_raw(raw: mpq_t) -> Self {
+    pub const unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
     }
 

@@ -5,6 +5,18 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.9.0 (unreleased)
+==========================
+
+  * The following methods are now const functions:
+      * <code>[Integer][int-1-9]::[from\_raw][int-fr-1-9]</code>,
+        <code>[Rational][rat-1-9]::[from\_raw][rat-fr-1-9]</code>
+
+[int-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[int-fr-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.from_raw
+[rat-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
+[rat-fr-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.from_raw
+
 Version 1.8.0 (2020-04-08)
 ==========================
 

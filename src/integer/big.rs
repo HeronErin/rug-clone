@@ -219,6 +219,8 @@ static_assert_same_layout!(BorrowInteger<'_>, mpz_t);
 impl Integer {
     /// Constructs a new arbitrary-precision [`Integer`] with value 0.
     ///
+    /// The created [`Integer`] will have no allocated memory yet.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -347,6 +349,11 @@ impl Integer {
     ///
     /// # Safety
     ///
+    ///   * The function must *not* be used to create a constant
+    ///     [`Integer`], thought it can be used to create a static
+    ///     [`Integer`]. This is because constant values are *copied*
+    ///     on use, leading to undefined behaviour when they are
+    ///     dropped.
     ///   * The value must be initialized.
     ///   * The [`mpz_t`] type can be considered as a kind of pointer,
     ///     so there can be multiple copies of it. Since this function
@@ -370,16 +377,25 @@ impl Integer {
     /// // since i is an Integer now, deallocation is automatic
     /// ```
     ///
+    /// This can be used to create a static [`Integer`].
+    ///
+    /// ```rust
+    /// use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
+    /// use rug::Integer;
+    /// const LIMBS: [limb_t; 2] = [123, 456];
+    /// const MPZ: mpz_t =
+    ///     unsafe { gmp::MPZ_ROINIT_N(LIMBS.as_ptr() as *mut limb_t, -2) };
+    /// // Must *not* be const, otherwise it would lead to undefined
+    /// // behavior on use, as it would create a copy that is dropped.
+    /// static I: Integer = unsafe { Integer::from_raw(MPZ) };
+    /// let check = -((Integer::from(LIMBS[1]) << gmp::NUMB_BITS) + LIMBS[0]);
+    /// assert_eq!(I, check);
+    /// ```
+    ///
     /// [`Integer`]: struct.Integer.html
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
-    // Making from_raw const is dangerous. Let's say we have a const
-    // mpz_t which points to limbs stored in static memory. If we use
-    // a const from_raw, we could have a const Integer which points to
-    // limbs stored in static memory. This constant can then be
-    // dropped in safe but not sound code, which is UB as it frees
-    // static memory.
-    pub unsafe fn from_raw(raw: mpz_t) -> Self {
+    pub const unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }
     }
 
