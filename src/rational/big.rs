@@ -184,7 +184,7 @@ impl Rational {
     /// # Safety
     ///
     ///   * The function must *not* be used to create a constant
-    ///     [`Rational`] number, thought it can be used to create a
+    ///     [`Rational`] number, though it can be used to create a
     ///     static [`Rational`] number. This is because constant
     ///     values are *copied* on use, leading to undefined behaviour
     ///     when they are dropped.
@@ -218,7 +218,10 @@ impl Rational {
     /// // since r is a Rational now, deallocation is automatic
     /// ```
     ///
-    /// This can be used to create a static [`Rational`] number.
+    /// This can be used to create a static [`Rational`] number using
+    /// [`MPZ_ROINIT_N`] to initialize the raw numerator and
+    /// denominator values. See the [GMP documentation][gmp roinit]
+    /// for details.
     ///
     /// ```rust
     /// use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
@@ -245,9 +248,11 @@ impl Rational {
     /// assert_eq!(*R.denom(), *check.denom());
     /// ```
     ///
+    /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
     /// [`Rational`]: struct.Rational.html
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpq_t.html
-    /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
+    /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/dev/gmp_mpfr_sys/C/GMP/constant.Rational_Number_Functions.html#index-Rational-number-functions
+    /// [gmp roinit]: https://tspiteri.gitlab.io/gmp-mpfr-sys/dev/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }

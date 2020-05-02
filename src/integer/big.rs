@@ -350,7 +350,7 @@ impl Integer {
     /// # Safety
     ///
     ///   * The function must *not* be used to create a constant
-    ///     [`Integer`], thought it can be used to create a static
+    ///     [`Integer`], though it can be used to create a static
     ///     [`Integer`]. This is because constant values are *copied*
     ///     on use, leading to undefined behaviour when they are
     ///     dropped.
@@ -377,7 +377,9 @@ impl Integer {
     /// // since i is an Integer now, deallocation is automatic
     /// ```
     ///
-    /// This can be used to create a static [`Integer`].
+    /// This can be used to create a static [`Integer`] using
+    /// [`MPZ_ROINIT_N`] to initialize the raw value. See the
+    /// [GMP documentation][gmp roinit] for details.
     ///
     /// ```rust
     /// use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
@@ -393,7 +395,9 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [gmp roinit]: https://tspiteri.gitlab.io/gmp-mpfr-sys/dev/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }
