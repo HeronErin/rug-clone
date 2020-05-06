@@ -15,10 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ext::{
-        xmpz::{self, RawOptionInteger},
-        RawOption,
-    },
+    ext::xmpz::{self, OptInteger},
     misc::{AsOrPanic, NegAbs},
     ops::{NegAssign, SubFrom},
     rational::SmallRational,
@@ -32,28 +29,28 @@ use core::{
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use libc::{c_int, c_long, c_ulong};
 
-impl RawOption<mpq_t> for &Rational {
-    const IS_SOME: bool = true;
-    #[inline(always)]
-    fn raw(self) -> *const mpq_t {
-        self.as_raw()
-    }
-    #[inline(always)]
-    fn raw_or(self, _default: *mut mpq_t) -> *const mpq_t {
-        self.as_raw()
-    }
-}
-
-pub trait RawOptionRational: RawOption<mpq_t> {
-    type Part: RawOptionInteger;
+pub trait OptRational: Copy {
+    const IS_SOME: bool;
+    type Part: OptInteger;
+    fn mpq(self) -> *const mpq_t;
+    fn mpq_or(self, default: *mut mpq_t) -> *const mpq_t;
     fn parts(self) -> (Self::Part, Self::Part);
     fn unwrap_parts<'a>(self) -> (&'a Integer, &'a Integer)
     where
         Self: 'a;
 }
 
-impl RawOptionRational for () {
+impl OptRational for () {
+    const IS_SOME: bool = false;
     type Part = ();
+    #[inline(always)]
+    fn mpq(self) -> *const mpq_t {
+        panic!("unwrapping ()");
+    }
+    #[inline(always)]
+    fn mpq_or(self, default: *mut mpq_t) -> *const mpq_t {
+        default as *const mpq_t
+    }
     #[inline(always)]
     fn parts(self) -> ((), ()) {
         ((), ())
@@ -64,8 +61,17 @@ impl RawOptionRational for () {
     }
 }
 
-impl<'a> RawOptionRational for &'a Rational {
+impl<'a> OptRational for &'a Rational {
+    const IS_SOME: bool = true;
     type Part = &'a Integer;
+    #[inline(always)]
+    fn mpq(self) -> *const mpq_t {
+        self.as_raw()
+    }
+    #[inline(always)]
+    fn mpq_or(self, _default: *mut mpq_t) -> *const mpq_t {
+        self.as_raw()
+    }
     #[inline(always)]
     fn parts(self) -> (&'a Integer, &'a Integer) {
         (self.numer(), self.denom())
@@ -82,9 +88,9 @@ impl<'a> RawOptionRational for &'a Rational {
 macro_rules! wrap {
     (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
-        pub fn $fn<$($O: RawOptionRational),*>(rop: &mut Rational $(, $op: $O)* $(, $param: $T)*) {
+        pub fn $fn<$($O: OptRational),*>(rop: &mut Rational $(, $op: $O)* $(, $param: $T)*) {
             let rop = rop.as_raw_mut();
-            $(let $op = $op.raw_or(rop);)*
+            $(let $op = $op.mpq_or(rop);)*
             unsafe {
                 $deleg(rop $(, $op)* $(, $param.into())*);
             }
@@ -93,10 +99,10 @@ macro_rules! wrap {
 }
 
 #[inline]
-pub fn set<O: RawOptionRational>(rop: &mut Rational, op: O) {
+pub fn set<O: OptRational>(rop: &mut Rational, op: O) {
     if O::IS_SOME {
         unsafe {
-            gmp::mpq_set(rop.as_raw_mut(), op.raw());
+            gmp::mpq_set(rop.as_raw_mut(), op.mpq());
         }
     }
 }
@@ -120,18 +126,18 @@ macro_rules! int_rat {
         #[inline]
         pub fn $fn(rat: &mut Rational) {
             let (num, den) = unsafe { rat.as_mut_numer_denom_no_canonicalization() };
-            let $rop = num;
+            let $rop: &mut Integer = num;
             let $num = ();
-            let $den = &*den;
+            let $den: &Integer = &*den;
             $body
             xmpz::set_1(den);
         }
 
         #[inline]
         pub fn $fn_int(rop: &mut Integer, op: &Rational) {
-            let $rop = rop;
+            let $rop: &mut Integer = rop;
             let $num = op.numer();
-            let $den = op.denom();
+            let $den: &Integer = op.denom();
             $body
         }
     };
@@ -150,7 +156,7 @@ int_rat! { fn ceil, ceil_int, |rop, num, den| {
     if xmpz::is_1(den) {
         xmpz::set(rop, num);
     } else {
-        let neg = unsafe { gmp::mpz_sgn(num.raw_or(rop.as_raw_mut())) < 0 };
+        let neg = unsafe { gmp::mpz_sgn(num.mpz_or(rop.as_raw_mut())) < 0 };
         xmpz::tdiv_q(rop, num, den);
         if !neg {
             xmpz::add_ui(rop, (), 1);
@@ -163,7 +169,7 @@ int_rat! { fn floor, floor_int, |rop, num, den| {
     if xmpz::is_1(den) {
         xmpz::set(rop, num);
     } else {
-        let neg = unsafe { gmp::mpz_sgn(num.raw_or(rop.as_raw_mut())) < 0 };
+        let neg = unsafe { gmp::mpz_sgn(num.mpz_or(rop.as_raw_mut())) < 0 };
         xmpz::tdiv_q(rop, num, den);
         if neg {
             xmpz::sub_ui(rop, (), 1);
@@ -192,70 +198,70 @@ int_rat! { fn round, round_int, |rop, num, den| {
 } }
 
 #[inline]
-pub fn inv<O: RawOptionRational>(rop: &mut Rational, op: O) {
+pub fn inv<O: OptRational>(rop: &mut Rational, op: O) {
     let rop = rop.as_raw_mut();
-    let op = op.raw_or(rop);
+    let op = op.mpq_or(rop);
     unsafe {
         assert_ne!(gmp::mpq_sgn(op), 0, "division by zero");
         gmp::mpq_inv(rop, op);
     }
 }
 
-pub fn trunc_fract<O: RawOptionRational>(fract: &mut Rational, op: O) {
+pub fn trunc_fract<O: OptRational>(fract: &mut Rational, op: O) {
     let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::set(fract_den, op_den);
     xmpz::tdiv_r(fract_num, op_num, &*fract_den);
 }
 
-pub fn trunc_fract_whole<O: RawOptionRational>(fract: &mut Rational, trunc: &mut Integer, op: O) {
+pub fn trunc_fract_whole<O: OptRational>(fract: &mut Rational, trunc: &mut Integer, op: O) {
     let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::set(fract_den, op_den);
     let fract = fract_num.as_raw_mut();
-    let op = op_num.raw_or(fract);
+    let op = op_num.mpz_or(fract);
     unsafe {
         gmp::mpz_tdiv_qr(trunc.as_raw_mut(), fract, op, fract_den.as_raw());
     }
 }
 
-pub fn ceil_fract<O: RawOptionRational>(fract: &mut Rational, op: O) {
+pub fn ceil_fract<O: OptRational>(fract: &mut Rational, op: O) {
     let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::set(fract_den, op_den);
     xmpz::cdiv_r(fract_num, op_num, &*fract_den);
 }
 
-pub fn ceil_fract_whole<O: RawOptionRational>(fract: &mut Rational, ceil: &mut Integer, op: O) {
+pub fn ceil_fract_whole<O: OptRational>(fract: &mut Rational, ceil: &mut Integer, op: O) {
     let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::set(fract_den, op_den);
     let fract = fract_num.as_raw_mut();
-    let op = op_num.raw_or(fract);
+    let op = op_num.mpz_or(fract);
     unsafe {
         gmp::mpz_cdiv_qr(ceil.as_raw_mut(), fract, op, fract_den.as_raw());
     }
 }
 
-pub fn floor_fract<O: RawOptionRational>(fract: &mut Rational, op: O) {
+pub fn floor_fract<O: OptRational>(fract: &mut Rational, op: O) {
     let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::set(fract_den, op_den);
     xmpz::fdiv_r(fract_num, op_num, &*fract_den);
 }
 
-pub fn floor_fract_whole<O: RawOptionRational>(fract: &mut Rational, floor: &mut Integer, op: O) {
+pub fn floor_fract_whole<O: OptRational>(fract: &mut Rational, floor: &mut Integer, op: O) {
     let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::set(fract_den, op_den);
     let fract = fract_num.as_raw_mut();
-    let op = op_num.raw_or(fract);
+    let op = op_num.mpz_or(fract);
     unsafe {
         gmp::mpz_fdiv_qr(floor.as_raw_mut(), fract, op, fract_den.as_raw());
     }
 }
 
-pub fn round_fract<O: RawOptionRational>(fract: &mut Rational, op: O) {
+pub fn round_fract<O: OptRational>(fract: &mut Rational, op: O) {
     let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::set(fract_den, op_den);
@@ -271,12 +277,12 @@ pub fn round_fract<O: RawOptionRational>(fract: &mut Rational, op: O) {
     }
 }
 
-pub fn round_fract_whole<O: RawOptionRational>(fract: &mut Rational, round: &mut Integer, op: O) {
+pub fn round_fract_whole<O: OptRational>(fract: &mut Rational, round: &mut Integer, op: O) {
     let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::set(fract_den, op_den);
     let fract = fract_num.as_raw_mut();
-    let op = op_num.raw_or(fract);
+    let op = op_num.mpz_or(fract);
     unsafe {
         gmp::mpz_tdiv_qr(round.as_raw_mut(), fract, op, fract_den.as_raw());
     }
@@ -293,7 +299,7 @@ pub fn round_fract_whole<O: RawOptionRational>(fract: &mut Rational, round: &mut
     }
 }
 
-pub fn square<O: RawOptionRational>(rop: &mut Rational, op: O) {
+pub fn square<O: OptRational>(rop: &mut Rational, op: O) {
     let (rop_num, rop_den) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
     let (op_num, op_den) = op.parts();
     xmpz::square(rop_num, op_num);
@@ -319,7 +325,7 @@ pub fn set_0(rop: &mut Rational) {
 }
 
 #[inline]
-pub fn lshift_i32<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: i32) {
+pub fn lshift_i32<O: OptRational>(rop: &mut Rational, op1: O, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
         mul_2exp(rop, op1, op2_abs);
@@ -329,7 +335,7 @@ pub fn lshift_i32<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: i32) {
 }
 
 #[inline]
-pub fn rshift_i32<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: i32) {
+pub fn rshift_i32<O: OptRational>(rop: &mut Rational, op1: O, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
         div_2exp(rop, op1, op2_abs);
@@ -339,7 +345,7 @@ pub fn rshift_i32<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: i32) {
 }
 
 #[inline]
-pub fn pow_u32<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: u32) {
+pub fn pow_u32<O: OptRational>(rop: &mut Rational, op1: O, op2: u32) {
     unsafe {
         let (rop_num, rop_den) = rop.as_mut_numer_denom_no_canonicalization();
         let (op1_num, op1_den) = op1.parts();
@@ -349,7 +355,7 @@ pub fn pow_u32<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: u32) {
 }
 
 #[inline]
-pub fn pow_i32<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: i32) {
+pub fn pow_i32<O: OptRational>(rop: &mut Rational, op1: O, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     pow_u32(rop, op1, op2_abs);
     if op2_neg {
@@ -454,7 +460,7 @@ pub fn cmp_finite_d(op1: &Rational, op2: f64) -> Ordering {
     ord(cmp)
 }
 
-pub fn add_z<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
+pub fn add_z<O: OptRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
     set(rop, lhs);
     // No canonicalization is necessary, as (numer + rhs * denom) is
     // not divisible by denom when numer is not divisible by denom.
@@ -462,7 +468,7 @@ pub fn add_z<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
     *numer += rhs * &*denom;
 }
 
-pub fn sub_z<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
+pub fn sub_z<O: OptRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
     set(rop, lhs);
     // No canonicalization is necessary, as (numer - rhs * denom) is
     // not divisible by denom when numer is not divisible by denom.
@@ -470,7 +476,7 @@ pub fn sub_z<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
     *numer -= rhs * &*denom;
 }
 
-pub fn z_sub<O: RawOptionRational>(rop: &mut Rational, lhs: &Integer, rhs: O) {
+pub fn z_sub<O: OptRational>(rop: &mut Rational, lhs: &Integer, rhs: O) {
     set(rop, rhs);
     // No canonicalization is necessary, as (lhs * denom - numer) is
     // not divisible by denom when numer is not divisible by denom.
@@ -478,7 +484,7 @@ pub fn z_sub<O: RawOptionRational>(rop: &mut Rational, lhs: &Integer, rhs: O) {
     numer.sub_from(lhs * &*denom);
 }
 
-pub fn mul_z<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
+pub fn mul_z<O: OptRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
     if rhs.cmp0() == Ordering::Equal {
         set_0(rop);
         return;
@@ -511,7 +517,7 @@ pub fn mul_z<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
     }
 }
 
-pub fn div_z<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
+pub fn div_z<O: OptRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
     xmpz::check_div0(rhs);
     // Canonicalization is done in this function.
     //     gcd = gcd(lhs.numer, rhs)
@@ -545,7 +551,7 @@ pub fn div_z<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: &Integer) {
     }
 }
 
-pub fn z_div<O: RawOptionRational>(rop: &mut Rational, lhs: &Integer, rhs: O) {
+pub fn z_div<O: OptRational>(rop: &mut Rational, lhs: &Integer, rhs: O) {
     if O::IS_SOME {
         xmpz::check_div0(rhs.unwrap_parts().0);
     } else {
@@ -584,7 +590,7 @@ pub fn z_div<O: RawOptionRational>(rop: &mut Rational, lhs: &Integer, rhs: O) {
     }
 }
 
-pub fn add_ui<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
+pub fn add_ui<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     set(rop, lhs);
     // No canonicalization is necessary, as (numer + rhs * denom) is
     // not divisible by denom when numer is not divisible by denom.
@@ -592,7 +598,7 @@ pub fn add_ui<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     *numer += rhs * &*denom;
 }
 
-pub fn sub_ui<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
+pub fn sub_ui<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     set(rop, lhs);
     // No canonicalization is necessary, as (numer + rhs * denom) is
     // not divisible by denom when numer is not divisible by denom.
@@ -600,7 +606,7 @@ pub fn sub_ui<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     *numer -= rhs * &*denom;
 }
 
-pub fn ui_sub<O: RawOptionRational>(rop: &mut Rational, lhs: c_ulong, rhs: O) {
+pub fn ui_sub<O: OptRational>(rop: &mut Rational, lhs: c_ulong, rhs: O) {
     set(rop, rhs);
     // No canonicalization is necessary, as (numer + rhs * denom) is
     // not divisible by denom when numer is not divisible by denom.
@@ -609,7 +615,7 @@ pub fn ui_sub<O: RawOptionRational>(rop: &mut Rational, lhs: c_ulong, rhs: O) {
 }
 
 #[inline]
-pub fn add_si<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: c_long) {
+pub fn add_si<O: OptRational>(rop: &mut Rational, op1: O, op2: c_long) {
     match op2.neg_abs() {
         (false, op2_abs) => {
             add_ui(rop, op1, op2_abs);
@@ -621,7 +627,7 @@ pub fn add_si<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: c_long) {
 }
 
 #[inline]
-pub fn sub_si<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
+pub fn sub_si<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
     match rhs.neg_abs() {
         (false, rhs_abs) => {
             sub_ui(rop, lhs, rhs_abs);
@@ -633,7 +639,7 @@ pub fn sub_si<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
 }
 
 #[inline]
-pub fn si_sub<O: RawOptionRational>(rop: &mut Rational, lhs: c_long, rhs: O) {
+pub fn si_sub<O: OptRational>(rop: &mut Rational, lhs: c_long, rhs: O) {
     match lhs.neg_abs() {
         (false, lhs_abs) => {
             ui_sub(rop, lhs_abs, rhs);
@@ -645,7 +651,7 @@ pub fn si_sub<O: RawOptionRational>(rop: &mut Rational, lhs: c_long, rhs: O) {
     }
 }
 
-pub fn mul_ui<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
+pub fn mul_ui<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     if rhs == 0 {
         set_0(rop);
         return;
@@ -675,7 +681,7 @@ pub fn mul_ui<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     }
 }
 
-pub fn div_ui<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
+pub fn div_ui<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     assert_ne!(rhs, 0, "division by zero");
     // Canonicalization is done in this function.
     //     gcd = gcd(lhs.numer, rhs), cannot be zero because rhs ≠ 0
@@ -703,7 +709,7 @@ pub fn div_ui<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     // since rhs is positive, denom is positive
 }
 
-pub fn ui_div<O: RawOptionRational>(rop: &mut Rational, lhs: c_ulong, rhs: O) {
+pub fn ui_div<O: OptRational>(rop: &mut Rational, lhs: c_ulong, rhs: O) {
     if O::IS_SOME {
         xmpz::check_div0(rhs.unwrap_parts().0);
     } else {
@@ -744,7 +750,7 @@ pub fn ui_div<O: RawOptionRational>(rop: &mut Rational, lhs: c_ulong, rhs: O) {
 }
 
 #[inline]
-pub fn mul_si<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
+pub fn mul_si<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
     let (rhs_neg, rhs_abs) = rhs.neg_abs();
     mul_ui(rop, lhs, rhs_abs);
     if rhs_neg {
@@ -753,7 +759,7 @@ pub fn mul_si<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
 }
 
 #[inline]
-pub fn div_si<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
+pub fn div_si<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
     let (rhs_neg, rhs_abs) = rhs.neg_abs();
     div_ui(rop, lhs, rhs_abs);
     if rhs_neg {
@@ -762,7 +768,7 @@ pub fn div_si<O: RawOptionRational>(rop: &mut Rational, lhs: O, rhs: c_long) {
 }
 
 #[inline]
-pub fn si_div<O: RawOptionRational>(rop: &mut Rational, lhs: c_long, rhs: O) {
+pub fn si_div<O: OptRational>(rop: &mut Rational, lhs: c_long, rhs: O) {
     let (lhs_neg, lhs_abs) = lhs.neg_abs();
     ui_div(rop, lhs_abs, rhs);
     if lhs_neg {

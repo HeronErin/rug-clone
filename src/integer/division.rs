@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ext::xmpz::{self, RawOptionInteger},
+    ext::xmpz::{self, OptInteger},
     integer::SmallInteger,
     ops::{
         DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding, RemRoundingAssign,
@@ -660,22 +660,22 @@ div_prim! {
 }
 
 trait PrimOps<Long>: AsLong {
-    fn tdiv_q<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
-    fn cdiv_q<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
-    fn fdiv_q<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
-    fn ediv_q<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
-    fn tdiv_q_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
-    fn cdiv_q_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
-    fn fdiv_q_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
-    fn ediv_q_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
-    fn tdiv_r<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
-    fn cdiv_r<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
-    fn fdiv_r<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
-    fn ediv_r<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
-    fn tdiv_r_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
-    fn cdiv_r_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
-    fn fdiv_r_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
-    fn ediv_r_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn tdiv_q<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn cdiv_q<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn fdiv_q<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn ediv_q<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn tdiv_q_from<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn cdiv_q_from<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn fdiv_q_from<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn ediv_q_from<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn tdiv_r<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn cdiv_r<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn fdiv_r<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn ediv_r<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn tdiv_r_from<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn cdiv_r_from<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn fdiv_r_from<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn ediv_r_from<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O);
 }
 
 trait AsLong: Copy {
@@ -696,7 +696,7 @@ as_long! { c_ulong: u8 u16 u32 u64 u128 usize }
 macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        fn $fn<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self) {
+        fn $fn<O: OptInteger>(rop: &mut Integer, op1: O, op2: Self) {
             if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
@@ -709,7 +709,7 @@ macro_rules! forward {
 macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        fn $fn<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O) {
+        fn $fn<O: OptInteger>(rop: &mut Integer, op1: Self, op2: O) {
             if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {

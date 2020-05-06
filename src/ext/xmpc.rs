@@ -14,12 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    complex::SmallComplex,
-    ext::{xmpfr, RawOption},
-    float::Round,
-    Complex,
-};
+use crate::{complex::SmallComplex, ext::xmpfr, float::Round, Complex};
 use core::cmp::Ordering;
 #[cfg(feature = "rational")]
 use gmp_mpfr_sys::gmp::mpq_t;
@@ -31,14 +26,32 @@ use gmp_mpfr_sys::{
 };
 use libc::{c_int, c_long, c_ulong};
 
-impl RawOption<mpc_t> for &Complex {
+pub trait OptComplex: Copy {
+    const IS_SOME: bool;
+    fn mpc(self) -> *const mpc_t;
+    fn mpc_or(self, default: *mut mpc_t) -> *const mpc_t;
+}
+
+impl OptComplex for () {
+    const IS_SOME: bool = false;
+    #[inline(always)]
+    fn mpc(self) -> *const mpc_t {
+        panic!("unwrapping ()");
+    }
+    #[inline(always)]
+    fn mpc_or(self, default: *mut mpc_t) -> *const mpc_t {
+        default as *const mpc_t
+    }
+}
+
+impl OptComplex for &Complex {
     const IS_SOME: bool = true;
     #[inline(always)]
-    fn raw(self) -> *const mpc_t {
+    fn mpc(self) -> *const mpc_t {
         self.as_raw()
     }
     #[inline(always)]
-    fn raw_or(self, _default: *mut mpc_t) -> *const mpc_t {
+    fn mpc_or(self, _default: *mut mpc_t) -> *const mpc_t {
         self.as_raw()
     }
 }
@@ -87,14 +100,14 @@ fn ordering4(ord: c_int) -> (Ordering2, Ordering2) {
 macro_rules! wrap {
     (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
-        pub fn $fn<$($O: RawOption<mpc_t>),*>(
+        pub fn $fn<$($O: OptComplex),*>(
             rop: &mut Complex,
             $($op: $O,)*
             $($param: $T,)*
             rnd: Round2,
         ) -> Ordering2 {
             let rop = rop.as_raw_mut();
-            $(let $op = $op.raw_or(rop);)*
+            $(let $op = $op.mpc_or(rop);)*
             ordering2(unsafe { $deleg(rop, $($op,)* $($param.into(),)* raw_round2(rnd)) })
         }
     };
@@ -102,9 +115,9 @@ macro_rules! wrap {
 
 // do not use mpc::neg for op is () to avoid function call
 #[inline]
-pub fn neg<O: RawOption<mpc_t>>(rop: &mut Complex, op: O, rnd: Round2) -> Ordering2 {
+pub fn neg<O: OptComplex>(rop: &mut Complex, op: O, rnd: Round2) -> Ordering2 {
     if O::IS_SOME {
-        ordering2(unsafe { mpc::neg(rop.as_raw_mut(), op.raw(), raw_round2(rnd)) })
+        ordering2(unsafe { mpc::neg(rop.as_raw_mut(), op.mpc(), raw_round2(rnd)) })
     } else {
         (
             xmpfr::neg(rop.mut_real(), (), rnd.0),
@@ -114,16 +127,16 @@ pub fn neg<O: RawOption<mpc_t>>(rop: &mut Complex, op: O, rnd: Round2) -> Orderi
 }
 
 #[inline]
-pub fn mul_i<O: RawOption<mpc_t>>(rop: &mut Complex, op: O, neg: bool, rnd: Round2) -> Ordering2 {
+pub fn mul_i<O: OptComplex>(rop: &mut Complex, op: O, neg: bool, rnd: Round2) -> Ordering2 {
     let rop = rop.as_raw_mut();
-    let op = op.raw_or(rop);
+    let op = op.mpc_or(rop);
     ordering2(unsafe { mpc::mul_i(rop, op, if neg { -1 } else { 0 }, raw_round2(rnd)) })
 }
 
 #[inline]
-pub fn recip<O: RawOption<mpc_t>>(rop: &mut Complex, op: O, rnd: Round2) -> Ordering2 {
+pub fn recip<O: OptComplex>(rop: &mut Complex, op: O, rnd: Round2) -> Ordering2 {
     let rop = rop.as_raw_mut();
-    let op = op.raw_or(rop);
+    let op = op.mpc_or(rop);
     ordering2(unsafe { ui_div(rop, 1, op, raw_round2(rnd)) })
 }
 
@@ -133,7 +146,7 @@ pub fn rootofunity(rop: &mut Complex, n: u32, k: u32, rnd: Round2) -> Ordering2 
 }
 
 #[inline]
-pub fn sin_cos<O: RawOption<mpc_t>>(
+pub fn sin_cos<O: OptComplex>(
     rop_sin: &mut Complex,
     rop_cos: &mut Complex,
     op: O,
@@ -141,7 +154,7 @@ pub fn sin_cos<O: RawOption<mpc_t>>(
 ) -> (Ordering2, Ordering2) {
     let rop_sin = rop_sin.as_raw_mut();
     let rop_cos = rop_cos.as_raw_mut();
-    let op = op.raw_or(rop_sin);
+    let op = op.mpc_or(rop_sin);
     ordering4(unsafe { mpc::sin_cos(rop_sin, rop_cos, op, raw_round2(rnd), raw_round2(rnd)) })
 }
 

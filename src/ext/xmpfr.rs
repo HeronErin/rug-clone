@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ext::RawOption,
     float::{Round, SmallFloat, Special},
     misc::NegAbs,
     ops::NegAssign,
@@ -37,14 +36,32 @@ use {
     gmp_mpfr_sys::gmp::{self, mpz_t},
 };
 
-impl RawOption<mpfr_t> for &Float {
+pub trait OptFloat: Copy {
+    const IS_SOME: bool;
+    fn mpfr(self) -> *const mpfr_t;
+    fn mpfr_or(self, default: *mut mpfr_t) -> *const mpfr_t;
+}
+
+impl OptFloat for () {
+    const IS_SOME: bool = false;
+    #[inline(always)]
+    fn mpfr(self) -> *const mpfr_t {
+        panic!("unwrapping ()");
+    }
+    #[inline(always)]
+    fn mpfr_or(self, default: *mut mpfr_t) -> *const mpfr_t {
+        default as *const mpfr_t
+    }
+}
+
+impl OptFloat for &Float {
     const IS_SOME: bool = true;
     #[inline(always)]
-    fn raw(self) -> *const mpfr_t {
+    fn mpfr(self) -> *const mpfr_t {
         self.as_raw()
     }
     #[inline(always)]
-    fn raw_or(self, _default: *mut mpfr_t) -> *const mpfr_t {
+    fn mpfr_or(self, _default: *mut mpfr_t) -> *const mpfr_t {
         self.as_raw()
     }
 }
@@ -86,14 +103,14 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 macro_rules! wrap {
     (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
-        pub fn $fn<$($O: RawOption<mpfr_t>),*>(
+        pub fn $fn<$($O: OptFloat),*>(
             rop: &mut Float,
             $($op: $O,)*
             $($param: $T,)*
             rnd: Round,
         ) -> Ordering {
             let rop = rop.as_raw_mut();
-            $(let $op = $op.raw_or(rop);)*
+            $(let $op = $op.mpfr_or(rop);)*
             ordering1(unsafe { $deleg(rop, $($op,)* $($param.into(),)* raw_round(rnd)) })
         }
     };
@@ -151,9 +168,9 @@ pub fn si_pow_ui(rop: &mut Float, base: i32, exponent: u32, rnd: Round) -> Order
 
 // do not use mpfr::neg for op is () to avoid function call
 #[inline]
-pub fn neg<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, rnd: Round) -> Ordering {
+pub fn neg<O: OptFloat>(rop: &mut Float, op: O, rnd: Round) -> Ordering {
     if O::IS_SOME {
-        ordering1(unsafe { mpfr::neg(rop.as_raw_mut(), op.raw(), raw_round(rnd)) })
+        ordering1(unsafe { mpfr::neg(rop.as_raw_mut(), op.mpfr(), raw_round(rnd)) })
     } else {
         unsafe {
             rop.inner_mut().sign.neg_assign();
@@ -166,9 +183,9 @@ pub fn neg<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, rnd: Round) -> Ordering
 }
 
 #[inline]
-pub fn signum<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, _rnd: Round) -> Ordering {
+pub fn signum<O: OptFloat>(rop: &mut Float, op: O, _rnd: Round) -> Ordering {
     let rop = rop.as_raw_mut();
-    let op = op.raw_or(rop);
+    let op = op.mpfr_or(rop);
     ordering1(unsafe {
         if mpfr::nan_p(op) != 0 {
             mpfr::set(rop, op, rnd_t::RNDZ)
@@ -181,28 +198,28 @@ pub fn signum<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, _rnd: Round) -> Orde
 }
 
 #[inline]
-pub fn recip<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, rnd: Round) -> Ordering {
+pub fn recip<O: OptFloat>(rop: &mut Float, op: O, rnd: Round) -> Ordering {
     let rop = rop.as_raw_mut();
-    let op = op.raw_or(rop);
+    let op = op.mpfr_or(rop);
     ordering1(unsafe { mpfr::ui_div(rop, 1, op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn jn<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, n: i32, rnd: Round) -> Ordering {
+pub fn jn<O: OptFloat>(rop: &mut Float, op: O, n: i32, rnd: Round) -> Ordering {
     let rop = rop.as_raw_mut();
-    let op = op.raw_or(rop);
+    let op = op.mpfr_or(rop);
     ordering1(unsafe { mpfr::jn(rop, n.into(), op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn yn<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, n: i32, rnd: Round) -> Ordering {
+pub fn yn<O: OptFloat>(rop: &mut Float, op: O, n: i32, rnd: Round) -> Ordering {
     let rop = rop.as_raw_mut();
-    let op = op.raw_or(rop);
+    let op = op.mpfr_or(rop);
     ordering1(unsafe { mpfr::yn(rop, n.into(), op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn sin_cos<O: RawOption<mpfr_t>>(
+pub fn sin_cos<O: OptFloat>(
     rop_sin: &mut Float,
     rop_cos: &mut Float,
     op: O,
@@ -210,12 +227,12 @@ pub fn sin_cos<O: RawOption<mpfr_t>>(
 ) -> (Ordering, Ordering) {
     let rop_sin = rop_sin.as_raw_mut();
     let rop_cos = rop_cos.as_raw_mut();
-    let op = op.raw_or(rop_sin);
+    let op = op.mpfr_or(rop_sin);
     ordering2(unsafe { mpfr::sin_cos(rop_sin, rop_cos, op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn sinh_cosh<O: RawOption<mpfr_t>>(
+pub fn sinh_cosh<O: OptFloat>(
     rop_sin: &mut Float,
     rop_cos: &mut Float,
     op: O,
@@ -223,12 +240,12 @@ pub fn sinh_cosh<O: RawOption<mpfr_t>>(
 ) -> (Ordering, Ordering) {
     let rop_sin = rop_sin.as_raw_mut();
     let rop_cos = rop_cos.as_raw_mut();
-    let op = op.raw_or(rop_sin);
+    let op = op.mpfr_or(rop_sin);
     ordering2(unsafe { mpfr::sinh_cosh(rop_sin, rop_cos, op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn modf<O: RawOption<mpfr_t>>(
+pub fn modf<O: OptFloat>(
     rop_i: &mut Float,
     rop_f: &mut Float,
     op: O,
@@ -236,7 +253,7 @@ pub fn modf<O: RawOption<mpfr_t>>(
 ) -> (Ordering, Ordering) {
     let rop_i = rop_i.as_raw_mut();
     let rop_f = rop_f.as_raw_mut();
-    let op = op.raw_or(rop_i);
+    let op = op.mpfr_or(rop_i);
     ordering2(unsafe { mpfr::modf(rop_i, rop_f, op, raw_round(rnd)) })
 }
 

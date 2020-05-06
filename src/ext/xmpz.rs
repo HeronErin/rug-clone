@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ext::RawOption,
     misc::{AsOrPanic, NegAbs},
     ops::NegAssign,
     Integer,
@@ -32,19 +31,10 @@ pub use crate::ext::xmpz32::*;
 #[cfg(gmp_limb_bits_64)]
 pub use crate::ext::xmpz64::*;
 
-impl RawOption<mpz_t> for &Integer {
-    const IS_SOME: bool = true;
-    #[inline(always)]
-    fn raw(self) -> *const mpz_t {
-        self.as_raw()
-    }
-    #[inline(always)]
-    fn raw_or(self, _default: *mut mpz_t) -> *const mpz_t {
-        self.as_raw()
-    }
-}
-
-pub trait RawOptionInteger: RawOption<mpz_t> {
+pub trait OptInteger: Copy {
+    const IS_SOME: bool;
+    fn mpz(self) -> *const mpz_t;
+    fn mpz_or(self, default: *mut mpz_t) -> *const mpz_t;
     fn unwrap<'a>(self) -> &'a Integer
     where
         Self: 'a;
@@ -53,7 +43,16 @@ pub trait RawOptionInteger: RawOption<mpz_t> {
         Self: 'a;
 }
 
-impl RawOptionInteger for () {
+impl OptInteger for () {
+    const IS_SOME: bool = false;
+    #[inline(always)]
+    fn mpz(self) -> *const mpz_t {
+        panic!("unwrapping ()");
+    }
+    #[inline(always)]
+    fn mpz_or(self, default: *mut mpz_t) -> *const mpz_t {
+        default as *const mpz_t
+    }
     #[inline(always)]
     fn unwrap<'a>(self) -> &'a Integer
     where
@@ -70,7 +69,16 @@ impl RawOptionInteger for () {
     }
 }
 
-impl<'a> RawOptionInteger for &'a Integer {
+impl<'a> OptInteger for &'a Integer {
+    const IS_SOME: bool = true;
+    #[inline(always)]
+    fn mpz(self) -> *const mpz_t {
+        self.as_raw()
+    }
+    #[inline(always)]
+    fn mpz_or(self, _default: *mut mpz_t) -> *const mpz_t {
+        self.as_raw()
+    }
     #[inline(always)]
     fn unwrap<'b>(self) -> &'b Integer
     where
@@ -90,9 +98,9 @@ impl<'a> RawOptionInteger for &'a Integer {
 macro_rules! wrap {
     (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
-        pub fn $fn<$($O: RawOptionInteger),*>(rop: &mut Integer $(, $op: $O)* $(, $param: $T)*) {
+        pub fn $fn<$($O: OptInteger),*>(rop: &mut Integer $(, $op: $O)* $(, $param: $T)*) {
             let rop = rop.as_raw_mut();
-            $(let $op = $op.raw_or(rop);)*
+            $(let $op = $op.mpz_or(rop);)*
             unsafe {
                 $deleg(rop $(, $op)* $(, $param.into())*);
             }
@@ -117,19 +125,19 @@ pub fn check_div0(divisor: &Integer) {
 }
 
 #[inline]
-fn check_div0_or<O: RawOptionInteger>(divisor: O, or: &mut Integer) {
+fn check_div0_or<O: OptInteger>(divisor: O, or: &mut Integer) {
     assert_ne!(
-        unsafe { gmp::mpz_sgn(divisor.raw_or(or.as_raw_mut())) },
+        unsafe { gmp::mpz_sgn(divisor.mpz_or(or.as_raw_mut())) },
         0,
         "division by zero"
     );
 }
 
 #[inline]
-pub fn set<O: RawOptionInteger>(rop: &mut Integer, op: O) {
+pub fn set<O: OptInteger>(rop: &mut Integer, op: O) {
     if O::IS_SOME {
         unsafe {
-            gmp::mpz_set(rop.as_raw_mut(), op.raw());
+            gmp::mpz_set(rop.as_raw_mut(), op.mpz());
         }
     }
 }
@@ -170,8 +178,8 @@ pub fn si_pow_ui(rop: &mut Integer, base: i32, exp: u32) {
 }
 
 #[inline]
-pub fn signum<O: RawOptionInteger>(rop: &mut Integer, op: O) {
-    match (unsafe { gmp::mpz_sgn(op.raw_or(rop.as_raw_mut())) }).cmp(&0) {
+pub fn signum<O: OptInteger>(rop: &mut Integer, op: O) {
+    match (unsafe { gmp::mpz_sgn(op.mpz_or(rop.as_raw_mut())) }).cmp(&0) {
         Ordering::Less => set_m1(rop),
         Ordering::Equal => set_0(rop),
         Ordering::Greater => set_1(rop),
@@ -179,9 +187,9 @@ pub fn signum<O: RawOptionInteger>(rop: &mut Integer, op: O) {
 }
 
 #[inline]
-pub fn keep_signed_bits<O: RawOptionInteger>(rop: &mut Integer, op: O, b: u32) {
+pub fn keep_signed_bits<O: OptInteger>(rop: &mut Integer, op: O, b: u32) {
     let rop = rop.as_raw_mut();
-    let op = op.raw_or(rop);
+    let op = op.mpz_or(rop);
     let b = b.into();
     unsafe {
         if b > 0 && gmp::mpz_tstbit(op, b - 1) != 0 {
@@ -192,7 +200,7 @@ pub fn keep_signed_bits<O: RawOptionInteger>(rop: &mut Integer, op: O, b: u32) {
     }
 }
 
-pub fn next_pow_of_two<O: RawOptionInteger>(rop: &mut Integer, op: O) {
+pub fn next_pow_of_two<O: OptInteger>(rop: &mut Integer, op: O) {
     let op = op.unwrap_or(rop);
     let size = op.inner().size;
     if size <= 0 {
@@ -216,7 +224,7 @@ pub fn next_pow_of_two<O: RawOptionInteger>(rop: &mut Integer, op: O) {
 }
 
 #[inline]
-pub fn divexact_ui<O: RawOptionInteger>(q: &mut Integer, dividend: O, divisor: c_ulong) {
+pub fn divexact_ui<O: OptInteger>(q: &mut Integer, dividend: O, divisor: c_ulong) {
     assert_ne!(divisor, 0, "division by zero");
     unsafe {
         gmp::mpz_divexact_ui(q.as_raw_mut(), dividend.unwrap_or(q).as_raw(), divisor);
@@ -224,37 +232,37 @@ pub fn divexact_ui<O: RawOptionInteger>(q: &mut Integer, dividend: O, divisor: c
 }
 
 #[inline]
-pub fn divexact_u32<O: RawOptionInteger>(q: &mut Integer, dividend: O, divisor: u32) {
+pub fn divexact_u32<O: OptInteger>(q: &mut Integer, dividend: O, divisor: u32) {
     divexact_ui(q, dividend, divisor.into())
 }
 
 #[inline]
-pub fn gcd_ui<O: RawOptionInteger>(rop: Option<&mut Integer>, op1: O, op2: c_ulong) -> c_ulong {
+pub fn gcd_ui<O: OptInteger>(rop: Option<&mut Integer>, op1: O, op2: c_ulong) -> c_ulong {
     let (rop, op1) = match rop {
         Some(rop) => {
             let rop = rop.as_raw_mut();
-            (rop, op1.raw_or(rop))
+            (rop, op1.mpz_or(rop))
         }
-        None if O::IS_SOME => (ptr::null_mut(), op1.raw()),
+        None if O::IS_SOME => (ptr::null_mut(), op1.mpz()),
         None => panic!("no operand"),
     };
     unsafe { gmp::mpz_gcd_ui(rop, op1, op2) }
 }
 
 #[inline]
-pub fn gcd_u32<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: u32) {
+pub fn gcd_u32<O: OptInteger>(rop: &mut Integer, op1: O, op2: u32) {
     gcd_ui(Some(rop), op1, op2.into());
 }
 
 #[inline]
-pub fn lcm_u32<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: u32) {
+pub fn lcm_u32<O: OptInteger>(rop: &mut Integer, op1: O, op2: u32) {
     unsafe {
         gmp::mpz_lcm_ui(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.into());
     }
 }
 
 #[inline]
-pub fn root<O: RawOptionInteger>(rop: &mut Integer, op: O, n: u32) {
+pub fn root<O: OptInteger>(rop: &mut Integer, op: O, n: u32) {
     assert_ne!(n, 0, "zeroth root");
     let op_ptr = op.unwrap_or(rop).as_raw();
     let even_root_of_neg = n & 1 == 0 && unsafe { gmp::mpz_sgn(op_ptr) < 0 };
@@ -265,7 +273,7 @@ pub fn root<O: RawOptionInteger>(rop: &mut Integer, op: O, n: u32) {
 }
 
 #[inline]
-pub fn square<O: RawOptionInteger>(rop: &mut Integer, op: O) {
+pub fn square<O: OptInteger>(rop: &mut Integer, op: O) {
     let op_ptr = op.unwrap_or(rop).as_raw();
     unsafe {
         gmp::mpz_mul(rop.as_raw_mut(), op_ptr, op_ptr);
@@ -273,7 +281,7 @@ pub fn square<O: RawOptionInteger>(rop: &mut Integer, op: O) {
 }
 
 #[inline]
-pub fn sqrt<O: RawOptionInteger>(rop: &mut Integer, op: O) {
+pub fn sqrt<O: OptInteger>(rop: &mut Integer, op: O) {
     let op_ptr = op.unwrap_or(rop).as_raw();
     let square_root_of_neg = unsafe { gmp::mpz_sgn(op_ptr) < 0 };
     assert!(!square_root_of_neg, "square root of negative");
@@ -283,7 +291,7 @@ pub fn sqrt<O: RawOptionInteger>(rop: &mut Integer, op: O) {
 }
 
 #[inline]
-pub fn rootrem<O: RawOptionInteger>(root: &mut Integer, rem: &mut Integer, op: O, n: u32) {
+pub fn rootrem<O: OptInteger>(root: &mut Integer, rem: &mut Integer, op: O, n: u32) {
     assert_ne!(n, 0, "zeroth root");
     let op_ptr = op.unwrap_or(root).as_raw();
     let even_root_of_neg = n & 1 == 0 && unsafe { gmp::mpz_sgn(op_ptr) < 0 };
@@ -294,7 +302,7 @@ pub fn rootrem<O: RawOptionInteger>(root: &mut Integer, rem: &mut Integer, op: O
 }
 
 #[inline]
-pub fn sqrtrem<O: RawOptionInteger>(root: &mut Integer, rem: &mut Integer, op: O) {
+pub fn sqrtrem<O: OptInteger>(root: &mut Integer, rem: &mut Integer, op: O) {
     let op_ptr = op.unwrap_or(root).as_raw();
     let square_root_of_neg = unsafe { gmp::mpz_sgn(op_ptr) < 0 };
     assert!(!square_root_of_neg, "square root of negative");
@@ -304,7 +312,7 @@ pub fn sqrtrem<O: RawOptionInteger>(root: &mut Integer, rem: &mut Integer, op: O
 }
 
 #[inline]
-pub fn divexact<O: RawOptionInteger>(q: &mut Integer, dividend: O, divisor: &Integer) {
+pub fn divexact<O: OptInteger>(q: &mut Integer, dividend: O, divisor: &Integer) {
     check_div0(divisor);
     unsafe {
         gmp::mpz_divexact(
@@ -316,25 +324,20 @@ pub fn divexact<O: RawOptionInteger>(q: &mut Integer, dividend: O, divisor: &Int
 }
 
 #[inline]
-pub fn gcd<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: &Integer) {
+pub fn gcd<O: OptInteger>(rop: &mut Integer, op1: O, op2: &Integer) {
     unsafe {
         gmp::mpz_gcd(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.as_raw());
     }
 }
 
 #[inline]
-pub fn lcm<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: &Integer) {
+pub fn lcm<O: OptInteger>(rop: &mut Integer, op1: O, op2: &Integer) {
     unsafe {
         gmp::mpz_lcm(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.as_raw());
     }
 }
 
-pub fn tdiv_qr<O: RawOptionInteger, P: RawOptionInteger>(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: O,
-    d: P,
-) {
+pub fn tdiv_qr<O: OptInteger, P: OptInteger>(q: &mut Integer, r: &mut Integer, n: O, d: P) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_tdiv_qr(
@@ -346,12 +349,7 @@ pub fn tdiv_qr<O: RawOptionInteger, P: RawOptionInteger>(
     }
 }
 
-pub fn cdiv_qr<O: RawOptionInteger, P: RawOptionInteger>(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: O,
-    d: P,
-) {
+pub fn cdiv_qr<O: OptInteger, P: OptInteger>(q: &mut Integer, r: &mut Integer, n: O, d: P) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_cdiv_qr(
@@ -364,12 +362,7 @@ pub fn cdiv_qr<O: RawOptionInteger, P: RawOptionInteger>(
 }
 
 #[inline]
-pub fn fdiv_qr<O: RawOptionInteger, P: RawOptionInteger>(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: O,
-    d: P,
-) {
+pub fn fdiv_qr<O: OptInteger, P: OptInteger>(q: &mut Integer, r: &mut Integer, n: O, d: P) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_fdiv_qr(
@@ -381,12 +374,7 @@ pub fn fdiv_qr<O: RawOptionInteger, P: RawOptionInteger>(
     }
 }
 
-pub fn rdiv_qr<O: RawOptionInteger, P: RawOptionInteger>(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: O,
-    d: P,
-) {
+pub fn rdiv_qr<O: OptInteger, P: OptInteger>(q: &mut Integer, r: &mut Integer, n: O, d: P) {
     // make sure d is not going to be aliased and overwritten
     let r_clone;
     let d = if P::IS_SOME {
@@ -411,12 +399,7 @@ pub fn rdiv_qr<O: RawOptionInteger, P: RawOptionInteger>(
 }
 
 #[inline]
-pub fn ediv_qr<O: RawOptionInteger, P: RawOptionInteger>(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: O,
-    d: P,
-) {
+pub fn ediv_qr<O: OptInteger, P: OptInteger>(q: &mut Integer, r: &mut Integer, n: O, d: P) {
     if d.unwrap_or(r).cmp0() == Ordering::Less {
         cdiv_qr(q, r, n, d)
     } else {
@@ -425,7 +408,7 @@ pub fn ediv_qr<O: RawOptionInteger, P: RawOptionInteger>(
 }
 
 #[inline]
-pub fn gcdext<O: RawOptionInteger, P: RawOptionInteger>(
+pub fn gcdext<O: OptInteger, P: OptInteger>(
     g: &mut Integer,
     s: &mut Integer,
     t: Option<&mut Integer>,
@@ -444,7 +427,7 @@ pub fn gcdext<O: RawOptionInteger, P: RawOptionInteger>(
 }
 
 #[inline]
-pub fn tdiv_q<O: RawOptionInteger, P: RawOptionInteger>(q: &mut Integer, n: O, d: P) {
+pub fn tdiv_q<O: OptInteger, P: OptInteger>(q: &mut Integer, n: O, d: P) {
     check_div0_or(d, q);
     unsafe {
         gmp::mpz_tdiv_q(
@@ -456,7 +439,7 @@ pub fn tdiv_q<O: RawOptionInteger, P: RawOptionInteger>(q: &mut Integer, n: O, d
 }
 
 #[inline]
-pub fn tdiv_r<O: RawOptionInteger, P: RawOptionInteger>(r: &mut Integer, n: O, d: P) {
+pub fn tdiv_r<O: OptInteger, P: OptInteger>(r: &mut Integer, n: O, d: P) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_tdiv_r(
@@ -468,7 +451,7 @@ pub fn tdiv_r<O: RawOptionInteger, P: RawOptionInteger>(r: &mut Integer, n: O, d
 }
 
 #[inline]
-pub fn cdiv_q<O: RawOptionInteger, P: RawOptionInteger>(q: &mut Integer, n: O, d: P) {
+pub fn cdiv_q<O: OptInteger, P: OptInteger>(q: &mut Integer, n: O, d: P) {
     check_div0_or(d, q);
     unsafe {
         gmp::mpz_cdiv_q(
@@ -480,7 +463,7 @@ pub fn cdiv_q<O: RawOptionInteger, P: RawOptionInteger>(q: &mut Integer, n: O, d
 }
 
 #[inline]
-pub fn cdiv_r<O: RawOptionInteger, P: RawOptionInteger>(r: &mut Integer, n: O, d: P) {
+pub fn cdiv_r<O: OptInteger, P: OptInteger>(r: &mut Integer, n: O, d: P) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_cdiv_r(
@@ -492,7 +475,7 @@ pub fn cdiv_r<O: RawOptionInteger, P: RawOptionInteger>(r: &mut Integer, n: O, d
 }
 
 #[inline]
-pub fn fdiv_q<O: RawOptionInteger, P: RawOptionInteger>(q: &mut Integer, n: O, d: P) {
+pub fn fdiv_q<O: OptInteger, P: OptInteger>(q: &mut Integer, n: O, d: P) {
     check_div0_or(d, q);
     unsafe {
         gmp::mpz_fdiv_q(
@@ -504,7 +487,7 @@ pub fn fdiv_q<O: RawOptionInteger, P: RawOptionInteger>(q: &mut Integer, n: O, d
 }
 
 #[inline]
-pub fn fdiv_r<O: RawOptionInteger, P: RawOptionInteger>(r: &mut Integer, n: O, d: P) {
+pub fn fdiv_r<O: OptInteger, P: OptInteger>(r: &mut Integer, n: O, d: P) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_fdiv_r(
@@ -516,7 +499,7 @@ pub fn fdiv_r<O: RawOptionInteger, P: RawOptionInteger>(r: &mut Integer, n: O, d
 }
 
 #[inline]
-pub fn ediv_q<O: RawOptionInteger, P: RawOptionInteger>(q: &mut Integer, n: O, d: P) {
+pub fn ediv_q<O: OptInteger, P: OptInteger>(q: &mut Integer, n: O, d: P) {
     if d.unwrap_or(q).cmp0() == Ordering::Less {
         cdiv_q(q, n, d)
     } else {
@@ -525,7 +508,7 @@ pub fn ediv_q<O: RawOptionInteger, P: RawOptionInteger>(q: &mut Integer, n: O, d
 }
 
 #[inline]
-pub fn ediv_r<O: RawOptionInteger, P: RawOptionInteger>(r: &mut Integer, n: O, d: P) {
+pub fn ediv_r<O: OptInteger, P: OptInteger>(r: &mut Integer, n: O, d: P) {
     if d.unwrap_or(r).cmp0() == Ordering::Less {
         cdiv_r(r, n, d)
     } else {
@@ -534,14 +517,14 @@ pub fn ediv_r<O: RawOptionInteger, P: RawOptionInteger>(r: &mut Integer, n: O, d
 }
 
 #[inline]
-pub fn remove<O: RawOptionInteger>(rop: &mut Integer, op: O, f: &Integer) -> u32 {
+pub fn remove<O: OptInteger>(rop: &mut Integer, op: O, f: &Integer) -> u32 {
     let count =
         unsafe { gmp::mpz_remove(rop.as_raw_mut(), op.unwrap_or(rop).as_raw(), f.as_raw()) };
     count.as_or_panic()
 }
 
 #[inline]
-pub fn powm_sec<O: RawOptionInteger>(rop: &mut Integer, base: O, exp: &Integer, modu: &Integer) {
+pub fn powm_sec<O: OptInteger>(rop: &mut Integer, base: O, exp: &Integer, modu: &Integer) {
     assert_eq!(
         exp.cmp0(),
         Ordering::Greater,
@@ -560,7 +543,7 @@ pub fn powm_sec<O: RawOptionInteger>(rop: &mut Integer, base: O, exp: &Integer, 
 
 #[cfg(feature = "rand")]
 #[inline]
-pub fn urandomm<O: RawOptionInteger>(rop: &mut Integer, state: &mut randstate_t, n: O) {
+pub fn urandomm<O: OptInteger>(rop: &mut Integer, state: &mut randstate_t, n: O) {
     assert_eq!(
         n.unwrap_or(rop).cmp0(),
         Ordering::Greater,
@@ -685,7 +668,7 @@ pub fn fdiv_u32(n: &Integer, d: u32) -> u32 {
 }
 
 #[inline]
-pub fn shl_i32<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: i32) {
+pub fn shl_i32<O: OptInteger>(rop: &mut Integer, op1: O, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
         shl_u32(rop, op1, op2_abs);
@@ -695,7 +678,7 @@ pub fn shl_i32<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: i32) {
 }
 
 #[inline]
-pub fn shr_i32<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: i32) {
+pub fn shr_i32<O: OptInteger>(rop: &mut Integer, op1: O, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
         shr_u32(rop, op1, op2_abs);
@@ -1010,7 +993,7 @@ pub fn start_invert(op: &Integer, modulo: &Integer) -> Option<Integer> {
 }
 
 #[inline]
-pub fn finish_invert<O: RawOptionInteger>(rop: &mut Integer, s: O, modulo: &Integer) {
+pub fn finish_invert<O: OptInteger>(rop: &mut Integer, s: O, modulo: &Integer) {
     if s.unwrap_or(rop).cmp0() == Ordering::Less {
         if modulo.cmp0() == Ordering::Less {
             sub(rop, s, modulo)
@@ -1023,12 +1006,7 @@ pub fn finish_invert<O: RawOptionInteger>(rop: &mut Integer, s: O, modulo: &Inte
 }
 
 #[inline]
-pub fn pow_mod<O: RawOptionInteger>(
-    rop: &mut Integer,
-    base: O,
-    exponent: &Integer,
-    modulo: &Integer,
-) {
+pub fn pow_mod<O: OptInteger>(rop: &mut Integer, base: O, exponent: &Integer, modulo: &Integer) {
     if exponent.cmp0() == Ordering::Less {
         finish_invert(rop, base, modulo);
         unsafe {
@@ -1380,14 +1358,14 @@ wrap! { fn add_ui(op1: O; op2: c_ulong) -> gmp::mpz_add_ui }
 wrap! { fn sub_ui(op1: O; op2: c_ulong) -> gmp::mpz_sub_ui }
 
 #[inline]
-pub fn ui_sub<O: RawOptionInteger>(rop: &mut Integer, op1: c_ulong, op2: O) {
+pub fn ui_sub<O: OptInteger>(rop: &mut Integer, op1: c_ulong, op2: O) {
     unsafe {
         gmp::mpz_ui_sub(rop.as_raw_mut(), op1, op2.unwrap_or(rop).as_raw());
     }
 }
 
 #[inline]
-pub fn add_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
+pub fn add_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
     match op2.neg_abs() {
         (false, op2_abs) => {
             add_ui(rop, op1, op2_abs);
@@ -1399,7 +1377,7 @@ pub fn add_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
 }
 
 #[inline]
-pub fn sub_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
+pub fn sub_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
     match op2.neg_abs() {
         (false, op2_abs) => {
             sub_ui(rop, op1, op2_abs);
@@ -1411,7 +1389,7 @@ pub fn sub_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
 }
 
 #[inline]
-pub fn si_sub<O: RawOptionInteger>(rop: &mut Integer, op1: c_long, op2: O) {
+pub fn si_sub<O: OptInteger>(rop: &mut Integer, op1: c_long, op2: O) {
     match op1.neg_abs() {
         (false, op1_abs) => {
             ui_sub(rop, op1_abs, op2);
@@ -1426,7 +1404,7 @@ pub fn si_sub<O: RawOptionInteger>(rop: &mut Integer, op1: c_long, op2: O) {
 wrap! { fn mul_ui(op1: O; op2: c_ulong) -> gmp::mpz_mul_ui }
 
 #[inline]
-pub fn tdiv_q_ui<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_ulong) {
+pub fn tdiv_q_ui<O: OptInteger>(q: &mut Integer, n: O, d: c_ulong) {
     assert_ne!(d, 0, "division by zero");
     unsafe {
         gmp::mpz_tdiv_q_ui(q.as_raw_mut(), n.unwrap_or(q).as_raw(), d);
@@ -1434,24 +1412,24 @@ pub fn tdiv_q_ui<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_ulong) {
 }
 
 #[inline]
-pub fn cdiv_q_ui<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_ulong) -> bool {
+pub fn cdiv_q_ui<O: OptInteger>(q: &mut Integer, n: O, d: c_ulong) -> bool {
     assert_ne!(d, 0, "division by zero");
     (unsafe { gmp::mpz_cdiv_q_ui(q.as_raw_mut(), n.unwrap_or(q).as_raw(), d) }) != 0
 }
 
 #[inline]
-pub fn fdiv_q_ui<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_ulong) -> bool {
+pub fn fdiv_q_ui<O: OptInteger>(q: &mut Integer, n: O, d: c_ulong) -> bool {
     assert_ne!(d, 0, "division by zero");
     (unsafe { gmp::mpz_fdiv_q_ui(q.as_raw_mut(), n.unwrap_or(q).as_raw(), d) }) != 0
 }
 
 #[inline]
-pub fn ediv_q_ui<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_ulong) {
+pub fn ediv_q_ui<O: OptInteger>(q: &mut Integer, n: O, d: c_ulong) {
     fdiv_q_ui(q, n, d);
 }
 
 #[inline]
-pub fn ui_tdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_ulong, d: O) {
+pub fn ui_tdiv_q<O: OptInteger>(q: &mut Integer, n: c_ulong, d: O) {
     check_div0_or(d, q);
     unsafe {
         ui_tdiv_q_raw(q.as_raw_mut(), n, d.unwrap_or(q).as_raw());
@@ -1459,7 +1437,7 @@ pub fn ui_tdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_ulong, d: O) {
 }
 
 #[inline]
-pub fn ui_cdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_ulong, d: O) {
+pub fn ui_cdiv_q<O: OptInteger>(q: &mut Integer, n: c_ulong, d: O) {
     check_div0_or(d, q);
     unsafe {
         ui_cdiv_q_raw(q.as_raw_mut(), n, d.unwrap_or(q).as_raw());
@@ -1467,7 +1445,7 @@ pub fn ui_cdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_ulong, d: O) {
 }
 
 #[inline]
-pub fn ui_fdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_ulong, d: O) {
+pub fn ui_fdiv_q<O: OptInteger>(q: &mut Integer, n: c_ulong, d: O) {
     check_div0_or(d, q);
     unsafe {
         ui_fdiv_q_raw(q.as_raw_mut(), n, d.unwrap_or(q).as_raw());
@@ -1475,7 +1453,7 @@ pub fn ui_fdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_ulong, d: O) {
 }
 
 #[inline]
-pub fn ui_ediv_q<O: RawOptionInteger>(q: &mut Integer, n: c_ulong, d: O) {
+pub fn ui_ediv_q<O: OptInteger>(q: &mut Integer, n: c_ulong, d: O) {
     if d.unwrap_or(q).cmp0() == Ordering::Less {
         ui_cdiv_q(q, n, d);
     } else {
@@ -1484,7 +1462,7 @@ pub fn ui_ediv_q<O: RawOptionInteger>(q: &mut Integer, n: c_ulong, d: O) {
 }
 
 #[inline]
-pub fn tdiv_r_ui<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_ulong) {
+pub fn tdiv_r_ui<O: OptInteger>(r: &mut Integer, n: O, d: c_ulong) {
     assert_ne!(d, 0, "division by zero");
     unsafe {
         gmp::mpz_tdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d);
@@ -1492,24 +1470,24 @@ pub fn tdiv_r_ui<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_ulong) {
 }
 
 #[inline]
-pub fn cdiv_r_ui<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_ulong) -> bool {
+pub fn cdiv_r_ui<O: OptInteger>(r: &mut Integer, n: O, d: c_ulong) -> bool {
     assert_ne!(d, 0, "division by zero");
     (unsafe { gmp::mpz_cdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d) }) != 0
 }
 
 #[inline]
-pub fn fdiv_r_ui<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_ulong) -> bool {
+pub fn fdiv_r_ui<O: OptInteger>(r: &mut Integer, n: O, d: c_ulong) -> bool {
     assert_ne!(d, 0, "division by zero");
     (unsafe { gmp::mpz_fdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d) }) != 0
 }
 
 #[inline]
-pub fn ediv_r_ui<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_ulong) {
+pub fn ediv_r_ui<O: OptInteger>(r: &mut Integer, n: O, d: c_ulong) {
     fdiv_r_ui(r, n, d);
 }
 
 #[inline]
-pub fn ui_tdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_ulong, d: O) {
+pub fn ui_tdiv_r<O: OptInteger>(r: &mut Integer, n: c_ulong, d: O) {
     check_div0_or(d, r);
     unsafe {
         ui_tdiv_r_raw(r.as_raw_mut(), n, d.unwrap_or(r).as_raw());
@@ -1517,7 +1495,7 @@ pub fn ui_tdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_ulong, d: O) {
 }
 
 #[inline]
-pub fn ui_cdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_ulong, d: O) {
+pub fn ui_cdiv_r<O: OptInteger>(r: &mut Integer, n: c_ulong, d: O) {
     check_div0_or(d, r);
     unsafe {
         ui_cdiv_r_raw(r.as_raw_mut(), n, d.unwrap_or(r).as_raw());
@@ -1525,7 +1503,7 @@ pub fn ui_cdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_ulong, d: O) {
 }
 
 #[inline]
-pub fn ui_fdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_ulong, d: O) {
+pub fn ui_fdiv_r<O: OptInteger>(r: &mut Integer, n: c_ulong, d: O) {
     check_div0_or(d, r);
     unsafe {
         ui_fdiv_r_raw(r.as_raw_mut(), n, d.unwrap_or(r).as_raw());
@@ -1533,7 +1511,7 @@ pub fn ui_fdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_ulong, d: O) {
 }
 
 #[inline]
-pub fn ui_ediv_r<O: RawOptionInteger>(r: &mut Integer, n: c_ulong, d: O) {
+pub fn ui_ediv_r<O: OptInteger>(r: &mut Integer, n: c_ulong, d: O) {
     if d.unwrap_or(r).cmp0() == Ordering::Less {
         ui_cdiv_r(r, n, d);
     } else {
@@ -1544,7 +1522,7 @@ pub fn ui_ediv_r<O: RawOptionInteger>(r: &mut Integer, n: c_ulong, d: O) {
 wrap! { fn mul_si(op1: O; op2: c_long) -> gmp::mpz_mul_si }
 
 #[inline]
-pub fn tdiv_q_si<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_long) {
+pub fn tdiv_q_si<O: OptInteger>(q: &mut Integer, n: O, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
@@ -1557,7 +1535,7 @@ pub fn tdiv_q_si<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_long) {
 }
 
 #[inline]
-pub fn cdiv_q_si<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_long) {
+pub fn cdiv_q_si<O: OptInteger>(q: &mut Integer, n: O, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
@@ -1574,7 +1552,7 @@ pub fn cdiv_q_si<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_long) {
 }
 
 #[inline]
-pub fn fdiv_q_si<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_long) {
+pub fn fdiv_q_si<O: OptInteger>(q: &mut Integer, n: O, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
     // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
@@ -1591,7 +1569,7 @@ pub fn fdiv_q_si<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_long) {
 }
 
 #[inline]
-pub fn ediv_q_si<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_long) {
+pub fn ediv_q_si<O: OptInteger>(q: &mut Integer, n: O, d: c_long) {
     if d < 0 {
         cdiv_q_si(q, n, d);
     } else {
@@ -1600,7 +1578,7 @@ pub fn ediv_q_si<O: RawOptionInteger>(q: &mut Integer, n: O, d: c_long) {
 }
 
 #[inline]
-pub fn si_tdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_long, d: O) {
+pub fn si_tdiv_q<O: OptInteger>(q: &mut Integer, n: c_long, d: O) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
@@ -1613,7 +1591,7 @@ pub fn si_tdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_long, d: O) {
 }
 
 #[inline]
-pub fn si_cdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_long, d: O) {
+pub fn si_cdiv_q<O: OptInteger>(q: &mut Integer, n: c_long, d: O) {
     check_div0_or(d, q);
     unsafe {
         si_cdiv_q_raw(q.as_raw_mut(), n, d.unwrap_or(q).as_raw());
@@ -1621,7 +1599,7 @@ pub fn si_cdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_long, d: O) {
 }
 
 #[inline]
-pub fn si_fdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_long, d: O) {
+pub fn si_fdiv_q<O: OptInteger>(q: &mut Integer, n: c_long, d: O) {
     check_div0_or(d, q);
     unsafe {
         si_fdiv_q_raw(q.as_raw_mut(), n, d.unwrap_or(q).as_raw());
@@ -1629,7 +1607,7 @@ pub fn si_fdiv_q<O: RawOptionInteger>(q: &mut Integer, n: c_long, d: O) {
 }
 
 #[inline]
-pub fn si_ediv_q<O: RawOptionInteger>(q: &mut Integer, n: c_long, d: O) {
+pub fn si_ediv_q<O: OptInteger>(q: &mut Integer, n: c_long, d: O) {
     if d.unwrap_or(q).cmp0() == Ordering::Less {
         si_cdiv_q(q, n, d);
     } else {
@@ -1638,7 +1616,7 @@ pub fn si_ediv_q<O: RawOptionInteger>(q: &mut Integer, n: c_long, d: O) {
 }
 
 #[inline]
-pub fn tdiv_r_si<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_long) {
+pub fn tdiv_r_si<O: OptInteger>(r: &mut Integer, n: O, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
@@ -1647,7 +1625,7 @@ pub fn tdiv_r_si<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_long) {
 }
 
 #[inline]
-pub fn cdiv_r_si<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_long) {
+pub fn cdiv_r_si<O: OptInteger>(r: &mut Integer, n: O, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
@@ -1660,7 +1638,7 @@ pub fn cdiv_r_si<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_long) {
 }
 
 #[inline]
-pub fn fdiv_r_si<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_long) {
+pub fn fdiv_r_si<O: OptInteger>(r: &mut Integer, n: O, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
     // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
@@ -1673,7 +1651,7 @@ pub fn fdiv_r_si<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_long) {
 }
 
 #[inline]
-pub fn ediv_r_si<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_long) {
+pub fn ediv_r_si<O: OptInteger>(r: &mut Integer, n: O, d: c_long) {
     if d < 0 {
         cdiv_r_si(r, n, d);
     } else {
@@ -1682,7 +1660,7 @@ pub fn ediv_r_si<O: RawOptionInteger>(r: &mut Integer, n: O, d: c_long) {
 }
 
 #[inline]
-pub fn si_tdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_long, d: O) {
+pub fn si_tdiv_r<O: OptInteger>(r: &mut Integer, n: c_long, d: O) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
@@ -1695,7 +1673,7 @@ pub fn si_tdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_long, d: O) {
 }
 
 #[inline]
-pub fn si_cdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_long, d: O) {
+pub fn si_cdiv_r<O: OptInteger>(r: &mut Integer, n: c_long, d: O) {
     check_div0_or(d, r);
     unsafe {
         si_cdiv_r_raw(r.as_raw_mut(), n, d.unwrap_or(r).as_raw());
@@ -1703,7 +1681,7 @@ pub fn si_cdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_long, d: O) {
 }
 
 #[inline]
-pub fn si_fdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_long, d: O) {
+pub fn si_fdiv_r<O: OptInteger>(r: &mut Integer, n: c_long, d: O) {
     check_div0_or(d, r);
     unsafe {
         si_fdiv_r_raw(r.as_raw_mut(), n, d.unwrap_or(r).as_raw());
@@ -1711,7 +1689,7 @@ pub fn si_fdiv_r<O: RawOptionInteger>(r: &mut Integer, n: c_long, d: O) {
 }
 
 #[inline]
-pub fn si_ediv_r<O: RawOptionInteger>(r: &mut Integer, n: c_long, d: O) {
+pub fn si_ediv_r<O: OptInteger>(r: &mut Integer, n: c_long, d: O) {
     if d.unwrap_or(r).cmp0() == Ordering::Less {
         si_cdiv_r(r, n, d);
     } else {
@@ -1719,7 +1697,7 @@ pub fn si_ediv_r<O: RawOptionInteger>(r: &mut Integer, n: c_long, d: O) {
     }
 }
 
-pub fn and_ui<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
+pub fn and_ui<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
     let lop2 = limb_t::from(op2);
     let ans_limb0 = {
         let op1 = op1.unwrap_or(rop);
@@ -1732,7 +1710,7 @@ pub fn and_ui<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
     set_limb(rop, ans_limb0);
 }
 
-pub fn ior_ui<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
+pub fn ior_ui<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
     let lop2 = limb_t::from(op2);
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
@@ -1759,7 +1737,7 @@ pub fn ior_ui<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
     }
 }
 
-pub fn xor_ui<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
+pub fn xor_ui<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
     let lop2 = limb_t::from(op2);
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
@@ -1793,7 +1771,7 @@ pub fn xor_ui<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
     }
 }
 
-pub fn and_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
+pub fn and_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
     let lop2 = op2 as limb_t;
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => {
@@ -1834,7 +1812,7 @@ pub fn and_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
     }
 }
 
-pub fn ior_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
+pub fn ior_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
     let lop2 = op2 as limb_t;
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
@@ -1873,7 +1851,7 @@ pub fn ior_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
     }
 }
 
-pub fn xor_si<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: c_long) {
+pub fn xor_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
     let lop2 = op2 as limb_t;
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
