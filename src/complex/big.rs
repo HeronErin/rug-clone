@@ -1211,7 +1211,7 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     #[inline]
     pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round2) -> Ordering2 {
-        xmpc::fma(self, None, Some(mul), Some(add), round)
+        xmpc::fma(self, (), mul, add, round)
     }
 
     /// Multiplies and adds in one fused operation.
@@ -1411,7 +1411,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn proj_mut(&mut self) {
-        xmpc::proj(self, None, NEAREST2);
+        xmpc::proj(self, (), NEAREST2);
     }
 
     /// Computes the projection onto the Riemann sphere.
@@ -1500,7 +1500,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn square_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::sqr(self, None, round)
+        xmpc::sqr(self, (), round)
     }
 
     /// Computes the square.
@@ -1584,7 +1584,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sqrt_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::sqrt(self, None, round)
+        xmpc::sqrt(self, (), round)
     }
 
     /// Computes the square root.
@@ -1646,7 +1646,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn conj_mut(&mut self) {
-        xmpc::conj(self, None, NEAREST2);
+        xmpc::conj(self, (), NEAREST2);
     }
 
     /// Computes the complex conjugate.
@@ -1942,7 +1942,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mul_i_round(&mut self, negative: bool, round: Round2) -> Ordering2 {
-        xmpc::mul_i(self, None, negative, round)
+        xmpc::mul_i(self, (), negative, round)
     }
 
     /// Multiplies the complex number by ±<i>i</i>.
@@ -2023,7 +2023,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn recip_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::recip(self, None, round)
+        xmpc::recip(self, (), round)
     }
 
     /// Computes the reciprocal.
@@ -2196,7 +2196,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn ln_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::log(self, None, round)
+        xmpc::log(self, (), round)
     }
 
     /// Computes the natural logarithm;
@@ -2276,7 +2276,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn log10_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::log10(self, None, round)
+        xmpc::log10(self, (), round)
     }
 
     /// Computes the logarithm to base 10.
@@ -2386,7 +2386,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn exp_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::exp(self, None, round)
+        xmpc::exp(self, (), round)
     }
 
     /// Computes the exponential.
@@ -2465,7 +2465,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sin_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::sin(self, None, round)
+        xmpc::sin(self, (), round)
     }
 
     /// Computes the sine.
@@ -2544,7 +2544,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn cos_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::cos(self, None, round)
+        xmpc::cos(self, (), round)
     }
 
     /// Computes the cosine.
@@ -2652,7 +2652,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sin_cos_round(&mut self, cos: &mut Self, round: Round2) -> (Ordering2, Ordering2) {
-        xmpc::sin_cos(self, cos, None, round)
+        xmpc::sin_cos(self, cos, (), round)
     }
 
     /// Computes the sine and cosine.
@@ -2759,7 +2759,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn tan_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::tan(self, None, round)
+        xmpc::tan(self, (), round)
     }
 
     /// Computes the tangent.
@@ -2839,7 +2839,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn sinh_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::sinh(self, None, round)
+        xmpc::sinh(self, (), round)
     }
 
     /// Computes the hyperbolic sine.
@@ -2919,7 +2919,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn cosh_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::cosh(self, None, round)
+        xmpc::cosh(self, (), round)
     }
 
     /// Computes the hyperbolic cosine.
@@ -2999,7 +2999,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn tanh_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::tanh(self, None, round)
+        xmpc::tanh(self, (), round)
     }
 
     /// Computes the hyperbolic tangent.
@@ -3079,7 +3079,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn asin_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::asin(self, None, round)
+        xmpc::asin(self, (), round)
     }
 
     /// Computes the inverse sine.
@@ -3159,7 +3159,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn acos_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::acos(self, None, round)
+        xmpc::acos(self, (), round)
     }
 
     /// Computes the inverse cosine.
@@ -3239,7 +3239,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn atan_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::atan(self, None, round)
+        xmpc::atan(self, (), round)
     }
 
     /// Computes the inverse tangent.
@@ -3319,7 +3319,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn asinh_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::asinh(self, None, round)
+        xmpc::asinh(self, (), round)
     }
 
     /// Computes the inverse hyperboic sine.
@@ -3401,7 +3401,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn acosh_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::acosh(self, None, round)
+        xmpc::acosh(self, (), round)
     }
 
     /// Computes the inverse hyperbolic cosine.
@@ -3483,7 +3483,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn atanh_round(&mut self, round: Round2) -> Ordering2 {
-        xmpc::atanh(self, None, round)
+        xmpc::atanh(self, (), round)
     }
 
     /// Computes the inverse hyperbolic tangent.

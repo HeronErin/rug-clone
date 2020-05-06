@@ -51,7 +51,7 @@ impl Neg for Float {
 impl NegAssign for Float {
     #[inline]
     fn neg_assign(&mut self) {
-        xmpfr::neg(self, None, Round::Nearest);
+        xmpfr::neg(self, (), Round::Nearest);
     }
 }
 
@@ -73,7 +73,7 @@ impl AssignRound<NegIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: NegIncomplete<'_>, round: Round) -> Ordering {
-        xmpfr::neg(self, Some(src.val), round)
+        xmpfr::neg(self, src.val, round)
     }
 }
 

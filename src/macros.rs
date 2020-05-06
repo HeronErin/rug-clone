@@ -1168,7 +1168,7 @@ macro_rules! ref_math_op1_round {
                 src: $Incomplete<'_>,
                 round: $Round,
             ) -> $Ordering {
-                $func(self, Some(src.ref_self), $(src.$param,)* round)
+                $func(self, src.ref_self, $(src.$param,)* round)
             }
         }
     };
@@ -1200,7 +1200,7 @@ macro_rules! ref_math_op1_2_round {
                 src: $Incomplete<'_>,
                 round: $Round,
             ) -> $Ordering {
-                $func(self.0, self.1, Some(src.ref_self), $(src.$param,)* round)
+                $func(self.0, self.1, src.ref_self, $(src.$param,)* round)
             }
         }
 
@@ -1260,13 +1260,7 @@ macro_rules! ref_math_op2_round {
                 src: $Incomplete<'_>,
                 round: $Round,
             ) -> $Ordering {
-                $func(
-                    self,
-                    Some(src.ref_self),
-                    Some(src.$op),
-                    $(src.$param,)*
-                    round,
-                )
+                $func(self, src.ref_self, src.$op, $(src.$param,)* round)
             }
         }
     };

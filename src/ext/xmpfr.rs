@@ -84,22 +84,17 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 }
 
 macro_rules! wrap {
-    (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
+    (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
-        pub fn $fn(
+        pub fn $fn<$($O: RawOption<mpfr_t>),*>(
             rop: &mut Float,
-            $($op: Option<&Float>,)*
+            $($op: $O,)*
             $($param: $T,)*
             rnd: Round,
         ) -> Ordering {
-            ordering1(unsafe {
-                $deleg(
-                    rop.as_raw_mut(),
-                    $($op.unwrap_or(rop).as_raw(),)*
-                    $($param.into(),)*
-                    raw_round(rnd),
-                )
-            })
+            let rop = rop.as_raw_mut();
+            $(let $op = $op.raw_or(rop);)*
+            ordering1(unsafe { $deleg(rop, $($op,)* $($param.into(),)* raw_round(rnd)) })
         }
     };
 }
@@ -149,16 +144,16 @@ pub fn si_pow_ui(rop: &mut Float, base: i32, exponent: u32, rnd: Round) -> Order
                 raw_round(reverse_rnd),
             )
         });
-        neg(rop, None, Round::Nearest);
+        neg(rop, (), Round::Nearest);
         reverse_ord.reverse()
     }
 }
 
-// do not use mpfr::neg for op is None to avoid function call
+// do not use mpfr::neg for op is () to avoid function call
 #[inline]
-pub fn neg(rop: &mut Float, op: Option<&Float>, rnd: Round) -> Ordering {
-    if let Some(op) = op {
-        ordering1(unsafe { mpfr::neg(rop.as_raw_mut(), op.as_raw(), raw_round(rnd)) })
+pub fn neg<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, rnd: Round) -> Ordering {
+    if O::IS_SOME {
+        ordering1(unsafe { mpfr::neg(rop.as_raw_mut(), op.raw(), raw_round(rnd)) })
     } else {
         unsafe {
             rop.inner_mut().sign.neg_assign();
@@ -171,174 +166,147 @@ pub fn neg(rop: &mut Float, op: Option<&Float>, rnd: Round) -> Ordering {
 }
 
 #[inline]
-pub fn signum(rop: &mut Float, op: Option<&Float>, _rnd: Round) -> Ordering {
-    let rop_ptr = rop.as_raw_mut();
-    let op_ptr = op.unwrap_or(rop).as_raw();
+pub fn signum<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, _rnd: Round) -> Ordering {
+    let rop = rop.as_raw_mut();
+    let op = op.raw_or(rop);
     ordering1(unsafe {
-        if mpfr::nan_p(op_ptr) != 0 {
-            mpfr::set(rop_ptr, op_ptr, rnd_t::RNDZ)
-        } else if mpfr::signbit(op_ptr) != 0 {
-            mpfr::set_si(rop_ptr, -1, rnd_t::RNDZ)
+        if mpfr::nan_p(op) != 0 {
+            mpfr::set(rop, op, rnd_t::RNDZ)
+        } else if mpfr::signbit(op) != 0 {
+            mpfr::set_si(rop, -1, rnd_t::RNDZ)
         } else {
-            mpfr::set_si(rop_ptr, 1, rnd_t::RNDZ)
+            mpfr::set_si(rop, 1, rnd_t::RNDZ)
         }
     })
 }
 
 #[inline]
-pub fn recip(rop: &mut Float, op: Option<&Float>, rnd: Round) -> Ordering {
-    ordering1(unsafe {
-        mpfr::ui_div(
-            rop.as_raw_mut(),
-            1,
-            op.unwrap_or(rop).as_raw(),
-            raw_round(rnd),
-        )
-    })
+pub fn recip<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, rnd: Round) -> Ordering {
+    let rop = rop.as_raw_mut();
+    let op = op.raw_or(rop);
+    ordering1(unsafe { mpfr::ui_div(rop, 1, op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn jn(rop: &mut Float, op: Option<&Float>, n: i32, rnd: Round) -> Ordering {
-    ordering1(unsafe {
-        mpfr::jn(
-            rop.as_raw_mut(),
-            n.into(),
-            op.unwrap_or(rop).as_raw(),
-            raw_round(rnd),
-        )
-    })
+pub fn jn<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, n: i32, rnd: Round) -> Ordering {
+    let rop = rop.as_raw_mut();
+    let op = op.raw_or(rop);
+    ordering1(unsafe { mpfr::jn(rop, n.into(), op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn yn(rop: &mut Float, op: Option<&Float>, n: i32, rnd: Round) -> Ordering {
-    ordering1(unsafe {
-        mpfr::yn(
-            rop.as_raw_mut(),
-            n.into(),
-            op.unwrap_or(rop).as_raw(),
-            raw_round(rnd),
-        )
-    })
+pub fn yn<O: RawOption<mpfr_t>>(rop: &mut Float, op: O, n: i32, rnd: Round) -> Ordering {
+    let rop = rop.as_raw_mut();
+    let op = op.raw_or(rop);
+    ordering1(unsafe { mpfr::yn(rop, n.into(), op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn sin_cos(
+pub fn sin_cos<O: RawOption<mpfr_t>>(
     rop_sin: &mut Float,
     rop_cos: &mut Float,
-    op: Option<&Float>,
+    op: O,
     rnd: Round,
 ) -> (Ordering, Ordering) {
-    ordering2(unsafe {
-        mpfr::sin_cos(
-            rop_sin.as_raw_mut(),
-            rop_cos.as_raw_mut(),
-            op.unwrap_or(rop_sin).as_raw(),
-            raw_round(rnd),
-        )
-    })
+    let rop_sin = rop_sin.as_raw_mut();
+    let rop_cos = rop_cos.as_raw_mut();
+    let op = op.raw_or(rop_sin);
+    ordering2(unsafe { mpfr::sin_cos(rop_sin, rop_cos, op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn sinh_cosh(
+pub fn sinh_cosh<O: RawOption<mpfr_t>>(
     rop_sin: &mut Float,
     rop_cos: &mut Float,
-    op: Option<&Float>,
+    op: O,
     rnd: Round,
 ) -> (Ordering, Ordering) {
-    ordering2(unsafe {
-        mpfr::sinh_cosh(
-            rop_sin.as_raw_mut(),
-            rop_cos.as_raw_mut(),
-            op.unwrap_or(rop_sin).as_raw(),
-            raw_round(rnd),
-        )
-    })
+    let rop_sin = rop_sin.as_raw_mut();
+    let rop_cos = rop_cos.as_raw_mut();
+    let op = op.raw_or(rop_sin);
+    ordering2(unsafe { mpfr::sinh_cosh(rop_sin, rop_cos, op, raw_round(rnd)) })
 }
 
 #[inline]
-pub fn modf(
+pub fn modf<O: RawOption<mpfr_t>>(
     rop_i: &mut Float,
     rop_f: &mut Float,
-    op: Option<&Float>,
+    op: O,
     rnd: Round,
 ) -> (Ordering, Ordering) {
-    ordering2(unsafe {
-        mpfr::modf(
-            rop_i.as_raw_mut(),
-            rop_f.as_raw_mut(),
-            op.unwrap_or(rop_i).as_raw(),
-            raw_round(rnd),
-        )
-    })
+    let rop_i = rop_i.as_raw_mut();
+    let rop_f = rop_f.as_raw_mut();
+    let op = op.raw_or(rop_i);
+    ordering2(unsafe { mpfr::modf(rop_i, rop_f, op, raw_round(rnd)) })
 }
 
-wrap! { fn remainder(x, y) -> mpfr::remainder }
+wrap! { fn remainder(x: O, y: P) -> mpfr::remainder }
 wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> mpfr::ui_pow_ui }
 wrap0! { fn ui_2exp(ui: u32, exponent: i32) -> mpfr::set_ui_2exp }
 wrap0! { fn si_2exp(si: i32, exponent: i32) -> mpfr::set_si_2exp }
-wrap! { fn copysign(op1, op2) -> mpfr::copysign }
-wrap! { fn sqr(op) -> mpfr::sqr }
-wrap! { fn sqrt(op) -> mpfr::sqrt }
+wrap! { fn copysign(op1: O, op2: P) -> mpfr::copysign }
+wrap! { fn sqr(op: O) -> mpfr::sqr }
+wrap! { fn sqrt(op: O) -> mpfr::sqrt }
 wrap0! { fn sqrt_ui(u: u32) -> mpfr::sqrt_ui }
-wrap! { fn rec_sqrt(op) -> mpfr::rec_sqrt }
-wrap! { fn cbrt(op) -> mpfr::cbrt }
-wrap! { fn rootn_ui(op; k: u32) -> mpfr::rootn_ui }
-wrap! { fn abs(op) -> mpfr::abs }
-wrap! { fn min(op1, op2) -> mpfr::min }
-wrap! { fn max(op1, op2) -> mpfr::max }
-wrap! { fn dim(op1, op2) -> mpfr::dim }
-wrap! { fn log(op) -> mpfr::log }
+wrap! { fn rec_sqrt(op: O) -> mpfr::rec_sqrt }
+wrap! { fn cbrt(op: O) -> mpfr::cbrt }
+wrap! { fn rootn_ui(op: O; k: u32) -> mpfr::rootn_ui }
+wrap! { fn abs(op: O) -> mpfr::abs }
+wrap! { fn min(op1: O, op2: P) -> mpfr::min }
+wrap! { fn max(op1: O, op2: P) -> mpfr::max }
+wrap! { fn dim(op1: O, op2: P) -> mpfr::dim }
+wrap! { fn log(op: O) -> mpfr::log }
 wrap0! { fn log_ui(u: u32) -> mpfr::log_ui }
-wrap! { fn log2(op) -> mpfr::log2 }
-wrap! { fn log10(op) -> mpfr::log10 }
-wrap! { fn exp(op) -> mpfr::exp }
-wrap! { fn exp2(op) -> mpfr::exp2 }
-wrap! { fn exp10(op) -> mpfr::exp10 }
-wrap! { fn sin(op) -> mpfr::sin }
-wrap! { fn cos(op) -> mpfr::cos }
-wrap! { fn tan(op) -> mpfr::tan }
-wrap! { fn sec(op) -> mpfr::sec }
-wrap! { fn csc(op) -> mpfr::csc }
-wrap! { fn cot(op) -> mpfr::cot }
-wrap! { fn acos(op) -> mpfr::acos }
-wrap! { fn asin(op) -> mpfr::asin }
-wrap! { fn atan(op) -> mpfr::atan }
-wrap! { fn atan2(y, x) -> mpfr::atan2 }
-wrap! { fn cosh(op) -> mpfr::cosh }
-wrap! { fn sinh(op) -> mpfr::sinh }
-wrap! { fn tanh(op) -> mpfr::tanh }
-wrap! { fn sech(op) -> mpfr::sech }
-wrap! { fn csch(op) -> mpfr::csch }
-wrap! { fn coth(op) -> mpfr::coth }
-wrap! { fn acosh(op) -> mpfr::acosh }
-wrap! { fn asinh(op) -> mpfr::asinh }
-wrap! { fn atanh(op) -> mpfr::atanh }
+wrap! { fn log2(op: O) -> mpfr::log2 }
+wrap! { fn log10(op: O) -> mpfr::log10 }
+wrap! { fn exp(op: O) -> mpfr::exp }
+wrap! { fn exp2(op: O) -> mpfr::exp2 }
+wrap! { fn exp10(op: O) -> mpfr::exp10 }
+wrap! { fn sin(op: O) -> mpfr::sin }
+wrap! { fn cos(op: O) -> mpfr::cos }
+wrap! { fn tan(op: O) -> mpfr::tan }
+wrap! { fn sec(op: O) -> mpfr::sec }
+wrap! { fn csc(op: O) -> mpfr::csc }
+wrap! { fn cot(op: O) -> mpfr::cot }
+wrap! { fn acos(op: O) -> mpfr::acos }
+wrap! { fn asin(op: O) -> mpfr::asin }
+wrap! { fn atan(op: O) -> mpfr::atan }
+wrap! { fn atan2(y: O, x: P) -> mpfr::atan2 }
+wrap! { fn cosh(op: O) -> mpfr::cosh }
+wrap! { fn sinh(op: O) -> mpfr::sinh }
+wrap! { fn tanh(op: O) -> mpfr::tanh }
+wrap! { fn sech(op: O) -> mpfr::sech }
+wrap! { fn csch(op: O) -> mpfr::csch }
+wrap! { fn coth(op: O) -> mpfr::coth }
+wrap! { fn acosh(op: O) -> mpfr::acosh }
+wrap! { fn asinh(op: O) -> mpfr::asinh }
+wrap! { fn atanh(op: O) -> mpfr::atanh }
 wrap0! { fn fac_ui(n: u32) -> mpfr::fac_ui }
-wrap! { fn log1p(op) -> mpfr::log1p }
-wrap! { fn expm1(op) -> mpfr::expm1 }
-wrap! { fn eint(op) -> mpfr::eint }
-wrap! { fn li2(op) -> mpfr::li2 }
-wrap! { fn gamma(op) -> mpfr::gamma }
-wrap! { fn gamma_inc(op1, op2) -> mpfr::gamma_inc }
-wrap! { fn lngamma(op) -> mpfr::lngamma }
-wrap! { fn digamma(op) -> mpfr::digamma }
-wrap! { fn zeta(op) -> mpfr::zeta }
+wrap! { fn log1p(op: O) -> mpfr::log1p }
+wrap! { fn expm1(op: O) -> mpfr::expm1 }
+wrap! { fn eint(op: O) -> mpfr::eint }
+wrap! { fn li2(op: O) -> mpfr::li2 }
+wrap! { fn gamma(op: O) -> mpfr::gamma }
+wrap! { fn gamma_inc(op1: O, op2: P) -> mpfr::gamma_inc }
+wrap! { fn lngamma(op: O) -> mpfr::lngamma }
+wrap! { fn digamma(op: O) -> mpfr::digamma }
+wrap! { fn zeta(op: O) -> mpfr::zeta }
 wrap0! { fn zeta_ui(u: u32) -> mpfr::zeta_ui }
-wrap! { fn erf(op) -> mpfr::erf }
-wrap! { fn erfc(op) -> mpfr::erfc }
-wrap! { fn j0(op) -> mpfr::j0 }
-wrap! { fn j1(op) -> mpfr::j1 }
-wrap! { fn y0(op) -> mpfr::y0 }
-wrap! { fn y1(op) -> mpfr::y1 }
-wrap! { fn agm(op1, op2) -> mpfr::agm }
-wrap! { fn hypot(x, y) -> mpfr::hypot }
-wrap! { fn ai(op) -> mpfr::ai }
-wrap! { fn rint_ceil(op) -> mpfr::rint_ceil }
-wrap! { fn rint_floor(op) -> mpfr::rint_floor }
-wrap! { fn rint_round(op) -> mpfr::rint_round }
-wrap! { fn rint_roundeven(op) -> mpfr::rint_roundeven }
-wrap! { fn rint_trunc(op) -> mpfr::rint_trunc }
-wrap! { fn frac(op) -> mpfr::frac }
+wrap! { fn erf(op: O) -> mpfr::erf }
+wrap! { fn erfc(op: O) -> mpfr::erfc }
+wrap! { fn j0(op: O) -> mpfr::j0 }
+wrap! { fn j1(op: O) -> mpfr::j1 }
+wrap! { fn y0(op: O) -> mpfr::y0 }
+wrap! { fn y1(op: O) -> mpfr::y1 }
+wrap! { fn agm(op1: O, op2: P) -> mpfr::agm }
+wrap! { fn hypot(x: O, y: P) -> mpfr::hypot }
+wrap! { fn ai(op: O) -> mpfr::ai }
+wrap! { fn rint_ceil(op: O) -> mpfr::rint_ceil }
+wrap! { fn rint_floor(op: O) -> mpfr::rint_floor }
+wrap! { fn rint_round(op: O) -> mpfr::rint_round }
+wrap! { fn rint_roundeven(op: O) -> mpfr::rint_roundeven }
+wrap! { fn rint_trunc(op: O) -> mpfr::rint_trunc }
+wrap! { fn frac(op: O) -> mpfr::frac }
 
 #[cfg(feature = "integer")]
 #[inline]

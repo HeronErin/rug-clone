@@ -2198,7 +2198,7 @@ impl Float {
     /// [`RemAssignRound`]: ops/trait.RemAssignRound.html
     #[inline]
     pub fn remainder_round(&mut self, divisor: &Self, round: Round) -> Ordering {
-        xmpfr::remainder(self, None, Some(divisor), round)
+        xmpfr::remainder(self, (), divisor, round)
     }
 
     /// Computes the remainder, rounding to the nearest.
@@ -2271,7 +2271,7 @@ impl Float {
     /// [`RemFromRound`]: ops/trait.RemFromRound.html
     #[inline]
     pub fn remainder_from_round(&mut self, dividend: &Self, round: Round) -> Ordering {
-        xmpfr::remainder(self, Some(dividend), None, round)
+        xmpfr::remainder(self, dividend, (), round)
     }
 
     /// Computes the remainder.
@@ -3024,7 +3024,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn square_round(&mut self, round: Round) -> Ordering {
-        xmpfr::sqr(self, None, round)
+        xmpfr::sqr(self, (), round)
     }
 
     /// Computes the square.
@@ -3102,7 +3102,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sqrt_round(&mut self, round: Round) -> Ordering {
-        xmpfr::sqrt(self, None, round)
+        xmpfr::sqrt(self, (), round)
     }
 
     /// Computes the square root.
@@ -3205,7 +3205,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn recip_sqrt_round(&mut self, round: Round) -> Ordering {
-        xmpfr::rec_sqrt(self, None, round)
+        xmpfr::rec_sqrt(self, (), round)
     }
 
     /// Computes the reciprocal square root.
@@ -3283,7 +3283,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cbrt_round(&mut self, round: Round) -> Ordering {
-        xmpfr::cbrt(self, None, round)
+        xmpfr::cbrt(self, (), round)
     }
 
     /// Computes the cube root.
@@ -3361,7 +3361,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn root_round(&mut self, k: u32, round: Round) -> Ordering {
-        xmpfr::rootn_ui(self, None, k, round)
+        xmpfr::rootn_ui(self, (), k, round)
     }
 
     /// Computes the <i>k</i>th root.
@@ -3418,7 +3418,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn abs_mut(&mut self) {
-        xmpfr::abs(self, None, Round::Nearest);
+        xmpfr::abs(self, (), Round::Nearest);
     }
 
     /// Computes the absolute value.
@@ -3484,7 +3484,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn signum_mut(&mut self) {
-        xmpfr::signum(self, None, Round::Nearest);
+        xmpfr::signum(self, (), Round::Nearest);
     }
 
     /// Computes the signum.
@@ -3549,7 +3549,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn copysign_mut(&mut self, y: &Self) {
-        xmpfr::copysign(self, None, Some(y), Round::Nearest);
+        xmpfr::copysign(self, (), y, Round::Nearest);
     }
 
     /// Computes a number with the magnitude of `self` and the
@@ -3814,7 +3814,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn recip_round(&mut self, round: Round) -> Ordering {
-        xmpfr::recip(self, None, round)
+        xmpfr::recip(self, (), round)
     }
 
     /// Computes the reciprocal.
@@ -3891,7 +3891,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn min_round(&mut self, other: &Self, round: Round) -> Ordering {
-        xmpfr::min(self, None, Some(other), round)
+        xmpfr::min(self, (), other, round)
     }
 
     /// Finds the minimum.
@@ -3972,7 +3972,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn max_round(&mut self, other: &Self, round: Round) -> Ordering {
-        xmpfr::max(self, None, Some(other), round)
+        xmpfr::max(self, (), other, round)
     }
 
     /// Finds the maximum.
@@ -4075,7 +4075,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn positive_diff_round(&mut self, other: &Self, round: Round) -> Ordering {
-        xmpfr::dim(self, None, Some(other), round)
+        xmpfr::dim(self, (), other, round)
     }
 
     /// Computes the positive difference.
@@ -4166,7 +4166,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_round(&mut self, round: Round) -> Ordering {
-        xmpfr::log(self, None, round)
+        xmpfr::log(self, (), round)
     }
 
     /// Computes the natural logarithm.
@@ -4272,7 +4272,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn log2_round(&mut self, round: Round) -> Ordering {
-        xmpfr::log2(self, None, round)
+        xmpfr::log2(self, (), round)
     }
 
     /// Computes the logarithm to base 2.
@@ -4352,7 +4352,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn log10_round(&mut self, round: Round) -> Ordering {
-        xmpfr::log10(self, None, round)
+        xmpfr::log10(self, (), round)
     }
 
     /// Computes the logarithm to base 10.
@@ -4432,7 +4432,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp_round(&mut self, round: Round) -> Ordering {
-        xmpfr::exp(self, None, round)
+        xmpfr::exp(self, (), round)
     }
 
     /// Computes the exponential.
@@ -4512,7 +4512,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp2_round(&mut self, round: Round) -> Ordering {
-        xmpfr::exp2(self, None, round)
+        xmpfr::exp2(self, (), round)
     }
 
     /// Computes 2 to the power of the value.
@@ -4592,7 +4592,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp10_round(&mut self, round: Round) -> Ordering {
-        xmpfr::exp10(self, None, round)
+        xmpfr::exp10(self, (), round)
     }
 
     /// Computes 10 to the power of the value.
@@ -4671,7 +4671,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sin_round(&mut self, round: Round) -> Ordering {
-        xmpfr::sin(self, None, round)
+        xmpfr::sin(self, (), round)
     }
 
     /// Computes the sine.
@@ -4750,7 +4750,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cos_round(&mut self, round: Round) -> Ordering {
-        xmpfr::cos(self, None, round)
+        xmpfr::cos(self, (), round)
     }
 
     /// Computes the cosine.
@@ -4829,7 +4829,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn tan_round(&mut self, round: Round) -> Ordering {
-        xmpfr::tan(self, None, round)
+        xmpfr::tan(self, (), round)
     }
 
     /// Computes the tangent.
@@ -4935,7 +4935,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sin_cos_round(&mut self, cos: &mut Self, round: Round) -> (Ordering, Ordering) {
-        xmpfr::sin_cos(self, cos, None, round)
+        xmpfr::sin_cos(self, cos, (), round)
     }
 
     /// Computes the sine and cosine.
@@ -5042,7 +5042,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sec_round(&mut self, round: Round) -> Ordering {
-        xmpfr::sec(self, None, round)
+        xmpfr::sec(self, (), round)
     }
 
     /// Computes the secant.
@@ -5121,7 +5121,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn csc_round(&mut self, round: Round) -> Ordering {
-        xmpfr::csc(self, None, round)
+        xmpfr::csc(self, (), round)
     }
 
     /// Computes the cosecant.
@@ -5201,7 +5201,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cot_round(&mut self, round: Round) -> Ordering {
-        xmpfr::cot(self, None, round)
+        xmpfr::cot(self, (), round)
     }
 
     /// Computes the cotangent.
@@ -5280,7 +5280,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn asin_round(&mut self, round: Round) -> Ordering {
-        xmpfr::asin(self, None, round)
+        xmpfr::asin(self, (), round)
     }
 
     /// Computes the arc-sine.
@@ -5360,7 +5360,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn acos_round(&mut self, round: Round) -> Ordering {
-        xmpfr::acos(self, None, round)
+        xmpfr::acos(self, (), round)
     }
 
     /// Computes the arc-cosine.
@@ -5440,7 +5440,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atan_round(&mut self, round: Round) -> Ordering {
-        xmpfr::atan(self, None, round)
+        xmpfr::atan(self, (), round)
     }
 
     /// Computes the arc-tangent.
@@ -5534,7 +5534,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atan2_round(&mut self, x: &Self, round: Round) -> Ordering {
-        xmpfr::atan2(self, None, Some(x), round)
+        xmpfr::atan2(self, (), x, round)
     }
 
     /// Computes the arc-tangent.
@@ -5619,7 +5619,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sinh_round(&mut self, round: Round) -> Ordering {
-        xmpfr::sinh(self, None, round)
+        xmpfr::sinh(self, (), round)
     }
 
     /// Computes the hyperbolic sine.
@@ -5699,7 +5699,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn cosh_round(&mut self, round: Round) -> Ordering {
-        xmpfr::cosh(self, None, round)
+        xmpfr::cosh(self, (), round)
     }
 
     /// Computes the hyperbolic cosine.
@@ -5779,7 +5779,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn tanh_round(&mut self, round: Round) -> Ordering {
-        xmpfr::tanh(self, None, round)
+        xmpfr::tanh(self, (), round)
     }
 
     /// Computes the hyperbolic tangent.
@@ -5885,7 +5885,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sinh_cosh_round(&mut self, cos: &mut Self, round: Round) -> (Ordering, Ordering) {
-        xmpfr::sinh_cosh(self, cos, None, round)
+        xmpfr::sinh_cosh(self, cos, (), round)
     }
 
     /// Computes the hyperbolic sine and cosine.
@@ -5993,7 +5993,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn sech_round(&mut self, round: Round) -> Ordering {
-        xmpfr::sech(self, None, round)
+        xmpfr::sech(self, (), round)
     }
 
     /// Computes the hyperbolic secant.
@@ -6073,7 +6073,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn csch_round(&mut self, round: Round) -> Ordering {
-        xmpfr::csch(self, None, round)
+        xmpfr::csch(self, (), round)
     }
 
     /// Computes the hyperbolic cosecant.
@@ -6153,7 +6153,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn coth_round(&mut self, round: Round) -> Ordering {
-        xmpfr::coth(self, None, round)
+        xmpfr::coth(self, (), round)
     }
 
     /// Computes the hyperbolic cotangent.
@@ -6233,7 +6233,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn asinh_round(&mut self, round: Round) -> Ordering {
-        xmpfr::asinh(self, None, round)
+        xmpfr::asinh(self, (), round)
     }
 
     /// Computes the inverse hyperbolic sine.
@@ -6315,7 +6315,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn acosh_round(&mut self, round: Round) -> Ordering {
-        xmpfr::acosh(self, None, round)
+        xmpfr::acosh(self, (), round)
     }
 
     /// Computes the inverse hyperbolic cosine
@@ -6397,7 +6397,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn atanh_round(&mut self, round: Round) -> Ordering {
-        xmpfr::atanh(self, None, round)
+        xmpfr::atanh(self, (), round)
     }
 
     /// Computes the inverse hyperbolic tangent.
@@ -6508,7 +6508,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_1p_round(&mut self, round: Round) -> Ordering {
-        xmpfr::log1p(self, None, round)
+        xmpfr::log1p(self, (), round)
     }
 
     /// Computes the natural logorithm of one plus the value.
@@ -6594,7 +6594,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn exp_m1_round(&mut self, round: Round) -> Ordering {
-        xmpfr::expm1(self, None, round)
+        xmpfr::expm1(self, (), round)
     }
 
     /// Computes one less than the exponential of the
@@ -6676,7 +6676,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn eint_round(&mut self, round: Round) -> Ordering {
-        xmpfr::eint(self, None, round)
+        xmpfr::eint(self, (), round)
     }
 
     /// Computes the exponential integral.
@@ -6758,7 +6758,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn li2_round(&mut self, round: Round) -> Ordering {
-        xmpfr::li2(self, None, round)
+        xmpfr::li2(self, (), round)
     }
 
     /// Computes the real part of the dilogarithm of the
@@ -6841,7 +6841,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn gamma_round(&mut self, round: Round) -> Ordering {
-        xmpfr::gamma(self, None, round)
+        xmpfr::gamma(self, (), round)
     }
 
     /// Computes the gamma function on the value.
@@ -6926,7 +6926,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn gamma_inc_round(&mut self, x: &Self, round: Round) -> Ordering {
-        xmpfr::gamma_inc(self, None, Some(x), round)
+        xmpfr::gamma_inc(self, (), x, round)
     }
 
     /// Computes the upper incomplete gamma function on the value.
@@ -7009,7 +7009,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_gamma_round(&mut self, round: Round) -> Ordering {
-        xmpfr::lngamma(self, None, round)
+        xmpfr::lngamma(self, (), round)
     }
 
     /// Computes the logarithm of the gamma function on
@@ -7274,7 +7274,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn digamma_round(&mut self, round: Round) -> Ordering {
-        xmpfr::digamma(self, None, round)
+        xmpfr::digamma(self, (), round)
     }
 
     /// Computes the Digamma function on the value.
@@ -7356,7 +7356,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn zeta_round(&mut self, round: Round) -> Ordering {
-        xmpfr::zeta(self, None, round)
+        xmpfr::zeta(self, (), round)
     }
 
     /// Computes the Riemann Zeta function on the value.
@@ -7464,7 +7464,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn erf_round(&mut self, round: Round) -> Ordering {
-        xmpfr::erf(self, None, round)
+        xmpfr::erf(self, (), round)
     }
 
     /// Computes the error function.
@@ -7546,7 +7546,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn erfc_round(&mut self, round: Round) -> Ordering {
-        xmpfr::erfc(self, None, round)
+        xmpfr::erfc(self, (), round)
     }
 
     /// Computes the complementary error function.
@@ -7628,7 +7628,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn j0_round(&mut self, round: Round) -> Ordering {
-        xmpfr::j0(self, None, round)
+        xmpfr::j0(self, (), round)
     }
 
     /// Computes the first kind Bessel function of order 0.
@@ -7710,7 +7710,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn j1_round(&mut self, round: Round) -> Ordering {
-        xmpfr::j1(self, None, round)
+        xmpfr::j1(self, (), round)
     }
 
     /// Computes the first kind Bessel function of order 1.
@@ -7792,7 +7792,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn jn_round(&mut self, n: i32, round: Round) -> Ordering {
-        xmpfr::jn(self, None, n, round)
+        xmpfr::jn(self, (), n, round)
     }
 
     /// Computes the first kind Bessel function of order <i>n</i>.
@@ -7874,7 +7874,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn y0_round(&mut self, round: Round) -> Ordering {
-        xmpfr::y0(self, None, round)
+        xmpfr::y0(self, (), round)
     }
 
     /// Computes the second kind Bessel function of order 0.
@@ -7956,7 +7956,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn y1_round(&mut self, round: Round) -> Ordering {
-        xmpfr::y1(self, None, round)
+        xmpfr::y1(self, (), round)
     }
 
     /// Computes the second kind Bessel function of order 1.
@@ -8038,7 +8038,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn yn_round(&mut self, n: i32, round: Round) -> Ordering {
-        xmpfr::yn(self, None, n, round)
+        xmpfr::yn(self, (), n, round)
     }
 
     /// Computes the second kind Bessel function of order <i>n</i>.
@@ -8123,7 +8123,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn agm_round(&mut self, other: &Self, round: Round) -> Ordering {
-        xmpfr::agm(self, None, Some(other), round)
+        xmpfr::agm(self, (), other, round)
     }
 
     /// Computes the arithmetic-geometric mean.
@@ -8212,7 +8212,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn hypot_round(&mut self, other: &Self, round: Round) -> Ordering {
-        xmpfr::hypot(self, None, Some(other), round)
+        xmpfr::hypot(self, (), other, round)
     }
 
     /// Computes the Euclidean norm.
@@ -8298,7 +8298,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ai_round(&mut self, round: Round) -> Ordering {
-        xmpfr::ai(self, None, round)
+        xmpfr::ai(self, (), round)
     }
 
     /// Computes the Airy function Ai on the value.
@@ -8361,7 +8361,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ceil_mut(&mut self) {
-        xmpfr::rint_ceil(self, None, Round::Nearest);
+        xmpfr::rint_ceil(self, (), Round::Nearest);
     }
 
     /// Rounds up to the next higher integer. The result may be
@@ -8427,7 +8427,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn floor_mut(&mut self) {
-        xmpfr::rint_floor(self, None, Round::Nearest);
+        xmpfr::rint_floor(self, (), Round::Nearest);
     }
 
     /// Rounds down to the next lower integer. The result may be
@@ -8495,7 +8495,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn round_mut(&mut self) {
-        xmpfr::rint_round(self, None, Round::Nearest);
+        xmpfr::rint_round(self, (), Round::Nearest);
     }
 
     /// Rounds to the nearest integer, rounding half-way cases
@@ -8583,7 +8583,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn round_even_mut(&mut self) {
-        xmpfr::rint_roundeven(self, None, Round::Nearest);
+        xmpfr::rint_roundeven(self, (), Round::Nearest);
     }
 
     /// Rounds to the nearest integer, rounding half-way cases to
@@ -8650,7 +8650,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn trunc_mut(&mut self) {
-        xmpfr::rint_trunc(self, None, Round::Nearest);
+        xmpfr::rint_trunc(self, (), Round::Nearest);
     }
 
     /// Rounds to the next integer towards zero. The result may be
@@ -8716,7 +8716,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn fract_mut(&mut self) {
-        xmpfr::frac(self, None, Round::Nearest);
+        xmpfr::frac(self, (), Round::Nearest);
     }
 
     /// Gets the fractional part of the number.
@@ -8842,7 +8842,7 @@ impl Float {
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     #[inline]
     pub fn trunc_fract_round(&mut self, fract: &mut Self, round: Round) -> (Ordering, Ordering) {
-        xmpfr::modf(self, fract, None, round)
+        xmpfr::modf(self, fract, (), round)
     }
 
     /// Gets the integer and fractional parts of the number.

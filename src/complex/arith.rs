@@ -49,7 +49,7 @@ impl Neg for Complex {
 impl NegAssign for Complex {
     #[inline]
     fn neg_assign(&mut self) {
-        xmpc::neg(self, None, NEAREST2);
+        xmpc::neg(self, (), NEAREST2);
     }
 }
 
@@ -71,7 +71,7 @@ impl AssignRound<NegIncomplete<'_>> for Complex {
     type Ordering = Ordering2;
     #[inline]
     fn assign_round(&mut self, src: NegIncomplete<'_>, round: Round2) -> Ordering2 {
-        xmpc::neg(self, Some(src.val), round)
+        xmpc::neg(self, src.val, round)
     }
 }
 
