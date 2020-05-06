@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ext::xmpz,
+    ext::xmpz::{self, RawOptionInteger},
     integer::SmallInteger,
     ops::{
         AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
@@ -346,17 +346,17 @@ mul_op_noncommut! {
 }
 
 trait PrimOps<Long>: AsLong {
-    fn add(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn sub(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn sub_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn mul(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn div(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn div_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn rem(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn rem_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn and(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn ior(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn xor(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn add<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn sub<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn sub_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn mul<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn div<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn div_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn rem<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn rem_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn and<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn ior<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn xor<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
     fn addmul(rop: &mut Integer, op1: &Integer, op2: Self);
     fn submul(rop: &mut Integer, op1: &Integer, op2: Self);
     fn mulsub(rop: &mut Integer, op1: &Integer, op2: Self);
@@ -380,12 +380,12 @@ as_long! { c_ulong: u8 u16 u32 u64 u128 usize }
 macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        fn $fn(rop: &mut Integer, op1: Option<&Integer>, op2: Self) {
+        fn $fn<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self) {
             if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op2.into();
-                $deleg(rop, op1, Some(&*small));
+                $deleg(rop, op1, &*small);
             }
         }
     };
@@ -393,12 +393,12 @@ macro_rules! forward {
 macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        fn $fn(rop: &mut Integer, op1: Self, op2: Option<&Integer>) {
+        fn $fn<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O) {
             if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op1.into();
-                $deleg(rop, Some(&*small), op2);
+                $deleg(rop, &*small, op2);
             }
         }
     };

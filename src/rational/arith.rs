@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ext::xmpq,
+    ext::xmpq::{self, RawOptionRational},
     integer::{arith::AsLong, SmallInteger},
     ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom},
     Assign, Integer, Rational,
@@ -229,18 +229,18 @@ arith_prim! {
 }
 
 trait PrimOps<Long>: AsLong {
-    fn add(rop: &mut Rational, op1: Option<&Rational>, op2: Self);
-    fn sub(rop: &mut Rational, op1: Option<&Rational>, op2: Self);
-    fn sub_from(rop: &mut Rational, op1: Self, op2: Option<&Rational>);
-    fn mul(rop: &mut Rational, op1: Option<&Rational>, op2: Self);
-    fn div(rop: &mut Rational, op1: Option<&Rational>, op2: Self);
-    fn div_from(rop: &mut Rational, op1: Self, op2: Option<&Rational>);
+    fn add<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: Self);
+    fn sub<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: Self);
+    fn sub_from<O: RawOptionRational>(rop: &mut Rational, op1: Self, op2: O);
+    fn mul<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: Self);
+    fn div<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: Self);
+    fn div_from<O: RawOptionRational>(rop: &mut Rational, op1: Self, op2: O);
 }
 
 macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        fn $fn(rop: &mut Rational, op1: Option<&Rational>, op2: Self) {
+        fn $fn<O: RawOptionRational>(rop: &mut Rational, op1: O, op2: Self) {
             if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
@@ -253,7 +253,7 @@ macro_rules! forward {
 macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        fn $fn(rop: &mut Rational, op1: Self, op2: Option<&Rational>) {
+        fn $fn<O: RawOptionRational>(rop: &mut Rational, op1: Self, op2: O) {
             if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {

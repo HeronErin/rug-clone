@@ -110,7 +110,7 @@ macro_rules! ref_rat_op_int {
         impl Assign<$Incomplete<'_>> for Integer {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(Some(self), None, Some(src.ref_self), $(src.$param),*);
+                $func(self, src.ref_self, $(src.$param),*);
             }
         }
 
@@ -134,7 +134,7 @@ macro_rules! ref_rat_op_rat_int {
         impl Assign<$Incomplete<'_>> for (&mut Rational, & mut Integer) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(self.0, self.1, Some(src.ref_self), $(src.$param),*);
+                $func(self.0, self.1, src.ref_self, $(src.$param),*);
             }
         }
 
@@ -1189,7 +1189,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn abs_mut(&mut self) {
-        xmpq::abs(self, None);
+        xmpq::abs(self, ());
     }
 
     /// Computes the absolute value.
@@ -1254,7 +1254,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn signum_mut(&mut self) {
-        xmpq::signum(None, Some(self), None);
+        xmpq::signum(self);
     }
 
     /// Computes the signum.
@@ -1438,7 +1438,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn recip_mut(&mut self) {
-        xmpq::inv(self, None);
+        xmpq::inv(self, ());
     }
 
     /// Computes the reciprocal.
@@ -1505,7 +1505,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn trunc_mut(&mut self) {
-        xmpq::trunc(None, Some(self), None);
+        xmpq::trunc(self);
     }
 
     /// Rounds the number towards zero.
@@ -1572,7 +1572,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn rem_trunc_mut(&mut self) {
-        xmpq::trunc_fract(self, None);
+        xmpq::trunc_fract(self, ());
     }
 
     /// Computes the fractional part of the number.
@@ -1639,7 +1639,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn fract_trunc_mut(&mut self, trunc: &mut Integer) {
-        xmpq::trunc_fract_whole(self, trunc, None);
+        xmpq::trunc_fract_whole(self, trunc, ());
     }
 
     /// Computes the fractional and truncated parts of the number.
@@ -1718,7 +1718,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn ceil_mut(&mut self) {
-        xmpq::ceil(None, Some(self), None);
+        xmpq::ceil(self);
     }
 
     /// Rounds the number upwards (towards plus infinity).
@@ -1785,7 +1785,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn rem_ceil_mut(&mut self) {
-        xmpq::ceil_fract(self, None);
+        xmpq::ceil_fract(self, ());
     }
 
     /// Computes the non-positive remainder after rounding up.
@@ -1856,7 +1856,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn fract_ceil_mut(&mut self, ceil: &mut Integer) {
-        xmpq::ceil_fract_whole(self, ceil, None);
+        xmpq::ceil_fract_whole(self, ceil, ());
     }
 
     /// Computes the fractional and ceil parts of the number.
@@ -1935,7 +1935,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn floor_mut(&mut self) {
-        xmpq::floor(None, Some(self), None);
+        xmpq::floor(self);
     }
 
     /// Rounds the number downwards (towards minus infinity).
@@ -2002,7 +2002,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn rem_floor_mut(&mut self) {
-        xmpq::floor_fract(self, None);
+        xmpq::floor_fract(self, ());
     }
 
     /// Computes the non-negative remainder after rounding down.
@@ -2073,7 +2073,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn fract_floor_mut(&mut self, floor: &mut Integer) {
-        xmpq::floor_fract_whole(self, floor, None);
+        xmpq::floor_fract_whole(self, floor, ());
     }
 
     /// Computes the fractional and floor parts of the number.
@@ -2160,7 +2160,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn round_mut(&mut self) {
-        xmpq::round(None, Some(self), None);
+        xmpq::round(self);
     }
 
     /// Rounds the number to the nearest integer.
@@ -2240,7 +2240,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn rem_round_mut(&mut self) {
-        xmpq::round_fract(self, None);
+        xmpq::round_fract(self, ());
     }
 
     /// Computes the remainder after rounding to the nearest
@@ -2334,7 +2334,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn fract_round_mut(&mut self, round: &mut Integer) {
-        xmpq::round_fract_whole(self, round, None);
+        xmpq::round_fract_whole(self, round, ());
     }
 
     /// Computes the fractional and round parts of the number.
@@ -2415,7 +2415,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn square_mut(&mut self) {
-        xmpq::square(self, None);
+        xmpq::square(self, ());
     }
 
     /// Computes the square.
@@ -2659,7 +2659,7 @@ where
 }
 
 ref_math_op1! { Rational; xmpq::abs; struct AbsIncomplete {} }
-ref_rat_op_int! { xmpq::signum; struct SignumIncomplete {} }
+ref_rat_op_int! { xmpq::signum_int; struct SignumIncomplete {} }
 
 #[derive(Debug)]
 pub struct ClampIncomplete<'s, 'min, 'max, Min, Max>
@@ -2702,16 +2702,16 @@ where
 }
 
 ref_math_op1! { Rational; xmpq::inv; struct RecipIncomplete {} }
-ref_rat_op_int! { xmpq::trunc; struct TruncIncomplete {} }
+ref_rat_op_int! { xmpq::trunc_int; struct TruncIncomplete {} }
 ref_math_op1! { Rational; xmpq::trunc_fract; struct RemTruncIncomplete {} }
 ref_rat_op_rat_int! { xmpq::trunc_fract_whole; struct FractTruncIncomplete {} }
-ref_rat_op_int! { xmpq::ceil; struct CeilIncomplete {} }
+ref_rat_op_int! { xmpq::ceil_int; struct CeilIncomplete {} }
 ref_math_op1! { Rational; xmpq::ceil_fract; struct RemCeilIncomplete {} }
 ref_rat_op_rat_int! { xmpq::ceil_fract_whole; struct FractCeilIncomplete {} }
-ref_rat_op_int! { xmpq::floor; struct FloorIncomplete {} }
+ref_rat_op_int! { xmpq::floor_int; struct FloorIncomplete {} }
 ref_math_op1! { Rational; xmpq::floor_fract; struct RemFloorIncomplete {} }
 ref_rat_op_rat_int! { xmpq::floor_fract_whole; struct FractFloorIncomplete {} }
-ref_rat_op_int! { xmpq::round; struct RoundIncomplete {} }
+ref_rat_op_int! { xmpq::round_int; struct RoundIncomplete {} }
 ref_math_op1! { Rational; xmpq::round_fract; struct RemRoundIncomplete {} }
 ref_rat_op_rat_int! { xmpq::round_fract_whole; struct FractRoundIncomplete {} }
 ref_math_op1! { Rational; xmpq::square; struct SquareIncomplete {} }

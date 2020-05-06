@@ -128,7 +128,7 @@ impl Assign for Rational {
 impl Assign<&Rational> for Rational {
     #[inline]
     fn assign(&mut self, src: &Rational) {
-        xmpq::set(self, Some(src));
+        xmpq::set(self, src);
     }
 }
 

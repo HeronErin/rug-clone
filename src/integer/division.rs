@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ext::xmpz,
+    ext::xmpz::{self, RawOptionInteger},
     integer::SmallInteger,
     ops::{
         DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding, RemRoundingAssign,
@@ -160,19 +160,19 @@ macro_rules! div_op {
         impl $ImpAssign<&Integer> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: &Integer) {
-                $trunc_fn(self, None, Some(rhs));
+                $trunc_fn(self, (), rhs);
             }
             #[inline]
             fn $ceil_assign(&mut self, rhs: &Integer) {
-                $ceil_fn(self, None, Some(rhs));
+                $ceil_fn(self, (), rhs);
             }
             #[inline]
             fn $floor_assign(&mut self, rhs: &Integer) {
-                $floor_fn(self, None, Some(rhs));
+                $floor_fn(self, (), rhs);
             }
             #[inline]
             fn $euc_assign(&mut self, rhs: &Integer) {
-                $euc_fn(self, None, Some(rhs));
+                $euc_fn(self, (), rhs);
             }
         }
 
@@ -198,19 +198,19 @@ macro_rules! div_op {
         impl $ImpFrom<&Integer> for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: &Integer) {
-                $trunc_fn(self, Some(lhs), None);
+                $trunc_fn(self, lhs, ());
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: &Integer) {
-                $ceil_fn(self, Some(lhs), None);
+                $ceil_fn(self, lhs, ());
             }
             #[inline]
             fn $floor_from(&mut self, lhs: &Integer) {
-                $floor_fn(self, Some(lhs), None);
+                $floor_fn(self, lhs, ());
             }
             #[inline]
             fn $euc_from(&mut self, lhs: &Integer) {
-                $euc_fn(self, Some(lhs), None);
+                $euc_fn(self, lhs, ());
             }
         }
 
@@ -227,16 +227,16 @@ macro_rules! div_op {
             fn assign(&mut self, src: $Incomplete<'_>) {
                 match src {
                     $Incomplete::Trunc(lhs, rhs) => {
-                        $trunc_fn(self, Some(lhs), Some(rhs));
+                        $trunc_fn(self, lhs, rhs);
                     }
                     $Incomplete::Ceil(lhs, rhs) => {
-                        $ceil_fn(self, Some(lhs), Some(rhs));
+                        $ceil_fn(self, lhs, rhs);
                     }
                     $Incomplete::Floor(lhs, rhs) => {
-                        $floor_fn(self, Some(lhs), Some(rhs));
+                        $floor_fn(self, lhs, rhs);
                     }
                     $Incomplete::Euc(lhs, rhs) => {
-                        $euc_fn(self, Some(lhs), Some(rhs));
+                        $euc_fn(self, lhs, rhs);
                     }
                 }
             }
@@ -372,19 +372,19 @@ macro_rules! div_prim {
         impl $ImpAssign<$T> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: $T) {
-                $trunc_fn(self, None, rhs);
+                $trunc_fn(self, (), rhs);
             }
             #[inline]
             fn $ceil_assign(&mut self, rhs: $T) {
-                $ceil_fn(self, None, rhs);
+                $ceil_fn(self, (), rhs);
             }
             #[inline]
             fn $floor_assign(&mut self, rhs: $T) {
-                $floor_fn(self, None, rhs);
+                $floor_fn(self, (), rhs);
             }
             #[inline]
             fn $euc_assign(&mut self, rhs: $T) {
-                $euc_fn(self, None, rhs);
+                $euc_fn(self, (), rhs);
             }
         }
 
@@ -420,16 +420,16 @@ macro_rules! div_prim {
             fn assign(&mut self, src: $Incomplete<'_>) {
                 match src {
                     $Incomplete::Trunc(lhs, rhs) => {
-                        $trunc_fn(self, Some(lhs), rhs);
+                        $trunc_fn(self, lhs, rhs);
                     }
                     $Incomplete::Ceil(lhs, rhs) => {
-                        $ceil_fn(self, Some(lhs), rhs);
+                        $ceil_fn(self, lhs, rhs);
                     }
                     $Incomplete::Floor(lhs, rhs) => {
-                        $floor_fn(self, Some(lhs), rhs);
+                        $floor_fn(self, lhs, rhs);
                     }
                     $Incomplete::Euc(lhs, rhs) => {
-                        $euc_fn(self, Some(lhs), rhs);
+                        $euc_fn(self, lhs, rhs);
                     }
                 }
             }
@@ -535,19 +535,19 @@ macro_rules! div_prim {
         impl $ImpFrom<$T> for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: $T) {
-                $trunc_from_fn(self, lhs, None);
+                $trunc_from_fn(self, lhs, ());
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: $T) {
-                $ceil_from_fn(self, lhs, None);
+                $ceil_from_fn(self, lhs, ());
             }
             #[inline]
             fn $floor_from(&mut self, lhs: $T) {
-                $floor_from_fn(self, lhs, None);
+                $floor_from_fn(self, lhs, ());
             }
             #[inline]
             fn $euc_from(&mut self, lhs: $T) {
-                $euc_from_fn(self, lhs, None);
+                $euc_from_fn(self, lhs, ());
             }
         }
 
@@ -583,16 +583,16 @@ macro_rules! div_prim {
             fn assign(&mut self, src: $FromIncomplete<'_>) {
                 match src {
                     $FromIncomplete::Trunc(lhs, rhs) => {
-                        $trunc_from_fn(self, lhs, Some(rhs));
+                        $trunc_from_fn(self, lhs, rhs);
                     }
                     $FromIncomplete::Ceil(lhs, rhs) => {
-                        $ceil_from_fn(self, lhs, Some(rhs));
+                        $ceil_from_fn(self, lhs, rhs);
                     }
                     $FromIncomplete::Floor(lhs, rhs) => {
-                        $floor_from_fn(self, lhs, Some(rhs));
+                        $floor_from_fn(self, lhs, rhs);
                     }
                     $FromIncomplete::Euc(lhs, rhs) => {
-                        $euc_from_fn(self, lhs, Some(rhs));
+                        $euc_from_fn(self, lhs, rhs);
                     }
                 }
             }
@@ -660,22 +660,22 @@ div_prim! {
 }
 
 trait PrimOps<Long>: AsLong {
-    fn tdiv_q(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn cdiv_q(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn fdiv_q(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn ediv_q(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn tdiv_q_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn cdiv_q_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn fdiv_q_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn ediv_q_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn tdiv_r(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn cdiv_r(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn fdiv_r(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn ediv_r(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
-    fn tdiv_r_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn cdiv_r_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn fdiv_r_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
-    fn ediv_r_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn tdiv_q<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn cdiv_q<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn fdiv_q<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn ediv_q<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn tdiv_q_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn cdiv_q_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn fdiv_q_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn ediv_q_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn tdiv_r<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn cdiv_r<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn fdiv_r<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn ediv_r<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self);
+    fn tdiv_r_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn cdiv_r_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn fdiv_r_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
+    fn ediv_r_from<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O);
 }
 
 trait AsLong: Copy {
@@ -696,12 +696,12 @@ as_long! { c_ulong: u8 u16 u32 u64 u128 usize }
 macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        fn $fn(rop: &mut Integer, op1: Option<&Integer>, op2: Self) {
+        fn $fn<O: RawOptionInteger>(rop: &mut Integer, op1: O, op2: Self) {
             if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op2.into();
-                $deleg(rop, op1, Some(&*small));
+                $deleg(rop, op1, &*small);
             }
         }
     };
@@ -709,12 +709,12 @@ macro_rules! forward {
 macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        fn $fn(rop: &mut Integer, op1: Self, op2: Option<&Integer>) {
+        fn $fn<O: RawOptionInteger>(rop: &mut Integer, op1: Self, op2: O) {
             if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op1.into();
-                $deleg(rop, Some(&*small), op2);
+                $deleg(rop, &*small, op2);
             }
         }
     };

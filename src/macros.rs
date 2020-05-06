@@ -99,7 +99,7 @@ macro_rules! ref_math_op1 {
         impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(self, Some(src.ref_self), $(src.$param),*);
+                $func(self, src.ref_self, $(src.$param),*);
             }
         }
 
@@ -128,7 +128,7 @@ macro_rules! ref_math_op1_2 {
         impl Assign<$Incomplete<'_>> for (&mut $Big, &mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(self.0, self.1, Some(src.ref_self), $(src.$param),*);
+                $func(self.0, self.1, src.ref_self, $(src.$param),*);
             }
         }
 
@@ -165,7 +165,7 @@ macro_rules! ref_math_op2 {
         impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(self, Some(src.ref_self), src.$op, $(src.$param),*);
+                $func(self, src.ref_self, src.$op, $(src.$param),*);
             }
         }
 
@@ -198,8 +198,8 @@ macro_rules! ref_math_op2_2 {
                 $func(
                     self.0,
                     self.1,
-                    Some(src.ref_self),
-                    Some(src.$op),
+                    src.ref_self,
+                    src.$op,
                     $(src.$param,)*
                 );
             }
@@ -243,7 +243,7 @@ macro_rules! arith_unary {
         impl $ImpAssign for $Big {
             #[inline]
             fn $method_assign(&mut self) {
-                $func(self, None);
+                $func(self, ());
             }
         }
 
@@ -263,7 +263,7 @@ macro_rules! arith_unary {
         impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(self, Some(src.op));
+                $func(self, src.op);
             }
         }
 
@@ -344,7 +344,7 @@ macro_rules! arith_binary_self {
         impl $ImpAssign<&$Big> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &$Big) {
-                $func(self, None, Some(rhs));
+                $func(self, (), rhs);
             }
         }
 
@@ -358,7 +358,7 @@ macro_rules! arith_binary_self {
         impl $ImpFrom<&$Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$Big) {
-                $func(self, Some(lhs), None);
+                $func(self, lhs, ());
             }
         }
 
@@ -371,7 +371,7 @@ macro_rules! arith_binary_self {
         impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(self, Some(src.lhs), Some(src.rhs));
+                $func(self, src.lhs, src.rhs);
             }
         }
 
@@ -445,7 +445,7 @@ macro_rules! arith_binary {
         impl $ImpAssign<&$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &$T) {
-                $func(self, None, rhs);
+                $func(self, (), rhs);
             }
         }
 
@@ -458,7 +458,7 @@ macro_rules! arith_binary {
         impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(self, Some(src.lhs), src.rhs);
+                $func(self, src.lhs, src.rhs);
             }
         }
 
@@ -473,7 +473,7 @@ macro_rules! arith_binary {
         impl Assign<$OwnedIncomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $OwnedIncomplete<'_>) {
-                $func(self, Some(src.lhs), &src.rhs);
+                $func(self, src.lhs, &src.rhs);
             }
         }
 
@@ -635,7 +635,7 @@ macro_rules! arith_noncommut {
         impl $ImpFrom<&$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$T) {
-                $func_from(self, lhs, None);
+                $func_from(self, lhs, ());
             }
         }
 
@@ -648,7 +648,7 @@ macro_rules! arith_noncommut {
         impl Assign<$FromIncomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $FromIncomplete<'_>) {
-                $func_from(self, src.lhs, Some(src.rhs));
+                $func_from(self, src.lhs, src.rhs);
             }
         }
 
@@ -663,7 +663,7 @@ macro_rules! arith_noncommut {
         impl Assign<$FromOwnedIncomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $FromOwnedIncomplete<'_>) {
-                $func_from(self, &src.lhs, Some(src.rhs));
+                $func_from(self, &src.lhs, src.rhs);
             }
         }
 
@@ -726,7 +726,7 @@ macro_rules! arith_prim {
         impl $ImpAssign<$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $T) {
-                $func(self, None, rhs);
+                $func(self, (), rhs);
             }
         }
 
@@ -746,7 +746,7 @@ macro_rules! arith_prim {
         impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
-                $func(self, Some(src.lhs), src.rhs);
+                $func(self, src.lhs, src.rhs);
             }
         }
 
@@ -894,7 +894,7 @@ macro_rules! arith_prim_noncommut {
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
-                $func_from(self, lhs, None);
+                $func_from(self, lhs, ());
             }
         }
 
@@ -914,7 +914,7 @@ macro_rules! arith_prim_noncommut {
         impl Assign<$FromIncomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $FromIncomplete<'_>) {
-                $func_from(self, src.lhs, Some(src.rhs));
+                $func_from(self, src.lhs, src.rhs);
             }
         }
 

@@ -2471,7 +2471,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn abs_mut(&mut self) {
-        xmpz::abs(self, None);
+        xmpz::abs(self, ());
     }
 
     /// Computes the absolute value.
@@ -2537,7 +2537,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn signum_mut(&mut self) {
-        xmpz::signum(self, None)
+        xmpz::signum(self, ())
     }
 
     /// Computes the signum.
@@ -2708,7 +2708,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn keep_bits_mut(&mut self, n: u32) {
-        xmpz::fdiv_r_2exp(self, None, n)
+        xmpz::fdiv_r_2exp(self, (), n)
     }
 
     /// Keeps the <i>n</i> least significant bits only, producing
@@ -2775,7 +2775,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn keep_signed_bits_mut(&mut self, n: u32) {
-        xmpz::keep_signed_bits(self, None, n);
+        xmpz::keep_signed_bits(self, (), n);
     }
 
     /// Keeps the <i>n</i> least significant bits only, producing
@@ -2837,7 +2837,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn next_power_of_two_mut(&mut self) {
-        xmpz::next_pow_of_two(self, None);
+        xmpz::next_pow_of_two(self, ());
     }
 
     /// Finds the next power of two, or 1 if the number ≤ 0.
@@ -2915,7 +2915,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn div_rem_mut(&mut self, divisor: &mut Self) {
-        xmpz::tdiv_qr(self, divisor, None, None);
+        xmpz::tdiv_qr(self, divisor, (), ());
     }
 
     /// Performs a division producing both the quotient and
@@ -3011,7 +3011,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn div_rem_ceil_mut(&mut self, divisor: &mut Self) {
-        xmpz::cdiv_qr(self, divisor, None, None);
+        xmpz::cdiv_qr(self, divisor, (), ());
     }
 
     /// Performs a division producing both the quotient and
@@ -3106,7 +3106,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn div_rem_floor_mut(&mut self, divisor: &mut Self) {
-        xmpz::fdiv_qr(self, divisor, None, None);
+        xmpz::fdiv_qr(self, divisor, (), ());
     }
 
     /// Performs a division producing both the quotient and
@@ -3206,7 +3206,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn div_rem_round_mut(&mut self, divisor: &mut Self) {
-        xmpz::rdiv_qr(self, divisor, None, None);
+        xmpz::rdiv_qr(self, divisor, (), ());
     }
 
     /// Performs a division producing both the quotient and
@@ -3299,7 +3299,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn div_rem_euc_mut(&mut self, divisor: &mut Self) {
-        xmpz::ediv_qr(self, divisor, None, None);
+        xmpz::ediv_qr(self, divisor, (), ());
     }
 
     /// Performs Euclidan division producing both the quotient and
@@ -3413,7 +3413,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn div_exact_mut(&mut self, divisor: &Self) {
-        xmpz::divexact(self, None, divisor);
+        xmpz::divexact(self, (), divisor);
     }
 
     /// Performs an exact division `dividend` / `self`.
@@ -3515,7 +3515,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn div_exact_u_mut(&mut self, divisor: u32) {
-        xmpz::divexact_u32(self, None, divisor);
+        xmpz::divexact_u32(self, (), divisor);
     }
 
     /// Performs an exact division.
@@ -3612,7 +3612,7 @@ impl Integer {
     pub fn invert_mut(&mut self, modulo: &Self) -> Result<(), ()> {
         match self.invert_ref(modulo) {
             Some(InvertIncomplete { sinverse, .. }) => {
-                xmpz::finish_invert(self, Some(&sinverse), modulo);
+                xmpz::finish_invert(self, &sinverse, modulo);
                 Ok(())
             }
             None => Err(()),
@@ -3740,7 +3740,11 @@ impl Integer {
             Some(PowModIncomplete { sinverse, .. }) => sinverse,
             None => return Err(()),
         };
-        xmpz::pow_mod(self, sinverse.as_ref(), exponent, modulo);
+        if let Some(sinverse) = &sinverse {
+            xmpz::pow_mod(self, sinverse, exponent, modulo);
+        } else {
+            xmpz::pow_mod(self, (), exponent, modulo);
+        }
         Ok(())
     }
 
@@ -3870,7 +3874,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn secure_pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) {
-        xmpz::powm_sec(self, None, exponent, modulo);
+        xmpz::powm_sec(self, (), exponent, modulo);
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo`,
@@ -4015,7 +4019,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn root_mut(&mut self, n: u32) {
-        xmpz::root(self, None, n);
+        xmpz::root(self, (), n);
     }
 
     /// Computes the <i>n</i>th root and truncates the result.
@@ -4095,7 +4099,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn root_rem_mut(&mut self, remainder: &mut Self, n: u32) {
-        xmpz::rootrem(self, remainder, None, n);
+        xmpz::rootrem(self, remainder, (), n);
     }
 
     /// Computes the <i>n</i>th root and returns the truncated
@@ -4171,7 +4175,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn square_mut(&mut self) {
-        xmpz::square(self, None);
+        xmpz::square(self, ());
     }
 
     /// Computes the square.
@@ -4234,7 +4238,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn sqrt_mut(&mut self) {
-        xmpz::sqrt(self, None);
+        xmpz::sqrt(self, ());
     }
 
     /// Computes the square root and truncates the result.
@@ -4310,7 +4314,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn sqrt_rem_mut(&mut self, remainder: &mut Self) {
-        xmpz::sqrtrem(self, remainder, None);
+        xmpz::sqrtrem(self, remainder, ());
     }
 
     /// Computes the square root and the remainder.
@@ -4416,7 +4420,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn next_prime_mut(&mut self) {
-        xmpz::nextprime(self, None);
+        xmpz::nextprime(self, ());
     }
 
     /// Identifies primes using a probabilistic algorithm; the
@@ -4500,7 +4504,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn gcd_mut(&mut self, other: &Self) {
-        xmpz::gcd(self, None, other);
+        xmpz::gcd(self, (), other);
     }
 
     /// Finds the greatest common divisor.
@@ -4584,7 +4588,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn gcd_u_mut(&mut self, other: u32) {
-        xmpz::gcd_u32(self, None, other);
+        xmpz::gcd_u32(self, (), other);
     }
 
     /// Finds the greatest common divisor.
@@ -4713,7 +4717,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn gcd_cofactors_mut(&mut self, other: &mut Self, rop: &mut Self) {
-        xmpz::gcdext(self, other, Some(rop), None, None);
+        xmpz::gcdext(self, other, Some(rop), (), ());
     }
 
     /// Finds the greatest common divisor (GCD) of the two inputs
@@ -4864,7 +4868,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn lcm_mut(&mut self, other: &Self) {
-        xmpz::lcm(self, None, other);
+        xmpz::lcm(self, (), other);
     }
 
     /// Finds the least common multiple.
@@ -4942,7 +4946,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn lcm_u_mut(&mut self, other: u32) {
-        xmpz::lcm_u32(self, None, other);
+        xmpz::lcm_u32(self, (), other);
     }
 
     /// Finds the least common multiple.
@@ -5067,7 +5071,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn remove_factor_mut(&mut self, factor: &Self) -> u32 {
-        xmpz::remove(self, None, factor)
+        xmpz::remove(self, (), factor)
     }
 
     /// Removes all occurrences of `factor`, and counts the number of
@@ -5228,7 +5232,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn binomial_mut(&mut self, k: u32) {
-        xmpz::bin_ui(self, None, k);
+        xmpz::bin_ui(self, (), k);
     }
 
     /// Computes the binomial coefficient over <i>k</i>.
@@ -5503,7 +5507,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn random_below_mut(&mut self, rng: &mut dyn MutRandState) {
-        xmpz::urandomm(self, rng.private().0, None);
+        xmpz::urandomm(self, rng.private().0, ());
     }
 
     #[cfg(feature = "rand")]
@@ -5827,11 +5831,11 @@ impl Assign<PowModIncomplete<'_>> for Integer {
         match (src.ref_self, src.sinverse) {
             (Some(base), None) => {
                 debug_assert_ne!(src.exponent.cmp0(), Ordering::Less);
-                xmpz::pow_mod(self, Some(base), src.exponent, src.modulo);
+                xmpz::pow_mod(self, base, src.exponent, src.modulo);
             }
             (None, Some(sinverse)) => {
                 debug_assert_eq!(src.exponent.cmp0(), Ordering::Less);
-                xmpz::pow_mod(self, Some(&sinverse), src.exponent, src.modulo);
+                xmpz::pow_mod(self, &sinverse, src.exponent, src.modulo);
             }
             _ => unreachable!(),
         }
@@ -5846,12 +5850,12 @@ impl From<PowModIncomplete<'_>> for Integer {
             (Some(base), None) => {
                 debug_assert_ne!(src.exponent.cmp0(), Ordering::Less);
                 let mut dst = Integer::new();
-                xmpz::pow_mod(&mut dst, Some(base), src.exponent, src.modulo);
+                xmpz::pow_mod(&mut dst, base, src.exponent, src.modulo);
                 dst
             }
             (None, Some(mut sinverse)) => {
                 debug_assert_eq!(src.exponent.cmp0(), Ordering::Less);
-                xmpz::pow_mod(&mut sinverse, None, src.exponent, src.modulo);
+                xmpz::pow_mod(&mut sinverse, (), src.exponent, src.modulo);
                 sinverse
             }
             _ => unreachable!(),
@@ -5868,7 +5872,7 @@ pub struct SecurePowModIncomplete<'a> {
 impl Assign<SecurePowModIncomplete<'_>> for Integer {
     #[inline]
     fn assign(&mut self, src: SecurePowModIncomplete<'_>) {
-        xmpz::powm_sec(self, Some(src.ref_self), src.exponent, src.modulo);
+        xmpz::powm_sec(self, src.ref_self, src.exponent, src.modulo);
     }
 }
 
@@ -5888,7 +5892,7 @@ ref_math_op1! { Integer; xmpz::gcd_u32; struct GcdUIncomplete { other: u32 } }
 impl From<GcdUIncomplete<'_>> for Option<u32> {
     #[inline]
     fn from(src: GcdUIncomplete) -> Self {
-        let gcd = xmpz::gcd_ui(None, Some(src.ref_self), src.other.into());
+        let gcd = xmpz::gcd_ui(None, src.ref_self, src.other.into());
         if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
             None
         } else {
@@ -5900,7 +5904,7 @@ impl From<GcdUIncomplete<'_>> for Option<u32> {
 impl Assign<GcdIncomplete<'_>> for (&mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete<'_>) {
-        xmpz::gcdext(self.0, self.1, None, Some(src.ref_self), Some(src.other));
+        xmpz::gcdext(self.0, self.1, None, src.ref_self, src.other);
     }
 }
 
@@ -5916,13 +5920,7 @@ from_assign! { GcdIncomplete<'_> => Integer, Integer }
 impl Assign<GcdIncomplete<'_>> for (&mut Integer, &mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete<'_>) {
-        xmpz::gcdext(
-            self.0,
-            self.1,
-            Some(self.2),
-            Some(src.ref_self),
-            Some(src.other),
-        );
+        xmpz::gcdext(self.0, self.1, Some(self.2), src.ref_self, src.other);
     }
 }
 
@@ -5947,7 +5945,7 @@ pub struct InvertIncomplete<'a> {
 impl Assign<InvertIncomplete<'_>> for Integer {
     #[inline]
     fn assign(&mut self, src: InvertIncomplete<'_>) {
-        xmpz::finish_invert(self, Some(&src.sinverse), src.modulo);
+        xmpz::finish_invert(self, &src.sinverse, src.modulo);
     }
 }
 
@@ -5955,7 +5953,7 @@ impl Assign<InvertIncomplete<'_>> for Integer {
 impl From<InvertIncomplete<'_>> for Integer {
     #[inline]
     fn from(mut src: InvertIncomplete<'_>) -> Self {
-        xmpz::finish_invert(&mut src.sinverse, None, src.modulo);
+        xmpz::finish_invert(&mut src.sinverse, (), src.modulo);
         src.sinverse
     }
 }
@@ -5969,7 +5967,7 @@ pub struct RemoveFactorIncomplete<'a> {
 impl Assign<RemoveFactorIncomplete<'_>> for (&mut Integer, &mut u32) {
     #[inline]
     fn assign(&mut self, src: RemoveFactorIncomplete<'_>) {
-        *self.1 = xmpz::remove(self.0, Some(src.ref_self), src.factor);
+        *self.1 = xmpz::remove(self.0, src.ref_self, src.factor);
     }
 }
 
@@ -6071,7 +6069,7 @@ pub struct RandomBelowIncomplete<'a> {
 impl Assign<RandomBelowIncomplete<'_>> for Integer {
     #[inline]
     fn assign(&mut self, src: RandomBelowIncomplete) {
-        xmpz::urandomm(self, src.rng.private().0, Some(src.ref_self));
+        xmpz::urandomm(self, src.rng.private().0, src.ref_self);
     }
 }
 

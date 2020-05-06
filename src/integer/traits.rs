@@ -79,7 +79,7 @@ impl Assign for Integer {
 impl Assign<&Integer> for Integer {
     #[inline]
     fn assign(&mut self, src: &Integer) {
-        xmpz::set(self, Some(src));
+        xmpz::set(self, src);
     }
 }
 
