@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ext::xmpz,
+    ext::{xmpz, RawOption},
     misc::{AsOrPanic, NegAbs},
     ops::{NegAssign, SubFrom},
     rational::SmallRational,
@@ -28,6 +28,18 @@ use core::{
 };
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use libc::{c_int, c_long, c_ulong};
+
+impl RawOption<mpq_t> for &Rational {
+    const IS_SOME: bool = true;
+    #[inline(always)]
+    fn raw(self) -> *const mpq_t {
+        self.as_raw()
+    }
+    #[inline(always)]
+    fn raw_or(self, _default: *mut mpq_t) -> *const mpq_t {
+        self.as_raw()
+    }
+}
 
 macro_rules! wrap {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {

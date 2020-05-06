@@ -14,7 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{complex::SmallComplex, ext::xmpfr, float::Round, Complex};
+use crate::{
+    complex::SmallComplex,
+    ext::{xmpfr, RawOption},
+    float::Round,
+    Complex,
+};
 use core::cmp::Ordering;
 #[cfg(feature = "rational")]
 use gmp_mpfr_sys::gmp::mpq_t;
@@ -25,6 +30,18 @@ use gmp_mpfr_sys::{
     mpfr::{self, rnd_t as mpfr_rnd_t},
 };
 use libc::{c_int, c_long, c_ulong};
+
+impl RawOption<mpc_t> for &Complex {
+    const IS_SOME: bool = true;
+    #[inline(always)]
+    fn raw(self) -> *const mpc_t {
+        self.as_raw()
+    }
+    #[inline(always)]
+    fn raw_or(self, _default: *mut mpc_t) -> *const mpc_t {
+        self.as_raw()
+    }
+}
 
 pub type Round2 = (Round, Round);
 pub const NEAREST2: Round2 = (Round::Nearest, Round::Nearest);

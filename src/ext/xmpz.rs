@@ -15,6 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    ext::RawOption,
     misc::{AsOrPanic, NegAbs},
     ops::NegAssign,
     Integer,
@@ -30,6 +31,18 @@ use libc::{c_long, c_ulong};
 pub use crate::ext::xmpz32::*;
 #[cfg(gmp_limb_bits_64)]
 pub use crate::ext::xmpz64::*;
+
+impl RawOption<mpz_t> for &Integer {
+    const IS_SOME: bool = true;
+    #[inline(always)]
+    fn raw(self) -> *const mpz_t {
+        self.as_raw()
+    }
+    #[inline(always)]
+    fn raw_or(self, _default: *mut mpz_t) -> *const mpz_t {
+        self.as_raw()
+    }
+}
 
 macro_rules! wrap {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {

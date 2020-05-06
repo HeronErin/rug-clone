@@ -15,6 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    ext::RawOption,
     float::{Round, SmallFloat, Special},
     misc::NegAbs,
     ops::NegAssign,
@@ -35,6 +36,18 @@ use {
     core::cmp,
     gmp_mpfr_sys::gmp::{self, mpz_t},
 };
+
+impl RawOption<mpfr_t> for &Float {
+    const IS_SOME: bool = true;
+    #[inline(always)]
+    fn raw(self) -> *const mpfr_t {
+        self.as_raw()
+    }
+    #[inline(always)]
+    fn raw_or(self, _default: *mut mpfr_t) -> *const mpfr_t {
+        self.as_raw()
+    }
+}
 
 #[inline]
 pub fn raw_round(round: Round) -> rnd_t {
