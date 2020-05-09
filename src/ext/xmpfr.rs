@@ -18,7 +18,7 @@
 use crate::rand::MutRandState;
 use crate::{
     float::{Round, SmallFloat, Special},
-    misc::NegAbs,
+    misc::{AsOrPanic, NegAbs},
     ops::NegAssign,
     Float,
 };
@@ -33,7 +33,7 @@ use libc::{c_int, c_long, c_ulong, c_void, intmax_t, uintmax_t};
 use {crate::Rational, gmp_mpfr_sys::gmp::mpq_t};
 #[cfg(feature = "integer")]
 use {
-    crate::{float, misc::AsOrPanic, Integer},
+    crate::{float, Integer},
     core::cmp,
     gmp_mpfr_sys::gmp::{self, mpz_t},
 };
