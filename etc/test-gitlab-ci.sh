@@ -28,36 +28,6 @@ function print_eval_check {
     exit "$code"
 }
 
-# Check with all feature combinations.
-# integer,rational = rational
-# integer,rand = rand
-# float,complex = complex
-for features in \
-    '' gmp-mpfr-sys{,/mpfr,/mpc} \
-    integer{,\ float,\ complex}{,\ serde} \
-    rational{,\ float,\ complex}{,\ rand}{,\ serde} \
-    float{,\ rand}{,\ serde} \
-    complex{,\ rand}{,\ serde} \
-    rand{,\ serde} \
-    serde
-do
-    if [[ $TOOLCHAIN == beta* ]]; then
-        check=clippy
-    else
-        check=check
-    fi
-    if [[ "$features" =~ ^(()|serde)$ ]]; then
-        gmp=""
-    else
-        gmp="-p gmp-mpfr-sys"
-    fi
-    features="fail-on-warnings${features:+ $features}"
-    print_eval_check \
-        cargo +$TOOLCHAIN $check --all-targets \
-        --no-default-features --features "$features" \
-        $gmp -p rug
-done
-
 # Test with default features and serde
 for build in "" --release; do
     print_eval_check \
@@ -66,10 +36,3 @@ for build in "" --release; do
         --features "fail-on-warnings serde" \
         -p gmp-mpfr-sys -p rug
 done
-
-# For beta, check rustfmt too
-if [[ "$TOOLCHAIN" == beta* ]]; then
-    print_eval_check \
-        cargo "+$TOOLCHAIN" \
-        fmt -- --check
-fi
