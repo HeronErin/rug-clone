@@ -22,12 +22,12 @@ function print_eval_check {
     done
     printf '\n'
     eval $(printf '%q ' "$@")
-    code="$?"
-    if [ "$code" == "0" ]; then
+    code=$?
+    if [ $code == 0 ]; then
         return
     fi
     printf '\n*** Command exited abnormally with code %s\n' "$code"
-    error_code="$code"
+    error_code=$code
 }
 
 # Check formatting.
@@ -60,6 +60,6 @@ do
         $gmp -p rug
 done
 
-if [ "$code" != 0 ]; then
-    exit "$code"
+if [ $error_code != 0 ]; then
+    exit $error_code
 fi
