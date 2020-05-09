@@ -22,8 +22,8 @@ use crate::{
         OrdComplex, Prec,
     },
     ext::{
-        xmpc::{self, ordering2, raw_round2, Ordering2, Round2, NEAREST2},
-        xmpfr::raw_round,
+        xmpc::{self, Ordering2, Round2, NEAREST2},
+        xmpfr,
     },
     float::{
         self,
@@ -45,11 +45,7 @@ use core::{
     ops::{Add, AddAssign, Deref},
     slice,
 };
-use gmp_mpfr_sys::{
-    mpc::{self, mpc_t},
-    mpfr::{self, mpfr_t},
-};
-use libc::c_int;
+use gmp_mpfr_sys::mpc::mpc_t;
 use std::error::Error;
 
 /**
@@ -226,12 +222,10 @@ impl Complex {
                 && p.1 <= float::prec_max(),
             "precision out of range"
         );
-        unsafe {
-            let mut dst = MaybeUninit::uninit();
-            let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpc_t);
-            mpc::init3(inner_ptr, p.0.as_or_panic(), p.1.as_or_panic());
-            dst.assume_init()
-        }
+        let mut ret = MaybeUninit::uninit();
+        xmpc::write_new_nan(&mut ret, p.0.as_or_panic(), p.1.as_or_panic());
+        // Safety: write_new_nan initializes ret.
+        unsafe { ret.assume_init() }
     }
 
     /// Create a new [`Complex`] number with the specified precisions
@@ -721,7 +715,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn real(&self) -> &Float {
-        unsafe { &*cast_ptr!(mpc::realref_const(self.as_raw()), Float) }
+        xmpc::realref_const(self)
     }
 
     /// Borrows the imaginary part as a [`Float`].
@@ -737,7 +731,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn imag(&self) -> &Float {
-        unsafe { &*cast_ptr!(mpc::imagref_const(self.as_raw()), Float) }
+        xmpc::imagref_const(self)
     }
 
     /// Borrows the real part mutably.
@@ -753,7 +747,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_real(&mut self) -> &mut Float {
-        unsafe { &mut *cast_ptr_mut!(mpc::realref(self.as_raw_mut()), Float) }
+        xmpc::realref(self)
     }
 
     /// Borrows the imaginary part mutably.
@@ -769,7 +763,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_imag(&mut self) -> &mut Float {
-        unsafe { &mut *cast_ptr_mut!(mpc::imagref(self.as_raw_mut()), Float) }
+        xmpc::imagref(self)
     }
 
     /// Borrows the real and imaginary parts mutably.
@@ -790,12 +784,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
-        unsafe {
-            (
-                &mut *cast_ptr_mut!(mpc::realref(self.as_raw_mut()), Float),
-                &mut *cast_ptr_mut!(mpc::imagref(self.as_raw_mut()), Float),
-            )
-        }
+        xmpc::realref_imagref(self)
     }
 
     /// Consumes and converts the value into real and imaginary
@@ -815,12 +804,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn into_real_imag(self) -> (Float, Float) {
-        let raw = self.into_raw();
-        unsafe {
-            let real = mpc::realref_const(&raw).read();
-            let imag = mpc::imagref_const(&raw).read();
-            (Float::from_raw(real), Float::from_raw(imag))
-        }
+        xmpc::split(self)
     }
 
     /// Borrows a negated copy of the [`Complex`] number.
@@ -852,10 +836,9 @@ impl Complex {
         raw.re.sign = -raw.re.sign;
         raw.im.sign = -raw.im.sign;
         if self.real().is_nan() || self.imag().is_nan() {
-            unsafe {
-                mpfr::set_nanflag();
-            }
+            xmpfr::set_nanflag();
         }
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowComplex::from_raw(raw) }
     }
 
@@ -887,10 +870,9 @@ impl Complex {
         let mut raw = self.inner;
         raw.im.sign = -raw.im.sign;
         if self.imag().is_nan() {
-            unsafe {
-                mpfr::set_nanflag();
-            }
+            xmpfr::set_nanflag();
         }
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowComplex::from_raw(raw) }
     }
 
@@ -934,10 +916,9 @@ impl Complex {
             raw.re.sign = -raw.re.sign;
         }
         if self.real().is_nan() || self.imag().is_nan() {
-            unsafe {
-                mpfr::set_nanflag();
-            }
+            xmpfr::set_nanflag();
         }
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowComplex::from_raw(raw) }
     }
 
@@ -975,6 +956,7 @@ impl Complex {
     /// [`OrdComplex`]: complex/struct.OrdComplex.html
     #[inline]
     pub fn as_ord(&self) -> &OrdComplex {
+        // Safety: OrdComplex is repr(transparent) over Complex
         unsafe { &*cast_ptr!(self, OrdComplex) }
     }
 
@@ -1023,7 +1005,7 @@ impl Complex {
         {
             None
         } else {
-            unsafe { Some(ordering1(mpc::cmp_abs(self.as_raw(), other.as_raw()))) }
+            Some(xmpc::cmp_abs(self, other))
         }
     }
 
@@ -1315,15 +1297,7 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     #[inline]
     pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round2) -> Ordering2 {
-        let ret = unsafe {
-            xmpc::mulsub(
-                self.as_raw_mut(),
-                (self.as_raw(), mul.as_raw()),
-                sub.as_raw(),
-                raw_round2(round),
-            )
-        };
-        ordering2(ret)
+        xmpc::fma(self, (), mul, &*sub.as_neg(), round)
     }
 
     /// Multiplies and subtracts in one fused operation.
@@ -1831,17 +1805,9 @@ impl Complex {
     #[inline]
     pub fn arg_round(&mut self, round: Round2) -> Ordering2 {
         let (re, im) = self.as_mut_real_imag();
-        let ret = unsafe {
-            mpfr::atan2(
-                re.as_raw_mut(),
-                im.as_raw(),
-                re.as_raw(),
-                raw_round(round.0),
-            )
-        };
-        let dir_re = ordering1(ret);
-        let dir_im = im.assign_round(Special::Zero, round.1);
-        (dir_re, dir_im)
+        let dir_re = xmpfr::atan2(re, &*im, (), round.0);
+        im.assign(Special::Zero);
+        (dir_re, Ordering::Equal)
     }
 
     /// Computes the argument.
@@ -3638,27 +3604,7 @@ where
     type Round = Round2;
     type Ordering = Ordering2;
     fn assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
-        let capacity = match src.values.size_hint() {
-            (lower, None) => lower,
-            (_, Some(upper)) => upper,
-        };
-        let mut reals = Vec::<*const mpfr_t>::with_capacity(capacity);
-        let mut imags = Vec::<*const mpfr_t>::with_capacity(capacity);
-        for value in src.values {
-            reals.push(value.real().as_raw());
-            imags.push(value.imag().as_raw());
-        }
-        let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr_t);
-        let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr_t);
-        let n = reals.len().as_or_panic();
-        let (ord_real, ord_imag) = unsafe {
-            let (real, imag) = self.as_mut_real_imag();
-            (
-                mpfr::sum(real.as_raw_mut(), tab_real, n, raw_round(round.0)),
-                mpfr::sum(imag.as_raw_mut(), tab_imag, n, raw_round(round.1)),
-            )
-        };
-        (ordering1(ord_real), ordering1(ord_imag))
+        xmpc::sum(self, src.values, round)
     }
 }
 
@@ -3691,29 +3637,7 @@ where
     type Round = Round2;
     type Ordering = Ordering2;
     fn add_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
-        let capacity = match src.values.size_hint() {
-            (lower, None) => lower + 1,
-            (_, Some(upper)) => upper + 1,
-        };
-        let mut reals = Vec::<*const mpfr_t>::with_capacity(capacity);
-        let mut imags = Vec::<*const mpfr_t>::with_capacity(capacity);
-        reals.push(self.real().as_raw());
-        imags.push(self.imag().as_raw());
-        for value in src.values {
-            reals.push(value.real().as_raw());
-            imags.push(value.imag().as_raw());
-        }
-        let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr_t);
-        let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr_t);
-        let n = reals.len().as_or_panic();
-        let (ord_real, ord_imag) = unsafe {
-            let (real, imag) = self.as_mut_real_imag();
-            (
-                mpfr::sum(real.as_raw_mut(), tab_real, n, raw_round(round.0)),
-                mpfr::sum(imag.as_raw_mut(), tab_imag, n, raw_round(round.1)),
-            )
-        };
-        (ordering1(ord_real), ordering1(ord_imag))
+        xmpc::sum_including_old(self, src.values, round)
     }
 }
 
@@ -3734,15 +3658,11 @@ fn prods_real(pairs: &[(&Complex, &Complex)]) -> Vec<Float> {
         let (brp, bip) = (br.prec(), bi.prec());
         let bp = cmp::max(brp, bip);
         let mut r = Float::new(arp.checked_add(bp).expect("overflow"));
-        unsafe {
-            mpfr::set_prec(r.as_raw_mut(), (arp + brp).as_or_panic());
-        }
+        xmpfr::set_prec_nan(&mut r, (arp + brp).as_or_panic());
         r.assign(ar * br);
         prods.push(r);
         r = Float::new(aip.checked_add(bp).expect("overflow"));
-        unsafe {
-            mpfr::set_prec(r.as_raw_mut(), (aip + bip).as_or_panic());
-        }
+        xmpfr::set_prec_nan(&mut r, (aip + bip).as_or_panic());
         r.assign(ai * bi);
         r.neg_assign();
         prods.push(r);
@@ -3757,14 +3677,10 @@ fn prods_imag(prods: &mut Vec<Float>, pairs: &[(&Complex, &Complex)]) {
         let (br, bi) = (b.real(), b.imag());
         let (arp, aip) = (ar.prec(), ai.prec());
         let (brp, bip) = (br.prec(), bi.prec());
-        unsafe {
-            mpfr::set_prec(prods[i].as_raw_mut(), (arp + bip).as_or_panic());
-        }
+        xmpfr::set_prec_nan(&mut prods[i], (arp + bip).as_or_panic());
         prods[i].assign(ar * bi);
         i += 1;
-        unsafe {
-            mpfr::set_prec(prods[i].as_raw_mut(), (aip + brp).as_or_panic());
-        }
+        xmpfr::set_prec_nan(&mut prods[i], (aip + brp).as_or_panic());
         prods[i].assign(ai * br);
         i += 1;
     }
@@ -3847,8 +3763,7 @@ impl AssignRound<AbsIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: AbsIncomplete<'_>, round: Round) -> Ordering {
-        let ret = unsafe { mpc::abs(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round)) };
-        ret.cmp(&0)
+        xmpc::abs(self, src.ref_self, round)
     }
 }
 
@@ -3862,8 +3777,7 @@ impl AssignRound<ArgIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: ArgIncomplete<'_>, round: Round) -> Ordering {
-        let ret = unsafe { mpc::arg(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round)) };
-        ret.cmp(&0)
+        xmpc::arg(self, src.ref_self, round)
     }
 }
 
@@ -3880,8 +3794,7 @@ impl AssignRound<NormIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: NormIncomplete<'_>, round: Round) -> Ordering {
-        let ret = unsafe { mpc::norm(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round)) };
-        ret.cmp(&0)
+        xmpc::norm(self, src.ref_self, round)
     }
 }
 
@@ -4227,9 +4140,4 @@ impl Display for ParseComplexError {
             CloseNotLast => Display::fmt("string has more characters after closing bracket", f),
         }
     }
-}
-
-#[inline]
-fn ordering1(ord: c_int) -> Ordering {
-    ord.cmp(&0)
 }

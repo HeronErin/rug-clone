@@ -16,12 +16,12 @@
 
 use crate::{
     complex::OrdComplex,
+    ext::xmpfr,
     float,
     misc::AsOrPanic,
     serdeize::{self, Data, PrecReq, PrecVal},
     Assign, Complex,
 };
-use gmp_mpfr_sys::mpfr;
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError},
     ser::{Serialize, Serializer},
@@ -57,11 +57,8 @@ impl<'de> Deserialize<'de> for Complex {
     ) -> Result<(), D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
-        unsafe {
-            let parts = place.as_mut_real_imag();
-            mpfr::set_prec(parts.0.as_raw_mut(), prec.0.as_or_panic());
-            mpfr::set_prec(parts.1.as_raw_mut(), prec.1.as_or_panic());
-        }
+        xmpfr::set_prec_nan(place.mut_real(), prec.0.as_or_panic());
+        xmpfr::set_prec_nan(place.mut_imag(), prec.1.as_or_panic());
         place.assign(p);
         Ok(())
     }

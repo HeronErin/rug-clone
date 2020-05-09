@@ -17,7 +17,7 @@
 #[cfg(feature = "integer")]
 use crate::Integer;
 use crate::{
-    ext::xmpfr::{self, ordering1, raw_round},
+    ext::xmpfr,
     float::{
         big::{self, ExpFormat, Format},
         Constant, OrdFloat, Round, Special,
@@ -32,10 +32,8 @@ use core::{
         Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult,
         UpperExp, UpperHex,
     },
-    mem,
 };
 use gmp_mpfr_sys::mpfr;
-use libc::{c_long, c_ulong};
 #[cfg(feature = "rational")]
 use {
     crate::{rational::TryFromFloatError, Rational},
@@ -54,9 +52,7 @@ impl Clone for Float {
 
     #[inline]
     fn clone_from(&mut self, source: &Float) {
-        unsafe {
-            mpfr::set_prec(self.as_raw_mut(), source.prec().as_or_panic());
-        }
+        xmpfr::set_prec_nan(self, source.prec().as_or_panic());
         if !source.is_nan() {
             self.assign(source);
         }
@@ -66,6 +62,7 @@ impl Clone for Float {
 impl Drop for Float {
     #[inline]
     fn drop(&mut self) {
+        // Safety: we are freeing memory. This is sound as self must be initialized.
         unsafe {
             mpfr::clear(self.as_raw_mut());
         }
@@ -180,16 +177,13 @@ impl AssignRound<Constant> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: Constant, round: Round) -> Ordering {
-        let ret = unsafe {
-            match src {
-                Constant::Log2 => mpfr::const_log2(self.as_raw_mut(), raw_round(round)),
-                Constant::Pi => mpfr::const_pi(self.as_raw_mut(), raw_round(round)),
-                Constant::Euler => mpfr::const_euler(self.as_raw_mut(), raw_round(round)),
-                Constant::Catalan => mpfr::const_catalan(self.as_raw_mut(), raw_round(round)),
-                _ => unreachable!(),
-            }
-        };
-        ordering1(ret)
+        match src {
+            Constant::Log2 => xmpfr::const_log2(self, round),
+            Constant::Pi => xmpfr::const_pi(self, round),
+            Constant::Euler => xmpfr::const_euler(self, round),
+            Constant::Catalan => xmpfr::const_catalan(self, round),
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -200,36 +194,7 @@ impl AssignRound<Special> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: Special, _round: Round) -> Ordering {
-        const EXP_MAX: c_long = ((!0 as c_ulong) >> 1) as c_long;
-        const EXP_ZERO: c_long = 0 - EXP_MAX;
-        const EXP_NAN: c_long = 1 - EXP_MAX;
-        const EXP_INF: c_long = 2 - EXP_MAX;
-        unsafe {
-            let ptr = self.as_raw_mut();
-            match src {
-                Special::Zero => {
-                    (*ptr).sign = 1;
-                    (*ptr).exp = EXP_ZERO;
-                }
-                Special::NegZero => {
-                    (*ptr).sign = -1;
-                    (*ptr).exp = EXP_ZERO;
-                }
-                Special::Infinity => {
-                    (*ptr).sign = 1;
-                    (*ptr).exp = EXP_INF;
-                }
-                Special::NegInfinity => {
-                    (*ptr).sign = -1;
-                    (*ptr).exp = EXP_INF;
-                }
-                Special::Nan => {
-                    (*ptr).sign = 1;
-                    (*ptr).exp = EXP_NAN;
-                }
-                _ => unreachable!(),
-            }
-        }
+        xmpfr::set_special(self, src);
         Ordering::Equal
     }
 }
@@ -242,11 +207,9 @@ impl AssignRound for Float {
     #[inline]
     fn assign_round(&mut self, src: Float, round: Round) -> Ordering {
         if self.prec() == src.prec() {
-            drop(mem::replace(self, src));
+            *self = src;
             if self.is_nan() {
-                unsafe {
-                    mpfr::set_nanflag();
-                }
+                xmpfr::set_nanflag();
             }
             Ordering::Equal
         } else {
@@ -260,8 +223,7 @@ impl AssignRound<&Float> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: &Float, round: Round) -> Ordering {
-        let ret = unsafe { mpfr::set(self.as_raw_mut(), src.as_raw(), raw_round(round)) };
-        ordering1(ret)
+        xmpfr::set(self, src, round)
     }
 }
 
@@ -273,8 +235,7 @@ macro_rules! assign {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: &$T, round: Round) -> Ordering {
-                let ret = unsafe { $func(self.as_raw_mut(), src.as_raw(), raw_round(round)) };
-                ordering1(ret)
+                $func(self, src, round)
             }
         }
 
@@ -290,9 +251,9 @@ macro_rules! assign {
 }
 
 #[cfg(feature = "integer")]
-assign! { Integer, mpfr::set_z }
+assign! { Integer, xmpfr::set_z }
 #[cfg(feature = "rational")]
-assign! { Rational, mpfr::set_q }
+assign! { Rational, xmpfr::set_q }
 
 macro_rules! conv_ops {
     ($T:ty, $set:path) => {
@@ -301,8 +262,7 @@ macro_rules! conv_ops {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: $T, round: Round) -> Ordering {
-                let ret = unsafe { $set(self.as_raw_mut(), src.into(), raw_round(round)) };
-                ordering1(ret)
+                $set(self, src.into(), round)
             }
         }
 
@@ -325,20 +285,20 @@ macro_rules! conv_ops_cast {
     };
 }
 
-conv_ops! { i8, mpfr::set_si }
-conv_ops! { i16, mpfr::set_si }
-conv_ops! { i32, mpfr::set_si }
-conv_ops! { i64, mpfr::set_sj }
+conv_ops! { i8, xmpfr::set_si }
+conv_ops! { i16, xmpfr::set_si }
+conv_ops! { i32, xmpfr::set_si }
+conv_ops! { i64, xmpfr::set_sj }
 conv_ops! { i128, xmpfr::set_i128 }
 #[cfg(target_pointer_width = "32")]
 conv_ops_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
 conv_ops_cast! { isize, i64 }
 
-conv_ops! { u8, mpfr::set_ui }
-conv_ops! { u16, mpfr::set_ui }
-conv_ops! { u32, mpfr::set_ui }
-conv_ops! { u64, mpfr::set_uj }
+conv_ops! { u8, xmpfr::set_ui }
+conv_ops! { u16, xmpfr::set_ui }
+conv_ops! { u32, xmpfr::set_ui }
+conv_ops! { u64, xmpfr::set_uj }
 conv_ops! { u128, xmpfr::set_u128 }
 #[cfg(target_pointer_width = "32")]
 conv_ops_cast! { usize, u32 }
@@ -383,6 +343,7 @@ fn fmt_radix(flt: &Float, fmt: &mut Formatter<'_>, format: Format, prefix: &str)
     fmt.pad_integral(!neg, prefix, buf)
 }
 
+// Safety: mpfr_t is thread safe as guaranteed by the MPFR library.
 unsafe impl Send for Float {}
 unsafe impl Sync for Float {}
 

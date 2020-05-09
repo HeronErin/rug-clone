@@ -19,53 +19,51 @@ use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
 use crate::{
-    ext::xmpfr::{self, ordering1},
+    ext::xmpfr,
     float::{
         big::{IExpIncomplete, UExpIncomplete},
         Special,
     },
     Float,
 };
-use az::Az;
+use az::Cast;
 use core::cmp::Ordering;
-use gmp_mpfr_sys::mpfr;
 
 impl PartialEq for Float {
     #[inline]
     fn eq(&self, other: &Float) -> bool {
-        unsafe { mpfr::equal_p(self.as_raw(), other.as_raw()) != 0 }
+        xmpfr::equal_p(self, other)
     }
 }
 
 impl PartialOrd for Float {
     #[inline]
     fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
-        unsafe {
-            match mpfr::unordered_p(self.as_raw(), other.as_raw()) {
-                0 => Some(ordering1(mpfr::cmp(self.as_raw(), other.as_raw()))),
-                _ => None,
-            }
+        if xmpfr::unordered_p(self, other) {
+            None
+        } else {
+            Some(xmpfr::cmp(self, other))
         }
     }
 
     #[inline]
     fn lt(&self, other: &Float) -> bool {
-        unsafe { mpfr::less_p(self.as_raw(), other.as_raw()) != 0 }
+        xmpfr::less_p(self, other)
     }
 
     #[inline]
     fn le(&self, other: &Float) -> bool {
-        unsafe { mpfr::lessequal_p(self.as_raw(), other.as_raw()) != 0 }
+        xmpfr::lessequal_p(self, other)
     }
 
     #[inline]
     fn gt(&self, other: &Float) -> bool {
-        unsafe { mpfr::greater_p(self.as_raw(), other.as_raw()) != 0 }
+        xmpfr::greater_p(self, other)
     }
 
     #[inline]
     fn ge(&self, other: &Float) -> bool {
-        unsafe { mpfr::greaterequal_p(self.as_raw(), other.as_raw()) != 0 }
+        xmpfr::greaterequal_p(self, other)
     }
 }
 
@@ -95,16 +93,17 @@ macro_rules! cmp {
 }
 
 macro_rules! cmp_i {
-    ($T:ty, $eval:expr) => {
+    ($T:ty, |$f:ident, $o:ident| $eval:expr) => {
         cmp! { $T }
 
         impl PartialOrd<$T> for Float {
             #[inline]
-            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
+            fn partial_cmp(&self, $o: &$T) -> Option<Ordering> {
                 if self.is_nan() {
                     None
                 } else {
-                    Some(ordering1($eval(self.as_raw(), other)))
+                    let $f = self;
+                    Some($eval)
                 }
             }
         }
@@ -112,16 +111,17 @@ macro_rules! cmp_i {
 }
 
 macro_rules! cmp_f {
-    ($T:ty, $eval:expr) => {
+    ($T:ty, |$f:ident, $o:ident| $eval:expr) => {
         cmp! { $T }
 
         impl PartialOrd<$T> for Float {
             #[inline]
-            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                if self.is_nan() || other.is_nan() {
+            fn partial_cmp(&self, $o: &$T) -> Option<Ordering> {
+                if self.is_nan() || $o.is_nan() {
                     None
                 } else {
-                    Some(ordering1($eval(self.as_raw(), other)))
+                    let $f = self;
+                    Some($eval)
                 }
             }
         }
@@ -129,32 +129,32 @@ macro_rules! cmp_f {
 }
 
 #[cfg(feature = "integer")]
-cmp_i! { Integer, |f, t: &Integer| unsafe { mpfr::cmp_z(f, t.as_raw()) } }
+cmp_i! { Integer, |f, z| xmpfr::cmp_z(f, z) }
 #[cfg(feature = "rational")]
-cmp_i! { Rational, |f, t: &Rational| unsafe { mpfr::cmp_q(f, t.as_raw()) } }
+cmp_i! { Rational, |f, q| xmpfr::cmp_q(f, q) }
 
-cmp_i! { i8, |f, &t: &i8| unsafe { mpfr::cmp_si(f, t.into()) } }
-cmp_i! { i16, |f, &t: &i16| unsafe { mpfr::cmp_si(f, t.into()) } }
-cmp_i! { i32, |f, &t: &i32| unsafe { mpfr::cmp_si(f, t.into()) } }
-cmp_i! { i64, |f, &t: &i64| unsafe { xmpfr::cmp_i64(f, t) } }
-cmp_i! { i128, |f, &t: &i128| unsafe { xmpfr::cmp_i128(f, t) } }
+cmp_i! { i8, |f, t| xmpfr::cmp_si(f, (*t).into()) }
+cmp_i! { i16, |f, t| xmpfr::cmp_si(f, (*t).into()) }
+cmp_i! { i32, |f, t| xmpfr::cmp_si(f, (*t).into()) }
+cmp_i! { i64, |f, t| xmpfr::cmp_i64(f, *t) }
+cmp_i! { i128, |f, t| xmpfr::cmp_i128(f, *t) }
 #[cfg(target_pointer_width = "32")]
-cmp_i! { isize, |f, &t: &isize| unsafe { mpfr::cmp_si(f, t.az()) } }
+cmp_i! { isize, |f, t| xmpfr::cmp_si(f, (*t).cast()) }
 #[cfg(target_pointer_width = "64")]
-cmp_i! { isize, |f, &t: &isize| unsafe { xmpfr::cmp_i64(f, t.az()) } }
+cmp_i! { isize, |f, t| xmpfr::cmp_i64(f, (*t).cast()) }
 
-cmp_i! { u8, |f, &t: &u8| unsafe { mpfr::cmp_ui(f, t.into()) } }
-cmp_i! { u16, |f, &t: &u16| unsafe { mpfr::cmp_ui(f, t.into()) } }
-cmp_i! { u32, |f, &t: &u32| unsafe { mpfr::cmp_ui(f, t.into()) } }
-cmp_i! { u64, |f, &t: &u64| unsafe { xmpfr::cmp_u64(f, t) } }
-cmp_i! { u128, |f, &t: &u128| unsafe { xmpfr::cmp_u128(f, t) } }
+cmp_i! { u8, |f, t| xmpfr::cmp_ui(f, (*t).into()) }
+cmp_i! { u16, |f, t| xmpfr::cmp_ui(f, (*t).into()) }
+cmp_i! { u32, |f, t| xmpfr::cmp_ui(f, (*t).into()) }
+cmp_i! { u64, |f, t| xmpfr::cmp_u64(f, *t) }
+cmp_i! { u128, |f, t| xmpfr::cmp_u128(f, *t) }
 #[cfg(target_pointer_width = "32")]
-cmp_i! { usize, |f, &t: &usize| unsafe { mpfr::cmp_ui(f, t.az()) } }
+cmp_i! { usize, |f, t| xmpfr::cmp_ui(f, (*t).cast()) }
 #[cfg(target_pointer_width = "64")]
-cmp_i! { usize, |f, &t: &usize| unsafe { xmpfr::cmp_u64(f, t.az()) } }
+cmp_i! { usize, |f, t| xmpfr::cmp_u64(f, (*t).cast()) }
 
-cmp_f! { f32, |f, &t: &f32| unsafe { mpfr::cmp_d(f, t.into()) } }
-cmp_f! { f64, |f, &t: &f64| unsafe { mpfr::cmp_d(f, t) } }
+cmp_f! { f32, |f, t| xmpfr::cmp_f64(f, (*t).into()) }
+cmp_f! { f64, |f, t| xmpfr::cmp_f64(f, *t) }
 
 cmp! { Special }
 

@@ -103,6 +103,11 @@ pub struct SmallComplex {
     last_limbs: Limbs,
 }
 
+// Safety: SmallComplex cannot be Sync because it contains an
+// UnsafeCell which is written to then read without further
+// protection, so it could lead to data races. But SmallComplex can be
+// Send because if it is owned, no other reference can be used to
+// modify the UnsafeCell.
 unsafe impl Send for SmallComplex {}
 
 impl Default for SmallComplex {
@@ -112,6 +117,12 @@ impl Default for SmallComplex {
     }
 }
 
+// Safety: Mpfr has a repr equivalent to mpfr_t, so Mpc has a repr
+// equivalent to mpc_t. The difference in the repr(C) types Mpfr and
+// mpfr_t is that Mpfr uses UnsafeCell<NonNull<limb_t>> instead of
+// *mut limb_t, but both UnsafeCell and NonNull are repr(transparent).
+// The difference in the repr(C) types Mpc and mpc_t is that Mpc uses
+// Mpfr instead of mpfr_t.
 #[derive(Clone)]
 #[repr(C)]
 struct Mpc {
@@ -182,6 +193,8 @@ impl SmallComplex {
     ///
     /// [`Complex`]: ../struct.Complex.html
     #[inline]
+    // Safety: after calling update_d(), self.inner.d points to the
+    // limbs so it is in a consistent state.
     pub unsafe fn as_nonreallocating_complex(&mut self) -> &mut Complex {
         self.update_d();
         let ptr = cast_ptr_mut!(&mut self.inner, Complex);
@@ -189,6 +202,7 @@ impl SmallComplex {
     }
 
     #[inline]
+    // Safety: self is not Sync, so reading d does not cause a data race.
     fn re_is_first(&self) -> bool {
         unsafe { *self.inner.re.d.get() <= *self.inner.im.d.get() }
     }
@@ -208,6 +222,7 @@ impl SmallComplex {
         } else {
             (last, first)
         };
+        // Safety: self is not Sync, so we can write to d without causing a data race.
         unsafe {
             *self.inner.re.d.get() = re_d.cast();
             *self.inner.im.d.get() = im_d.cast();
@@ -221,6 +236,9 @@ impl Deref for SmallComplex {
     fn deref(&self) -> &Complex {
         self.update_d();
         let ptr = cast_ptr!(&self.inner, Complex);
+        // Safety: since we called update_d, the inner pointer is
+        // pointing to the limbs and the complex number is in a
+        // consistent state.
         unsafe { &*ptr }
     }
 }

@@ -44,7 +44,7 @@ use gmp_mpfr_sys::{
     gmp::{self, limb_t},
     mpfr::{self, exp_t, mpfr_t},
 };
-use libc::{c_char, c_int, c_long, c_ulong};
+use libc::{c_char, c_long, c_ulong};
 use std::{
     error::Error,
     ffi::{CStr, CString},
@@ -423,11 +423,10 @@ impl Float {
             prec >= float::prec_min() && prec <= float::prec_max(),
             "precision out of range"
         );
-        unsafe {
-            let mut ret = MaybeUninit::uninit();
-            mpfr::init2(cast_ptr_mut!(ret.as_mut_ptr(), mpfr_t), prec.as_or_panic());
-            ret.assume_init()
-        }
+        let mut ret = MaybeUninit::uninit();
+        xmpfr::write_new_nan(&mut ret, prec.as_or_panic());
+        // Safety: write_new_nan initializes ret.
+        unsafe { ret.assume_init() }
     }
 
     /// Returns the precision.
@@ -441,7 +440,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn prec(&self) -> u32 {
-        unsafe { mpfr::get_prec(self.as_raw()).as_or_panic() }
+        xmpfr::get_prec(self).as_or_panic()
     }
 
     /// Sets the precision, rounding to the nearest.
@@ -489,9 +488,7 @@ impl Float {
             prec >= float::prec_min() && prec <= float::prec_max(),
             "precision out of range"
         );
-        let ret =
-            unsafe { mpfr::prec_round(self.as_raw_mut(), prec.as_or_panic(), raw_round(round)) };
-        ordering1(ret)
+        xmpfr::prec_round(self, prec.as_or_panic(), round)
     }
 
     /// Creates a [`Float`] from an initialized
@@ -1039,7 +1036,7 @@ impl Float {
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32_round(&self, round: Round) -> f32 {
-        unsafe { xmpfr::get_f32(self.as_raw(), raw_round(round)) }
+        xmpfr::get_f32(self, round)
     }
 
     /// Converts to an [`f64`], rounding to the nearest.
@@ -1084,7 +1081,7 @@ impl Float {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_round(&self, round: Round) -> f64 {
-        unsafe { mpfr::get_d(self.as_raw(), raw_round(round)) }
+        xmpfr::get_f64(self, round)
     }
 
     /// Converts to an [`f32`] and an exponent, rounding to the
@@ -1137,18 +1134,12 @@ impl Float {
     pub fn to_f32_exp_round(&self, round: Round) -> (f32, i32) {
         let mut sf = SmallFloat::from(0.0f32);
         assert_eq!(sf.prec(), 24);
-        // since we won't change precision, we can mutate the Float
-        let mut exp: c_long = 0;
-        let f = unsafe {
-            // mpfr::set will not change precision of sf, so we can
-            // use the unsafe as_nonreallocating_float function
-            mpfr::set(
-                sf.as_nonreallocating_float().as_raw_mut(),
-                self.as_raw(),
-                raw_round(round),
-            );
-            mpfr::get_d_2exp(&mut exp, sf.as_raw(), raw_round(round))
-        };
+        // Safety: xmpfr::set will not change precision of sf, so we
+        // can use the unsafe as_nonreallocating_float function.
+        unsafe {
+            xmpfr::set(sf.as_nonreallocating_float(), self, round);
+        }
+        let (f, exp) = xmpfr::get_f64_2exp(&*sf, Round::Zero);
         (f as f32, exp.as_or_panic())
     }
 
@@ -1200,8 +1191,7 @@ impl Float {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
-        let mut exp: c_long = 0;
-        let f = unsafe { mpfr::get_d_2exp(&mut exp, self.as_raw(), raw_round(round)) };
+        let (f, exp) = xmpfr::get_f64_2exp(self, round);
         (f, exp.as_or_panic())
     }
 
@@ -1301,10 +1291,9 @@ impl Float {
         let mut raw = self.inner;
         raw.sign = -raw.sign;
         if self.is_nan() {
-            unsafe {
-                mpfr::set_nanflag();
-            }
+            xmpfr::set_nanflag();
         }
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowFloat::from_raw(raw) }
     }
 
@@ -1336,10 +1325,9 @@ impl Float {
         let mut raw = self.inner;
         raw.sign = 1;
         if self.is_nan() {
-            unsafe {
-                mpfr::set_nanflag();
-            }
+            xmpfr::set_nanflag();
         }
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowFloat::from_raw(raw) }
     }
 
@@ -1376,6 +1364,7 @@ impl Float {
     /// [`OrdFloat`]: float/struct.OrdFloat.html
     #[inline]
     pub fn as_ord(&self) -> &OrdFloat {
+        // Safety: OrdFloat is repr(transparent) over Float
         unsafe { &*cast_ptr!(self, OrdFloat) }
     }
 
@@ -1408,7 +1397,7 @@ impl Float {
     /// [`Float`]: struct.Float.html
     pub fn as_complex(&self) -> BorrowComplex<'_> {
         // im.d is set to be the same as re.d since the precision is equal;
-        // though it should not need to be read as the imaginary part is 0.
+        // though it will not be read as the imaginary part is 0 (which is singular).
         let raw_complex = mpc_t {
             re: self.inner,
             im: mpfr_t {
@@ -1418,6 +1407,7 @@ impl Float {
                 d: self.inner.d,
             },
         };
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowComplex::from_raw(raw_complex) }
     }
 
@@ -1436,7 +1426,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_integer(&self) -> bool {
-        unsafe { mpfr::integer_p(self.as_raw()) != 0 }
+        xmpfr::integer_p(self)
     }
 
     /// Returns [`true`] if `self` is not a number.
@@ -1454,7 +1444,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_nan(&self) -> bool {
-        unsafe { mpfr::nan_p(self.as_raw()) != 0 }
+        xmpfr::nan_p(self)
     }
 
     /// Returns [`true`] if `self` is plus or minus infinity.
@@ -1472,7 +1462,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_infinite(&self) -> bool {
-        unsafe { mpfr::inf_p(self.as_raw()) != 0 }
+        xmpfr::inf_p(self)
     }
 
     /// Returns [`true`] if `self` is a finite number, that is neither
@@ -1491,7 +1481,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_finite(&self) -> bool {
-        unsafe { mpfr::number_p(self.as_raw()) != 0 }
+        xmpfr::number_p(self)
     }
 
     /// Returns [`true`] if `self` is plus or minus zero.
@@ -1511,7 +1501,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_zero(&self) -> bool {
-        unsafe { mpfr::zero_p(self.as_raw()) != 0 }
+        xmpfr::zero_p(self)
     }
 
     /// Returns [`true`] if `self` is a normal number, that is neither
@@ -1536,7 +1526,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_normal(&self) -> bool {
-        unsafe { mpfr::regular_p(self.as_raw()) != 0 }
+        xmpfr::regular_p(self)
     }
 
     /// Returns the floating-point category of the number. Note that
@@ -1560,17 +1550,14 @@ impl Float {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn classify(&self) -> FpCategory {
-        let inner: *const mpfr_t = self.as_raw();
-        unsafe {
-            if mpfr::nan_p(inner) != 0 {
-                FpCategory::Nan
-            } else if mpfr::inf_p(inner) != 0 {
-                FpCategory::Infinite
-            } else if mpfr::zero_p(inner) != 0 {
-                FpCategory::Zero
-            } else {
-                FpCategory::Normal
-            }
+        if xmpfr::nan_p(self) {
+            FpCategory::Nan
+        } else if xmpfr::inf_p(self) {
+            FpCategory::Infinite
+        } else if xmpfr::zero_p(self) {
+            FpCategory::Zero
+        } else {
+            FpCategory::Normal
         }
     }
 
@@ -1599,8 +1586,7 @@ impl Float {
         if self.is_nan() {
             None
         } else {
-            let ret = unsafe { mpfr::sgn(self.as_raw()) };
-            Some(ordering1(ret))
+            Some(xmpfr::sgn(self))
         }
     }
 
@@ -1618,11 +1604,10 @@ impl Float {
     /// ```
     #[inline]
     pub fn cmp_abs(&self, other: &Self) -> Option<Ordering> {
-        unsafe {
-            match mpfr::unordered_p(self.as_raw(), other.as_raw()) {
-                0 => Some(ordering1(mpfr::cmpabs(self.as_raw(), other.as_raw()))),
-                _ => None,
-            }
+        if xmpfr::unordered_p(self, other) {
+            None
+        } else {
+            Some(xmpfr::cmpabs(self, other))
         }
     }
 
@@ -1650,8 +1635,7 @@ impl Float {
     #[inline]
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
-            let e = unsafe { mpfr::get_exp(self.as_raw()) };
-            Some(e.as_or_panic())
+            Some(xmpfr::get_exp(self).as_or_panic())
         } else {
             None
         }
@@ -1713,6 +1697,7 @@ impl Float {
                 size: limbs.as_or_panic(),
                 d: self.inner.d,
             };
+            // Safety: the lifetime of the return type is equal to the lifetime of self.
             Some(unsafe { BorrowInteger::from_raw(raw_int) })
         } else {
             None
@@ -1754,7 +1739,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_sign_negative(&self) -> bool {
-        unsafe { mpfr::signbit(self.as_raw()) != 0 }
+        xmpfr::signbit(self)
     }
 
     /// Sets to the next value towards `to`.
@@ -1772,9 +1757,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn next_toward(&mut self, to: &Self) {
-        unsafe {
-            mpfr::nexttoward(self.as_raw_mut(), to.as_raw());
-        }
+        xmpfr::nexttoward(self, to);
     }
 
     /// Sets to the next value towards +∞.
@@ -1791,9 +1774,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn next_up(&mut self) {
-        unsafe {
-            mpfr::nextabove(self.as_raw_mut());
-        }
+        xmpfr::nextabove(self);
     }
 
     /// Sets to the next value towards −∞.
@@ -1810,9 +1791,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn next_down(&mut self) {
-        unsafe {
-            mpfr::nextbelow(self.as_raw_mut());
-        }
+        xmpfr::nextbelow(self);
     }
 
     /// Emulate subnormal numbers for precisions specified in IEEE
@@ -1976,7 +1955,7 @@ impl Float {
         let sub_exp_min = exp_min
             .checked_sub((self.prec() - 1).as_or_panic::<exp_t>())
             .expect("overflow");
-        let exp = unsafe { mpfr::get_exp(self.as_raw()) };
+        let exp = xmpfr::get_exp(self);
         if exp < sub_exp_min || exp >= exp_min {
             return prev_rounding;
         }
@@ -2404,16 +2383,7 @@ impl Float {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::fma(
-                self.as_raw_mut(),
-                self.as_raw(),
-                mul.as_raw(),
-                add.as_raw(),
-                raw_round(round),
-            )
-        };
-        ordering1(ret)
+        xmpfr::fma(self, (), mul, add, round)
     }
 
     /// Multiplies and adds in one fused operation.
@@ -2537,16 +2507,7 @@ impl Float {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::fms(
-                self.as_raw_mut(),
-                self.as_raw(),
-                mul.as_raw(),
-                sub.as_raw(),
-                raw_round(round),
-            )
-        };
-        ordering1(ret)
+        xmpfr::fms(self, (), mul, sub, round)
     }
 
     /// Multiplies and subtracts in one fused operation.
@@ -2667,17 +2628,7 @@ impl Float {
         add_mul2: &Self,
         round: Round,
     ) -> Ordering {
-        let ret = unsafe {
-            mpfr::fmma(
-                self.as_raw_mut(),
-                self.as_raw(),
-                mul.as_raw(),
-                add_mul1.as_raw(),
-                add_mul2.as_raw(),
-                raw_round(round),
-            )
-        };
-        ordering1(ret)
+        xmpfr::fmma(self, (), mul, add_mul1, add_mul2, round)
     }
 
     /// Multiplies two products and adds them in one fused operation.
@@ -2801,17 +2752,7 @@ impl Float {
         sub_mul2: &Self,
         round: Round,
     ) -> Ordering {
-        let ret = unsafe {
-            mpfr::fmms(
-                self.as_raw_mut(),
-                self.as_raw(),
-                mul.as_raw(),
-                sub_mul1.as_raw(),
-                sub_mul2.as_raw(),
-                raw_round(round),
-            )
-        };
-        ordering1(ret)
+        xmpfr::fmms(self, (), mul, sub_mul1, sub_mul2, round)
     }
 
     /// Multiplies two products and subtracts them in one fused
@@ -3705,9 +3646,7 @@ impl Float {
             }
         } else {
             if self.is_nan() {
-                unsafe {
-                    mpfr::set_nanflag();
-                }
+                xmpfr::set_nanflag();
             }
             Ordering::Equal
         }
@@ -7159,16 +7098,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_abs_gamma_round(&mut self, round: Round) -> (Ordering, Ordering) {
-        let mut sign: c_int = 0;
-        let sign_ptr: *mut c_int = &mut sign;
-        let ret =
-            unsafe { mpfr::lgamma(self.as_raw_mut(), sign_ptr, self.as_raw(), raw_round(round)) };
-        let sign_ord = if sign < 0 {
-            Ordering::Less
-        } else {
-            Ordering::Greater
-        };
-        (sign_ord, ordering1(ret))
+        xmpfr::lgamma(self, (), round)
     }
 
     /// Computes the logarithm of the absolute value of the gamma
@@ -9069,14 +8999,7 @@ where
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
-        let refs = src
-            .values
-            .map(|r| -> *const mpfr_t { r.as_raw() })
-            .collect::<Vec<_>>();
-        let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
-        let n = refs.len().as_or_panic();
-        let ret = unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
-        ordering1(ret)
+        xmpfr::sum(self, src.values, round)
     }
 }
 
@@ -9109,17 +9032,7 @@ where
     type Round = Round;
     type Ordering = Ordering;
     fn add_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
-        let capacity = match src.values.size_hint() {
-            (lower, None) => lower + 1,
-            (_, Some(upper)) => upper + 1,
-        };
-        let mut refs = Vec::<*const mpfr_t>::with_capacity(capacity);
-        refs.push(self.as_raw());
-        refs.extend(src.values.map(|r| -> *const mpfr_t { r.as_raw() }));
-        let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
-        let n = refs.len().as_or_panic();
-        let ret = unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
-        ordering1(ret)
+        xmpfr::sum_including_old(self, src.values, round)
     }
 }
 
@@ -9309,22 +9222,9 @@ impl AssignRound<LnAbsGammaIncomplete<'_>> for (&mut Float, &mut Ordering) {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: LnAbsGammaIncomplete<'_>, round: Round) -> Ordering {
-        let mut sign: c_int = 0;
-        let sign_ptr: *mut c_int = &mut sign;
-        let ret = unsafe {
-            mpfr::lgamma(
-                self.0.as_raw_mut(),
-                sign_ptr,
-                src.ref_self.as_raw(),
-                raw_round(round),
-            )
-        };
-        *self.1 = if sign < 0 {
-            Ordering::Less
-        } else {
-            Ordering::Greater
-        };
-        ordering1(ret)
+        let (sign_ord, ord) = xmpfr::lgamma(self.0, src.ref_self, round);
+        *self.1 = sign_ord;
+        ord
     }
 }
 
@@ -9382,10 +9282,7 @@ pub struct RandomBitsIncomplete<'a> {
 impl Assign<RandomBitsIncomplete<'_>> for Float {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
-        unsafe {
-            let err = mpfr::urandomb(self.as_raw_mut(), src.rng.private().0);
-            assert_eq!(self.is_nan(), err != 0);
-        }
+        xmpfr::urandomb(self, src.rng);
     }
 }
 
@@ -9400,9 +9297,7 @@ impl AssignRound<RandomContIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: RandomContIncomplete, round: Round) -> Ordering {
-        let ret =
-            unsafe { mpfr::urandom(self.as_raw_mut(), src.rng.private().0, raw_round(round)) };
-        ordering1(ret)
+        xmpfr::urandom(self, src.rng, round)
     }
 }
 
@@ -9417,9 +9312,7 @@ impl AssignRound<RandomNormalIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: RandomNormalIncomplete, round: Round) -> Ordering {
-        let ret =
-            unsafe { mpfr::nrandom(self.as_raw_mut(), src.rng.private().0, raw_round(round)) };
-        ordering1(ret)
+        xmpfr::nrandom(self, src.rng, round)
     }
 }
 
@@ -9434,9 +9327,7 @@ impl AssignRound<RandomExpIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: RandomExpIncomplete, round: Round) -> Ordering {
-        let ret =
-            unsafe { mpfr::erandom(self.as_raw_mut(), src.rng.private().0, raw_round(round)) };
-        ordering1(ret)
+        xmpfr::erandom(self, src.rng, round)
     }
 }
 
@@ -9528,7 +9419,7 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
         };
         #[allow(clippy::approx_constant)]
         const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
-        let exp = ((unsafe { mpfr::get_exp(f.as_raw()) }).az::<f64>() / log2_radix - 1.0).abs();
+        let exp = (xmpfr::get_exp(f).az::<f64>() / log2_radix - 1.0).abs();
         // add 1 for '-' and an extra 1 in case of rounding errors
         let exp_digits = (exp * LOG10_2).ceil() as usize + 2;
         // '.', exp separator, exp_digits
@@ -9952,9 +9843,7 @@ impl PartialOrd<UExpIncomplete> for Float {
         if self.is_nan() {
             None
         } else {
-            Some(ordering1(unsafe {
-                xmpfr::cmp_u32_2exp(self.as_raw(), other.u, other.exp)
-            }))
+            Some(xmpfr::cmp_u32_2exp(self, other.u, other.exp))
         }
     }
 }
@@ -9965,9 +9854,7 @@ impl PartialOrd<IExpIncomplete> for Float {
         if self.is_nan() {
             None
         } else {
-            Some(ordering1(unsafe {
-                xmpfr::cmp_i32_2exp(self.as_raw(), other.i, other.exp)
-            }))
+            Some(xmpfr::cmp_i32_2exp(self, other.i, other.exp))
         }
     }
 }

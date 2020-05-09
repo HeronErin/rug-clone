@@ -14,15 +14,20 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{complex::SmallComplex, ext::xmpfr, float::Round, Complex};
-use core::cmp::Ordering;
+use crate::{
+    complex::SmallComplex,
+    ext::xmpfr::{self, ordering1, raw_round},
+    float::Round,
+    Complex, Float,
+};
+use core::{cmp::Ordering, mem::MaybeUninit};
 #[cfg(feature = "rational")]
 use gmp_mpfr_sys::gmp::mpq_t;
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp::mpz_t;
 use gmp_mpfr_sys::{
     mpc::{self, mpc_t, rnd_t},
-    mpfr::{self, rnd_t as mpfr_rnd_t},
+    mpfr::{self, mpfr_t, prec_t, rnd_t as mpfr_rnd_t},
 };
 use libc::{c_int, c_long, c_ulong};
 
@@ -97,7 +102,7 @@ fn ordering4(ord: c_int) -> (Ordering2, Ordering2) {
     (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
 }
 
-macro_rules! wrap {
+macro_rules! unsafe_wrap {
     (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
         pub fn $fn<$($O: OptComplex),*>(
@@ -158,27 +163,161 @@ pub fn sin_cos<O: OptComplex>(
     ordering4(unsafe { mpc::sin_cos(rop_sin, rop_cos, op, raw_round2(rnd), raw_round2(rnd)) })
 }
 
-wrap! { fn fma(op1: O, op2: P, op3: Q) -> mpc::fma }
+pub fn sum<'a, I>(rop: &mut Complex, values: I, rnd: Round2) -> Ordering2
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    let (real, imag) = rop.as_mut_real_imag();
+    let capacity = match values.size_hint() {
+        (lower, None) => lower,
+        (_, Some(upper)) => upper,
+    };
+    let mut pointers_real = Vec::<*const mpfr_t>::with_capacity(capacity);
+    let mut pointers_imag = Vec::<*const mpfr_t>::with_capacity(capacity);
+    for value in values {
+        pointers_real.push(value.real().as_raw());
+        pointers_imag.push(value.imag().as_raw());
+    }
+    unsafe {
+        (
+            xmpfr::sum_raw(real.as_raw_mut(), &pointers_real, rnd.0),
+            xmpfr::sum_raw(imag.as_raw_mut(), &pointers_imag, rnd.1),
+        )
+    }
+}
 
-wrap! { fn proj(op: O) -> mpc::proj }
-wrap! { fn sqr(op: O) -> mpc::sqr }
-wrap! { fn sqrt(op: O) -> mpc::sqrt }
-wrap! { fn conj(op: O) -> mpc::conj }
-wrap! { fn log(op: O) -> mpc::log }
-wrap! { fn log10(op: O) -> mpc::log10 }
-wrap! { fn exp(op: O) -> mpc::exp }
-wrap! { fn sin(op: O) -> mpc::sin }
-wrap! { fn cos(op: O) -> mpc::cos }
-wrap! { fn tan(op: O) -> mpc::tan }
-wrap! { fn sinh(op: O) -> mpc::sinh }
-wrap! { fn cosh(op: O) -> mpc::cosh }
-wrap! { fn tanh(op: O) -> mpc::tanh }
-wrap! { fn asin(op: O) -> mpc::asin }
-wrap! { fn acos(op: O) -> mpc::acos }
-wrap! { fn atan(op: O) -> mpc::atan }
-wrap! { fn asinh(op: O) -> mpc::asinh }
-wrap! { fn acosh(op: O) -> mpc::acosh }
-wrap! { fn atanh(op: O) -> mpc::atanh }
+// add original value of rop to sum
+#[inline]
+pub fn sum_including_old<'a, I>(rop: &mut Complex, values: I, rnd: Round2) -> Ordering2
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    let (real, imag) = rop.as_mut_real_imag();
+    let (real, imag) = (real.as_raw_mut(), imag.as_raw_mut());
+    let capacity = match values.size_hint() {
+        (lower, None) => lower + 1,
+        (_, Some(upper)) => upper + 1,
+    };
+    let mut pointers_real = Vec::with_capacity(capacity);
+    let mut pointers_imag = Vec::with_capacity(capacity);
+    pointers_real.push(real as *const mpfr_t);
+    pointers_imag.push(imag as *const mpfr_t);
+    for value in values {
+        pointers_real.push(value.real().as_raw());
+        pointers_imag.push(value.imag().as_raw());
+    }
+    unsafe {
+        (
+            xmpfr::sum_raw(real, &pointers_real, rnd.0),
+            xmpfr::sum_raw(imag, &pointers_imag, rnd.1),
+        )
+    }
+}
+
+unsafe_wrap! { fn fma(op1: O, op2: P, op3: Q) -> mpc::fma }
+
+unsafe_wrap! { fn set(op: O) -> mpc::set }
+unsafe_wrap! { fn proj(op: O) -> mpc::proj }
+unsafe_wrap! { fn sqr(op: O) -> mpc::sqr }
+unsafe_wrap! { fn sqrt(op: O) -> mpc::sqrt }
+unsafe_wrap! { fn conj(op: O) -> mpc::conj }
+unsafe_wrap! { fn log(op: O) -> mpc::log }
+unsafe_wrap! { fn log10(op: O) -> mpc::log10 }
+unsafe_wrap! { fn exp(op: O) -> mpc::exp }
+unsafe_wrap! { fn sin(op: O) -> mpc::sin }
+unsafe_wrap! { fn cos(op: O) -> mpc::cos }
+unsafe_wrap! { fn tan(op: O) -> mpc::tan }
+unsafe_wrap! { fn sinh(op: O) -> mpc::sinh }
+unsafe_wrap! { fn cosh(op: O) -> mpc::cosh }
+unsafe_wrap! { fn tanh(op: O) -> mpc::tanh }
+unsafe_wrap! { fn asin(op: O) -> mpc::asin }
+unsafe_wrap! { fn acos(op: O) -> mpc::acos }
+unsafe_wrap! { fn atan(op: O) -> mpc::atan }
+unsafe_wrap! { fn asinh(op: O) -> mpc::asinh }
+unsafe_wrap! { fn acosh(op: O) -> mpc::acosh }
+unsafe_wrap! { fn atanh(op: O) -> mpc::atanh }
+
+#[inline]
+pub fn write_new_nan(dst: &mut MaybeUninit<Complex>, prec_real: prec_t, prec_imag: prec_t) {
+    // Safety: we can cast pointers to/from Complex/mpc_t as they are repr(transparent).
+    unsafe {
+        let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpc_t);
+        mpc::init3(inner_ptr, prec_real, prec_imag);
+    }
+}
+
+#[inline]
+pub fn write_real_imag(dst: &mut MaybeUninit<Complex>, real: Float, imag: Float) {
+    // Safety:
+    //   * We can cast pointers to/from Complex/mpc_t as they are repr(transparent).
+    //   * We can cast pointers to/from Float/mpfr_t as they are repr(transparent).
+    //   * realref/imagref only offset the pointers, and can operate on uninit memory.
+    unsafe {
+        let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpc_t);
+        let real_ptr = cast_ptr_mut!(mpc::realref(inner_ptr), Float);
+        real_ptr.write(real);
+        let imag_ptr = cast_ptr_mut!(mpc::imagref(inner_ptr), Float);
+        imag_ptr.write(imag);
+    }
+}
+
+#[inline]
+pub fn realref_const(c: &Complex) -> &Float {
+    unsafe { &*cast_ptr!(mpc::realref_const(c.as_raw()), Float) }
+}
+
+#[inline]
+pub fn imagref_const(c: &Complex) -> &Float {
+    unsafe { &*cast_ptr!(mpc::imagref_const(c.as_raw()), Float) }
+}
+
+#[inline]
+pub fn realref(c: &mut Complex) -> &mut Float {
+    unsafe { &mut *cast_ptr_mut!(mpc::realref(c.as_raw_mut()), Float) }
+}
+
+#[inline]
+pub fn imagref(c: &mut Complex) -> &mut Float {
+    unsafe { &mut *cast_ptr_mut!(mpc::imagref(c.as_raw_mut()), Float) }
+}
+
+#[inline]
+pub fn realref_imagref(c: &mut Complex) -> (&mut Float, &mut Float) {
+    let c = c.as_raw_mut();
+    unsafe {
+        (
+            &mut *cast_ptr_mut!(mpc::realref(c), Float),
+            &mut *cast_ptr_mut!(mpc::imagref(c), Float),
+        )
+    }
+}
+
+#[inline]
+pub fn split(c: Complex) -> (Float, Float) {
+    let raw = c.into_raw();
+    // raw has no Drop
+    unsafe { (Float::from_raw(raw.re), Float::from_raw(raw.im)) }
+}
+
+#[inline]
+pub fn abs(f: &mut Float, c: &Complex, round: Round) -> Ordering {
+    ordering1(unsafe { mpc::abs(f.as_raw_mut(), c.as_raw(), raw_round(round)) })
+}
+
+#[inline]
+pub fn arg(f: &mut Float, c: &Complex, round: Round) -> Ordering {
+    ordering1(unsafe { mpc::arg(f.as_raw_mut(), c.as_raw(), raw_round(round)) })
+}
+
+#[inline]
+pub fn norm(f: &mut Float, c: &Complex, round: Round) -> Ordering {
+    ordering1(unsafe { mpc::norm(f.as_raw_mut(), c.as_raw(), raw_round(round)) })
+}
+
+#[inline]
+pub fn cmp_abs(op1: &Complex, op2: &Complex) -> Ordering {
+    ordering1(unsafe { mpc::cmp_abs(op1.as_raw(), op2.as_raw()) })
+}
 
 macro_rules! sum_forward {
     (fn $name:ident($T:ty) -> $func:path) => {

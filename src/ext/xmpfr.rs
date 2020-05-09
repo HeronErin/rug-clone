@@ -14,6 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(feature = "rand")]
+use crate::rand::MutRandState;
 use crate::{
     float::{Round, SmallFloat, Special},
     misc::NegAbs,
@@ -22,16 +24,16 @@ use crate::{
 };
 use az::CheckedAs;
 use core::{cmp::Ordering, mem::MaybeUninit};
-#[cfg(feature = "rational")]
-use gmp_mpfr_sys::gmp::mpq_t;
 use gmp_mpfr_sys::{
     gmp::limb_t,
     mpfr::{self, exp_t, mpfr_t, prec_t, rnd_t},
 };
-use libc::{c_int, c_void};
+use libc::{c_int, c_long, c_ulong, c_void, intmax_t, uintmax_t};
+#[cfg(feature = "rational")]
+use {crate::Rational, gmp_mpfr_sys::gmp::mpq_t};
 #[cfg(feature = "integer")]
 use {
-    crate::{float, misc::AsOrPanic},
+    crate::{float, misc::AsOrPanic, Integer},
     core::cmp,
     gmp_mpfr_sys::gmp::{self, mpz_t},
 };
@@ -100,7 +102,7 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     (ordering1(first), ordering1(second))
 }
 
-macro_rules! wrap {
+macro_rules! unsafe_wrap {
     (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
         pub fn $fn<$($O: OptFloat),*>(
@@ -116,21 +118,11 @@ macro_rules! wrap {
     };
 }
 
-macro_rules! wrap0 {
+macro_rules! unsafe_wrap0 {
     (fn $fn:ident($($param:ident: $T:ty),*) -> $deleg:path) => {
         #[inline]
-        pub fn $fn(
-            rop: &mut Float,
-            $($param: $T,)*
-            rnd: Round,
-        ) -> Ordering {
-            ordering1(unsafe {
-                $deleg(
-                    rop.as_raw_mut(),
-                    $($param.into(),)*
-                    raw_round(rnd),
-                )
-            })
+        pub fn $fn(rop: &mut Float, $($param: $T,)* rnd: Round) -> Ordering {
+            ordering1(unsafe { $deleg(rop.as_raw_mut(), $($param.into(),)* raw_round(rnd)) })
         }
     };
 }
@@ -166,19 +158,29 @@ pub fn si_pow_ui(rop: &mut Float, base: i32, exponent: u32, rnd: Round) -> Order
     }
 }
 
+#[inline]
+pub fn write_new_nan(x: &mut MaybeUninit<Float>, prec: prec_t) {
+    // Safety: we can cast pointers to/from Float/mpfr_t as they are repr(transparent).
+    unsafe {
+        let inner_ptr = cast_ptr_mut!(x.as_mut_ptr(), mpfr_t);
+        mpfr::init2(inner_ptr, prec);
+    }
+}
+
 // do not use mpfr::neg for op is () to avoid function call
 #[inline]
 pub fn neg<O: OptFloat>(rop: &mut Float, op: O, rnd: Round) -> Ordering {
     if O::IS_SOME {
         ordering1(unsafe { mpfr::neg(rop.as_raw_mut(), op.mpfr(), raw_round(rnd)) })
     } else {
+        // Safety: negating the sign of mpfr_t is always sound.
         unsafe {
             rop.inner_mut().sign.neg_assign();
-            if rop.is_nan() {
-                mpfr::set_nanflag();
-            }
-            Ordering::Equal
         }
+        if rop.is_nan() {
+            set_nanflag();
+        }
+        Ordering::Equal
     }
 }
 
@@ -186,15 +188,17 @@ pub fn neg<O: OptFloat>(rop: &mut Float, op: O, rnd: Round) -> Ordering {
 pub fn signum<O: OptFloat>(rop: &mut Float, op: O, _rnd: Round) -> Ordering {
     let rop = rop.as_raw_mut();
     let op = op.mpfr_or(rop);
-    ordering1(unsafe {
+    unsafe {
         if mpfr::nan_p(op) != 0 {
-            mpfr::set(rop, op, rnd_t::RNDZ)
+            mpfr::set(rop, op, rnd_t::RNDZ);
         } else if mpfr::signbit(op) != 0 {
-            mpfr::set_si(rop, -1, rnd_t::RNDZ)
+            mpfr::set_si(rop, -1, rnd_t::RNDZ);
         } else {
-            mpfr::set_si(rop, 1, rnd_t::RNDZ)
+            mpfr::set_si(rop, 1, rnd_t::RNDZ);
         }
-    })
+    }
+    // mpfr_t has a minimum precision of 1, so -1 and 1 are exactly representable
+    Ordering::Equal
 }
 
 #[inline]
@@ -257,73 +261,232 @@ pub fn modf<O: OptFloat>(
     ordering2(unsafe { mpfr::modf(rop_i, rop_f, op, raw_round(rnd)) })
 }
 
-wrap! { fn remainder(x: O, y: P) -> mpfr::remainder }
-wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> mpfr::ui_pow_ui }
-wrap0! { fn ui_2exp(ui: u32, exponent: i32) -> mpfr::set_ui_2exp }
-wrap0! { fn si_2exp(si: i32, exponent: i32) -> mpfr::set_si_2exp }
-wrap! { fn copysign(op1: O, op2: P) -> mpfr::copysign }
-wrap! { fn sqr(op: O) -> mpfr::sqr }
-wrap! { fn sqrt(op: O) -> mpfr::sqrt }
-wrap0! { fn sqrt_ui(u: u32) -> mpfr::sqrt_ui }
-wrap! { fn rec_sqrt(op: O) -> mpfr::rec_sqrt }
-wrap! { fn cbrt(op: O) -> mpfr::cbrt }
-wrap! { fn rootn_ui(op: O; k: u32) -> mpfr::rootn_ui }
-wrap! { fn abs(op: O) -> mpfr::abs }
-wrap! { fn min(op1: O, op2: P) -> mpfr::min }
-wrap! { fn max(op1: O, op2: P) -> mpfr::max }
-wrap! { fn dim(op1: O, op2: P) -> mpfr::dim }
-wrap! { fn log(op: O) -> mpfr::log }
-wrap0! { fn log_ui(u: u32) -> mpfr::log_ui }
-wrap! { fn log2(op: O) -> mpfr::log2 }
-wrap! { fn log10(op: O) -> mpfr::log10 }
-wrap! { fn exp(op: O) -> mpfr::exp }
-wrap! { fn exp2(op: O) -> mpfr::exp2 }
-wrap! { fn exp10(op: O) -> mpfr::exp10 }
-wrap! { fn sin(op: O) -> mpfr::sin }
-wrap! { fn cos(op: O) -> mpfr::cos }
-wrap! { fn tan(op: O) -> mpfr::tan }
-wrap! { fn sec(op: O) -> mpfr::sec }
-wrap! { fn csc(op: O) -> mpfr::csc }
-wrap! { fn cot(op: O) -> mpfr::cot }
-wrap! { fn acos(op: O) -> mpfr::acos }
-wrap! { fn asin(op: O) -> mpfr::asin }
-wrap! { fn atan(op: O) -> mpfr::atan }
-wrap! { fn atan2(y: O, x: P) -> mpfr::atan2 }
-wrap! { fn cosh(op: O) -> mpfr::cosh }
-wrap! { fn sinh(op: O) -> mpfr::sinh }
-wrap! { fn tanh(op: O) -> mpfr::tanh }
-wrap! { fn sech(op: O) -> mpfr::sech }
-wrap! { fn csch(op: O) -> mpfr::csch }
-wrap! { fn coth(op: O) -> mpfr::coth }
-wrap! { fn acosh(op: O) -> mpfr::acosh }
-wrap! { fn asinh(op: O) -> mpfr::asinh }
-wrap! { fn atanh(op: O) -> mpfr::atanh }
-wrap0! { fn fac_ui(n: u32) -> mpfr::fac_ui }
-wrap! { fn log1p(op: O) -> mpfr::log1p }
-wrap! { fn expm1(op: O) -> mpfr::expm1 }
-wrap! { fn eint(op: O) -> mpfr::eint }
-wrap! { fn li2(op: O) -> mpfr::li2 }
-wrap! { fn gamma(op: O) -> mpfr::gamma }
-wrap! { fn gamma_inc(op1: O, op2: P) -> mpfr::gamma_inc }
-wrap! { fn lngamma(op: O) -> mpfr::lngamma }
-wrap! { fn digamma(op: O) -> mpfr::digamma }
-wrap! { fn zeta(op: O) -> mpfr::zeta }
-wrap0! { fn zeta_ui(u: u32) -> mpfr::zeta_ui }
-wrap! { fn erf(op: O) -> mpfr::erf }
-wrap! { fn erfc(op: O) -> mpfr::erfc }
-wrap! { fn j0(op: O) -> mpfr::j0 }
-wrap! { fn j1(op: O) -> mpfr::j1 }
-wrap! { fn y0(op: O) -> mpfr::y0 }
-wrap! { fn y1(op: O) -> mpfr::y1 }
-wrap! { fn agm(op1: O, op2: P) -> mpfr::agm }
-wrap! { fn hypot(x: O, y: P) -> mpfr::hypot }
-wrap! { fn ai(op: O) -> mpfr::ai }
-wrap! { fn rint_ceil(op: O) -> mpfr::rint_ceil }
-wrap! { fn rint_floor(op: O) -> mpfr::rint_floor }
-wrap! { fn rint_round(op: O) -> mpfr::rint_round }
-wrap! { fn rint_roundeven(op: O) -> mpfr::rint_roundeven }
-wrap! { fn rint_trunc(op: O) -> mpfr::rint_trunc }
-wrap! { fn frac(op: O) -> mpfr::frac }
+#[inline]
+pub fn lgamma<O: OptFloat>(rop: &mut Float, op: O, rnd: Round) -> (Ordering, Ordering) {
+    let mut sign = MaybeUninit::uninit();
+    let rop = rop.as_raw_mut();
+    let op = op.mpfr_or(rop);
+    let ord = ordering1(unsafe { mpfr::lgamma(rop, sign.as_mut_ptr(), op, raw_round(rnd)) });
+    let sign_ord = if (unsafe { sign.assume_init() }) < 0 {
+        Ordering::Less
+    } else {
+        Ordering::Greater
+    };
+    (sign_ord, ord)
+}
+
+pub fn sum<'a, I>(rop: &mut Float, values: I, rnd: Round) -> Ordering
+where
+    I: Iterator<Item = &'a Float>,
+{
+    let pointers = values.map(Float::as_raw).collect::<Vec<_>>();
+    unsafe { sum_raw(rop.as_raw_mut(), &pointers, rnd) }
+}
+
+// add original value of rop to sum
+pub fn sum_including_old<'a, I>(rop: &mut Float, values: I, rnd: Round) -> Ordering
+where
+    I: Iterator<Item = &'a Float>,
+{
+    let rop = rop.as_raw_mut();
+    let capacity = match values.size_hint() {
+        (lower, None) => lower + 1,
+        (_, Some(upper)) => upper + 1,
+    };
+    let mut pointers = Vec::with_capacity(capacity);
+    pointers.push(rop as *const mpfr_t);
+    pointers.extend(values.map(Float::as_raw));
+    unsafe { sum_raw(rop, &pointers, rnd) }
+}
+
+pub unsafe fn sum_raw(rop: *mut mpfr_t, pointers: &[*const mpfr_t], rnd: Round) -> Ordering {
+    let n = pointers.len().as_or_panic();
+    let tab = cast_ptr!(pointers.as_ptr(), *mut mpfr_t);
+    ordering1(mpfr::sum(rop, tab, n, raw_round(rnd)))
+}
+
+unsafe_wrap! { fn set(src: O) -> mpfr::set }
+unsafe_wrap0! { fn set_si(src: c_long) -> mpfr::set_si }
+unsafe_wrap0! { fn set_sj(src: intmax_t) -> mpfr::set_sj }
+unsafe_wrap0! { fn set_ui(src: c_ulong) -> mpfr::set_ui }
+unsafe_wrap0! { fn set_uj(src: uintmax_t) -> mpfr::set_uj }
+unsafe_wrap0! { fn set_f64(src: f64) -> mpfr::set_d }
+unsafe_wrap0! { fn prec_round(prec: prec_t) -> mpfr::prec_round }
+unsafe_wrap! { fn remainder(x: O, y: P) -> mpfr::remainder }
+unsafe_wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> mpfr::ui_pow_ui }
+unsafe_wrap0! { fn ui_2exp(ui: u32, exponent: i32) -> mpfr::set_ui_2exp }
+unsafe_wrap0! { fn si_2exp(si: i32, exponent: i32) -> mpfr::set_si_2exp }
+unsafe_wrap! { fn copysign(op1: O, op2: P) -> mpfr::copysign }
+unsafe_wrap! { fn sqr(op: O) -> mpfr::sqr }
+unsafe_wrap! { fn sqrt(op: O) -> mpfr::sqrt }
+unsafe_wrap0! { fn sqrt_ui(u: u32) -> mpfr::sqrt_ui }
+unsafe_wrap! { fn rec_sqrt(op: O) -> mpfr::rec_sqrt }
+unsafe_wrap! { fn cbrt(op: O) -> mpfr::cbrt }
+unsafe_wrap! { fn rootn_ui(op: O; k: u32) -> mpfr::rootn_ui }
+unsafe_wrap! { fn abs(op: O) -> mpfr::abs }
+unsafe_wrap! { fn min(op1: O, op2: P) -> mpfr::min }
+unsafe_wrap! { fn max(op1: O, op2: P) -> mpfr::max }
+unsafe_wrap! { fn dim(op1: O, op2: P) -> mpfr::dim }
+unsafe_wrap! { fn log(op: O) -> mpfr::log }
+unsafe_wrap0! { fn log_ui(u: u32) -> mpfr::log_ui }
+unsafe_wrap! { fn log2(op: O) -> mpfr::log2 }
+unsafe_wrap! { fn log10(op: O) -> mpfr::log10 }
+unsafe_wrap! { fn exp(op: O) -> mpfr::exp }
+unsafe_wrap! { fn exp2(op: O) -> mpfr::exp2 }
+unsafe_wrap! { fn exp10(op: O) -> mpfr::exp10 }
+unsafe_wrap! { fn sin(op: O) -> mpfr::sin }
+unsafe_wrap! { fn cos(op: O) -> mpfr::cos }
+unsafe_wrap! { fn tan(op: O) -> mpfr::tan }
+unsafe_wrap! { fn sec(op: O) -> mpfr::sec }
+unsafe_wrap! { fn csc(op: O) -> mpfr::csc }
+unsafe_wrap! { fn cot(op: O) -> mpfr::cot }
+unsafe_wrap! { fn acos(op: O) -> mpfr::acos }
+unsafe_wrap! { fn asin(op: O) -> mpfr::asin }
+unsafe_wrap! { fn atan(op: O) -> mpfr::atan }
+unsafe_wrap! { fn atan2(y: O, x: P) -> mpfr::atan2 }
+unsafe_wrap! { fn cosh(op: O) -> mpfr::cosh }
+unsafe_wrap! { fn sinh(op: O) -> mpfr::sinh }
+unsafe_wrap! { fn tanh(op: O) -> mpfr::tanh }
+unsafe_wrap! { fn sech(op: O) -> mpfr::sech }
+unsafe_wrap! { fn csch(op: O) -> mpfr::csch }
+unsafe_wrap! { fn coth(op: O) -> mpfr::coth }
+unsafe_wrap! { fn acosh(op: O) -> mpfr::acosh }
+unsafe_wrap! { fn asinh(op: O) -> mpfr::asinh }
+unsafe_wrap! { fn atanh(op: O) -> mpfr::atanh }
+unsafe_wrap0! { fn fac_ui(n: u32) -> mpfr::fac_ui }
+unsafe_wrap! { fn log1p(op: O) -> mpfr::log1p }
+unsafe_wrap! { fn expm1(op: O) -> mpfr::expm1 }
+unsafe_wrap! { fn eint(op: O) -> mpfr::eint }
+unsafe_wrap! { fn li2(op: O) -> mpfr::li2 }
+unsafe_wrap! { fn gamma(op: O) -> mpfr::gamma }
+unsafe_wrap! { fn gamma_inc(op1: O, op2: P) -> mpfr::gamma_inc }
+unsafe_wrap! { fn lngamma(op: O) -> mpfr::lngamma }
+unsafe_wrap! { fn digamma(op: O) -> mpfr::digamma }
+unsafe_wrap! { fn zeta(op: O) -> mpfr::zeta }
+unsafe_wrap0! { fn zeta_ui(u: u32) -> mpfr::zeta_ui }
+unsafe_wrap! { fn erf(op: O) -> mpfr::erf }
+unsafe_wrap! { fn erfc(op: O) -> mpfr::erfc }
+unsafe_wrap! { fn j0(op: O) -> mpfr::j0 }
+unsafe_wrap! { fn j1(op: O) -> mpfr::j1 }
+unsafe_wrap! { fn y0(op: O) -> mpfr::y0 }
+unsafe_wrap! { fn y1(op: O) -> mpfr::y1 }
+unsafe_wrap! { fn agm(op1: O, op2: P) -> mpfr::agm }
+unsafe_wrap! { fn hypot(x: O, y: P) -> mpfr::hypot }
+unsafe_wrap! { fn ai(op: O) -> mpfr::ai }
+unsafe_wrap! { fn rint_ceil(op: O) -> mpfr::rint_ceil }
+unsafe_wrap! { fn rint_floor(op: O) -> mpfr::rint_floor }
+unsafe_wrap! { fn rint_round(op: O) -> mpfr::rint_round }
+unsafe_wrap! { fn rint_roundeven(op: O) -> mpfr::rint_roundeven }
+unsafe_wrap! { fn rint_trunc(op: O) -> mpfr::rint_trunc }
+unsafe_wrap! { fn frac(op: O) -> mpfr::frac }
+unsafe_wrap0! { fn const_log2() -> mpfr::const_log2 }
+unsafe_wrap0! { fn const_pi() -> mpfr::const_pi }
+unsafe_wrap0! { fn const_euler() -> mpfr::const_euler }
+unsafe_wrap0! { fn const_catalan() -> mpfr::const_catalan }
+unsafe_wrap! { fn fma(op1: O, op2: P, op3: Q) -> mpfr::fma }
+unsafe_wrap! { fn fms(op1: O, op2: P, op3: Q) -> mpfr::fms }
+unsafe_wrap! { fn fmma(op1: O, op2: P, op3: Q, op4: R) -> mpfr::fmma }
+unsafe_wrap! { fn fmms(op1: O, op2: P, op3: Q, op4: R) -> mpfr::fmms }
+
+#[inline]
+pub fn set_nanflag() {
+    unsafe {
+        mpfr::set_nanflag();
+    }
+}
+
+#[inline]
+pub fn set_prec_nan(x: &mut Float, prec: prec_t) {
+    unsafe {
+        mpfr::set_prec(x.as_raw_mut(), prec);
+    }
+}
+
+#[inline]
+pub fn set_special(x: &mut Float, src: Special) {
+    const EXP_MAX: c_long = ((!0 as c_ulong) >> 1) as c_long;
+    const EXP_ZERO: c_long = 0 - EXP_MAX;
+    const EXP_NAN: c_long = 1 - EXP_MAX;
+    const EXP_INF: c_long = 2 - EXP_MAX;
+    // Safety: We do not change inner.d, and we set inner.exp to
+    // indicate a singular number so even if the data at inner.d is
+    // uninitialized, we still won't use it.
+    unsafe {
+        let inner = x.inner_mut();
+        match src {
+            Special::Zero => {
+                inner.sign = 1;
+                inner.exp = EXP_ZERO;
+            }
+            Special::NegZero => {
+                inner.sign = -1;
+                inner.exp = EXP_ZERO;
+            }
+            Special::Infinity => {
+                inner.sign = 1;
+                inner.exp = EXP_INF;
+            }
+            Special::NegInfinity => {
+                inner.sign = -1;
+                inner.exp = EXP_INF;
+            }
+            Special::Nan => {
+                inner.sign = 1;
+                inner.exp = EXP_NAN;
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
+#[cfg(feature = "integer")]
+#[inline]
+pub fn set_z(dst: &mut Float, src: &Integer, rnd: Round) -> Ordering {
+    ordering1(unsafe { mpfr::set_z(dst.as_raw_mut(), src.as_raw(), raw_round(rnd)) })
+}
+
+#[cfg(feature = "rational")]
+#[inline]
+pub fn set_q(dst: &mut Float, src: &Rational, rnd: Round) -> Ordering {
+    ordering1(unsafe { mpfr::set_q(dst.as_raw_mut(), src.as_raw(), raw_round(rnd)) })
+}
+
+#[inline]
+pub fn set_f32(dst: &mut Float, src: f32, rnd: Round) -> Ordering {
+    set_f64(dst, src.into(), rnd)
+}
+
+#[inline]
+pub fn set_i128(rop: &mut Float, val: i128, rnd: Round) -> Ordering {
+    let small = SmallFloat::from(val);
+    set(rop, &*small, rnd)
+}
+
+#[inline]
+pub fn set_u128(rop: &mut Float, val: u128, rnd: Round) -> Ordering {
+    let small = SmallFloat::from(val);
+    set(rop, &*small, rnd)
+}
+
+#[inline]
+pub fn nexttoward(rop: &mut Float, op: &Float) {
+    unsafe { mpfr::nexttoward(rop.as_raw_mut(), op.as_raw()) }
+}
+
+#[inline]
+pub fn nextabove(rop: &mut Float) {
+    unsafe { mpfr::nextabove(rop.as_raw_mut()) }
+}
+
+#[inline]
+pub fn nextbelow(rop: &mut Float) {
+    unsafe { mpfr::nextbelow(rop.as_raw_mut()) }
+}
+
+#[inline]
+pub fn sgn(x: &Float) -> Ordering {
+    ordering1(unsafe { mpfr::sgn(x.as_raw()) })
+}
 
 #[cfg(feature = "integer")]
 #[inline]
@@ -408,84 +571,184 @@ unsafe fn divf_mulz_divz(
     }
 }
 
-pub unsafe fn get_f32(op: *const mpfr_t, rnd: rnd_t) -> f32 {
-    let mut limb: limb_t = 0;
-    let mut single = MaybeUninit::uninit();
-    custom_zero(single.as_mut_ptr(), &mut limb, 24);
-    let mut single = single.assume_init();
-    mpfr::set(&mut single, op, rnd);
-    let val = mpfr::get_d(&single, rnd);
-    val as f32
+#[inline]
+pub fn get_exp(op: &Float) -> exp_t {
+    unsafe { mpfr::get_exp(op.as_raw()) }
 }
 
-#[inline]
-pub unsafe fn set_f32(rop: *mut mpfr_t, op: f32, rnd: rnd_t) -> c_int {
-    set_f64(rop, op.into(), rnd)
-}
-
-#[inline]
-pub unsafe fn set_f64(rop: *mut mpfr_t, op: f64, rnd: rnd_t) -> c_int {
-    // retain sign in case of NaN
-    let sign_neg = op.is_sign_negative();
-    let ret = mpfr::set_d(rop, op, rnd);
-    if sign_neg {
-        (*rop).sign = -1;
+pub fn get_f32(op: &Float, rnd: Round) -> f32 {
+    unsafe {
+        let mut limb: [limb_t; 1] = [0];
+        let mut single = MaybeUninit::<mpfr_t>::uninit();
+        custom_zero(single.as_mut_ptr(), limb.as_mut_ptr(), 24);
+        let mut single = single.assume_init();
+        mpfr::set(&mut single, op.as_raw(), raw_round(rnd));
+        let val = mpfr::get_d(&single, rnd_t::RNDZ);
+        val as f32
     }
-    ret
 }
 
 #[inline]
-pub unsafe fn set_i128(rop: *mut mpfr_t, val: i128, rnd: rnd_t) -> c_int {
-    let small = SmallFloat::from(val);
-    mpfr::set(rop, small.as_raw(), rnd)
+pub fn get_f64(op: &Float, rnd: Round) -> f64 {
+    unsafe { mpfr::get_d(op.as_raw(), raw_round(rnd)) }
 }
 
 #[inline]
-pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: rnd_t) -> c_int {
-    let small = SmallFloat::from(val);
-    mpfr::set(rop, small.as_raw(), rnd)
+pub fn get_f64_2exp(op: &Float, rnd: Round) -> (f64, c_long) {
+    unsafe {
+        let mut exp = MaybeUninit::uninit();
+        let f = mpfr::get_d_2exp(exp.as_mut_ptr(), op.as_raw(), raw_round(rnd));
+        (f, exp.assume_init())
+    }
 }
 
 #[inline]
-pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
+pub fn get_prec(op: &Float) -> prec_t {
+    unsafe { mpfr::get_prec(op.as_raw()) }
+}
+
+#[inline]
+pub fn cmp(op1: &Float, op2: &Float) -> Ordering {
+    ordering1(unsafe { mpfr::cmp(op1.as_raw(), op2.as_raw()) })
+}
+
+#[inline]
+pub fn cmpabs(op1: &Float, op2: &Float) -> Ordering {
+    ordering1(unsafe { mpfr::cmpabs(op1.as_raw(), op2.as_raw()) })
+}
+
+#[inline]
+pub fn cmp_si(op1: &Float, op2: c_long) -> Ordering {
+    ordering1(unsafe { mpfr::cmp_si(op1.as_raw(), op2) })
+}
+
+#[inline]
+pub fn cmp_ui(op1: &Float, op2: c_ulong) -> Ordering {
+    ordering1(unsafe { mpfr::cmp_ui(op1.as_raw(), op2) })
+}
+
+#[inline]
+pub fn cmp_i64(op1: &Float, op2: i64) -> Ordering {
     if let Some(op2) = op2.checked_as() {
-        mpfr::cmp_si(op1, op2)
+        ordering1(unsafe { mpfr::cmp_si(op1.as_raw(), op2) })
     } else {
         let small = SmallFloat::from(op2);
-        mpfr::cmp(op1, small.as_raw())
+        ordering1(unsafe { mpfr::cmp(op1.as_raw(), small.as_raw()) })
     }
 }
 
 #[inline]
-pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
+pub fn cmp_u64(op1: &Float, op2: u64) -> Ordering {
     if let Some(op2) = op2.checked_as() {
-        mpfr::cmp_ui(op1, op2)
+        ordering1(unsafe { mpfr::cmp_ui(op1.as_raw(), op2) })
     } else {
         let small = SmallFloat::from(op2);
-        mpfr::cmp(op1, small.as_raw())
+        ordering1(unsafe { mpfr::cmp(op1.as_raw(), small.as_raw()) })
     }
 }
 
 #[inline]
-pub unsafe fn cmp_i128(op1: *const mpfr_t, op2: i128) -> c_int {
+pub fn cmp_i128(op1: &Float, op2: i128) -> Ordering {
     let small = SmallFloat::from(op2);
-    mpfr::cmp(op1, small.as_raw())
+    ordering1(unsafe { mpfr::cmp(op1.as_raw(), small.as_raw()) })
 }
 
 #[inline]
-pub unsafe fn cmp_u128(op1: *const mpfr_t, op2: u128) -> c_int {
+pub fn cmp_u128(op1: &Float, op2: u128) -> Ordering {
     let small = SmallFloat::from(op2);
-    mpfr::cmp(op1, small.as_raw())
+    ordering1(unsafe { mpfr::cmp(op1.as_raw(), small.as_raw()) })
 }
 
 #[inline]
-pub unsafe fn cmp_u32_2exp(op1: *const mpfr_t, op2: u32, e: i32) -> c_int {
-    mpfr::cmp_ui_2exp(op1, op2.into(), e.into())
+pub fn cmp_f64(op1: &Float, op2: f64) -> Ordering {
+    ordering1(unsafe { mpfr::cmp_d(op1.as_raw(), op2) })
+}
+
+#[cfg(feature = "integer")]
+#[inline]
+pub fn cmp_z(op1: &Float, op2: &Integer) -> Ordering {
+    ordering1(unsafe { mpfr::cmp_z(op1.as_raw(), op2.as_raw()) })
+}
+
+#[cfg(feature = "rational")]
+#[inline]
+pub fn cmp_q(op1: &Float, op2: &Rational) -> Ordering {
+    ordering1(unsafe { mpfr::cmp_q(op1.as_raw(), op2.as_raw()) })
 }
 
 #[inline]
-pub unsafe fn cmp_i32_2exp(op1: *const mpfr_t, op2: i32, e: i32) -> c_int {
-    mpfr::cmp_si_2exp(op1, op2.into(), e.into())
+pub fn cmp_u32_2exp(op1: &Float, op2: u32, e: i32) -> Ordering {
+    ordering1(unsafe { mpfr::cmp_ui_2exp(op1.as_raw(), op2.into(), e.into()) })
+}
+
+#[inline]
+pub fn cmp_i32_2exp(op1: &Float, op2: i32, e: i32) -> Ordering {
+    ordering1(unsafe { mpfr::cmp_si_2exp(op1.as_raw(), op2.into(), e.into()) })
+}
+
+#[inline]
+pub fn signbit(op: &Float) -> bool {
+    (unsafe { mpfr::signbit(op.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn equal_p(op1: &Float, op2: &Float) -> bool {
+    (unsafe { mpfr::equal_p(op1.as_raw(), op2.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn unordered_p(op1: &Float, op2: &Float) -> bool {
+    (unsafe { mpfr::unordered_p(op1.as_raw(), op2.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn less_p(op1: &Float, op2: &Float) -> bool {
+    (unsafe { mpfr::less_p(op1.as_raw(), op2.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn lessequal_p(op1: &Float, op2: &Float) -> bool {
+    (unsafe { mpfr::lessequal_p(op1.as_raw(), op2.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn greater_p(op1: &Float, op2: &Float) -> bool {
+    (unsafe { mpfr::greater_p(op1.as_raw(), op2.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn greaterequal_p(op1: &Float, op2: &Float) -> bool {
+    (unsafe { mpfr::greaterequal_p(op1.as_raw(), op2.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn integer_p(op: &Float) -> bool {
+    (unsafe { mpfr::integer_p(op.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn nan_p(op: &Float) -> bool {
+    (unsafe { mpfr::nan_p(op.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn inf_p(op: &Float) -> bool {
+    (unsafe { mpfr::inf_p(op.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn number_p(op: &Float) -> bool {
+    (unsafe { mpfr::number_p(op.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn zero_p(op: &Float) -> bool {
+    (unsafe { mpfr::zero_p(op.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn regular_p(op: &Float) -> bool {
+    (unsafe { mpfr::regular_p(op.as_raw()) }) != 0
 }
 
 #[inline]
@@ -551,4 +814,31 @@ pub unsafe fn shl_i32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i32, rnd: rnd_t
 #[inline]
 pub unsafe fn shr_i32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i32, rnd: rnd_t) -> c_int {
     mpfr::div_2si(rop, op1, op2.into(), rnd)
+}
+
+#[inline]
+#[cfg(feature = "rand")]
+pub fn urandomb(rop: &mut Float, rng: &mut dyn MutRandState) {
+    unsafe {
+        let err = mpfr::urandomb(rop.as_raw_mut(), rng.private().0);
+        assert_eq!(rop.is_nan(), err != 0);
+    }
+}
+
+#[inline]
+#[cfg(feature = "rand")]
+pub fn urandom(rop: &mut Float, rng: &mut dyn MutRandState, rnd: Round) -> Ordering {
+    ordering1(unsafe { mpfr::urandom(rop.as_raw_mut(), rng.private().0, raw_round(rnd)) })
+}
+
+#[inline]
+#[cfg(feature = "rand")]
+pub fn nrandom(rop: &mut Float, rng: &mut dyn MutRandState, rnd: Round) -> Ordering {
+    ordering1(unsafe { mpfr::nrandom(rop.as_raw_mut(), rng.private().0, raw_round(rnd)) })
+}
+
+#[inline]
+#[cfg(feature = "rand")]
+pub fn erandom(rop: &mut Float, rng: &mut dyn MutRandState, rnd: Round) -> Ordering {
+    ordering1(unsafe { mpfr::erandom(rop.as_raw_mut(), rng.private().0, raw_round(rnd)) })
 }

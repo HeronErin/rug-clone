@@ -14,12 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Float;
+use crate::{ext::xmpfr, Float};
 use core::{
     cmp::Ordering,
     hash::{Hash, Hasher},
 };
-use gmp_mpfr_sys::mpfr;
 
 /**
 A float that supports total ordering and hashing.
@@ -163,7 +162,7 @@ impl Ord for OrdFloat {
                     }
                 }
                 (true, true) => s.is_sign_positive().cmp(&o.is_sign_positive()),
-                (false, false) => unsafe { mpfr::cmp(s.as_raw(), o.as_raw()).cmp(&0) },
+                (false, false) => xmpfr::cmp(s, o),
             }
         }
     }

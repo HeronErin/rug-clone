@@ -19,7 +19,7 @@ use crate::{
         big::{self, Format},
         OrdComplex,
     },
-    ext::xmpc::{ordering2, raw_round2, Ordering2, Round2},
+    ext::xmpc::{self, Ordering2, Round2},
     float::{big::ExpFormat, Round, Special},
     ops::AssignRound,
     Assign, Complex, Float,
@@ -32,7 +32,7 @@ use core::{
     },
     mem::MaybeUninit,
 };
-use gmp_mpfr_sys::mpc::{self, mpc_t};
+use gmp_mpfr_sys::mpc;
 
 impl Clone for Complex {
     #[inline]
@@ -58,6 +58,7 @@ impl Clone for Complex {
 impl Drop for Complex {
     #[inline]
     fn drop(&mut self) {
+        // Safety: we are freeing memory. This is sound as self must be initialized.
         unsafe {
             mpc::clear(self.as_raw_mut());
         }
@@ -70,15 +71,12 @@ where
 {
     #[inline]
     fn from(re: Re) -> Self {
-        unsafe {
-            let mut dst = MaybeUninit::uninit();
-            let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpc_t);
-            let real = cast_ptr_mut!(mpc::realref(inner_ptr), Float);
-            real.write(Float::from(re));
-            let imag = cast_ptr_mut!(mpc::imagref(inner_ptr), Float);
-            imag.write(Float::new((*real).prec()));
-            dst.assume_init()
-        }
+        let real = Float::from(re);
+        let imag = Float::new(real.prec());
+        let mut dst = MaybeUninit::uninit();
+        xmpc::write_real_imag(&mut dst, real, imag);
+        // Safety: write_real_imag initializes dst.
+        unsafe { dst.assume_init() }
     }
 }
 
@@ -88,15 +86,11 @@ where
 {
     #[inline]
     fn from((re, im): (Re, Im)) -> Self {
-        unsafe {
-            let mut dst = MaybeUninit::uninit();
-            let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpc_t);
-            let real = cast_ptr_mut!(mpc::realref(inner_ptr), Float);
-            real.write(Float::from(re));
-            let imag = cast_ptr_mut!(mpc::imagref(inner_ptr), Float);
-            imag.write(Float::from(im));
-            dst.assume_init()
-        }
+        let (real, imag) = (Float::from(re), Float::from(im));
+        let mut dst = MaybeUninit::uninit();
+        xmpc::write_real_imag(&mut dst, real, imag);
+        // Safety: write_real_imag initializes dst.
+        unsafe { dst.assume_init() }
     }
 }
 
@@ -226,8 +220,7 @@ impl AssignRound<&Complex> for Complex {
     type Ordering = Ordering2;
     #[inline]
     fn assign_round(&mut self, src: &Complex, round: Round2) -> Ordering2 {
-        let ret = unsafe { mpc::set(self.as_raw_mut(), src.as_raw(), raw_round2(round)) };
-        ordering2(ret)
+        xmpc::set(self, src, round)
     }
 }
 
@@ -310,6 +303,7 @@ fn fmt_radix(c: &Complex, fmt: &mut Formatter<'_>, format: Format) -> FmtResult 
     Ok(())
 }
 
+// Safety: mpc_t is thread safe as guaranteed by the MPC library.
 unsafe impl Send for Complex {}
 unsafe impl Sync for Complex {}
 

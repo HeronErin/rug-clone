@@ -15,12 +15,12 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    ext::xmpfr,
     float::{self, OrdFloat},
     misc::AsOrPanic,
     serdeize::{self, Data, PrecReq, PrecVal},
     Assign, Float,
 };
-use gmp_mpfr_sys::mpfr;
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError},
     ser::{Serialize, Serializer},
@@ -54,9 +54,7 @@ impl<'de> Deserialize<'de> for Float {
     ) -> Result<(), D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
-        unsafe {
-            mpfr::set_prec(place.as_raw_mut(), prec.as_or_panic());
-        }
+        xmpfr::set_prec_nan(place, prec.as_or_panic());
         place.assign(p);
         Ok(())
     }

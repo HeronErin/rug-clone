@@ -198,6 +198,11 @@ pub enum Constant {
     /// The value of pi, 3.141...
     Pi,
     /// Euler’s constant, 0.577...
+    ///
+    /// Note that this is *not* Euler’s number e, which can be
+    /// obtained using one of the [`exp`] functions.
+    ///
+    /// [`exp`]: ../struct.Float.html#method.exp
     Euler,
     /// Catalan’s constant, 0.915...
     Catalan,

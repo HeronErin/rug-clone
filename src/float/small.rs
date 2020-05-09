@@ -101,6 +101,10 @@ pub struct SmallFloat {
     limbs: Limbs,
 }
 
+// Safety: Mpfr has a repr equivalent to mpfr_t. The difference in the
+// repr(C) types Mpfr and mpfr_t is that Mpfr uses
+// UnsafeCell<NonNull<limb_t>> instead of *mut limb_t, but both
+// UnsafeCell and NonNull are repr(transparent).
 #[repr(C)]
 pub struct Mpfr {
     pub prec: prec_t,
@@ -123,6 +127,10 @@ impl Clone for Mpfr {
 static_assert!(mem::size_of::<Limbs>() == 16);
 static_assert_same_layout!(Mpfr, mpfr_t);
 
+// Safety: SmallFloat cannot be Sync because it contains an UnsafeCell
+// which is written to then read without further protection, so it
+// could lead to data races. But SmallFloat can be Send because if it
+// is owned, no other reference can be used to modify the UnsafeCell.
 unsafe impl Send for SmallFloat {}
 
 impl Default for SmallFloat {
@@ -184,6 +192,8 @@ impl SmallFloat {
     ///
     /// [`Float`]: ../struct.Float.html
     #[inline]
+    // Safety: after calling update_d(), self.inner.d points to the
+    // limbs so it is in a consistent state.
     pub unsafe fn as_nonreallocating_float(&mut self) -> &mut Float {
         self.update_d();
         let ptr = cast_ptr_mut!(&mut self.inner, Float);
@@ -195,6 +205,7 @@ impl SmallFloat {
         // Since this is borrowed, the limb won't move around, and we
         // can set the d field.
         let d = NonNull::<[MaybeUninit<limb_t>]>::from(&self.limbs[..]);
+        // Safety: self is not Sync, so we can write to d without causing a data race.
         unsafe {
             *self.inner.d.get() = d.cast();
         }
@@ -207,6 +218,9 @@ impl Deref for SmallFloat {
     fn deref(&self) -> &Float {
         self.update_d();
         let ptr = cast_ptr!(&self.inner, Float);
+        // Safety: since we called update_d, the inner pointer is
+        // pointing to the limbs and the number is in a consistent
+        // state.
         unsafe { &*ptr }
     }
 }
