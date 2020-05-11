@@ -14,31 +14,37 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(feature = "integer")]
+use crate::Integer;
+#[cfg(feature = "rational")]
+use crate::Rational;
 use crate::{
     complex::SmallComplex,
-    ext::xmpfr::{self, ordering1, raw_round},
+    ext::xmpfr::{self, ordering1, raw_round, OptFloat},
     float::Round,
     Complex, Float,
 };
 use core::{cmp::Ordering, mem::MaybeUninit};
-#[cfg(feature = "rational")]
-use gmp_mpfr_sys::gmp::mpq_t;
-#[cfg(feature = "integer")]
-use gmp_mpfr_sys::gmp::mpz_t;
 use gmp_mpfr_sys::{
     mpc::{self, mpc_t, rnd_t},
-    mpfr::{self, mpfr_t, prec_t, rnd_t as mpfr_rnd_t},
+    mpfr::{mpfr_t, prec_t},
 };
 use libc::{c_int, c_long, c_ulong};
 
 pub trait OptComplex: Copy {
     const IS_SOME: bool;
+    type Part: OptFloat;
     fn mpc(self) -> *const mpc_t;
     fn mpc_or(self, default: *mut mpc_t) -> *const mpc_t;
+    fn parts(self) -> (Self::Part, Self::Part);
+    fn unwrap<'a>(self) -> &'a Complex
+    where
+        Self: 'a;
 }
 
 impl OptComplex for () {
     const IS_SOME: bool = false;
+    type Part = ();
     #[inline(always)]
     fn mpc(self) -> *const mpc_t {
         panic!("unwrapping ()");
@@ -47,10 +53,22 @@ impl OptComplex for () {
     fn mpc_or(self, default: *mut mpc_t) -> *const mpc_t {
         default as *const mpc_t
     }
+    #[inline(always)]
+    fn parts(self) -> ((), ()) {
+        ((), ())
+    }
+    #[inline(always)]
+    fn unwrap<'a>(self) -> &'a Complex
+    where
+        Self: 'a,
+    {
+        panic!("unwrapping ()");
+    }
 }
 
-impl OptComplex for &Complex {
+impl<'a> OptComplex for &'a Complex {
     const IS_SOME: bool = true;
+    type Part = &'a Float;
     #[inline(always)]
     fn mpc(self) -> *const mpc_t {
         self.as_raw()
@@ -58,6 +76,17 @@ impl OptComplex for &Complex {
     #[inline(always)]
     fn mpc_or(self, _default: *mut mpc_t) -> *const mpc_t {
         self.as_raw()
+    }
+    #[inline(always)]
+    fn parts(self) -> (&'a Float, &'a Float) {
+        (self.real(), self.imag())
+    }
+    #[inline(always)]
+    fn unwrap<'b>(self) -> &'b Complex
+    where
+        Self: 'b,
+    {
+        self
     }
 }
 
@@ -140,9 +169,7 @@ pub fn mul_i<O: OptComplex>(rop: &mut Complex, op: O, neg: bool, rnd: Round2) ->
 
 #[inline]
 pub fn recip<O: OptComplex>(rop: &mut Complex, op: O, rnd: Round2) -> Ordering2 {
-    let rop = rop.as_raw_mut();
-    let op = op.mpc_or(rop);
-    ordering2(unsafe { ui_div(rop, 1, op, raw_round2(rnd)) })
+    ui_div(rop, 1, op, rnd)
 }
 
 #[inline]
@@ -214,8 +241,6 @@ where
     }
 }
 
-unsafe_wrap! { fn fma(op1: O, op2: P, op3: Q) -> mpc::fma }
-
 unsafe_wrap! { fn set(op: O) -> mpc::set }
 unsafe_wrap! { fn proj(op: O) -> mpc::proj }
 unsafe_wrap! { fn sqr(op: O) -> mpc::sqr }
@@ -236,6 +261,16 @@ unsafe_wrap! { fn atan(op: O) -> mpc::atan }
 unsafe_wrap! { fn asinh(op: O) -> mpc::asinh }
 unsafe_wrap! { fn acosh(op: O) -> mpc::acosh }
 unsafe_wrap! { fn atanh(op: O) -> mpc::atanh }
+unsafe_wrap! { fn fma(op1: O, op2: P, op3: Q) -> mpc::fma }
+unsafe_wrap! { fn add(op1: O, op2: P) -> mpc::add }
+unsafe_wrap! { fn sub(op1: O, op2: P) -> mpc::sub }
+unsafe_wrap! { fn mul(op1: O, op2: P) -> mpc::mul }
+unsafe_wrap! { fn div(op1: O, op2: P) -> mpc::div }
+unsafe_wrap! { fn pow(op1: O, op2: P) -> mpc::pow }
+unsafe_wrap! { fn shl_i32(op1: O; op2: i32) -> mpc::mul_2si }
+unsafe_wrap! { fn shr_i32(op1: O; op2: i32) -> mpc::div_2si }
+unsafe_wrap! { fn shl_u32(op1: O; op2: u32) -> mpc::mul_2ui }
+unsafe_wrap! { fn shr_u32(op1: O; op2: u32) -> mpc::div_2ui }
 
 #[inline]
 pub fn write_new_nan(dst: &mut MaybeUninit<Complex>, prec_real: prec_t, prec_imag: prec_t) {
@@ -322,11 +357,11 @@ pub fn cmp_abs(op1: &Complex, op2: &Complex) -> Ordering {
 macro_rules! sum_forward {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: rnd_t) -> c_int {
-            let (rnd_re, rnd_im) = rnd_re_im(rnd);
-            ord_ord(
-                $func(mpc::realref(rop), mpc::realref_const(op1), op2, rnd_re),
-                mpfr::set(mpc::imagref(rop), mpc::imagref_const(op1), rnd_im),
+        pub fn $name<O: OptComplex>(rop: &mut Complex, op1: O, op2: $T, rnd: Round2) -> Ordering2 {
+            let op1 = op1.parts();
+            (
+                $func(rop.mut_real(), op1.0, op2, rnd.0),
+                xmpfr::set(rop.mut_imag(), op1.1, rnd.1),
             )
         }
     };
@@ -335,11 +370,11 @@ macro_rules! sum_forward {
 macro_rules! sub_reverse {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: rnd_t) -> c_int {
-            let (rnd_re, rnd_im) = rnd_re_im(rnd);
-            ord_ord(
-                $func(mpc::realref(rop), op1, mpc::realref_const(op2), rnd_re),
-                mpfr::neg(mpc::imagref(rop), mpc::imagref_const(op2), rnd_im),
+        pub fn $name<O: OptComplex>(rop: &mut Complex, op1: $T, op2: O, rnd: Round2) -> Ordering2 {
+            let op2 = op2.parts();
+            (
+                $func(rop.mut_real(), op1, op2.0, rnd.0),
+                xmpfr::neg(rop.mut_imag(), op2.1, rnd.1),
             )
         }
     };
@@ -348,11 +383,11 @@ macro_rules! sub_reverse {
 macro_rules! prod_forward {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: rnd_t) -> c_int {
-            let (rnd_re, rnd_im) = rnd_re_im(rnd);
-            ord_ord(
-                $func(mpc::realref(rop), mpc::realref_const(op1), op2, rnd_re),
-                $func(mpc::imagref(rop), mpc::imagref_const(op1), op2, rnd_im),
+        pub fn $name<O: OptComplex>(rop: &mut Complex, op1: O, op2: $T, rnd: Round2) -> Ordering2 {
+            let op1 = op1.parts();
+            (
+                $func(rop.mut_real(), op1.0, op2, rnd.0),
+                $func(rop.mut_imag(), op1.1, op2, rnd.1),
             )
         }
     };
@@ -361,131 +396,138 @@ macro_rules! prod_forward {
 macro_rules! div_reverse {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: rnd_t) -> c_int {
+        pub fn $name<O: OptComplex>(rop: &mut Complex, op1: $T, op2: O, rnd: Round2) -> Ordering2 {
             let op1 = SmallComplex::from(op1);
-            mpc::div(rop, op1.as_raw(), op2, rnd)
+            div(rop, &*op1, op2, rnd)
         }
     };
 }
 
-sum_forward! { fn add_ui(c_ulong) -> mpfr::add_ui }
-sum_forward! { fn add_si(c_long) -> mpfr::add_si }
-sum_forward! { fn add_d(f64) -> mpfr::add_d }
+sum_forward! { fn add_ui(c_ulong) -> xmpfr::add_ui }
+sum_forward! { fn add_si(c_long) -> xmpfr::add_si }
+sum_forward! { fn add_d(f64) -> xmpfr::add_d }
 #[cfg(feature = "integer")]
-sum_forward! { fn add_z(*const mpz_t) -> mpfr::add_z }
+sum_forward! { fn add_z(&Integer) -> xmpfr::add_z }
 #[cfg(feature = "rational")]
-sum_forward! { fn add_q(*const mpq_t) -> mpfr::add_q }
+sum_forward! { fn add_q(&Rational) -> xmpfr::add_q }
 
-sum_forward! { fn sub_ui(c_ulong) -> mpfr::sub_ui }
-sum_forward! { fn sub_si(c_long) -> mpfr::sub_si }
-sum_forward! { fn sub_d(f64) -> mpfr::sub_d }
+sum_forward! { fn sub_ui(c_ulong) -> xmpfr::sub_ui }
+sum_forward! { fn sub_si(c_long) -> xmpfr::sub_si }
+sum_forward! { fn sub_d(f64) -> xmpfr::sub_d }
 #[cfg(feature = "integer")]
-sum_forward! { fn sub_z(*const mpz_t) -> mpfr::sub_z }
+sum_forward! { fn sub_z(&Integer) -> xmpfr::sub_z }
 #[cfg(feature = "rational")]
-sum_forward! { fn sub_q(*const mpq_t) -> mpfr::sub_q }
+sum_forward! { fn sub_q(&Rational) -> xmpfr::sub_q }
 
-sub_reverse! { fn ui_sub(c_ulong) -> mpfr::ui_sub }
-sub_reverse! { fn si_sub(c_long) -> mpfr::si_sub }
-sub_reverse! { fn d_sub(f64) -> mpfr::d_sub }
+sub_reverse! { fn ui_sub(c_ulong) -> xmpfr::ui_sub }
+sub_reverse! { fn si_sub(c_long) -> xmpfr::si_sub }
+sub_reverse! { fn d_sub(f64) -> xmpfr::d_sub }
 #[cfg(feature = "integer")]
-sub_reverse! { fn z_sub(*const mpz_t) -> mpfr::z_sub }
+sub_reverse! { fn z_sub(&Integer) -> xmpfr::z_sub }
 #[cfg(feature = "rational")]
-sub_reverse! { fn q_sub(*const mpq_t) -> xmpfr::q_sub }
+sub_reverse! { fn q_sub(&Rational) -> xmpfr::q_sub }
 
-prod_forward! { fn mul_ui(c_ulong) -> mpfr::mul_ui }
-prod_forward! { fn mul_si(c_long) -> mpfr::mul_si }
-prod_forward! { fn mul_d(f64) -> mpfr::mul_d }
+prod_forward! { fn mul_ui(c_ulong) -> xmpfr::mul_ui }
+prod_forward! { fn mul_si(c_long) -> xmpfr::mul_si }
+prod_forward! { fn mul_d(f64) -> xmpfr::mul_d }
 #[cfg(feature = "integer")]
-prod_forward! { fn mul_z(*const mpz_t) -> mpfr::mul_z }
+prod_forward! { fn mul_z(&Integer) -> xmpfr::mul_z }
 #[cfg(feature = "rational")]
-prod_forward! { fn mul_q(*const mpq_t) -> mpfr::mul_q }
+prod_forward! { fn mul_q(&Rational) -> xmpfr::mul_q }
 
-prod_forward! { fn div_ui(c_ulong) -> mpfr::div_ui }
-prod_forward! { fn div_si(c_long) -> mpfr::div_si }
-prod_forward! { fn div_d(f64) -> mpfr::div_d }
+prod_forward! { fn div_ui(c_ulong) -> xmpfr::div_ui }
+prod_forward! { fn div_si(c_long) -> xmpfr::div_si }
+prod_forward! { fn div_d(f64) -> xmpfr::div_d }
 #[cfg(feature = "integer")]
-prod_forward! { fn div_z(*const mpz_t) -> mpfr::div_z }
+prod_forward! { fn div_z(&Integer) -> xmpfr::div_z }
 #[cfg(feature = "rational")]
-prod_forward! { fn div_q(*const mpq_t) -> mpfr::div_q }
+prod_forward! { fn div_q(&Rational) -> xmpfr::div_q }
 
-div_reverse! { fn ui_div(c_ulong) -> mpfr::ui_div }
-div_reverse! { fn si_div(c_long) -> mpfr::si_div }
-div_reverse! { fn d_div(f64) -> mpfr::d_div }
+div_reverse! { fn ui_div(c_ulong) -> xmpfr::ui_div }
+div_reverse! { fn si_div(c_long) -> xmpfr::si_div }
+div_reverse! { fn d_div(f64) -> xmpfr::d_div }
 
 #[inline]
-pub unsafe fn mulsub(
-    rop: *mut mpc_t,
-    (m1, m2): (*const mpc_t, *const mpc_t),
-    sub: *const mpc_t,
-    rnd: rnd_t,
-) -> c_int {
-    let sub_complex = &*cast_ptr!(sub, Complex);
-    let add = sub_complex.as_neg();
-    mpc::fma(rop, m1, m2, add.as_raw(), rnd)
+pub fn mulsub<O: OptComplex>(
+    rop: &mut Complex,
+    mul1: &Complex,
+    mul2: &Complex,
+    sub: O,
+    rnd: Round2,
+) -> Ordering2 {
+    if O::IS_SOME {
+        let sub = sub.unwrap();
+        fma(rop, mul1, mul2, &*sub.as_neg(), rnd)
+    } else {
+        neg(rop, (), (Round::Zero, Round::Zero));
+        fma(rop, mul1, mul2, (), rnd)
+    }
 }
 
 #[inline]
-pub unsafe fn submul(
-    rop: *mut mpc_t,
-    add: *const mpc_t,
-    (m1, m2): (*const mpc_t, *const mpc_t),
-    rnd: rnd_t,
-) -> c_int {
-    let m1_complex = &*cast_ptr!(m1, Complex);
-    let neg_m1 = m1_complex.as_neg();
-    mpc::fma(rop, neg_m1.as_raw(), m2, add, rnd)
+pub fn submul<O: OptComplex>(
+    rop: &mut Complex,
+    add: O,
+    mul1: &Complex,
+    mul2: &Complex,
+    rnd: Round2,
+) -> Ordering2 {
+    fma(rop, &*mul1.as_neg(), mul2, add, rnd)
 }
 
 #[inline]
-fn rnd_re_im(r: rnd_t) -> (mpfr_rnd_t, mpfr_rnd_t) {
-    let re = match r & 0x0f {
-        0 => mpfr_rnd_t::RNDN,
-        1 => mpfr_rnd_t::RNDZ,
-        2 => mpfr_rnd_t::RNDU,
-        3 => mpfr_rnd_t::RNDD,
-        _ => unreachable!(),
-    };
-    let im = match r >> 4 {
-        0 => mpfr_rnd_t::RNDN,
-        1 => mpfr_rnd_t::RNDZ,
-        2 => mpfr_rnd_t::RNDU,
-        3 => mpfr_rnd_t::RNDD,
-        _ => unreachable!(),
-    };
-    (re, im)
+pub fn add_fr<O: OptComplex>(rop: &mut Complex, op1: O, op2: &Float, rnd: Round2) -> Ordering2 {
+    let rop = rop.as_raw_mut();
+    let op1 = op1.mpc_or(rop);
+    ordering2(unsafe { mpc::add_fr(rop, op1, op2.as_raw(), raw_round2(rnd)) })
 }
 
 #[inline]
-fn ord_ord(re: c_int, im: c_int) -> c_int {
-    let r = match re.cmp(&0) {
-        Ordering::Less => 2,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
-    };
-    let i = match im.cmp(&0) {
-        Ordering::Less => 8,
-        Ordering::Equal => 0,
-        Ordering::Greater => 4,
-    };
-    r | i
+pub fn sub_fr<O: OptComplex>(rop: &mut Complex, op1: O, op2: &Float, rnd: Round2) -> Ordering2 {
+    let rop = rop.as_raw_mut();
+    let op1 = op1.mpc_or(rop);
+    ordering2(unsafe { mpc::sub_fr(rop, op1, op2.as_raw(), raw_round2(rnd)) })
 }
 
 #[inline]
-pub unsafe fn shl_u32(rop: *mut mpc_t, op1: *const mpc_t, op2: u32, rnd: rnd_t) -> c_int {
-    mpc::mul_2ui(rop, op1, op2.into(), rnd)
+pub fn fr_sub<O: OptComplex>(rop: &mut Complex, op1: &Float, op2: O, rnd: Round2) -> Ordering2 {
+    let rop = rop.as_raw_mut();
+    let op2 = op2.mpc_or(rop);
+    ordering2(unsafe { mpc::fr_sub(rop, op1.as_raw(), op2, raw_round2(rnd)) })
 }
 
 #[inline]
-pub unsafe fn shr_u32(rop: *mut mpc_t, op1: *const mpc_t, op2: u32, rnd: rnd_t) -> c_int {
-    mpc::div_2ui(rop, op1, op2.into(), rnd)
+pub fn mul_fr<O: OptComplex>(rop: &mut Complex, op1: O, op2: &Float, rnd: Round2) -> Ordering2 {
+    let rop = rop.as_raw_mut();
+    let op1 = op1.mpc_or(rop);
+    ordering2(unsafe { mpc::mul_fr(rop, op1, op2.as_raw(), raw_round2(rnd)) })
 }
 
 #[inline]
-pub unsafe fn shl_i32(rop: *mut mpc_t, op1: *const mpc_t, op2: i32, rnd: rnd_t) -> c_int {
-    mpc::mul_2si(rop, op1, op2.into(), rnd)
+pub fn div_fr<O: OptComplex>(rop: &mut Complex, op1: O, op2: &Float, rnd: Round2) -> Ordering2 {
+    let rop = rop.as_raw_mut();
+    let op1 = op1.mpc_or(rop);
+    ordering2(unsafe { mpc::div_fr(rop, op1, op2.as_raw(), raw_round2(rnd)) })
 }
 
 #[inline]
-pub unsafe fn shr_i32(rop: *mut mpc_t, op1: *const mpc_t, op2: i32, rnd: rnd_t) -> c_int {
-    mpc::div_2si(rop, op1, op2.into(), rnd)
+pub fn fr_div<O: OptComplex>(rop: &mut Complex, op1: &Float, op2: O, rnd: Round2) -> Ordering2 {
+    let rop = rop.as_raw_mut();
+    let op2 = op2.mpc_or(rop);
+    ordering2(unsafe { mpc::fr_div(rop, op1.as_raw(), op2, raw_round2(rnd)) })
+}
+
+#[inline]
+pub fn pow_fr<O: OptComplex>(rop: &mut Complex, op1: O, op2: &Float, rnd: Round2) -> Ordering2 {
+    let rop = rop.as_raw_mut();
+    let op1 = op1.mpc_or(rop);
+    ordering2(unsafe { mpc::pow_fr(rop, op1, op2.as_raw(), raw_round2(rnd)) })
+}
+
+#[inline]
+#[cfg(feature = "integer")]
+pub fn pow_z<O: OptComplex>(rop: &mut Complex, op1: O, op2: &Integer, rnd: Round2) -> Ordering2 {
+    let rop = rop.as_raw_mut();
+    let op1 = op1.mpc_or(rop);
+    ordering2(unsafe { mpc::pow_z(rop, op1, op2.as_raw(), raw_round2(rnd)) })
 }

@@ -20,7 +20,7 @@ use crate::Integer;
 use crate::Rational;
 use crate::{
     complex::SmallComplex,
-    ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2, NEAREST2},
+    ext::xmpc::{self, OptComplex, Ordering2, Round2, NEAREST2},
     float::SmallFloat,
     ops::{
         AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
@@ -34,8 +34,7 @@ use core::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
     SubAssign,
 };
-use gmp_mpfr_sys::mpc::{self, mpc_t, rnd_t};
-use libc::{c_int, c_long, c_ulong};
+use libc::{c_long, c_ulong};
 
 impl Neg for Complex {
     type Output = Complex;
@@ -87,7 +86,7 @@ macro_rules! arith_binary_self_complex {
     ) => {
         arith_binary_self_round! {
             Complex, Round2, NEAREST2 => Ordering2;
-            $func, raw_round2 => ordering2;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -110,7 +109,7 @@ macro_rules! arith_forward_complex {
     ) => {
         arith_forward_round! {
             Complex, Round2, NEAREST2 => Ordering2;
-            $func, raw_round2 => ordering2;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -134,7 +133,7 @@ macro_rules! arith_commut_complex {
     ) => {
         arith_commut_round! {
             Complex, Round2, NEAREST2 => Ordering2;
-            $func, raw_round2 => ordering2;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -161,7 +160,7 @@ macro_rules! arith_noncommut_complex {
     ) => {
         arith_noncommut_round! {
             Complex, Round2, NEAREST2 => Ordering2;
-            $func, $func_from, raw_round2 => ordering2;
+            $func, $func_from;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -175,7 +174,7 @@ macro_rules! arith_noncommut_complex {
 }
 
 arith_binary_self_complex! {
-    mpc::add;
+    xmpc::add;
     Add { add }
     AddAssign { add_assign }
     AddAssignRound { add_assign_round }
@@ -184,7 +183,7 @@ arith_binary_self_complex! {
     AddIncomplete
 }
 arith_binary_self_complex! {
-    mpc::sub;
+    xmpc::sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubAssignRound { sub_assign_round }
@@ -193,7 +192,7 @@ arith_binary_self_complex! {
     SubIncomplete
 }
 arith_binary_self_complex! {
-    mpc::mul;
+    xmpc::mul;
     Mul { mul }
     MulAssign { mul_assign }
     MulAssignRound { mul_assign_round }
@@ -202,7 +201,7 @@ arith_binary_self_complex! {
     MulIncomplete
 }
 arith_binary_self_complex! {
-    mpc::div;
+    xmpc::div;
     Div { div }
     DivAssign { div_assign }
     DivAssignRound { div_assign_round }
@@ -211,7 +210,7 @@ arith_binary_self_complex! {
     DivIncomplete
 }
 arith_binary_self_complex! {
-    mpc::pow;
+    xmpc::pow;
     Pow { pow }
     PowAssign { pow_assign }
     PowAssignRound { pow_assign_round }
@@ -221,7 +220,7 @@ arith_binary_self_complex! {
 }
 
 arith_commut_complex! {
-    mpc::add_fr;
+    xmpc::add_fr;
     Add { add }
     AddAssign { add_assign }
     AddAssignRound { add_assign_round }
@@ -231,7 +230,7 @@ arith_commut_complex! {
     AddFloatIncomplete, AddOwnedFloatIncomplete
 }
 arith_noncommut_complex! {
-    mpc::sub_fr, mpc::fr_sub;
+    xmpc::sub_fr, xmpc::fr_sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubAssignRound { sub_assign_round }
@@ -242,7 +241,7 @@ arith_noncommut_complex! {
     SubFromFloatIncomplete, SubFromOwnedFloatIncomplete
 }
 arith_commut_complex! {
-    mpc::mul_fr;
+    xmpc::mul_fr;
     Mul { mul }
     MulAssign { mul_assign }
     MulAssignRound { mul_assign_round }
@@ -252,7 +251,7 @@ arith_commut_complex! {
     MulFloatIncomplete, MulOwnedFloatIncomplete
 }
 arith_noncommut_complex! {
-    mpc::div_fr, mpc::fr_div;
+    xmpc::div_fr, xmpc::fr_div;
     Div { div }
     DivAssign { div_assign }
     DivAssignRound { div_assign_round }
@@ -263,7 +262,7 @@ arith_noncommut_complex! {
     DivFromFloatIncomplete, DivFromOwnedFloatIncomplete
 }
 arith_forward_complex! {
-    mpc::pow_fr;
+    xmpc::pow_fr;
     Pow { pow }
     PowAssign { pow_assign }
     PowAssignRound { pow_assign_round }
@@ -272,7 +271,7 @@ arith_forward_complex! {
 }
 #[cfg(feature = "integer")]
 arith_forward_complex! {
-    mpc::pow_z;
+    xmpc::pow_z;
     Pow { pow }
     PowAssign { pow_assign }
     PowAssignRound { pow_assign_round }
@@ -289,7 +288,7 @@ macro_rules! arith_prim_exact_complex {
     ) => {
         arith_prim_exact_round! {
             Complex, Round2, NEAREST2 => Ordering2;
-            $func, raw_round2 => ordering2;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $($T, $Incomplete;)*
@@ -309,7 +308,7 @@ macro_rules! arith_prim_commut_complex {
     ) => {
         arith_prim_commut_round! {
             Complex, Round2, NEAREST2 => Ordering2;
-            $func, raw_round2 => ordering2;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -333,7 +332,7 @@ macro_rules! arith_prim_noncommut_complex {
     ) => {
         arith_prim_noncommut_round! {
             Complex, Round2, NEAREST2 => Ordering2;
-            $func, $func_from, raw_round2 => ordering2;
+            $func, $func_from;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -559,7 +558,7 @@ arith_prim_exact_complex! {
 
 mul_op_commut_round! {
     Complex, Round2, NEAREST2 => Ordering2;
-    add_mul, raw_round2 => ordering2;
+    add_mul;
     Add { add }
     AddAssign { add_assign }
     AddAssignRound { add_assign_round }
@@ -570,7 +569,7 @@ mul_op_commut_round! {
 }
 mul_op_noncommut_round! {
     Complex, Round2, NEAREST2 => Ordering2;
-    sub_mul, mul_sub, raw_round2 => ordering2;
+    sub_mul, mul_sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubAssignRound { sub_assign_round }
@@ -581,14 +580,14 @@ mul_op_noncommut_round! {
 }
 
 trait PrimOps<Long>: AsLong {
-    unsafe fn add(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn sub(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn sub_from(rop: *mut mpc_t, op1: Self, op2: *const mpc_t, rnd: rnd_t) -> c_int;
-    unsafe fn mul(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn div(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn div_from(rop: *mut mpc_t, op1: Self, op2: *const mpc_t, rnd: rnd_t) -> c_int;
-    unsafe fn pow(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn pow_from(rop: *mut mpc_t, op1: Self, op2: *const mpc_t, rnd: rnd_t) -> c_int;
+    fn add<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2;
+    fn sub<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2;
+    fn sub_from<O: OptComplex>(rop: &mut Complex, op1: Self, op2: O, rnd: Round2) -> Ordering2;
+    fn mul<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2;
+    fn div<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2;
+    fn div_from<O: OptComplex>(rop: &mut Complex, op1: Self, op2: O, rnd: Round2) -> Ordering2;
+    fn pow<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2;
+    fn pow_from<O: OptComplex>(rop: &mut Complex, op1: Self, op2: O, rnd: Round2) -> Ordering2;
 }
 
 trait AsLong: Copy {
@@ -610,12 +609,12 @@ as_long! { f64: f32 f64 }
 macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        unsafe fn $fn(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int {
+        fn $fn<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2 {
             if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2, rnd)
             } else {
                 let small: SmallFloat = op2.into();
-                $deleg(rop, op1, small.as_raw(), rnd)
+                $deleg(rop, op1, &*small, rnd)
             }
         }
     };
@@ -623,12 +622,12 @@ macro_rules! forward {
 macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        unsafe fn $fn(rop: *mut mpc_t, op1: Self, op2: *const mpc_t, rnd: rnd_t) -> c_int {
+        fn $fn<O: OptComplex>(rop: &mut Complex, op1: Self, op2: O, rnd: Round2) -> Ordering2 {
             if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2, rnd)
             } else {
                 let small: SmallFloat = op1.into();
-                $deleg(rop, small.as_raw(), op2, rnd)
+                $deleg(rop, &*small, op2, rnd)
             }
         }
     };
@@ -638,23 +637,23 @@ impl<T> PrimOps<c_long> for T
 where
     T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallFloat> + Into<SmallComplex>,
 {
-    forward! { fn add() -> xmpc::add_si, mpc::add_fr }
-    forward! { fn sub() -> xmpc::sub_si, mpc::sub_fr }
-    reverse! { fn sub_from() -> xmpc::si_sub, mpc::fr_sub }
-    forward! { fn mul() -> xmpc::mul_si, mpc::mul_fr }
-    forward! { fn div() -> xmpc::div_si, mpc::div_fr }
-    reverse! { fn div_from() -> xmpc::si_div, mpc::fr_div }
+    forward! { fn add() -> xmpc::add_si, xmpc::add_fr }
+    forward! { fn sub() -> xmpc::sub_si, xmpc::sub_fr }
+    reverse! { fn sub_from() -> xmpc::si_sub, xmpc::fr_sub }
+    forward! { fn mul() -> xmpc::mul_si, xmpc::mul_fr }
+    forward! { fn div() -> xmpc::div_si, xmpc::div_fr }
+    reverse! { fn div_from() -> xmpc::si_div, xmpc::fr_div }
 
     #[inline]
-    unsafe fn pow(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int {
+    fn pow<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2 {
         let small: SmallFloat = op2.into();
-        mpc::pow_fr(rop, op1, small.as_raw(), rnd)
+        xmpc::pow_fr(rop, op1, &*small, rnd)
     }
 
     #[inline]
-    unsafe fn pow_from(rop: *mut mpc_t, op1: Self, op2: *const mpc_t, rnd: rnd_t) -> c_int {
+    fn pow_from<O: OptComplex>(rop: &mut Complex, op1: Self, op2: O, rnd: Round2) -> Ordering2 {
         let small: SmallComplex = op1.into();
-        mpc::pow(rop, small.as_raw(), op2, rnd)
+        xmpc::pow(rop, &*small, op2, rnd)
     }
 }
 
@@ -662,23 +661,23 @@ impl<T> PrimOps<c_ulong> for T
 where
     T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallFloat> + Into<SmallComplex>,
 {
-    forward! { fn add() -> xmpc::add_ui, mpc::add_fr }
-    forward! { fn sub() -> xmpc::sub_ui, mpc::sub_fr }
-    reverse! { fn sub_from() -> xmpc::ui_sub, mpc::fr_sub }
-    forward! { fn mul() -> xmpc::mul_ui, mpc::mul_fr }
-    forward! { fn div() -> xmpc::div_ui, mpc::div_fr }
-    reverse! { fn div_from() -> xmpc::ui_div, mpc::fr_div }
+    forward! { fn add() -> xmpc::add_ui, xmpc::add_fr }
+    forward! { fn sub() -> xmpc::sub_ui, xmpc::sub_fr }
+    reverse! { fn sub_from() -> xmpc::ui_sub, xmpc::fr_sub }
+    forward! { fn mul() -> xmpc::mul_ui, xmpc::mul_fr }
+    forward! { fn div() -> xmpc::div_ui, xmpc::div_fr }
+    reverse! { fn div_from() -> xmpc::ui_div, xmpc::fr_div }
 
     #[inline]
-    unsafe fn pow(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int {
+    fn pow<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2 {
         let small: SmallFloat = op2.into();
-        mpc::pow_fr(rop, op1, small.as_raw(), rnd)
+        xmpc::pow_fr(rop, op1, &*small, rnd)
     }
 
     #[inline]
-    unsafe fn pow_from(rop: *mut mpc_t, op1: Self, op2: *const mpc_t, rnd: rnd_t) -> c_int {
+    fn pow_from<O: OptComplex>(rop: &mut Complex, op1: Self, op2: O, rnd: Round2) -> Ordering2 {
         let small: SmallComplex = op1.into();
-        mpc::pow(rop, small.as_raw(), op2, rnd)
+        xmpc::pow(rop, &*small, op2, rnd)
     }
 }
 
@@ -686,39 +685,54 @@ impl<T> PrimOps<f64> for T
 where
     T: AsLong<Long = f64> + CheckedCast<f64> + Into<SmallFloat> + Into<SmallComplex>,
 {
-    forward! { fn add() -> xmpc::add_d, mpc::add_fr }
-    forward! { fn sub() -> xmpc::sub_d, mpc::sub_fr }
-    reverse! { fn sub_from() -> xmpc::d_sub, mpc::fr_sub }
-    forward! { fn mul() -> xmpc::mul_d, mpc::mul_fr }
-    forward! { fn div() -> xmpc::div_d, mpc::div_fr }
-    reverse! { fn div_from() -> xmpc::d_div, mpc::fr_div }
+    forward! { fn add() -> xmpc::add_d, xmpc::add_fr }
+    forward! { fn sub() -> xmpc::sub_d, xmpc::sub_fr }
+    reverse! { fn sub_from() -> xmpc::d_sub, xmpc::fr_sub }
+    forward! { fn mul() -> xmpc::mul_d, xmpc::mul_fr }
+    forward! { fn div() -> xmpc::div_d, xmpc::div_fr }
+    reverse! { fn div_from() -> xmpc::d_div, xmpc::fr_div }
 
     #[inline]
-    unsafe fn pow(rop: *mut mpc_t, op1: *const mpc_t, op2: Self, rnd: rnd_t) -> c_int {
+    fn pow<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2 {
         let small: SmallFloat = op2.into();
-        mpc::pow_fr(rop, op1, small.as_raw(), rnd)
+        xmpc::pow_fr(rop, op1, &*small, rnd)
     }
 
     #[inline]
-    unsafe fn pow_from(rop: *mut mpc_t, op1: Self, op2: *const mpc_t, rnd: rnd_t) -> c_int {
+    fn pow_from<O: OptComplex>(rop: &mut Complex, op1: Self, op2: O, rnd: Round2) -> Ordering2 {
         let small: SmallComplex = op1.into();
-        mpc::pow(rop, small.as_raw(), op2, rnd)
+        xmpc::pow(rop, &*small, op2, rnd)
     }
 }
 
 #[inline]
-unsafe fn add_mul(rop: *mut mpc_t, add: *const mpc_t, mul: MulIncomplete<'_>, rnd: rnd_t) -> c_int {
-    mpc::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
+fn add_mul<O: OptComplex>(
+    rop: &mut Complex,
+    add: O,
+    mul: MulIncomplete<'_>,
+    rnd: Round2,
+) -> Ordering2 {
+    xmpc::fma(rop, mul.lhs, mul.rhs, add, rnd)
 }
 
 #[inline]
-unsafe fn sub_mul(rop: *mut mpc_t, add: *const mpc_t, mul: MulIncomplete<'_>, rnd: rnd_t) -> c_int {
-    xmpc::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
+fn sub_mul<O: OptComplex>(
+    rop: &mut Complex,
+    add: O,
+    mul: MulIncomplete<'_>,
+    rnd: Round2,
+) -> Ordering2 {
+    xmpc::submul(rop, add, mul.lhs, mul.rhs, rnd)
 }
 
 #[inline]
-unsafe fn mul_sub(rop: *mut mpc_t, mul: MulIncomplete<'_>, sub: *const mpc_t, rnd: rnd_t) -> c_int {
-    xmpc::mulsub(rop, (mul.lhs.as_raw(), mul.rhs.as_raw()), sub, rnd)
+fn mul_sub<O: OptComplex>(
+    rop: &mut Complex,
+    mul: MulIncomplete<'_>,
+    sub: O,
+    rnd: Round2,
+) -> Ordering2 {
+    xmpc::mulsub(rop, mul.lhs, mul.rhs, sub, rnd)
 }
 
 #[cfg(test)]
