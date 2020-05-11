@@ -1279,7 +1279,7 @@ macro_rules! ref_math_op2_round {
 macro_rules! arith_binary_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -1340,15 +1340,7 @@ macro_rules! arith_binary_round {
             type Ordering = $Ordering;
             #[inline]
             fn $method_assign_round(&mut self, rhs: &$T, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        self.as_raw(),
-                        rhs.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(self, (), rhs, round)
             }
         }
 
@@ -1363,15 +1355,7 @@ macro_rules! arith_binary_round {
             type Ordering = $Ordering;
             #[inline]
             fn assign_round(&mut self, src: $Incomplete<'_>, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.lhs.as_raw(),
-                        src.rhs.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(self, src.lhs, src.rhs, round)
             }
         }
     };
@@ -1387,7 +1371,7 @@ macro_rules! arith_binary_round {
 macro_rules! arith_binary_self_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -1397,7 +1381,7 @@ macro_rules! arith_binary_self_round {
     ) => {
         arith_binary_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -1442,15 +1426,7 @@ macro_rules! arith_binary_self_round {
             type Ordering = $Ordering;
             #[inline]
             fn $method_from_round(&mut self, lhs: &$Big, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        lhs.as_raw(),
-                        self.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(self, lhs, (), round)
             }
         }
     };
@@ -1464,7 +1440,7 @@ macro_rules! arith_binary_self_round {
 macro_rules! arith_forward_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -1474,7 +1450,7 @@ macro_rules! arith_forward_round {
     ) => {
         arith_binary_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -1510,15 +1486,7 @@ macro_rules! arith_forward_round {
             type Ordering = $Ordering;
             #[inline]
             fn assign_round(&mut self, src: &$OwnedIncomplete<'_>, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.lhs.as_raw(),
-                        src.rhs.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(self, src.lhs, &src.rhs, round)
             }
         }
     };
@@ -1537,7 +1505,7 @@ macro_rules! arith_forward_round {
 macro_rules! arith_commut_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -1549,7 +1517,7 @@ macro_rules! arith_commut_round {
     ) => {
         arith_forward_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -1642,7 +1610,7 @@ macro_rules! arith_commut_round {
 macro_rules! arith_noncommut_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $func_from:path, $raw_round:path => $ord:path;
+        $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -1654,7 +1622,7 @@ macro_rules! arith_noncommut_round {
     ) => {
         arith_forward_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -1724,15 +1692,7 @@ macro_rules! arith_noncommut_round {
             type Ordering = $Ordering;
             #[inline]
             fn $method_from_round(&mut self, lhs: &$T, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func_from(
-                        self.as_raw_mut(),
-                        lhs.as_raw(),
-                        self.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func_from(self, lhs, (), round)
             }
         }
 
@@ -1747,15 +1707,7 @@ macro_rules! arith_noncommut_round {
             type Ordering = $Ordering;
             #[inline]
             fn assign_round(&mut self, src: $FromIncomplete<'_>, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func_from(
-                        self.as_raw_mut(),
-                        src.lhs.as_raw(),
-                        src.rhs.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func_from(self, src.lhs, src.rhs, round)
             }
         }
 
@@ -1779,15 +1731,7 @@ macro_rules! arith_noncommut_round {
             type Ordering = $Ordering;
             #[inline]
             fn assign_round(&mut self, src: &$FromOwnedIncomplete<'_>, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func_from(
-                        self.as_raw_mut(),
-                        src.lhs.as_raw(),
-                        src.rhs.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func_from(self, &src.lhs, src.rhs, round)
             }
         }
     };
@@ -1805,7 +1749,7 @@ macro_rules! arith_noncommut_round {
 macro_rules! arith_prim_exact_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $($T:ty, $Incomplete:ident;)*
@@ -1847,9 +1791,7 @@ macro_rules! arith_prim_exact_round {
         impl $ImpAssign<$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $T) {
-                unsafe {
-                    $func(self.as_raw_mut(), self.as_raw(), rhs, $raw_round($Nearest));
-                }
+                $func(self, (), rhs, $Nearest);
             }
         }
 
@@ -1871,15 +1813,7 @@ macro_rules! arith_prim_exact_round {
             type Ordering = $Ordering;
             #[inline]
             fn assign_round(&mut self, src: $Incomplete<'_>, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.lhs.as_raw(),
-                        src.rhs,
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(self, src.lhs, src.rhs,round)
             }
         }
     )* };
@@ -1892,7 +1826,7 @@ macro_rules! arith_prim_exact_round {
 macro_rules! arith_prim_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -1900,7 +1834,7 @@ macro_rules! arith_prim_round {
     ) => { $(
         arith_prim_exact_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $T, $Incomplete;
@@ -1911,15 +1845,7 @@ macro_rules! arith_prim_round {
             type Ordering = $Ordering;
             #[inline]
             fn $method_assign_round(&mut self, rhs: $T, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        self.as_raw(),
-                        rhs,
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(self, (), rhs, round)
             }
         }
 
@@ -1947,7 +1873,7 @@ macro_rules! arith_prim_round {
 macro_rules! arith_prim_commut_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -1957,7 +1883,7 @@ macro_rules! arith_prim_commut_round {
     ) => { $(
         arith_prim_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -2047,7 +1973,7 @@ macro_rules! arith_prim_commut_round {
 macro_rules! arith_prim_noncommut_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $func_from:path, $raw_round:path => $ord:path;
+        $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -2057,7 +1983,7 @@ macro_rules! arith_prim_noncommut_round {
     ) => { $(
         arith_prim_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -2117,15 +2043,7 @@ macro_rules! arith_prim_noncommut_round {
             type Ordering = $Ordering;
             #[inline]
             fn $method_from_round(&mut self, lhs: $T, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func_from(
-                        self.as_raw_mut(),
-                        lhs,
-                        self.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func_from(self, lhs, (), round)
             }
         }
 
@@ -2149,15 +2067,7 @@ macro_rules! arith_prim_noncommut_round {
             type Ordering = $Ordering;
             #[inline]
             fn assign_round(&mut self, src: $FromIncomplete<'_>, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func_from(
-                        self.as_raw_mut(),
-                        src.lhs,
-                        src.rhs.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func_from(self, src.lhs, src.rhs, round)
             }
         }
     )* };
@@ -2173,7 +2083,7 @@ macro_rules! arith_prim_noncommut_round {
 macro_rules! mul_op_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -2209,9 +2119,7 @@ macro_rules! mul_op_round {
             type Ordering = $Ordering;
             #[inline]
             fn $method_assign_round(&mut self, rhs: $Mul<'_>, round: $Round) -> $Ordering {
-                let ret =
-                    unsafe { $func(self.as_raw_mut(), self.as_raw(), rhs, $raw_round(round)) };
-                $ord(ret)
+                $func(self, (), rhs, round)
             }
         }
 
@@ -2226,15 +2134,7 @@ macro_rules! mul_op_round {
             type Ordering = $Ordering;
             #[inline]
             fn assign_round(&mut self, src: $Incomplete<'_>, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.lhs.as_raw(),
-                        src.rhs,
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(self, src.lhs, src.rhs, round)
             }
         }
     };
@@ -2249,7 +2149,7 @@ macro_rules! mul_op_round {
 macro_rules! mul_op_commut_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -2260,7 +2160,7 @@ macro_rules! mul_op_commut_round {
     ) => {
         mul_op_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -2314,7 +2214,7 @@ macro_rules! mul_op_commut_round {
 macro_rules! mul_op_noncommut_round {
     (
         $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
-        $func:path, $func_from:path, $raw_round:path => $ord:path;
+        $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
@@ -2326,7 +2226,7 @@ macro_rules! mul_op_noncommut_round {
     ) => {
         mul_op_round! {
             $Big, $Round, $Nearest => $Ordering;
-            $func, $raw_round => $ord;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -2363,9 +2263,7 @@ macro_rules! mul_op_noncommut_round {
             type Ordering = $Ordering;
             #[inline]
             fn $method_from_round(&mut self, lhs: $Mul<'_>, round: $Round) -> $Ordering {
-                let ret =
-                    unsafe { $func_from(self.as_raw_mut(), lhs, self.as_raw(), $raw_round(round)) };
-                $ord(ret)
+                $func_from(self, lhs, (), round)
             }
         }
 
@@ -2380,15 +2278,7 @@ macro_rules! mul_op_noncommut_round {
             type Ordering = $Ordering;
             #[inline]
             fn assign_round(&mut self, src: $FromIncomplete<'_>, round: $Round) -> $Ordering {
-                let ret = unsafe {
-                    $func_from(
-                        self.as_raw_mut(),
-                        src.lhs,
-                        src.rhs.as_raw(),
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func_from(self, src.lhs, src.rhs, round)
             }
         }
     };

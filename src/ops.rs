@@ -962,7 +962,7 @@ pub trait MulFromRound<Lhs = Self> {
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn mul_from_round(&mut self, rhs: Lhs, round: Self::Round) -> Self::Ordering;
+    fn mul_from_round(&mut self, lhs: Lhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -1071,7 +1071,7 @@ pub trait DivFromRound<Lhs = Self> {
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn div_from_round(&mut self, rhs: Lhs, round: Self::Round) -> Self::Ordering;
+    fn div_from_round(&mut self, lhs: Lhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -1181,7 +1181,7 @@ pub trait RemFromRound<Lhs = Self> {
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn rem_from_round(&mut self, rhs: Lhs, round: Self::Round) -> Self::Ordering;
+    fn rem_from_round(&mut self, lhs: Lhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**

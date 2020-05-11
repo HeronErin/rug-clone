@@ -19,7 +19,7 @@ use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
 use crate::{
-    ext::xmpfr::{self, ordering1, raw_round},
+    ext::xmpfr::{self, OptFloat},
     float::{Round, SmallFloat},
     ops::{
         AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
@@ -36,8 +36,7 @@ use core::{
         ShrAssign, Sub, SubAssign,
     },
 };
-use gmp_mpfr_sys::mpfr::{self, mpfr_t, rnd_t};
-use libc::{c_int, c_long, c_ulong};
+use libc::{c_long, c_ulong};
 
 impl Neg for Float {
     type Output = Float;
@@ -89,7 +88,7 @@ macro_rules! arith_binary_self_float {
     ) => {
         arith_binary_self_round! {
             Float, Round, Round::Nearest => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -113,7 +112,7 @@ macro_rules! arith_forward_float {
     ) => {
         arith_forward_round! {
             Float, Round, Round::Nearest => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -138,7 +137,7 @@ macro_rules! arith_commut_float {
     ) => {
         arith_commut_round! {
             Float, Round, Round::Nearest => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -166,7 +165,7 @@ macro_rules! arith_noncommut_float {
     ) => {
         arith_noncommut_round! {
             Float, Round, Round::Nearest => Ordering;
-            $func, $func_from, raw_round => ordering1;
+            $func, $func_from;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -180,7 +179,7 @@ macro_rules! arith_noncommut_float {
 }
 
 arith_binary_self_float! {
-    mpfr::add;
+    xmpfr::add;
     Add { add }
     AddAssign { add_assign }
     AddAssignRound { add_assign_round }
@@ -189,7 +188,7 @@ arith_binary_self_float! {
     AddIncomplete
 }
 arith_binary_self_float! {
-    mpfr::sub;
+    xmpfr::sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubAssignRound { sub_assign_round }
@@ -198,7 +197,7 @@ arith_binary_self_float! {
     SubIncomplete
 }
 arith_binary_self_float! {
-    mpfr::mul;
+    xmpfr::mul;
     Mul { mul }
     MulAssign { mul_assign }
     MulAssignRound { mul_assign_round }
@@ -207,7 +206,7 @@ arith_binary_self_float! {
     MulIncomplete
 }
 arith_binary_self_float! {
-    mpfr::div;
+    xmpfr::div;
     Div { div }
     DivAssign { div_assign }
     DivAssignRound { div_assign_round }
@@ -216,7 +215,7 @@ arith_binary_self_float! {
     DivIncomplete
 }
 arith_binary_self_float! {
-    mpfr::fmod;
+    xmpfr::fmod;
     Rem { rem }
     RemAssign { rem_assign }
     RemAssignRound { rem_assign_round }
@@ -225,7 +224,7 @@ arith_binary_self_float! {
     RemIncomplete
 }
 arith_binary_self_float! {
-    mpfr::pow;
+    xmpfr::pow;
     Pow { pow }
     PowAssign { pow_assign }
     PowAssignRound { pow_assign_round }
@@ -236,7 +235,7 @@ arith_binary_self_float! {
 
 #[cfg(feature = "integer")]
 arith_commut_float! {
-    mpfr::add_z;
+    xmpfr::add_z;
     Add { add }
     AddAssign { add_assign }
     AddAssignRound { add_assign_round }
@@ -247,7 +246,7 @@ arith_commut_float! {
 }
 #[cfg(feature = "integer")]
 arith_noncommut_float! {
-    mpfr::sub_z, mpfr::z_sub;
+    xmpfr::sub_z, xmpfr::z_sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubAssignRound { sub_assign_round }
@@ -259,7 +258,7 @@ arith_noncommut_float! {
 }
 #[cfg(feature = "integer")]
 arith_commut_float! {
-    mpfr::mul_z;
+    xmpfr::mul_z;
     Mul { mul }
     MulAssign { mul_assign }
     MulAssignRound { mul_assign_round }
@@ -270,7 +269,7 @@ arith_commut_float! {
 }
 #[cfg(feature = "integer")]
 arith_noncommut_float! {
-    mpfr::div_z, xmpfr::z_div;
+    xmpfr::div_z, xmpfr::z_div;
     Div { div }
     DivAssign { div_assign }
     DivAssignRound { div_assign_round }
@@ -282,7 +281,7 @@ arith_noncommut_float! {
 }
 #[cfg(feature = "integer")]
 arith_forward_float! {
-    mpfr::pow_z;
+    xmpfr::pow_z;
     Pow { pow }
     PowAssign { pow_assign }
     PowAssignRound { pow_assign_round }
@@ -292,7 +291,7 @@ arith_forward_float! {
 
 #[cfg(feature = "rational")]
 arith_commut_float! {
-    mpfr::add_q;
+    xmpfr::add_q;
     Add { add }
     AddAssign { add_assign }
     AddAssignRound { add_assign_round }
@@ -303,7 +302,7 @@ arith_commut_float! {
 }
 #[cfg(feature = "rational")]
 arith_noncommut_float! {
-    mpfr::sub_q, xmpfr::q_sub;
+    xmpfr::sub_q, xmpfr::q_sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubAssignRound { sub_assign_round }
@@ -315,7 +314,7 @@ arith_noncommut_float! {
 }
 #[cfg(feature = "rational")]
 arith_commut_float! {
-    mpfr::mul_q;
+    xmpfr::mul_q;
     Mul { mul }
     MulAssign { mul_assign }
     MulAssignRound { mul_assign_round }
@@ -326,7 +325,7 @@ arith_commut_float! {
 }
 #[cfg(feature = "rational")]
 arith_noncommut_float! {
-    mpfr::div_q, xmpfr::q_div;
+    xmpfr::div_q, xmpfr::q_div;
     Div { div }
     DivAssign { div_assign }
     DivAssignRound { div_assign_round }
@@ -346,7 +345,7 @@ macro_rules! arith_prim_exact_float {
     ) => {
         arith_prim_exact_round! {
             Float, Round, Round::Nearest => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $($T, $Incomplete;)*
@@ -366,7 +365,7 @@ macro_rules! arith_prim_commut_float {
     ) => {
         arith_prim_commut_round! {
             Float, Round, Round::Nearest => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -390,7 +389,7 @@ macro_rules! arith_prim_noncommut_float {
     ) => {
         arith_prim_noncommut_round! {
             Float, Round, Round::Nearest => Ordering;
-            $func, $func_from, raw_round => ordering1;
+            $func, $func_from;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
@@ -548,7 +547,7 @@ arith_prim_exact_float! {
 }
 mul_op_commut_round! {
     Float, Round, Round::Nearest => Ordering;
-    add_mul, raw_round => ordering1;
+    add_mul;
     Add { add }
     AddAssign { add_assign }
     AddAssignRound { add_assign_round }
@@ -559,7 +558,7 @@ mul_op_commut_round! {
 }
 mul_op_noncommut_round! {
     Float, Round, Round::Nearest => Ordering;
-    sub_mul, mul_sub, raw_round => ordering1;
+    sub_mul, mul_sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubAssignRound { sub_assign_round }
@@ -570,16 +569,16 @@ mul_op_noncommut_round! {
 }
 
 trait PrimOps<Long>: AsLong {
-    unsafe fn add(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn sub(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn sub_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
-    unsafe fn mul(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn div(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn div_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
-    unsafe fn rem(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn rem_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
-    unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
-    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
+    fn add<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering;
+    fn sub<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering;
+    fn sub_from<O: OptFloat>(rop: &mut Float, op1: Self, op2: O, rnd: Round) -> Ordering;
+    fn mul<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering;
+    fn div<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering;
+    fn div_from<O: OptFloat>(rop: &mut Float, op1: Self, op2: O, rnd: Round) -> Ordering;
+    fn rem<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering;
+    fn rem_from<O: OptFloat>(rop: &mut Float, op1: Self, op2: O, rnd: Round) -> Ordering;
+    fn pow<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering;
+    fn pow_from<O: OptFloat>(rop: &mut Float, op1: Self, op2: O, rnd: Round) -> Ordering;
 }
 
 trait AsLong: Copy {
@@ -601,40 +600,40 @@ as_long! { f64: f32 f64 }
 macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        unsafe fn $fn(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int {
+        fn $fn<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering {
             if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2, rnd)
             } else {
                 let small: SmallFloat = op2.into();
-                $deleg(rop, op1, small.as_raw(), rnd)
+                $deleg(rop, op1, &*small, rnd)
             }
         }
     };
     (fn $fn:ident() -> $deleg:path) => {
         #[inline]
-        unsafe fn $fn(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int {
+        fn $fn<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering {
             let small: SmallFloat = op2.into();
-            $deleg(rop, op1, small.as_raw(), rnd)
+            $deleg(rop, op1, &*small, rnd)
         }
     };
 }
 macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        unsafe fn $fn(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int {
+        fn $fn<O: OptFloat>(rop: &mut Float, op1: Self, op2: O, rnd: Round) -> Ordering {
             if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2, rnd)
             } else {
                 let small: SmallFloat = op1.into();
-                $deleg(rop, small.as_raw(), op2, rnd)
+                $deleg(rop, &*small, op2, rnd)
             }
         }
     };
     (fn $fn:ident() -> $deleg:path) => {
         #[inline]
-        unsafe fn $fn(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int {
+        fn $fn<O: OptFloat>(rop: &mut Float, op1: Self, op2: O, rnd: Round) -> Ordering {
             let small: SmallFloat = op1.into();
-            $deleg(rop, small.as_raw(), op2, rnd)
+            $deleg(rop, &*small, op2, rnd)
         }
     };
 }
@@ -643,48 +642,48 @@ impl<T> PrimOps<c_long> for T
 where
     T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallFloat>,
 {
-    forward! { fn add() -> mpfr::add_si, mpfr::add }
-    forward! { fn sub() -> mpfr::sub_si, mpfr::sub }
-    reverse! { fn sub_from() -> mpfr::si_sub, mpfr::sub }
-    forward! { fn mul() -> mpfr::mul_si, mpfr::mul }
-    forward! { fn div() -> mpfr::div_si, mpfr::div }
-    reverse! { fn div_from() -> mpfr::si_div, mpfr::div }
-    forward! { fn rem() -> mpfr::fmod }
-    reverse! { fn rem_from() -> mpfr::fmod }
-    forward! { fn pow() -> mpfr::pow_si, mpfr::pow }
-    reverse! { fn pow_from() -> mpfr::pow }
+    forward! { fn add() -> xmpfr::add_si, xmpfr::add }
+    forward! { fn sub() -> xmpfr::sub_si, xmpfr::sub }
+    reverse! { fn sub_from() -> xmpfr::si_sub, xmpfr::sub }
+    forward! { fn mul() -> xmpfr::mul_si, xmpfr::mul }
+    forward! { fn div() -> xmpfr::div_si, xmpfr::div }
+    reverse! { fn div_from() -> xmpfr::si_div, xmpfr::div }
+    forward! { fn rem() -> xmpfr::fmod }
+    reverse! { fn rem_from() -> xmpfr::fmod }
+    forward! { fn pow() -> xmpfr::pow_si, xmpfr::pow }
+    reverse! { fn pow_from() -> xmpfr::pow }
 }
 
 impl<T> PrimOps<c_ulong> for T
 where
     T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallFloat>,
 {
-    forward! { fn add() -> mpfr::add_ui, mpfr::add }
-    forward! { fn sub() -> mpfr::sub_ui, mpfr::sub }
-    reverse! { fn sub_from() -> mpfr::ui_sub, mpfr::sub }
-    forward! { fn mul() -> mpfr::mul_ui, mpfr::mul }
-    forward! { fn div() -> mpfr::div_ui, mpfr::div }
-    reverse! { fn div_from() -> mpfr::ui_div, mpfr::div }
-    forward! { fn rem() -> mpfr::fmod }
-    reverse! { fn rem_from() -> mpfr::fmod }
-    forward! { fn pow() -> mpfr::pow_ui, mpfr::pow }
-    reverse! { fn pow_from() -> mpfr::ui_pow, mpfr::pow }
+    forward! { fn add() -> xmpfr::add_ui, xmpfr::add }
+    forward! { fn sub() -> xmpfr::sub_ui, xmpfr::sub }
+    reverse! { fn sub_from() -> xmpfr::ui_sub, xmpfr::sub }
+    forward! { fn mul() -> xmpfr::mul_ui, xmpfr::mul }
+    forward! { fn div() -> xmpfr::div_ui, xmpfr::div }
+    reverse! { fn div_from() -> xmpfr::ui_div, xmpfr::div }
+    forward! { fn rem() -> xmpfr::fmod }
+    reverse! { fn rem_from() -> xmpfr::fmod }
+    forward! { fn pow() -> xmpfr::pow_ui, xmpfr::pow }
+    reverse! { fn pow_from() -> xmpfr::ui_pow, xmpfr::pow }
 }
 
 impl<T> PrimOps<f64> for T
 where
     T: AsLong<Long = f64> + CheckedCast<f64> + Into<SmallFloat>,
 {
-    forward! { fn add() -> mpfr::add_d, mpfr::add }
-    forward! { fn sub() -> mpfr::sub_d, mpfr::sub }
-    reverse! { fn sub_from() -> mpfr::d_sub, mpfr::sub }
-    forward! { fn mul() -> mpfr::mul_d, mpfr::mul }
-    forward! { fn div() -> mpfr::div_d, mpfr::div }
-    reverse! { fn div_from() -> mpfr::d_div, mpfr::div }
-    forward! { fn rem() -> mpfr::fmod }
-    reverse! { fn rem_from() -> mpfr::fmod }
-    forward! { fn pow() -> mpfr::pow }
-    reverse! { fn pow_from() -> mpfr::pow }
+    forward! { fn add() -> xmpfr::add_d, xmpfr::add }
+    forward! { fn sub() -> xmpfr::sub_d, xmpfr::sub }
+    reverse! { fn sub_from() -> xmpfr::d_sub, xmpfr::sub }
+    forward! { fn mul() -> xmpfr::mul_d, xmpfr::mul }
+    forward! { fn div() -> xmpfr::div_d, xmpfr::div }
+    reverse! { fn div_from() -> xmpfr::d_div, xmpfr::div }
+    forward! { fn rem() -> xmpfr::fmod }
+    reverse! { fn rem_from() -> xmpfr::fmod }
+    forward! { fn pow() -> xmpfr::pow }
+    reverse! { fn pow_from() -> xmpfr::pow }
 }
 
 impl<'a> Add for MulIncomplete<'a> {
@@ -706,17 +705,14 @@ impl AssignRound<MulAddMulIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: MulAddMulIncomplete<'_>, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::fmma(
-                self.as_raw_mut(),
-                src.lhs.lhs.as_raw(),
-                src.lhs.rhs.as_raw(),
-                src.rhs.lhs.as_raw(),
-                src.rhs.rhs.as_raw(),
-                raw_round(round),
-            )
-        };
-        ordering1(ret)
+        xmpfr::fmma(
+            self,
+            src.lhs.lhs,
+            src.lhs.rhs,
+            src.rhs.lhs,
+            src.rhs.rhs,
+            round,
+        )
     }
 }
 
@@ -739,48 +735,30 @@ impl AssignRound<MulSubMulIncomplete<'_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: MulSubMulIncomplete<'_>, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::fmms(
-                self.as_raw_mut(),
-                src.lhs.lhs.as_raw(),
-                src.lhs.rhs.as_raw(),
-                src.rhs.lhs.as_raw(),
-                src.rhs.rhs.as_raw(),
-                raw_round(round),
-            )
-        };
-        ordering1(ret)
+        xmpfr::fmms(
+            self,
+            src.lhs.lhs,
+            src.lhs.rhs,
+            src.rhs.lhs,
+            src.rhs.rhs,
+            round,
+        )
     }
 }
 
 #[inline]
-unsafe fn add_mul(
-    rop: *mut mpfr_t,
-    add: *const mpfr_t,
-    mul: MulIncomplete<'_>,
-    rnd: rnd_t,
-) -> c_int {
-    mpfr::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
+fn add_mul<O: OptFloat>(rop: &mut Float, add: O, mul: MulIncomplete<'_>, rnd: Round) -> Ordering {
+    xmpfr::fma(rop, mul.lhs, mul.rhs, add, rnd)
 }
 
 #[inline]
-unsafe fn sub_mul(
-    rop: *mut mpfr_t,
-    add: *const mpfr_t,
-    mul: MulIncomplete<'_>,
-    rnd: rnd_t,
-) -> c_int {
-    xmpfr::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
+fn sub_mul<O: OptFloat>(rop: &mut Float, add: O, mul: MulIncomplete<'_>, rnd: Round) -> Ordering {
+    xmpfr::submul(rop, add, mul.lhs, mul.rhs, rnd)
 }
 
 #[inline]
-unsafe fn mul_sub(
-    rop: *mut mpfr_t,
-    mul: MulIncomplete<'_>,
-    sub: *const mpfr_t,
-    rnd: rnd_t,
-) -> c_int {
-    mpfr::fms(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), sub, rnd)
+fn mul_sub<O: OptFloat>(rop: &mut Float, mul: MulIncomplete<'_>, sub: O, rnd: Round) -> Ordering {
+    xmpfr::fms(rop, mul.lhs, mul.rhs, sub, rnd)
 }
 
 #[cfg(test)]
