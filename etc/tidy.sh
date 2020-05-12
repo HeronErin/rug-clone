@@ -30,9 +30,12 @@ function print_eval_check {
     error_code=$code
 }
 
+# prepend "+" if TOOLCHAIN is set
+TOOLCHAIN=${TOOLCHAIN:++$TOOLCHAIN}
+
 # Check formatting.
 print_eval_check \
-    cargo "+$TOOLCHAIN" \
+    cargo $TOOLCHAIN \
     fmt -- --check
 
 # Check clippy with all feature combinations.
@@ -55,7 +58,7 @@ do
     fi
     features="fail-on-warnings${features:+ $features}"
     print_eval_check \
-        cargo +$TOOLCHAIN clippy --all-targets \
+        cargo $TOOLCHAIN clippy --all-targets \
         --no-default-features --features "$features" \
         $gmp -p rug
 done

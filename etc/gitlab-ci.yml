@@ -50,7 +50,7 @@ beta-x86_64-gnulinux:
   variables:
     TOOLCHAIN: beta-x86_64
   script:
-  - etc/test-gitlab-ci.sh
+  - etc/test.sh
 
 stable-x86_64-gnulinux:
   image: amd64/rust:1
@@ -60,7 +60,7 @@ stable-x86_64-gnulinux:
   variables:
     TOOLCHAIN: stable-x86_64
   script:
-  - etc/test-gitlab-ci.sh
+  - etc/test.sh
 
 nightly-x86_64-gnulinux:
   image: amd64/rust:1
@@ -70,7 +70,7 @@ nightly-x86_64-gnulinux:
   variables:
     TOOLCHAIN: nightly-x86_64
   script:
-  - etc/test-gitlab-ci.sh
+  - etc/test.sh
 
 1.37.0-x86_64-gnulinux:
   image: amd64/rust:1
@@ -80,7 +80,7 @@ nightly-x86_64-gnulinux:
   variables:
     TOOLCHAIN: 1.37.0-x86_64
   script:
-  - etc/test-gitlab-ci.sh
+  - etc/test.sh
 
 stable-x86_64-gnulinux-tarpaulin:
   image: amd64/rust:1
@@ -156,7 +156,7 @@ beta-i686-gnulinux:
   variables:
     TOOLCHAIN: beta-i686
   script:
-  - etc/test-gitlab-ci.sh
+  - etc/test.sh
 
 stable-i686-gnulinux:
   image: i386/rust:1
@@ -166,7 +166,7 @@ stable-i686-gnulinux:
   variables:
     TOOLCHAIN: stable-i686
   script:
-  - etc/test-gitlab-ci.sh
+  - etc/test.sh
 
 nightly-i686-gnulinux:
   image: i386/rust:1
@@ -176,7 +176,7 @@ nightly-i686-gnulinux:
   variables:
     TOOLCHAIN: nightly-i686
   script:
-  - etc/test-gitlab-ci.sh
+  - etc/test.sh
 
 1.37.0-i686-gnulinux:
   image: i386/rust:1
@@ -186,7 +186,7 @@ nightly-i686-gnulinux:
   variables:
     TOOLCHAIN: 1.37.0-i686
   script:
-  - etc/test-gitlab-ci.sh
+  - etc/test.sh
 
 stable-i686-gnulinux-valgrind:
   image: i386/rust:1
