@@ -37,6 +37,7 @@ use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "rational")]
 use {
     crate::{rational::TryFromFloatError, Rational},
+    az::CheckedCast,
     core::convert::TryFrom,
 };
 
@@ -322,7 +323,9 @@ impl TryFrom<&Float> for Rational {
     type Error = TryFromFloatError;
     #[inline]
     fn try_from(value: &Float) -> Result<Self, TryFromFloatError> {
-        value.to_rational().ok_or(TryFromFloatError { _unused: () })
+        value
+            .checked_cast()
+            .ok_or(TryFromFloatError { _unused: () })
     }
 }
 

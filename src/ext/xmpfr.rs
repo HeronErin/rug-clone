@@ -626,6 +626,14 @@ pub fn cmp_z(op1: &Float, op2: &Integer) -> Ordering {
 
 #[cfg(feature = "rational")]
 #[inline]
+pub fn get_q(rop: &mut Rational, op: &Float) {
+    unsafe {
+        mpfr::get_q(rop.as_raw_mut(), op.as_raw());
+    }
+}
+
+#[cfg(feature = "rational")]
+#[inline]
 pub fn cmp_q(op1: &Float, op2: &Rational) -> Ordering {
     ordering1(unsafe { mpfr::cmp_q(op1.as_raw(), op2.as_raw()) })
 }

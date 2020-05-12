@@ -54,6 +54,7 @@ use {crate::complex::big::BorrowComplex, gmp_mpfr_sys::mpc::mpc_t};
 #[cfg(feature = "integer")]
 use {
     crate::{integer::big::BorrowInteger, Integer},
+    az::CheckedCast,
     gmp_mpfr_sys::{gmp::mpz_t, mpfr::prec_t},
 };
 
@@ -734,6 +735,10 @@ impl Float {
     /// If the value is a [finite number][`is_finite`], converts it to
     /// an [`Integer`] rounding to the nearest.
     ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;float).[checked\_as][`checked_as`]::&lt;[Integer][`Integer`]&gt;()</code>
+    ///   * <code>float.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[Integer][`Integer`]&gt;()</code>
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -747,10 +752,12 @@ impl Float {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
-        self.to_integer_round(Round::Nearest).map(|x| x.0)
+        self.checked_cast()
     }
 
     #[cfg(feature = "integer")]
@@ -825,8 +832,11 @@ impl Float {
     /// [`Rational`] number preserving all the precision of the value.
     ///
     /// This conversion can also be performed using
-    /// <code>[Rational][`Rational`]::[try_from][`try_from`](&amp;float)</code> or
-    /// <code>[Rational][`Rational`]::[try_from][`try_from`](float)</code>.
+    ///   * <code>[Rational][`Rational`]::[try_from][`try_from`](&amp;float)</code>
+    ///   * <code>[Rational][`Rational`]::[try_from][`try_from`](float)</code>
+    ///   * <code>(&amp;float).[checked\_as][`checked_as`]::&lt;[Rational][`Rational`]&gt;()</code>
+    ///   * <code>float.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[Rational][`Rational`]&gt;()</code>
+    ///
     ///
     /// # Examples
     ///
@@ -868,18 +878,13 @@ impl Float {
     ///
     /// [`Float`]: struct.Float.html
     /// [`Rational`]: struct.Rational.html
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`is_finite`]: #method.is_finite
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {
-        if !self.is_finite() {
-            return None;
-        }
-        let mut r = Rational::new();
-        unsafe {
-            mpfr::get_q(r.as_raw_mut(), self.as_raw());
-        }
-        Some(r)
+        self.checked_cast()
     }
 
     /// Converts to an [`i32`], rounding to the nearest.

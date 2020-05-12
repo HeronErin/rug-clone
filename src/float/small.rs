@@ -20,7 +20,7 @@ use crate::{
     misc::{AsOrPanic, NegAbs},
     Assign, Float,
 };
-use az::Az;
+use az::{Az, WrappingCast};
 use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
@@ -447,6 +447,65 @@ impl Assign for SmallFloat {
     #[inline]
     fn assign(&mut self, other: Self) {
         drop(mem::replace(self, other));
+    }
+}
+
+#[inline]
+pub(crate) unsafe fn unchecked_get_unshifted_u8(small: &SmallFloat) -> u8 {
+    debug_assert!(small.prec() >= 8);
+    debug_assert!(small.is_normal());
+    (small.limbs[0].assume_init() >> (gmp::LIMB_BITS - 8)).wrapping_cast()
+}
+
+#[inline]
+pub(crate) unsafe fn unchecked_get_unshifted_u16(small: &SmallFloat) -> u16 {
+    debug_assert!(small.prec() >= 16);
+    debug_assert!(small.is_normal());
+    (small.limbs[0].assume_init() >> (gmp::LIMB_BITS - 16)).wrapping_cast()
+}
+
+#[inline]
+pub(crate) unsafe fn unchecked_get_unshifted_u32(small: &SmallFloat) -> u32 {
+    debug_assert!(small.prec() >= 32);
+    debug_assert!(small.is_normal());
+    #[cfg(gmp_limb_bits_32)]
+    {
+        small.limbs[0].assume_init()
+    }
+    #[cfg(gmp_limb_bits_64)]
+    {
+        (small.limbs[0].assume_init() >> 32).wrapping_cast()
+    }
+}
+
+#[inline]
+pub(crate) unsafe fn unchecked_get_unshifted_u64(small: &SmallFloat) -> u64 {
+    debug_assert!(small.prec() >= 64);
+    debug_assert!(small.is_normal());
+    #[cfg(gmp_limb_bits_32)]
+    {
+        u64::from(small.limbs[0].assume_init()) | (u64::from(small.limbs[1].assume_init()) << 32)
+    }
+    #[cfg(gmp_limb_bits_64)]
+    {
+        small.limbs[0].assume_init()
+    }
+}
+
+#[inline]
+pub(crate) unsafe fn unchecked_get_unshifted_u128(small: &SmallFloat) -> u128 {
+    debug_assert!(small.prec() >= 128);
+    debug_assert!(small.is_normal());
+    #[cfg(gmp_limb_bits_32)]
+    {
+        u128::from(small.limbs[0].assume_init())
+            | (u128::from(small.limbs[1].assume_init()) << 32)
+            | (u128::from(small.limbs[2].assume_init()) << 64)
+            | (u128::from(small.limbs[3].assume_init()) << 96)
+    }
+    #[cfg(gmp_limb_bits_64)]
+    {
+        u128::from(small.limbs[0].assume_init()) | (u128::from(small.limbs[1].assume_init()) << 64)
     }
 }
 

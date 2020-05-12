@@ -25,6 +25,7 @@ This module provides support for floating-point numbers of type
 
 pub(crate) mod arith;
 pub(crate) mod big;
+mod casts;
 mod cmp;
 mod ord;
 #[cfg(feature = "serde")]
