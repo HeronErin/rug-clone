@@ -40,6 +40,7 @@ assert_eq!(int, 15);
 
 pub(crate) mod arith;
 pub(crate) mod big;
+mod casts;
 mod cmp;
 mod division;
 #[cfg(feature = "serde")]

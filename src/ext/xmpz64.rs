@@ -96,16 +96,6 @@ pub fn get_abs_u64(op: &Integer) -> u64 {
 }
 
 #[inline]
-pub fn get_abs_u32(op: &Integer) -> u32 {
-    unsafe {
-        match op.inner().size {
-            0 => 0,
-            _ => limb(op, 0) as u32,
-        }
-    }
-}
-
-#[inline]
 pub fn cmp_u128(op1: &Integer, op2: u128) -> Ordering {
     let size = op1.inner().size;
     if size > 2 {

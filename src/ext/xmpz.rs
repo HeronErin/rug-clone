@@ -688,6 +688,36 @@ pub fn shr_i32<O: OptInteger>(rop: &mut Integer, op1: O, op2: i32) {
 }
 
 #[inline]
+pub fn get_abs_u32(op: &Integer) -> u32 {
+    unsafe {
+        match op.inner().size {
+            0 => 0,
+            _ => limb(op, 0) as u32,
+        }
+    }
+}
+
+#[inline]
+pub fn get_abs_u16(op: &Integer) -> u16 {
+    unsafe {
+        match op.inner().size {
+            0 => 0,
+            _ => limb(op, 0) as u16,
+        }
+    }
+}
+
+#[inline]
+pub fn get_abs_u8(op: &Integer) -> u8 {
+    unsafe {
+        match op.inner().size {
+            0 => 0,
+            _ => limb(op, 0) as u8,
+        }
+    }
+}
+
+#[inline]
 pub fn set_i128(rop: &mut Integer, i: i128) {
     let (neg_i, abs_i) = i.neg_abs();
     set_u128(rop, abs_i);

@@ -1001,13 +1001,14 @@ impl ThreadRandState<'_> {
     ///
     /// ```rust
     /// use rug::{rand::ThreadRandState, Integer};
+    /// # use az::WrappingCast;
     /// # struct Gen { _dummy: *const i32, seed: u64 };
     /// # impl rug::rand::ThreadRandGen for Gen {
     /// #     fn gen(&mut self) -> u32 {
     /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
     /// #         (self.seed >> 32) as u32
     /// #     }
-    /// #     fn seed(&mut self, seed: &Integer) { self.seed = seed.to_u64_wrapping() }
+    /// #     fn seed(&mut self, seed: &Integer) { self.seed = seed.wrapping_cast() }
     /// # }
     /// # fn create_generator_with_seed() -> Gen { Gen { _dummy: &0i32, seed: 1 } }
     /// let mut gen = create_generator_with_seed();

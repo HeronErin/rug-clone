@@ -11,7 +11,11 @@ Version 1.9.0 (unreleased)
   * The following methods are now const functions:
       * <code>[Integer][int-1-9]::[from\_raw][int-fr-1-9]</code>,
         <code>[Rational][rat-1-9]::[from\_raw][rat-fr-1-9]</code>
+  * The [*az* crate] is now a public dependency, and wrapping
+    and checked casts to/from primitives and big numbers are provided
+    throught the traits of the crate.
 
+[*az* crate]: https://crates.io/crates/az
 [int-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [int-fr-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.from_raw
 [rat-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html

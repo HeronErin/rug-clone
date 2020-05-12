@@ -19,6 +19,7 @@ use crate::{
     integer::{big, ParseIntegerError, TryFromIntegerError},
     Assign, Integer,
 };
+use az::CheckedCast;
 use core::{
     convert::TryFrom,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
@@ -91,7 +92,7 @@ impl From<&Integer> for Integer {
 }
 
 macro_rules! try_from {
-    ($T:ty, $method:ident) => {
+    ($T:ty) => {
         impl TryFrom<Integer> for $T {
             type Error = TryFromIntegerError;
             #[inline]
@@ -104,24 +105,26 @@ macro_rules! try_from {
             type Error = TryFromIntegerError;
             #[inline]
             fn try_from(value: &Integer) -> Result<Self, TryFromIntegerError> {
-                value.$method().ok_or(TryFromIntegerError { _unused: () })
+                value
+                    .checked_cast()
+                    .ok_or(TryFromIntegerError { _unused: () })
             }
         }
     };
 }
 
-try_from! { i8, to_i8 }
-try_from! { i16, to_i16 }
-try_from! { i32, to_i32 }
-try_from! { i64, to_i64 }
-try_from! { i128, to_i128 }
-try_from! { isize, to_isize }
-try_from! { u8, to_u8 }
-try_from! { u16, to_u16 }
-try_from! { u32, to_u32 }
-try_from! { u64, to_u64 }
-try_from! { u128, to_u128 }
-try_from! { usize, to_usize }
+try_from! { i8 }
+try_from! { i16 }
+try_from! { i32 }
+try_from! { i64 }
+try_from! { i128 }
+try_from! { isize }
+try_from! { u8 }
+try_from! { u16 }
+try_from! { u32 }
+try_from! { u64 }
+try_from! { u128 }
+try_from! { usize }
 
 macro_rules! assign {
     ($T:ty, $set:path, $init_set:path) => {

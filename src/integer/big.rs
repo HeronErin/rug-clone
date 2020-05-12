@@ -23,7 +23,7 @@ use crate::{
     ops::DivRounding,
     Assign,
 };
-use az::{Az, CheckedAs};
+use az::{Az, CheckedCast, WrappingCast};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -992,8 +992,10 @@ impl Integer {
     /// Converts to an [`i8`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[i8][`i8`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[i8][`i8`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[i8][`i8`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[i8][`i8`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i8][`i8`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i8][`i8`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1007,22 +1009,22 @@ impl Integer {
     /// assert_eq!(large.to_i8(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_i8(&self) -> Option<i8> {
-        if xmpz::fits_i8(self) {
-            Some(self.to_i8_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to an [`i16`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[i16][`i16`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[i16][`i16`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[i16][`i16`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[i16][`i16`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i16][`i16`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i16][`i16`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1036,22 +1038,22 @@ impl Integer {
     /// assert_eq!(large.to_i16(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_i16(&self) -> Option<i16> {
-        if xmpz::fits_i16(self) {
-            Some(self.to_i16_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to an [`i32`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[i32][`i32`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[i32][`i32`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[i32][`i32`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[i32][`i32`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i32][`i32`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i32][`i32`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1065,22 +1067,22 @@ impl Integer {
     /// assert_eq!(large.to_i32(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_i32(&self) -> Option<i32> {
-        if xmpz::fits_i32(self) {
-            Some(self.to_i32_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to an [`i64`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[i64][`i64`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[i64][`i64`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[i64][`i64`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[i64][`i64`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i64][`i64`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i64][`i64`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1094,22 +1096,22 @@ impl Integer {
     /// assert_eq!(large.to_i64(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_i64(&self) -> Option<i64> {
-        if xmpz::fits_i64(self) {
-            Some(self.to_i64_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to an [`i128`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[i128][`i128`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[i128][`i128`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[i128][`i128`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[i128][`i128`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i128][`i128`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i128][`i128`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1123,22 +1125,22 @@ impl Integer {
     /// assert_eq!(large.to_i128(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_i128(&self) -> Option<i128> {
-        if xmpz::fits_i128(self) {
-            Some(self.to_i128_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to an [`isize`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[isize][`isize`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[isize][`isize`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[isize][`isize`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[isize][`isize`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[isize][`isize`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[isize][`isize`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1150,25 +1152,22 @@ impl Integer {
     /// assert_eq!(large.to_isize(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_isize(&self) -> Option<isize> {
-        #[cfg(target_pointer_width = "32")]
-        {
-            self.to_i32().map(Az::az)
-        }
-        #[cfg(target_pointer_width = "64")]
-        {
-            self.to_i64().map(Az::az)
-        }
+        self.checked_cast()
     }
 
     /// Converts to a [`u8`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[u8][`u8`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[u8][`u8`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[u8][`u8`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[u8][`u8`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u8][`u8`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u8][`u8`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1182,22 +1181,22 @@ impl Integer {
     /// assert_eq!(large.to_u8(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_u8(&self) -> Option<u8> {
-        if xmpz::fits_u8(self) {
-            Some(self.to_u8_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to a [`u16`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[u16][`u16`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[u16][`u16`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[u16][`u16`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[u16][`u16`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u16][`u16`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u16][`u16`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1211,22 +1210,22 @@ impl Integer {
     /// assert_eq!(large.to_u16(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_u16(&self) -> Option<u16> {
-        if xmpz::fits_u16(self) {
-            Some(self.to_u16_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to a [`u32`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[u32][`u32`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[u32][`u32`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[u32][`u32`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[u32][`u32`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u32][`u32`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u32][`u32`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1240,22 +1239,22 @@ impl Integer {
     /// assert_eq!(large.to_u32(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_u32(&self) -> Option<u32> {
-        if xmpz::fits_u32(self) {
-            Some(self.to_u32_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to a [`u64`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[u64][`u64`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[u64][`u64`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[u64][`u64`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[u64][`u64`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u64][`u64`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u64][`u64`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1269,22 +1268,22 @@ impl Integer {
     /// assert_eq!(large.to_u64(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.tryfrom
     #[inline]
     pub fn to_u64(&self) -> Option<u64> {
-        if xmpz::fits_u64(self) {
-            Some(self.to_u64_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to a [`u128`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[u128][`u128`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[u128][`u128`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[u128][`u128`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[u128][`u128`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u128][`u128`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u128][`u128`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1300,22 +1299,22 @@ impl Integer {
     /// assert_eq!(large.to_u128(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.tryfrom
     #[inline]
     pub fn to_u128(&self) -> Option<u128> {
-        if xmpz::fits_u128(self) {
-            Some(self.to_u128_wrapping())
-        } else {
-            None
-        }
+        self.checked_cast()
     }
 
     /// Converts to a [`usize`] if the value fits.
     ///
     /// This conversion can also be performed using
-    /// <code>[usize][`usize`]::[try_from][`try_from`](&amp;integer)</code> or
-    /// <code>[usize][`usize`]::[try_from][`try_from`](integer)</code>.
+    ///   * <code>[usize][`usize`]::[try_from][`try_from`](&amp;integer)</code>
+    ///   * <code>[usize][`usize`]::[try_from][`try_from`](integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[usize][`usize`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[usize][`usize`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1329,21 +1328,20 @@ impl Integer {
     /// assert_eq!(large.to_usize(), None);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_usize(&self) -> Option<usize> {
-        #[cfg(target_pointer_width = "32")]
-        {
-            self.to_u32().map(Az::az)
-        }
-        #[cfg(target_pointer_width = "64")]
-        {
-            self.to_u64().map(Az::az)
-        }
+        self.checked_cast()
     }
 
     /// Converts to an [`i8`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i8][`i8`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i8][`i8`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1353,13 +1351,19 @@ impl Integer {
     /// assert_eq!(large.to_i8_wrapping(), 0x34);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     /// [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
     #[inline]
     pub fn to_i8_wrapping(&self) -> i8 {
-        self.to_u8_wrapping() as i8
+        self.wrapping_cast()
     }
 
     /// Converts to an [`i16`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i16][`i16`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i16][`i16`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1369,13 +1373,19 @@ impl Integer {
     /// assert_eq!(large.to_i16_wrapping(), 0x5678);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_i16_wrapping(&self) -> i16 {
-        self.to_u16_wrapping() as i16
+        self.wrapping_cast()
     }
 
     /// Converts to an [`i32`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i32][`i32`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i32][`i32`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1385,13 +1395,19 @@ impl Integer {
     /// assert_eq!(large.to_i32_wrapping(), 0x9abc_def0_u32 as i32);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_i32_wrapping(&self) -> i32 {
-        self.to_u32_wrapping() as i32
+        self.wrapping_cast()
     }
 
     /// Converts to an [`i64`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i64][`i64`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i64][`i64`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1401,13 +1417,19 @@ impl Integer {
     /// assert_eq!(large.to_i64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_i64_wrapping(&self) -> i64 {
-        self.to_u64_wrapping() as i64
+        self.wrapping_cast()
     }
 
     /// Converts to an [`i128`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i128][`i128`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i128][`i128`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1421,13 +1443,19 @@ impl Integer {
     /// );
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_i128_wrapping(&self) -> i128 {
-        self.to_u128_wrapping() as i128
+        self.wrapping_cast()
     }
 
     /// Converts to an [`isize`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[isize][`isize`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[isize][`isize`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1437,13 +1465,19 @@ impl Integer {
     /// assert_eq!(large.to_isize_wrapping(), 0x1234);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_isize_wrapping(&self) -> isize {
-        self.to_usize_wrapping() as isize
+        self.wrapping_cast()
     }
 
     /// Converts to a [`u8`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u8][`u8`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u8][`u8`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1455,18 +1489,19 @@ impl Integer {
     /// assert_eq!(large.to_u8_wrapping(), 0x34);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_u8_wrapping(&self) -> u8 {
-        let u = xmpz::get_abs_u32(self) as u8;
-        if self.cmp0() == Ordering::Less {
-            u.wrapping_neg()
-        } else {
-            u
-        }
+        self.wrapping_cast()
     }
 
     /// Converts to a [`u16`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u16][`u16`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u16][`u16`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1478,18 +1513,19 @@ impl Integer {
     /// assert_eq!(large.to_u16_wrapping(), 0x5678);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_u16_wrapping(&self) -> u16 {
-        let u = xmpz::get_abs_u32(self) as u16;
-        if self.cmp0() == Ordering::Less {
-            u.wrapping_neg()
-        } else {
-            u
-        }
+        self.wrapping_cast()
     }
 
     /// Converts to a [`u32`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u32][`u32`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u32][`u32`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1501,18 +1537,19 @@ impl Integer {
     /// assert_eq!(large.to_u32_wrapping(), 0x9abc_def0);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_u32_wrapping(&self) -> u32 {
-        let u = xmpz::get_abs_u32(self);
-        if self.cmp0() == Ordering::Less {
-            u.wrapping_neg()
-        } else {
-            u
-        }
+        self.wrapping_cast()
     }
 
     /// Converts to a [`u64`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u64][`u64`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u64][`u64`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1524,18 +1561,19 @@ impl Integer {
     /// assert_eq!(large.to_u64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
-        let u = xmpz::get_abs_u64(self);
-        if self.cmp0() == Ordering::Less {
-            u.wrapping_neg()
-        } else {
-            u
-        }
+        self.wrapping_cast()
     }
 
     /// Converts to a [`u128`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u128][`u128`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u128][`u128`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1554,18 +1592,19 @@ impl Integer {
     /// );
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_u128_wrapping(&self) -> u128 {
-        let u = xmpz::get_abs_u128(self);
-        if self.cmp0() == Ordering::Less {
-            u.wrapping_neg()
-        } else {
-            u
-        }
+        self.wrapping_cast()
     }
 
     /// Converts to a [`usize`], wrapping if the value does not fit.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[usize][`usize`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[usize][`usize`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1575,17 +1614,12 @@ impl Integer {
     /// assert_eq!(large.to_usize_wrapping(), 0x1234);
     /// ```
     ///
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
+    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
     #[inline]
     pub fn to_usize_wrapping(&self) -> usize {
-        #[cfg(target_pointer_width = "32")]
-        {
-            self.to_u32_wrapping().az()
-        }
-        #[cfg(target_pointer_width = "64")]
-        {
-            self.to_u64_wrapping().az()
-        }
+        self.wrapping_cast()
     }
 
     /// Converts to an [`f32`], rounding towards zero.
@@ -5896,7 +5930,7 @@ impl From<GcdUIncomplete<'_>> for Option<u32> {
         if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
             None
         } else {
-            gcd.checked_as()
+            gcd.checked_cast()
         }
     }
 }
