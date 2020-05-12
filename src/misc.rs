@@ -69,6 +69,7 @@ neg_abs! { i64; u64 }
 neg_abs! { i128; u128 }
 neg_abs! { isize; usize }
 
+#[inline]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
     // the least significant bits of f.

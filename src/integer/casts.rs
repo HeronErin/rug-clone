@@ -14,8 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpz, Integer};
-use az::{Cast, CheckedCast, OverflowingCast, SaturatingCast, WrappingCast};
+use crate::{ext::xmpz, misc, ops::NegAssign, Integer};
+use az::{Az, Cast, CheckedCast, OverflowingCast, Round, SaturatingCast, WrappingCast};
 use core::cmp::Ordering;
 
 macro_rules! cast_int {
@@ -138,14 +138,223 @@ cast_int! { usize, xmpz::fits_u32, xmpz::get_abs_u32 }
 #[cfg(target_pointer_width = "64")]
 cast_int! { usize, xmpz::fits_u64, xmpz::get_abs_u64 }
 
+impl Cast<Integer> for f32 {
+    #[inline]
+    fn cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
+    }
+}
+
+impl CheckedCast<Integer> for f32 {
+    #[inline]
+    fn checked_cast(self) -> Option<Integer> {
+        let bits = self.to_bits();
+        let biased_exp = (bits >> 23) & 0xFF;
+        // biased_exp:
+        //     0x00 => subnormal, 1
+        //     0x01..=0x7E => finite < 1.0
+        //     0x7F..=0xFE finite >= 1.0
+        //     0xFF => not finite 1
+        if biased_exp < 0x7F {
+            Some(Integer::new())
+        } else if biased_exp == 0xFF {
+            None
+        } else {
+            // 1.0 has biased_exp == 127 and would need >> 23.
+            // 2.0 has biased_exp == 128 and would need >> 22.
+            // 2.0^23 has biased_exp == 150 and would need >> 0.
+            // So, we need >> 150 - biased_exp
+            let mantissa_with_one = 0x0080_0000 | (bits & 0x007F_FFFF);
+            let mut val = if biased_exp <= 150 {
+                Integer::from(mantissa_with_one >> (150 - biased_exp))
+            } else {
+                Integer::from(mantissa_with_one) << (biased_exp - 150)
+            };
+            if bits & 0x8000_0000 != 0 {
+                val.neg_assign();
+            }
+            Some(val)
+        }
+    }
+}
+
+impl Cast<f32> for Integer {
+    #[inline]
+    fn cast(self) -> f32 {
+        (&self).cast()
+    }
+}
+
+impl Cast<f32> for &'_ Integer {
+    #[inline]
+    fn cast(self) -> f32 {
+        misc::trunc_f64_to_f32(self.cast())
+    }
+}
+
+impl Cast<Integer> for f64 {
+    #[inline]
+    fn cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
+    }
+}
+
+impl CheckedCast<Integer> for f64 {
+    #[inline]
+    fn checked_cast(self) -> Option<Integer> {
+        let bits = self.to_bits();
+        let biased_exp = (bits >> 52) & 0x7FF;
+        // biased_exp:
+        //     0x000 => subnormal,
+        //     0x001..=0x3FE => finite < 1.0,
+        //     0x3FF..=0x7FE finite >= 1.0,
+        //     0x7FF => not finite
+        if biased_exp < 0x3FF {
+            Some(Integer::new())
+        } else if biased_exp == 0x7FF {
+            None
+        } else {
+            // 1.0 has biased_exp == 1023 and would need >> 52.
+            // 2.0 has biased_exp == 1024 and would need >> 51.
+            // 2.0^52 has biased_exp == 1075 and would need >> 0.
+            // So, we need >> 1075 - biased_exp
+            let mantissa_with_one = 0x0010_0000_0000_0000 | (bits & 0x000F_FFFF_FFFF_FFFF);
+            let mut val = if biased_exp <= 1075 {
+                Integer::from(mantissa_with_one >> (1075 - biased_exp).az::<u32>())
+            } else {
+                Integer::from(mantissa_with_one) << (biased_exp - 1075).az::<u32>()
+            };
+            if bits & 0x8000_0000_0000_0000 != 0 {
+                val.neg_assign();
+            }
+            Some(val)
+        }
+    }
+}
+
+impl Cast<f64> for Integer {
+    #[inline]
+    fn cast(self) -> f64 {
+        (&self).cast()
+    }
+}
+
+impl Cast<f64> for &'_ Integer {
+    #[inline]
+    fn cast(self) -> f64 {
+        xmpz::get_f64(self)
+    }
+}
+
+impl Cast<Integer> for Round<f32> {
+    #[inline]
+    fn cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
+    }
+}
+
+impl CheckedCast<Integer> for Round<f32> {
+    #[inline]
+    fn checked_cast(self) -> Option<Integer> {
+        let bits = self.0.to_bits();
+        let biased_exp = (bits >> 23) & 0xFF;
+        // biased_exp:
+        //     0x00 => subnormal, 1
+        //     0x01..=0x7E => finite < 1.0
+        //     0x7F..=0xFE finite >= 1.0
+        //     0xFF => not finite 1
+        if biased_exp < 0x7F {
+            Some(Integer::new())
+        } else if biased_exp == 0xFF {
+            None
+        } else {
+            // 1.0 has biased_exp == 127 and would need >> 23.
+            // 2.0 has biased_exp == 128 and would need >> 22.
+            // 2.0^23 has biased_exp == 150 and would need >> 0.
+            // So, we need >> 150 - biased_exp
+            let mantissa_with_one = 0x0080_0000 | (bits & 0x007F_FFFF);
+            let mut val = if biased_exp <= 150 {
+                let mut round = 1u32 << (150 - biased_exp) >> 1;
+                // Round away from zero if val & round != 0 and either
+                //   * odd, that is val & (round << 1) != 0
+                //   * greater than tie, that is val & (round - 1) != 0
+                // The two conditions can be simplified to
+                //     val & ((2 * round) | (round - 1))
+                //   = val & (3 * round - 1)
+                if mantissa_with_one & round == 0 || mantissa_with_one & (3 * round - 1) == 0 {
+                    round = 0;
+                }
+                Integer::from((mantissa_with_one + round) >> (150 - biased_exp))
+            } else {
+                Integer::from(mantissa_with_one) << (biased_exp - 150)
+            };
+            if bits & 0x8000_0000 != 0 {
+                val.neg_assign();
+            }
+            Some(val)
+        }
+    }
+}
+
+impl Cast<Integer> for Round<f64> {
+    #[inline]
+    fn cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
+    }
+}
+
+impl CheckedCast<Integer> for Round<f64> {
+    #[inline]
+    fn checked_cast(self) -> Option<Integer> {
+        let bits = self.0.to_bits();
+        let biased_exp = (bits >> 52) & 0x7FF;
+        // biased_exp:
+        //     0x000 => subnormal,
+        //     0x001..=0x3FE => finite < 1.0,
+        //     0x3FF..=0x7FE finite >= 1.0,
+        //     0x7FF => not finite
+        if biased_exp < 0x3FF {
+            Some(Integer::new())
+        } else if biased_exp == 0x7FF {
+            None
+        } else {
+            // 1.0 has biased_exp == 1023 and would need >> 52.
+            // 2.0 has biased_exp == 1024 and would need >> 51.
+            // 2.0^52 has biased_exp == 1075 and would need >> 0.
+            // So, we need >> 1075 - biased_exp
+            let mantissa_with_one = 0x0010_0000_0000_0000 | (bits & 0x000F_FFFF_FFFF_FFFF);
+            let mut val = if biased_exp <= 1075 {
+                let mut round = 1u64 << (1075 - biased_exp) >> 1;
+                // Round away from zero if val & round != 0 and either
+                //   * odd, that is val & (round << 1) != 0
+                //   * greater than tie, that is val & (round - 1) != 0
+                // The two conditions can be simplified to
+                //     val & ((2 * round) | (round - 1))
+                //   = val & (3 * round - 1)
+                if mantissa_with_one & round == 0 || mantissa_with_one & (3 * round - 1) == 0 {
+                    round = 0;
+                }
+                Integer::from((mantissa_with_one + round) >> (1075 - biased_exp).az::<u32>())
+            } else {
+                Integer::from(mantissa_with_one) << (biased_exp - 1075).az::<u32>()
+            };
+            if bits & 0x8000_0000_0000_0000 != 0 {
+                val.neg_assign();
+            }
+            Some(val)
+        }
+    }
+}
+
 #[cfg(test)]
+#[allow(clippy::cognitive_complexity, clippy::float_cmp)]
 mod tests {
     use crate::Integer;
     use az::{
-        Az, Cast, CheckedAs, CheckedCast, OverflowingAs, OverflowingCast, SaturatingAs,
+        Az, Cast, CheckedAs, CheckedCast, OverflowingAs, OverflowingCast, Round, SaturatingAs,
         SaturatingCast, WrappingAs, WrappingCast,
     };
-    use core::{borrow::Borrow, fmt::Debug};
+    use core::{borrow::Borrow, f32, f64, fmt::Debug};
 
     #[test]
     fn check_bool() {
@@ -200,5 +409,134 @@ mod tests {
         check_there_and_back(u64::min_value(), u64::max_value());
         check_there_and_back(u128::min_value(), u128::max_value());
         check_there_and_back(usize::min_value(), usize::max_value());
+    }
+
+    #[test]
+    fn check_floats() {
+        let f32_max: Integer = Integer::from((1u32 << 24) - 1) << (127 - 23);
+        let f64_max: Integer = Integer::from((1u64 << 53) - 1) << (1023 - 52);
+
+        assert_eq!(f32::NAN.checked_as::<Integer>(), None);
+        assert_eq!(f32::NEG_INFINITY.checked_as::<Integer>(), None);
+        assert_eq!((-f32::MAX).az::<Integer>(), *f32_max.as_neg());
+        assert_eq!((-2f32).az::<Integer>(), -2);
+        assert_eq!((-1.99f32).az::<Integer>(), -1);
+        assert_eq!((-1f32).az::<Integer>(), -1);
+        assert_eq!((-0.99f32).az::<Integer>(), 0);
+        assert_eq!(0.99f32.az::<Integer>(), 0);
+        assert_eq!(1f32.az::<Integer>(), 1);
+        assert_eq!(1.99f32.az::<Integer>(), 1);
+        assert_eq!(2f32.az::<Integer>(), 2);
+        assert_eq!(f32::MAX.az::<Integer>(), f32_max);
+        assert_eq!(f32::INFINITY.checked_as::<Integer>(), None);
+
+        assert_eq!(f64::NAN.checked_as::<Integer>(), None);
+        assert_eq!(f64::NEG_INFINITY.checked_as::<Integer>(), None);
+        assert_eq!((-f64::MAX).az::<Integer>(), *f64_max.as_neg());
+        assert_eq!((-2f64).az::<Integer>(), -2);
+        assert_eq!((-1.99f64).az::<Integer>(), -1);
+        assert_eq!((-1f64).az::<Integer>(), -1);
+        assert_eq!((-0.99f64).az::<Integer>(), 0);
+        assert_eq!(0.99f64.az::<Integer>(), 0);
+        assert_eq!(1f64.az::<Integer>(), 1);
+        assert_eq!(1.99f64.az::<Integer>(), 1);
+        assert_eq!(2f64.az::<Integer>(), 2);
+        assert_eq!(f64::MAX.az::<Integer>(), f64_max);
+        assert_eq!(f64::INFINITY.checked_as::<Integer>(), None);
+
+        let zero: Integer = Integer::new();
+        let one: Integer = Integer::from(1);
+        let two: Integer = Integer::from(2);
+        let f32_overflow: Integer = Integer::from(1) << 128;
+        let f64_overflow: Integer = Integer::from(1) << 1024;
+        let still_f32_max: Integer = f32_overflow.clone() - 1;
+        let still_f64_max: Integer = f64_overflow.clone() - 1;
+
+        assert_eq!(
+            (*f32_overflow.as_neg()).borrow().az::<f32>(),
+            f32::NEG_INFINITY
+        );
+        assert_eq!((*still_f32_max.as_neg()).borrow().az::<f32>(), -f32::MAX);
+        assert_eq!((*f32_max.as_neg()).borrow().az::<f32>(), -f32::MAX);
+        assert_eq!((*two.as_neg()).borrow().az::<f32>(), -2f32);
+        assert_eq!((*one.as_neg()).borrow().az::<f32>(), -1f32);
+        assert_eq!(zero.borrow().az::<f32>(), 0f32);
+        assert_eq!(one.borrow().az::<f32>(), 1f32);
+        assert_eq!(two.borrow().az::<f32>(), 2f32);
+        assert_eq!(f32_max.borrow().az::<f32>(), f32::MAX);
+        assert_eq!(still_f32_max.borrow().az::<f32>(), f32::MAX);
+        assert_eq!(f32_overflow.borrow().az::<f32>(), f32::INFINITY);
+
+        assert_eq!(
+            (*f64_overflow.as_neg()).borrow().az::<f64>(),
+            f64::NEG_INFINITY
+        );
+        assert_eq!((*still_f64_max.as_neg()).borrow().az::<f64>(), -f64::MAX);
+        assert_eq!((*f64_max.as_neg()).borrow().az::<f64>(), -f64::MAX);
+        assert_eq!((*two.as_neg()).borrow().az::<f64>(), -2f64);
+        assert_eq!((*one.as_neg()).borrow().az::<f64>(), -1f64);
+        assert_eq!(zero.borrow().az::<f64>(), 0f64);
+        assert_eq!(one.borrow().az::<f64>(), 1f64);
+        assert_eq!(two.borrow().az::<f64>(), 2f64);
+        assert_eq!(f64_max.borrow().az::<f64>(), f64::MAX);
+        assert_eq!(f64_overflow.borrow().az::<f64>(), f64::INFINITY);
+    }
+
+    #[test]
+    fn check_round_floats() {
+        let f32_max: Integer = Integer::from((1u32 << 24) - 1) << (127 - 23);
+        let f64_max: Integer = Integer::from((1u64 << 53) - 1) << (1023 - 52);
+
+        assert_eq!(Round(f32::NAN).checked_as::<Integer>(), None);
+        assert_eq!(Round(f32::NEG_INFINITY).checked_as::<Integer>(), None);
+        assert_eq!(Round(-f32::MAX).az::<Integer>(), *f32_max.as_neg());
+        assert_eq!(Round(-4f32).az::<Integer>(), -4);
+        assert_eq!(Round(-3.5f32).az::<Integer>(), -4);
+        assert_eq!(Round(-3.49f32).az::<Integer>(), -3);
+        assert_eq!(Round(-2.51f32).az::<Integer>(), -3);
+        assert_eq!(Round(-2.5f32).az::<Integer>(), -2);
+        assert_eq!(Round(-2f32).az::<Integer>(), -2);
+        assert_eq!(Round(-1.5f32).az::<Integer>(), -2);
+        assert_eq!(Round(-1.49f32).az::<Integer>(), -1);
+        assert_eq!(Round(-1f32).az::<Integer>(), -1);
+        assert_eq!(Round(-0.5f32).az::<Integer>(), 0);
+        assert_eq!(Round(0.5f32).az::<Integer>(), 0);
+        assert_eq!(Round(1f32).az::<Integer>(), 1);
+        assert_eq!(Round(1.49f32).az::<Integer>(), 1);
+        assert_eq!(Round(1.5f32).az::<Integer>(), 2);
+        assert_eq!(Round(2f32).az::<Integer>(), 2);
+        assert_eq!(Round(2.5f32).az::<Integer>(), 2);
+        assert_eq!(Round(2.51f32).az::<Integer>(), 3);
+        assert_eq!(Round(3.49f32).az::<Integer>(), 3);
+        assert_eq!(Round(3.5f32).az::<Integer>(), 4);
+        assert_eq!(Round(4f32).az::<Integer>(), 4);
+        assert_eq!(Round(f32::MAX).az::<Integer>(), f32_max);
+        assert_eq!(Round(f32::INFINITY).checked_as::<Integer>(), None);
+
+        assert_eq!(Round(f64::NAN).checked_as::<Integer>(), None);
+        assert_eq!(Round(f64::NEG_INFINITY).checked_as::<Integer>(), None);
+        assert_eq!(Round(-f64::MAX).az::<Integer>(), *f64_max.as_neg());
+        assert_eq!(Round(-4f64).az::<Integer>(), -4);
+        assert_eq!(Round(-3.5f64).az::<Integer>(), -4);
+        assert_eq!(Round(-3.49f64).az::<Integer>(), -3);
+        assert_eq!(Round(-2.51f64).az::<Integer>(), -3);
+        assert_eq!(Round(-2.5f64).az::<Integer>(), -2);
+        assert_eq!(Round(-2f64).az::<Integer>(), -2);
+        assert_eq!(Round(-1.5f64).az::<Integer>(), -2);
+        assert_eq!(Round(-1.49f64).az::<Integer>(), -1);
+        assert_eq!(Round(-1f64).az::<Integer>(), -1);
+        assert_eq!(Round(-0.5f64).az::<Integer>(), 0);
+        assert_eq!(Round(0.5f64).az::<Integer>(), 0);
+        assert_eq!(Round(1f64).az::<Integer>(), 1);
+        assert_eq!(Round(1.49f64).az::<Integer>(), 1);
+        assert_eq!(Round(1.5f64).az::<Integer>(), 2);
+        assert_eq!(Round(2f64).az::<Integer>(), 2);
+        assert_eq!(Round(2.5f64).az::<Integer>(), 2);
+        assert_eq!(Round(2.51f64).az::<Integer>(), 3);
+        assert_eq!(Round(3.49f64).az::<Integer>(), 3);
+        assert_eq!(Round(3.5f64).az::<Integer>(), 4);
+        assert_eq!(Round(4f64).az::<Integer>(), 4);
+        assert_eq!(Round(f64::MAX).az::<Integer>(), f64_max);
+        assert_eq!(Round(f64::INFINITY).checked_as::<Integer>(), None);
     }
 }

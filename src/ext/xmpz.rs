@@ -1072,10 +1072,8 @@ pub fn set_f64(rop: &mut Integer, op: f64) -> Result<(), ()> {
 }
 
 #[inline]
-pub unsafe fn init_set_f64(rop: *mut Integer, op: f64) {
-    assert!(op.is_finite());
-    let rop = cast_ptr_mut!(rop, mpz_t);
-    gmp::mpz_init_set_d(rop, op);
+pub fn get_f64(op: &Integer) -> f64 {
+    unsafe { gmp::mpz_get_d(op.as_raw()) }
 }
 
 #[inline]

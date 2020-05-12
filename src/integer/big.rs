@@ -23,7 +23,7 @@ use crate::{
     ops::DivRounding,
     Assign,
 };
-use az::{Az, CheckedCast, WrappingCast};
+use az::{Az, Cast, CheckedCast, WrappingCast};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -828,6 +828,9 @@ impl Integer {
     /// Creates an [`Integer`] from an [`f32`] if it is
     /// [finite][`is_finite`], rounding towards zero.
     ///
+    /// This conversion can also be performed using
+    /// <code>value.[checked\_as][`checked_as`]::&lt;[Integer][`Integer`]&gt;()</code>.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -840,15 +843,19 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     #[inline]
-    pub fn from_f32(val: f32) -> Option<Self> {
-        Integer::from_f64(val.into())
+    pub fn from_f32(value: f32) -> Option<Self> {
+        value.checked_cast()
     }
 
     /// Creates an [`Integer`] from an [`f64`] if it is
     /// [finite][`is_finite`], rounding towards zero.
+    ///
+    /// This conversion can also be performed using
+    /// <code>value.[checked\_as][`checked_as`]::&lt;[Integer][`Integer`]&gt;()</code>.
     ///
     /// # Examples
     ///
@@ -862,19 +869,12 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     #[inline]
-    pub fn from_f64(val: f64) -> Option<Self> {
-        if val.is_finite() {
-            unsafe {
-                let mut dst = MaybeUninit::uninit();
-                xmpz::init_set_f64(dst.as_mut_ptr(), val);
-                Some(dst.assume_init())
-            }
-        } else {
-            None
-        }
+    pub fn from_f64(value: f64) -> Option<Self> {
+        value.checked_cast()
     }
 
     /// Parses an [`Integer`] using the given radix.
@@ -1624,6 +1624,10 @@ impl Integer {
 
     /// Converts to an [`f32`], rounding towards zero.
     ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[az][`az`]::&lt;[f32][`f32`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[az][`az`]::&lt;[f32][`f32`]&gt;()</code>
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1638,13 +1642,19 @@ impl Integer {
     /// assert_eq!(times_two.to_f32(), f32::NEG_INFINITY);
     /// ```
     ///
+    /// [`az`]: https://docs.rs/az/1/az/trait.Az.html#tymethod.az
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32(&self) -> f32 {
-        misc::trunc_f64_to_f32(self.to_f64())
+        self.cast()
     }
 
     /// Converts to an [`f64`], rounding towards zero.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;integer).[az][`az`]::&lt;[f64][`f64`]&gt;()</code>
+    ///   * <code>integer.[borrow][`borrow`]().[az][`az`]::&lt;[f64][`f64`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1673,10 +1683,12 @@ impl Integer {
     /// assert_eq!(times_two.to_f64(), f64::INFINITY);
     /// ```
     ///
+    /// [`az`]: https://docs.rs/az/1/az/trait.Az.html#tymethod.az
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
-        unsafe { gmp::mpz_get_d(self.as_raw()) }
+        self.cast()
     }
 
     /// Converts to an [`f32`] and an exponent, rounding towards zero.
