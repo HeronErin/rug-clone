@@ -85,7 +85,7 @@ impl<'a> OptRational for &'a Rational {
     }
 }
 
-macro_rules! wrap {
+macro_rules! unsafe_wrap {
     (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
         pub fn $fn<$($O: OptRational),*>(rop: &mut Rational $(, $op: $O)* $(, $param: $T)*) {
@@ -105,6 +105,18 @@ pub fn set<O: OptRational>(rop: &mut Rational, op: O) {
             gmp::mpq_set(rop.as_raw_mut(), op.mpq());
         }
     }
+}
+
+#[inline]
+pub fn set_f64(rop: &mut Rational, op: f64) {
+    unsafe {
+        gmp::mpq_set_d(rop.as_raw_mut(), op);
+    }
+}
+
+#[inline]
+pub fn get_f64(op: &Rational) -> f64 {
+    unsafe { gmp::mpq_get_d(op.as_raw()) }
 }
 
 #[inline]
@@ -306,14 +318,14 @@ pub fn square<O: OptRational>(rop: &mut Rational, op: O) {
     xmpz::square(rop_den, op_den);
 }
 
-wrap! { fn neg(op: O) -> gmp::mpq_neg }
-wrap! { fn abs(op: O) -> gmp::mpq_abs }
-wrap! { fn add(op1: O, op2: P) -> gmp::mpq_add }
-wrap! { fn sub(op1: O, op2: P) -> gmp::mpq_sub }
-wrap! { fn mul(op1: O, op2: P) -> gmp::mpq_mul }
-wrap! { fn div(op1: O, op2: P) -> gmp::mpq_div }
-wrap! { fn mul_2exp(op1: O; op2: u32) -> gmp::mpq_mul_2exp }
-wrap! { fn div_2exp(op1: O; op2: u32) -> gmp::mpq_div_2exp }
+unsafe_wrap! { fn neg(op: O) -> gmp::mpq_neg }
+unsafe_wrap! { fn abs(op: O) -> gmp::mpq_abs }
+unsafe_wrap! { fn add(op1: O, op2: P) -> gmp::mpq_add }
+unsafe_wrap! { fn sub(op1: O, op2: P) -> gmp::mpq_sub }
+unsafe_wrap! { fn mul(op1: O, op2: P) -> gmp::mpq_mul }
+unsafe_wrap! { fn div(op1: O, op2: P) -> gmp::mpq_div }
+unsafe_wrap! { fn mul_2exp(op1: O; op2: u32) -> gmp::mpq_mul_2exp }
+unsafe_wrap! { fn div_2exp(op1: O; op2: u32) -> gmp::mpq_div_2exp }
 
 #[inline]
 pub fn set_0(rop: &mut Rational) {

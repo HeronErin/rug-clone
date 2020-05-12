@@ -17,9 +17,10 @@
 use crate::{
     ext::{xmpq, xmpz},
     integer::big as big_integer,
-    misc::{self, AsOrPanic},
+    misc::AsOrPanic,
     Assign, Integer,
 };
+use az::{Cast, CheckedCast};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -341,7 +342,8 @@ impl Rational {
     /// [finite][`is_finite`], losing no precision.
     ///
     /// This conversion can also be performed using
-    /// <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>.
+    ///   * <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>
+    ///   * <code>value.[checked\_as][`checked_as`]::&lt;[Rational][`Rational`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -356,19 +358,21 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn from_f32(value: f32) -> Option<Self> {
-        Rational::from_f64(value.into())
+        value.checked_cast()
     }
 
     /// Creates a [`Rational`] number from an [`f64`] if it is
     /// [finite][`is_finite`], losing no precision.
     ///
     /// This conversion can also be performed using
-    /// <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>.
+    ///   * <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>
+    ///   * <code>value.[checked\_as][`checked_as`]::&lt;[Rational][`Rational`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -383,18 +387,13 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn from_f64(value: f64) -> Option<Self> {
-        if value.is_finite() {
-            let mut r = Rational::new();
-            r.assign_f64(value).unwrap();
-            Some(r)
-        } else {
-            None
-        }
+        value.checked_cast()
     }
 
     /// Parses a [`Rational`] number.
@@ -525,6 +524,10 @@ impl Rational {
 
     /// Converts to an [`f32`], rounding towards zero.
     ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;rational).[az][`az`]::&lt;[f32][`f32`]&gt;()</code>
+    ///   * <code>rational.[borrow][`borrow`]().[az][`az`]::&lt;[f32][`f32`]&gt;()</code>
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -539,13 +542,19 @@ impl Rational {
     /// assert_eq!(times_three_two.to_f32(), f32::NEG_INFINITY);
     /// ```
     ///
+    /// [`az`]: https://docs.rs/az/1/az/trait.Az.html#tymethod.az
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32(&self) -> f32 {
-        misc::trunc_f64_to_f32(self.to_f64())
+        self.cast()
     }
 
     /// Converts to an [`f64`], rounding towards zero.
+    ///
+    /// This conversion can also be performed using
+    ///   * <code>(&amp;rational).[az][`az`]::&lt;[f64][`f64`]&gt;()</code>
+    ///   * <code>rational.[borrow][`borrow`]().[az][`az`]::&lt;[f64][`f64`]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -575,10 +584,12 @@ impl Rational {
     /// assert_eq!(times_three_two.to_f64(), f64::INFINITY);
     /// ```
     ///
+    /// [`az`]: https://docs.rs/az/1/az/trait.Az.html#tymethod.az
+    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
-        unsafe { gmp::mpq_get_d(self.as_raw()) }
+        self.cast()
     }
 
     /// Returns a string representation for the specified `radix`.

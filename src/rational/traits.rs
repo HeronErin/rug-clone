@@ -19,6 +19,7 @@ use crate::{
     rational::{big, ParseRationalError, TryFromFloatError},
     Assign, Integer, Rational,
 };
+use az::CheckedCast;
 use core::{
     cmp::Ordering,
     convert::TryFrom,
@@ -244,7 +245,9 @@ impl TryFrom<f32> for Rational {
     type Error = TryFromFloatError;
     #[inline]
     fn try_from(value: f32) -> Result<Self, TryFromFloatError> {
-        Rational::from_f32(value).ok_or(TryFromFloatError { _unused: () })
+        value
+            .checked_cast()
+            .ok_or(TryFromFloatError { _unused: () })
     }
 }
 
@@ -252,7 +255,9 @@ impl TryFrom<f64> for Rational {
     type Error = TryFromFloatError;
     #[inline]
     fn try_from(value: f64) -> Result<Self, TryFromFloatError> {
-        Rational::from_f64(value).ok_or(TryFromFloatError { _unused: () })
+        value
+            .checked_cast()
+            .ok_or(TryFromFloatError { _unused: () })
     }
 }
 
