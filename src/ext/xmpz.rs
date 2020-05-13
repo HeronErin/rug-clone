@@ -95,7 +95,7 @@ impl<'a> OptInteger for &'a Integer {
     }
 }
 
-macro_rules! wrap {
+macro_rules! unsafe_wrap {
     (fn $fn:ident($($op:ident: $O:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
         pub fn $fn<$($O: OptInteger),*>(rop: &mut Integer $(, $op: $O)* $(, $param: $T)*) {
@@ -108,7 +108,7 @@ macro_rules! wrap {
     };
 }
 
-macro_rules! wrap0 {
+macro_rules! unsafe_wrap0 {
     (fn $fn:ident($($param:ident: $T:ty),*) -> $deleg:path) => {
         #[inline]
         pub fn $fn(rop: &mut Integer, $($param: $T),*) {
@@ -554,29 +554,33 @@ pub fn urandomm<O: OptInteger>(rop: &mut Integer, state: &mut randstate_t, n: O)
     }
 }
 
-wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> gmp::mpz_ui_pow_ui }
-wrap0! { fn fac_ui(n: u32) -> gmp::mpz_fac_ui }
-wrap0! { fn twofac_ui(n: u32) -> gmp::mpz_2fac_ui }
-wrap0! { fn mfac_uiui(n: u32, m: u32) -> gmp::mpz_mfac_uiui }
-wrap0! { fn primorial_ui(n: u32) -> gmp::mpz_primorial_ui }
-wrap0! { fn bin_uiui(n: u32, k: u32) -> gmp::mpz_bin_uiui }
-wrap0! { fn fib_ui(n: u32) -> gmp::mpz_fib_ui }
-wrap0! { fn lucnum_ui(n: u32) -> gmp::mpz_lucnum_ui }
-wrap! { fn neg(op: O) -> gmp::mpz_neg }
-wrap! { fn com(op: O) -> gmp::mpz_com }
-wrap! { fn add(op1: O, op2: P) -> gmp::mpz_add }
-wrap! { fn sub(op1: O, op2: P) -> gmp::mpz_sub }
-wrap! { fn mul(op1: O, op2: P) -> gmp::mpz_mul }
-wrap! { fn and(op1: O, op2: P) -> gmp::mpz_and }
-wrap! { fn ior(op1: O, op2: P) -> gmp::mpz_ior }
-wrap! { fn xor(op1: O, op2: P) -> gmp::mpz_xor }
-wrap! { fn shl_u32(op1: O; op2: u32) -> gmp::mpz_mul_2exp }
-wrap! { fn shr_u32(op1: O; op2: u32) -> gmp::mpz_fdiv_q_2exp }
-wrap! { fn pow_u32(op1: O; op2: u32) -> gmp::mpz_pow_ui }
-wrap! { fn abs(op: O) -> gmp::mpz_abs }
-wrap! { fn fdiv_r_2exp(op: O; n: u32) -> gmp::mpz_fdiv_r_2exp }
-wrap! { fn nextprime(op: O) -> gmp::mpz_nextprime }
-wrap! { fn bin_ui(op: O; k: u32) -> gmp::mpz_bin_ui }
+unsafe_wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> gmp::mpz_ui_pow_ui }
+unsafe_wrap0! { fn fac_ui(n: u32) -> gmp::mpz_fac_ui }
+unsafe_wrap0! { fn twofac_ui(n: u32) -> gmp::mpz_2fac_ui }
+unsafe_wrap0! { fn mfac_uiui(n: u32, m: u32) -> gmp::mpz_mfac_uiui }
+unsafe_wrap0! { fn primorial_ui(n: u32) -> gmp::mpz_primorial_ui }
+unsafe_wrap0! { fn bin_uiui(n: u32, k: u32) -> gmp::mpz_bin_uiui }
+unsafe_wrap0! { fn fib_ui(n: u32) -> gmp::mpz_fib_ui }
+unsafe_wrap0! { fn lucnum_ui(n: u32) -> gmp::mpz_lucnum_ui }
+unsafe_wrap! { fn neg(op: O) -> gmp::mpz_neg }
+unsafe_wrap! { fn com(op: O) -> gmp::mpz_com }
+unsafe_wrap! { fn add(op1: O, op2: P) -> gmp::mpz_add }
+unsafe_wrap! { fn sub(op1: O, op2: P) -> gmp::mpz_sub }
+unsafe_wrap! { fn mul(op1: O, op2: P) -> gmp::mpz_mul }
+unsafe_wrap! { fn and(op1: O, op2: P) -> gmp::mpz_and }
+unsafe_wrap! { fn ior(op1: O, op2: P) -> gmp::mpz_ior }
+unsafe_wrap! { fn xor(op1: O, op2: P) -> gmp::mpz_xor }
+unsafe_wrap! { fn shl_u32(op1: O; op2: u32) -> gmp::mpz_mul_2exp }
+unsafe_wrap! { fn shr_u32(op1: O; op2: u32) -> gmp::mpz_fdiv_q_2exp }
+unsafe_wrap! { fn pow_u32(op1: O; op2: u32) -> gmp::mpz_pow_ui }
+unsafe_wrap! { fn abs(op: O) -> gmp::mpz_abs }
+unsafe_wrap! { fn fdiv_r_2exp(op: O; n: u32) -> gmp::mpz_fdiv_r_2exp }
+unsafe_wrap! { fn nextprime(op: O) -> gmp::mpz_nextprime }
+unsafe_wrap! { fn bin_ui(op: O; k: u32) -> gmp::mpz_bin_ui }
+unsafe_wrap! { fn add_ui(op1: O; op2: c_ulong) -> gmp::mpz_add_ui }
+unsafe_wrap! { fn sub_ui(op1: O; op2: c_ulong) -> gmp::mpz_sub_ui }
+unsafe_wrap! { fn mul_ui(op1: O; op2: c_ulong) -> gmp::mpz_mul_ui }
+unsafe_wrap! { fn mul_si(op1: O; op2: c_long) -> gmp::mpz_mul_si }
 
 #[cold]
 #[inline]
@@ -1381,10 +1385,6 @@ unsafe fn si_fdiv_r_raw(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     }
 }
 
-wrap! { fn add_ui(op1: O; op2: c_ulong) -> gmp::mpz_add_ui }
-
-wrap! { fn sub_ui(op1: O; op2: c_ulong) -> gmp::mpz_sub_ui }
-
 #[inline]
 pub fn ui_sub<O: OptInteger>(rop: &mut Integer, op1: c_ulong, op2: O) {
     unsafe {
@@ -1428,8 +1428,6 @@ pub fn si_sub<O: OptInteger>(rop: &mut Integer, op1: c_long, op2: O) {
         }
     }
 }
-
-wrap! { fn mul_ui(op1: O; op2: c_ulong) -> gmp::mpz_mul_ui }
 
 #[inline]
 pub fn tdiv_q_ui<O: OptInteger>(q: &mut Integer, n: O, d: c_ulong) {
@@ -1546,8 +1544,6 @@ pub fn ui_ediv_r<O: OptInteger>(r: &mut Integer, n: c_ulong, d: O) {
         ui_fdiv_r(r, n, d);
     }
 }
-
-wrap! { fn mul_si(op1: O; op2: c_long) -> gmp::mpz_mul_si }
 
 #[inline]
 pub fn tdiv_q_si<O: OptInteger>(q: &mut Integer, n: O, d: c_long) {

@@ -126,7 +126,7 @@ try_from! { u64 }
 try_from! { u128 }
 try_from! { usize }
 
-macro_rules! assign {
+macro_rules! unsafe_assign {
     ($T:ty, $set:path, $init_set:path) => {
         impl Assign<$T> for Integer {
             #[inline]
@@ -153,7 +153,9 @@ macro_rules! assign {
             }
         }
     };
+}
 
+macro_rules! assign {
     ($T:ty as $U:ty) => {
         impl Assign<$T> for Integer {
             #[inline]
@@ -180,9 +182,9 @@ macro_rules! assign {
 
 assign! { i8 as i32 }
 assign! { i16 as i32 }
-assign! { i32, xmpz::set_i32, xmpz::init_set_i32 }
-assign! { i64, xmpz::set_i64, xmpz::init_set_i64 }
-assign! { i128, xmpz::set_i128, xmpz::init_set_i128 }
+unsafe_assign! { i32, xmpz::set_i32, xmpz::init_set_i32 }
+unsafe_assign! { i64, xmpz::set_i64, xmpz::init_set_i64 }
+unsafe_assign! { i128, xmpz::set_i128, xmpz::init_set_i128 }
 #[cfg(target_pointer_width = "32")]
 assign! { isize as i32 }
 #[cfg(target_pointer_width = "64")]
@@ -191,9 +193,9 @@ assign! { isize as i64 }
 assign! { bool as u32 }
 assign! { u8 as u32 }
 assign! { u16 as u32 }
-assign! { u32, xmpz::set_u32, xmpz::init_set_u32 }
-assign! { u64, xmpz::set_u64, xmpz::init_set_u64 }
-assign! { u128, xmpz::set_u128, xmpz::init_set_u128 }
+unsafe_assign! { u32, xmpz::set_u32, xmpz::init_set_u32 }
+unsafe_assign! { u64, xmpz::set_u64, xmpz::init_set_u64 }
+unsafe_assign! { u128, xmpz::set_u128, xmpz::init_set_u128 }
 #[cfg(target_pointer_width = "32")]
 assign! { usize as u32 }
 #[cfg(target_pointer_width = "64")]

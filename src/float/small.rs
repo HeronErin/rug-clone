@@ -258,7 +258,7 @@ pub trait SealedToSmall: Copy {
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs);
 }
 
-macro_rules! signed {
+macro_rules! unsafe_signed {
     ($($I:ty)*) => { $(
         impl ToSmall for $I {}
         impl SealedToSmall for $I {
@@ -274,7 +274,7 @@ macro_rules! signed {
     )* };
 }
 
-macro_rules! unsigned_32 {
+macro_rules! unsafe_unsigned_32 {
     ($U:ty, $bits:expr) => {
         impl ToSmall for $U {}
         impl SealedToSmall for $U {
@@ -296,11 +296,11 @@ macro_rules! unsigned_32 {
     };
 }
 
-signed! { i8 i16 i32 i64 i128 isize }
+unsafe_signed! { i8 i16 i32 i64 i128 isize }
 
-unsigned_32! { u8, 8 }
-unsigned_32! { u16, 16 }
-unsigned_32! { u32, 32 }
+unsafe_unsigned_32! { u8, 8 }
+unsafe_unsigned_32! { u16, 16 }
+unsafe_unsigned_32! { u32, 32 }
 
 impl ToSmall for u64 {}
 impl SealedToSmall for u64 {
