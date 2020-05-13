@@ -48,7 +48,10 @@ Both [`RandState`] and [`ThreadRandState`] implement the
 [`random_below`]: ../struct.Integer.html#method.random_below
 */
 
-use crate::{misc::AsOrPanic, Integer};
+use crate::{
+    misc::{UnwrappedAs, UnwrappedCast},
+    Integer,
+};
 use az::Cast;
 use core::{
     marker::PhantomData,
@@ -1563,35 +1566,35 @@ unsafe extern "C" fn thread_custom_boxed_iset(dst: *mut randstate_t, src: *const
 #[cfg(gmp_limb_bits_64)]
 unsafe fn gen_bits(gen: &mut dyn RandGen, dest: *mut limb_t, nbits: c_ulong) {
     let (limbs, rest) = (nbits / 64, nbits % 64);
-    let limbs = limbs.as_or_panic::<isize>();
+    let limbs = limbs.unwrapped_as::<isize>();
     for i in 0..limbs {
         let n = u64::from(gen.gen()) | u64::from(gen.gen()) << 32;
-        *dest.offset(i) = n.as_or_panic();
+        *dest.offset(i) = n.unwrapped_cast();
     }
     if rest >= 32 {
         let mut n = u64::from(gen.gen());
         if rest > 32 {
             let mask = !(!0 << (rest - 32));
-            n |= u64::from(gen.gen_bits((rest - 32).as_or_panic()) & mask) << 32;
+            n |= u64::from(gen.gen_bits((rest - 32).unwrapped_cast()) & mask) << 32;
         }
-        *dest.offset(limbs) = n.as_or_panic();
+        *dest.offset(limbs) = n.unwrapped_cast();
     } else if rest > 0 {
         let mask = !(!0 << rest);
-        let n = u64::from(gen.gen_bits(rest.as_or_panic()) & mask);
-        *dest.offset(limbs) = n.as_or_panic();
+        let n = u64::from(gen.gen_bits(rest.unwrapped_cast()) & mask);
+        *dest.offset(limbs) = n.unwrapped_cast();
     }
 }
 
 #[cfg(gmp_limb_bits_32)]
 unsafe fn gen_bits(gen: &mut dyn RandGen, dest: *mut limb_t, nbits: c_ulong) {
     let (limbs, rest) = (nbits / 32, nbits % 32);
-    let limbs = limbs.as_or_panic::<isize>();
+    let limbs = limbs.unwrapped_as::<isize>();
     for i in 0..limbs {
-        *dest.offset(i) = gen.gen().as_or_panic();
+        *dest.offset(i) = gen.gen().unwrapped_cast();
     }
     if rest > 0 {
         let mask = !(!0 << rest);
-        *dest.offset(limbs) = (gen.gen_bits(rest.as_or_panic()) & mask).as_or_panic();
+        *dest.offset(limbs) = (gen.gen_bits(rest.unwrapped_cast()) & mask).unwrapped_cast();
     }
 }
 
@@ -1619,35 +1622,35 @@ unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
 #[cfg(gmp_limb_bits_64)]
 unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, dest: *mut limb_t, nbits: c_ulong) {
     let (limbs, rest) = (nbits / 64, nbits % 64);
-    let limbs = limbs.as_or_panic::<isize>();
+    let limbs = limbs.unwrapped_as::<isize>();
     for i in 0..limbs {
         let n = u64::from(gen.gen()) | u64::from(gen.gen()) << 32;
-        *dest.offset(i) = n.as_or_panic();
+        *dest.offset(i) = n.unwrapped_cast();
     }
     if rest >= 32 {
         let mut n = u64::from(gen.gen());
         if rest > 32 {
             let mask = !(!0 << (rest - 32));
-            n |= u64::from(gen.gen_bits((rest - 32).as_or_panic()) & mask) << 32;
+            n |= u64::from(gen.gen_bits((rest - 32).unwrapped_cast()) & mask) << 32;
         }
-        *dest.offset(limbs) = n.as_or_panic();
+        *dest.offset(limbs) = n.unwrapped_cast();
     } else if rest > 0 {
         let mask = !(!0 << rest);
-        let n = u64::from(gen.gen_bits(rest.as_or_panic()) & mask);
-        *dest.offset(limbs) = n.as_or_panic();
+        let n = u64::from(gen.gen_bits(rest.unwrapped_cast()) & mask);
+        *dest.offset(limbs) = n.unwrapped_cast();
     }
 }
 
 #[cfg(gmp_limb_bits_32)]
 unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, dest: *mut limb_t, nbits: c_ulong) {
     let (limbs, rest) = (nbits / 32, nbits % 32);
-    let limbs = limbs.as_or_panic::<isize>();
+    let limbs = limbs.unwrapped_as::<isize>();
     for i in 0..limbs {
-        *dest.offset(i) = gen.gen().as_or_panic();
+        *dest.offset(i) = gen.gen().unwrapped_cast();
     }
     if rest > 0 {
         let mask = !(!0 << rest);
-        *dest.offset(limbs) = (gen.gen_bits(rest.as_or_panic()) & mask).as_or_panic();
+        *dest.offset(limbs) = (gen.gen_bits(rest.unwrapped_cast()) & mask).unwrapped_cast();
     }
 }
 

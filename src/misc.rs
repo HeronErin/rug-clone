@@ -18,18 +18,29 @@
 
 use az::{CheckedCast, WrappingCast};
 
-pub trait AsOrPanic {
-    fn as_or_panic<Dst>(self) -> Dst
-    where
-        Self: CheckedCast<Dst>;
+pub trait UnwrappedCast<Dst> {
+    fn unwrapped_cast(self) -> Dst;
 }
-impl<T> AsOrPanic for T {
+impl<Dst, Src: CheckedCast<Dst>> UnwrappedCast<Dst> for Src {
     #[inline]
-    fn as_or_panic<Dst>(self) -> Dst
-    where
-        Self: CheckedCast<Dst>,
-    {
+    fn unwrapped_cast(self) -> Dst {
         self.checked_cast().expect("overflow")
+    }
+}
+
+pub trait UnwrappedAs {
+    fn unwrapped_as<Dst>(self) -> Dst
+    where
+        Self: UnwrappedCast<Dst>;
+}
+
+impl<T> UnwrappedAs for T {
+    #[inline]
+    fn unwrapped_as<Dst>(self) -> Dst
+    where
+        Self: UnwrappedCast<Dst>,
+    {
+        self.unwrapped_cast()
     }
 }
 

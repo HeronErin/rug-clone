@@ -22,7 +22,7 @@ use crate::{
         big::{self, ExpFormat, Format},
         Constant, OrdFloat, Round, Special,
     },
-    misc::AsOrPanic,
+    misc::{UnwrappedAs, UnwrappedCast},
     ops::AssignRound,
     Assign, Float,
 };
@@ -53,7 +53,7 @@ impl Clone for Float {
 
     #[inline]
     fn clone_from(&mut self, source: &Float) {
-        xmpfr::set_prec_nan(self, source.prec().as_or_panic());
+        xmpfr::set_prec_nan(self, source.prec().unwrapped_cast());
         if !source.is_nan() {
             self.assign(source);
         }
@@ -278,7 +278,7 @@ macro_rules! conv_ops_cast {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: $New, round: Round) -> Ordering {
-                self.assign_round(src.as_or_panic::<$Existing>(), round)
+                self.assign_round(src.unwrapped_as::<$Existing>(), round)
             }
         }
 

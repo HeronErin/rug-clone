@@ -22,7 +22,7 @@ use crate::Integer;
 use crate::Rational;
 use crate::{
     float::{Round, SmallFloat, Special},
-    misc::{AsOrPanic, NegAbs},
+    misc::{NegAbs, UnwrappedCast},
     ops::NegAssign,
     Float,
 };
@@ -313,7 +313,7 @@ where
 }
 
 pub unsafe fn sum_raw(rop: *mut mpfr_t, pointers: &[*const mpfr_t], rnd: Round) -> Ordering {
-    let n = pointers.len().as_or_panic();
+    let n = pointers.len().unwrapped_cast();
     let tab = cast_ptr!(pointers.as_ptr(), *mut mpfr_t);
     ordering1(mpfr::sum(rop, tab, n, raw_round(rnd)))
 }

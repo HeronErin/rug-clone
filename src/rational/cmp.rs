@@ -16,7 +16,7 @@
 
 use crate::{
     ext::xmpq,
-    misc::{AsOrPanic, NegAbs},
+    misc::{NegAbs, UnwrappedAs, UnwrappedCast},
     Integer, Rational,
 };
 use core::cmp::Ordering;
@@ -114,7 +114,7 @@ macro_rules! cmp_num_cast {
         impl PartialOrd<$New> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
-                self.partial_cmp(&(*other).as_or_panic::<$Existing>())
+                self.partial_cmp(&(*other).unwrapped_as::<$Existing>())
             }
         }
         cmp_common! { $New }
@@ -155,7 +155,7 @@ macro_rules! cmp_num_iden {
                 } else {
                     self
                 };
-                let cmp = $func(to_compare, other.0.as_or_panic(), abs_den.as_or_panic());
+                let cmp = $func(to_compare, other.0.unwrapped_cast(), abs_den.unwrapped_cast());
                 if neg_den {
                     Some(cmp.reverse())
                 } else {
@@ -173,7 +173,7 @@ macro_rules! cmp_num_uden {
             #[inline]
             fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
                 assert_ne!(other.1, 0, "division by zero");
-                Some($func(self, other.0.as_or_panic(), other.1.as_or_panic()))
+                Some($func(self, other.0.unwrapped_cast(), other.1.unwrapped_cast()))
             }
         }
         cmp_common!{ ($Num, $Den) }
@@ -278,7 +278,7 @@ macro_rules! cmp_f {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 if other.is_finite() {
-                    Some(xmpq::cmp_finite_d(self, (*other).as_or_panic()))
+                    Some(xmpq::cmp_finite_d(self, (*other).unwrapped_cast()))
                 } else if other.is_nan() {
                     None
                 } else if other.is_sign_negative() {

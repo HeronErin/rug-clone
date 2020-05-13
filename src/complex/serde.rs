@@ -18,7 +18,7 @@ use crate::{
     complex::OrdComplex,
     ext::xmpfr,
     float,
-    misc::AsOrPanic,
+    misc::UnwrappedCast,
     serdeize::{self, Data, PrecReq, PrecVal},
     Assign, Complex,
 };
@@ -57,8 +57,8 @@ impl<'de> Deserialize<'de> for Complex {
     ) -> Result<(), D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
-        xmpfr::set_prec_nan(place.mut_real(), prec.0.as_or_panic());
-        xmpfr::set_prec_nan(place.mut_imag(), prec.1.as_or_panic());
+        xmpfr::set_prec_nan(place.mut_real(), prec.0.unwrapped_cast());
+        xmpfr::set_prec_nan(place.mut_imag(), prec.1.unwrapped_cast());
         place.assign(p);
         Ok(())
     }
@@ -111,7 +111,7 @@ impl<'de> Deserialize<'de> for OrdComplex {
 mod tests {
     use crate::{
         float::{self, FreeCache, Special},
-        misc::AsOrPanic,
+        misc::UnwrappedCast,
         Assign, Complex,
     };
     use serde_json::json;
@@ -163,7 +163,7 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec.1).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
-                .write_u64::<LittleEndian>(value.len().as_or_panic())
+                .write_u64::<LittleEndian>(value.len().unwrapped_cast())
                 .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {

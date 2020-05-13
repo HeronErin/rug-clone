@@ -33,7 +33,7 @@ use crate::{
         },
         ParseFloatError, Round, Special,
     },
-    misc::{self, AsOrPanic},
+    misc::{self, UnwrappedCast},
     ops::{AddAssignRound, AssignRound, NegAssign},
     Assign, Float,
 };
@@ -205,7 +205,7 @@ impl Complex {
             "precision out of range"
         );
         let mut ret = MaybeUninit::uninit();
-        xmpc::write_new_nan(&mut ret, p.0.as_or_panic(), p.1.as_or_panic());
+        xmpc::write_new_nan(&mut ret, p.0.unwrapped_cast(), p.1.unwrapped_cast());
         // Safety: write_new_nan initializes ret.
         unsafe { ret.assume_init() }
     }
@@ -3640,11 +3640,11 @@ fn prods_real(pairs: &[(&Complex, &Complex)]) -> Vec<Float> {
         let (brp, bip) = (br.prec(), bi.prec());
         let bp = cmp::max(brp, bip);
         let mut r = Float::new(arp.checked_add(bp).expect("overflow"));
-        xmpfr::set_prec_nan(&mut r, (arp + brp).as_or_panic());
+        xmpfr::set_prec_nan(&mut r, (arp + brp).unwrapped_cast());
         r.assign(ar * br);
         prods.push(r);
         r = Float::new(aip.checked_add(bp).expect("overflow"));
-        xmpfr::set_prec_nan(&mut r, (aip + bip).as_or_panic());
+        xmpfr::set_prec_nan(&mut r, (aip + bip).unwrapped_cast());
         r.assign(ai * bi);
         r.neg_assign();
         prods.push(r);
@@ -3659,10 +3659,10 @@ fn prods_imag(prods: &mut Vec<Float>, pairs: &[(&Complex, &Complex)]) {
         let (br, bi) = (b.real(), b.imag());
         let (arp, aip) = (ar.prec(), ai.prec());
         let (brp, bip) = (br.prec(), bi.prec());
-        xmpfr::set_prec_nan(&mut prods[i], (arp + bip).as_or_panic());
+        xmpfr::set_prec_nan(&mut prods[i], (arp + bip).unwrapped_cast());
         prods[i].assign(ar * bi);
         i += 1;
-        xmpfr::set_prec_nan(&mut prods[i], (aip + brp).as_or_panic());
+        xmpfr::set_prec_nan(&mut prods[i], (aip + brp).unwrapped_cast());
         prods[i].assign(ai * br);
         i += 1;
     }

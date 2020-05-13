@@ -17,7 +17,7 @@
 use crate::{
     ext::{xmpq, xmpz},
     integer::big as big_integer,
-    misc::AsOrPanic,
+    misc::{UnwrappedAs, UnwrappedCast},
     Assign, Integer,
 };
 use az::{Cast, CheckedCast};
@@ -2794,16 +2794,16 @@ impl Assign<ParseIncomplete> for Rational {
             let (num, den) = self.as_mut_numer_denom_no_canonicalization();
             xmpz::realloc_for_mpn_set_str(num, n, src.radix);
             let size = gmp::mpn_set_str(num.inner_mut().d, str, n, src.radix);
-            num.inner_mut().size = (if src.is_negative { -size } else { size }).as_or_panic();
+            num.inner_mut().size = (if src.is_negative { -size } else { size }).unwrapped_cast();
 
-            let (str, n) = (str.offset(n.as_or_panic()), src.digits.len() - n);
+            let (str, n) = (str.offset(n.unwrapped_cast()), src.digits.len() - n);
             if n == 0 {
                 xmpz::set_1(den);
                 return;
             }
             xmpz::realloc_for_mpn_set_str(den, n, src.radix);
             let size = gmp::mpn_set_str(den.inner_mut().d, str, n, src.radix);
-            den.inner_mut().size = size.as_or_panic();
+            den.inner_mut().size = size.unwrapped_cast();
         }
         unsafe {
             gmp::mpq_canonicalize(self.as_raw_mut());
@@ -2817,7 +2817,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError
     use self::{ParseErrorKind as Kind, ParseRationalError as Error};
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let bradix = radix.as_or_panic::<u8>();
+    let bradix = radix.unwrapped_as::<u8>();
 
     let mut digits = Vec::with_capacity(bytes.len() + 1);
     let mut has_sign = false;

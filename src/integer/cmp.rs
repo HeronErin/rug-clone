@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpz, misc::AsOrPanic, Integer};
+use crate::{ext::xmpz, misc::UnwrappedAs, Integer};
 use core::cmp::Ordering;
 
 impl Eq for Integer {}
@@ -77,21 +77,21 @@ macro_rules! cmp_cast {
         impl PartialEq<$New> for Integer {
             #[inline]
             fn eq(&self, other: &$New) -> bool {
-                self.partial_cmp(&(*other).as_or_panic::<$Existing>()) == Some(Ordering::Equal)
+                self.partial_cmp(&(*other).unwrapped_as::<$Existing>()) == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Integer> for $New {
             #[inline]
             fn eq(&self, other: &Integer) -> bool {
-                other.partial_cmp(&(*self).as_or_panic::<$Existing>()) == Some(Ordering::Equal)
+                other.partial_cmp(&(*self).unwrapped_as::<$Existing>()) == Some(Ordering::Equal)
             }
         }
 
         impl PartialOrd<$New> for Integer {
             #[inline]
             fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
-                self.partial_cmp(&(*other).as_or_panic::<$Existing>())
+                self.partial_cmp(&(*other).unwrapped_as::<$Existing>())
             }
         }
 
@@ -99,7 +99,7 @@ macro_rules! cmp_cast {
             #[inline]
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
                 other
-                    .partial_cmp(&(*self).as_or_panic::<$Existing>())
+                    .partial_cmp(&(*self).unwrapped_as::<$Existing>())
                     .map(Ordering::reverse)
             }
         }

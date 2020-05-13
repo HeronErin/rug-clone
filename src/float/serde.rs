@@ -17,7 +17,7 @@
 use crate::{
     ext::xmpfr,
     float::{self, OrdFloat},
-    misc::AsOrPanic,
+    misc::UnwrappedCast,
     serdeize::{self, Data, PrecReq, PrecVal},
     Assign, Float,
 };
@@ -54,7 +54,7 @@ impl<'de> Deserialize<'de> for Float {
     ) -> Result<(), D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
-        xmpfr::set_prec_nan(place, prec.as_or_panic());
+        xmpfr::set_prec_nan(place, prec.unwrapped_cast());
         place.assign(p);
         Ok(())
     }
@@ -97,7 +97,7 @@ impl<'de> Deserialize<'de> for OrdFloat {
 mod tests {
     use crate::{
         float::{self, FreeCache, Special},
-        misc::AsOrPanic,
+        misc::UnwrappedCast,
         Assign, Float,
     };
     use serde_json::json;
@@ -145,7 +145,7 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
-                .write_u64::<LittleEndian>(value.len().as_or_panic())
+                .write_u64::<LittleEndian>(value.len().unwrapped_cast())
                 .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {

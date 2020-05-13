@@ -16,7 +16,7 @@
 
 use crate::{
     ext::xmpz::{self, OptInteger},
-    misc::{AsOrPanic, NegAbs},
+    misc::{NegAbs, UnwrappedAs, UnwrappedCast},
     ops::{NegAssign, SubFrom},
     rational::SmallRational,
     Assign, Integer, Rational,
@@ -192,7 +192,7 @@ int_rat! { fn floor, floor_int, |rop, num, den| {
 int_rat! { fn round, round_int, |rop, num, den| {
     // The remainder cannot be larger than the divisor, but we
     // allocate an extra limb because the GMP docs suggest we should.
-    let limbs = den.inner().size.abs().as_or_panic::<usize>() + 1;
+    let limbs = den.inner().size.abs().unwrapped_as::<usize>() + 1;
     let bits = limbs
         .checked_mul(gmp::LIMB_BITS.az::<usize>())
         .expect("overflow");
@@ -461,7 +461,7 @@ pub fn cmp_finite_d(op1: &Rational, op2: f64) -> Ordering {
         let mut op2_f = op2_f.assume_init();
         gmp::mpf_set_d(&mut op2_f, op2);
         let mut rhs = MaybeUninit::uninit();
-        gmp::mpf_init2(rhs.as_mut_ptr(), (den1_bits + 53).as_or_panic());
+        gmp::mpf_init2(rhs.as_mut_ptr(), (den1_bits + 53).unwrapped_cast());
         let mut rhs = rhs.assume_init();
         gmp::mpf_set_z(&mut rhs, den1.as_raw());
         gmp::mpf_mul(&mut rhs, &rhs, &op2_f);

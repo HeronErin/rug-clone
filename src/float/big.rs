@@ -25,7 +25,7 @@ use crate::{
         arith::{AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete},
         OrdFloat, Round, SmallFloat, Special,
     },
-    misc::{self, AsOrPanic},
+    misc::{self, UnwrappedAs, UnwrappedCast},
     ops::{AddAssignRound, AssignRound, DivRounding, NegAssign},
     Assign,
 };
@@ -261,7 +261,7 @@ impl Float {
     #[inline]
     pub(crate) fn inner_data(&self) -> &[limb_t] {
         if self.is_normal() {
-            let prec = self.inner.prec.as_or_panic::<usize>();
+            let prec = self.inner.prec.unwrapped_as::<usize>();
             let limbs = prec.div_ceil(gmp::LIMB_BITS.az::<usize>());
             unsafe { slice::from_raw_parts(self.inner.d, limbs) }
         } else {
@@ -401,7 +401,7 @@ impl Float {
             "precision out of range"
         );
         let mut ret = MaybeUninit::uninit();
-        xmpfr::write_new_nan(&mut ret, prec.as_or_panic());
+        xmpfr::write_new_nan(&mut ret, prec.unwrapped_cast());
         // Safety: write_new_nan initializes ret.
         unsafe { ret.assume_init() }
     }
@@ -417,7 +417,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn prec(&self) -> u32 {
-        xmpfr::get_prec(self).as_or_panic()
+        xmpfr::get_prec(self).unwrapped_cast()
     }
 
     /// Sets the precision, rounding to the nearest.
@@ -465,7 +465,7 @@ impl Float {
             prec >= float::prec_min() && prec <= float::prec_max(),
             "precision out of range"
         );
-        xmpfr::prec_round(self, prec.as_or_panic(), round)
+        xmpfr::prec_round(self, prec.unwrapped_cast(), round)
     }
 
     /// Creates a [`Float`] from an initialized
@@ -800,7 +800,7 @@ impl Float {
         }
         let mut i = Integer::new();
         let exp = unsafe { mpfr::get_z_2exp(i.as_raw_mut(), self.as_raw()) };
-        Some((i, exp.as_or_panic()))
+        Some((i, exp.unwrapped_cast()))
     }
 
     #[cfg(feature = "rational")]
@@ -1111,7 +1111,7 @@ impl Float {
             xmpfr::set(sf.as_nonreallocating_float(), self, round);
         }
         let (f, exp) = xmpfr::get_f64_2exp(&*sf, Round::Zero);
-        (f as f32, exp.as_or_panic())
+        (f as f32, exp.unwrapped_cast())
     }
 
     /// Converts to an [`f64`] and an exponent, rounding to the
@@ -1163,7 +1163,7 @@ impl Float {
     #[inline]
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let (f, exp) = xmpfr::get_f64_2exp(self, round);
-        (f, exp.as_or_panic())
+        (f, exp.unwrapped_cast())
     }
 
     /// Returns a string representation of `self` for the specified
@@ -1606,7 +1606,7 @@ impl Float {
     #[inline]
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
-            Some(xmpfr::get_exp(self).as_or_panic())
+            Some(xmpfr::get_exp(self).unwrapped_cast())
         } else {
             None
         }
@@ -1664,8 +1664,8 @@ impl Float {
             let limb_bits = prec_t::from(gmp::LIMB_BITS);
             let limbs = (self.inner.prec - 1) / limb_bits + 1;
             let raw_int = mpz_t {
-                alloc: limbs.as_or_panic(),
-                size: limbs.as_or_panic(),
+                alloc: limbs.unwrapped_cast(),
+                size: limbs.unwrapped_cast(),
                 d: self.inner.d,
             };
             // Safety: the lifetime of the return type is equal to the lifetime of self.
@@ -1924,7 +1924,7 @@ impl Float {
         }
         let exp_min = exp_t::from(normal_exp_min);
         let sub_exp_min = exp_min
-            .checked_sub((self.prec() - 1).as_or_panic::<exp_t>())
+            .checked_sub((self.prec() - 1).unwrapped_as::<exp_t>())
             .expect("overflow");
         let exp = xmpfr::get_exp(self);
         if exp < sub_exp_min || exp >= exp_min {
@@ -9386,7 +9386,7 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
             };
             // p is u32, dividing can only decrease it, so m fits in u32
             let m = (f64::from(p) / log2_radix).ceil().az::<u32>();
-            m.as_or_panic::<usize>().checked_add(2).expect("overflow")
+            m.unwrapped_as::<usize>().checked_add(2).expect("overflow")
         };
         #[allow(clippy::approx_constant)]
         const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
@@ -9455,7 +9455,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         let c_buf = mpfr::get_str(
             write_at_p1 as *mut c_char,
             maybe_exp.as_mut_ptr(),
-            radix_with_case.as_or_panic(),
+            radix_with_case.unwrapped_cast(),
             digits,
             f.as_raw(),
             raw_round(format.round),
@@ -9524,7 +9524,7 @@ impl AssignRound<ParseIncomplete> for Float {
                 self.as_raw_mut(),
                 c_string.as_ptr(),
                 c_str_end.as_mut_ptr(),
-                radix.as_or_panic(),
+                radix.unwrapped_cast(),
                 raw_round(round),
             )
         };
@@ -9542,7 +9542,7 @@ macro_rules! parse_error {
 
 fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatError> {
     assert!(radix >= 2 && radix <= 36, "radix {} out of range", radix);
-    let bradix = radix.as_or_panic::<u8>();
+    let bradix = radix.unwrapped_as::<u8>();
     let small_bound = b'a' - 10 + bradix;
     let capital_bound = b'A' - 10 + bradix;
     let digit_bound = b'0' + bradix;
@@ -9800,7 +9800,7 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
     let estimate = prec - 4 * prec.leading_zeros() + 113;
     // k must be a multiple of 32
     let k = (estimate + 16) & !31;
-    let p = k - (f64::from(k).log2() * 4.0).round().as_or_panic::<u32>() + 13;
+    let p = k - (f64::from(k).log2() * 4.0).round().unwrapped_as::<u32>() + 13;
     if p == prec {
         Some(k)
     } else {

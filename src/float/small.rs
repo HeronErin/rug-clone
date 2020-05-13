@@ -17,7 +17,7 @@
 use crate::{
     ext::xmpfr::{self, raw_round},
     float::{self, Round, Special},
-    misc::{AsOrPanic, NegAbs},
+    misc::{NegAbs, UnwrappedCast},
     Assign, Float,
 };
 use az::{Az, WrappingCast};
@@ -289,7 +289,7 @@ macro_rules! unsafe_unsigned_32 {
                     let limb_leading = leading + gmp::LIMB_BITS.az::<u32>() - $bits;
                     limbs[0] = MaybeUninit::new(limb_t::from(self) << limb_leading);
                     let exp = $bits - leading;
-                    xmpfr::custom_regular(ptr, limbs_ptr, exp.as_or_panic(), $bits);
+                    xmpfr::custom_regular(ptr, limbs_ptr, exp.unwrapped_cast(), $bits);
                 }
             }
         }
@@ -322,7 +322,7 @@ impl SealedToSmall for u64 {
                 limbs[0] = MaybeUninit::new(sval.wrapping_cast());
                 limbs[1] = MaybeUninit::new((sval >> 32).wrapping_cast());
             }
-            xmpfr::custom_regular(ptr, limbs_ptr, (64 - leading).as_or_panic(), 64);
+            xmpfr::custom_regular(ptr, limbs_ptr, (64 - leading).unwrapped_cast(), 64);
         }
     }
 }
@@ -350,7 +350,7 @@ impl SealedToSmall for u128 {
                 limbs[2] = MaybeUninit::new((sval >> 64).wrapping_cast());
                 limbs[3] = MaybeUninit::new((sval >> 96).wrapping_cast());
             }
-            xmpfr::custom_regular(ptr, limbs_ptr, (128 - leading).as_or_panic(), 128);
+            xmpfr::custom_regular(ptr, limbs_ptr, (128 - leading).unwrapped_cast(), 128);
         }
     }
 }

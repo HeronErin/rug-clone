@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    misc::{AsOrPanic, NegAbs},
+    misc::{NegAbs, UnwrappedAs, UnwrappedCast},
     ops::NegAssign,
     Integer,
 };
@@ -155,7 +155,7 @@ pub const fn owned_init() -> mpz_t {
 #[inline]
 pub unsafe fn init2(rop: *mut Integer, bits: usize) {
     let rop = cast_ptr_mut!(rop, mpz_t);
-    gmp::mpz_init2(rop, bits.as_or_panic());
+    gmp::mpz_init2(rop, bits.unwrapped_cast());
 }
 
 #[inline]
@@ -208,7 +208,7 @@ pub fn next_pow_of_two<O: OptInteger>(rop: &mut Integer, op: O) {
         set_1(rop);
         return;
     }
-    let significant = significant_bits(op).as_or_panic();
+    let significant = significant_bits(op).unwrapped_cast();
     let first_one = unsafe { gmp::mpn_scan1(op.inner().d, 0) };
     let bit = if first_one == significant - 1 {
         if !O::IS_SOME {
@@ -521,7 +521,7 @@ pub fn ediv_r<O: OptInteger, P: OptInteger>(r: &mut Integer, n: O, d: P) {
 pub fn remove<O: OptInteger>(rop: &mut Integer, op: O, f: &Integer) -> u32 {
     let count =
         unsafe { gmp::mpz_remove(rop.as_raw_mut(), op.unwrap_or(rop).as_raw(), f.as_raw()) };
-    count.as_or_panic()
+    count.unwrapped_cast()
 }
 
 #[inline]
@@ -886,7 +886,7 @@ fn bitcount_to_u32(bits: bitcnt_t) -> Option<u32> {
     if bits == !0 {
         None
     } else {
-        Some(bits.as_or_panic())
+        Some(bits.unwrapped_cast())
     }
 }
 
@@ -934,18 +934,21 @@ pub fn significant_bits(op: &Integer) -> usize {
         return 0;
     }
     let size = size.neg_abs().1;
-    unsafe { gmp::mpn_sizeinbase(op.inner().d, size.as_or_panic(), 2) }
+    unsafe { gmp::mpn_sizeinbase(op.inner().d, size.unwrapped_cast(), 2) }
 }
 
 pub fn signed_bits(op: &Integer) -> u32 {
     let significant = significant_bits(op);
     if op.cmp0() == Ordering::Less {
-        let first_one = (unsafe { gmp::mpn_scan1(op.inner().d, 0) }).as_or_panic::<usize>();
+        let first_one = (unsafe { gmp::mpn_scan1(op.inner().d, 0) }).unwrapped_as::<usize>();
         if first_one == significant - 1 {
-            return significant.as_or_panic();
+            return significant.unwrapped_cast();
         }
     }
-    significant.checked_add(1).expect("overflow").as_or_panic()
+    significant
+        .checked_add(1)
+        .expect("overflow")
+        .unwrapped_cast()
 }
 
 pub fn power_of_two_p(op: &Integer) -> bool {
@@ -953,7 +956,7 @@ pub fn power_of_two_p(op: &Integer) -> bool {
         return false;
     }
     let significant = significant_bits(op);
-    let first_one = (unsafe { gmp::mpn_scan1(op.inner().d, 0) }).as_or_panic::<usize>();
+    let first_one = (unsafe { gmp::mpn_scan1(op.inner().d, 0) }).unwrapped_as::<usize>();
     first_one == significant - 1
 }
 
@@ -973,7 +976,7 @@ pub fn realloc_for_mpn_set_str(rop: &mut Integer, len: usize, radix: i32) {
     // add 1 because mpn_set_str requires an extra limb
     let limbs = (bits / f64::from(gmp::LIMB_BITS)).ceil() + 1.0;
     unsafe {
-        gmp::_mpz_realloc(rop.as_raw_mut(), limbs.as_or_panic());
+        gmp::_mpz_realloc(rop.as_raw_mut(), limbs.unwrapped_cast());
     }
 }
 
@@ -990,7 +993,7 @@ pub fn round_away(rem: &Integer, divisor: &Integer) -> bool {
     }
 
     let mut rem_limb = if s_rem == s_divisor {
-        let rem_next_limb = unsafe { limb(rem, (s_rem - 1).as_or_panic()) };
+        let rem_next_limb = unsafe { limb(rem, (s_rem - 1).unwrapped_cast()) };
         if (rem_next_limb >> (gmp::LIMB_BITS - 1)) != 0 {
             return true;
         }
@@ -999,8 +1002,8 @@ pub fn round_away(rem: &Integer, divisor: &Integer) -> bool {
         0
     };
     for i in (1..s_divisor).rev() {
-        let div_limb = unsafe { limb(divisor, i.as_or_panic()) };
-        let rem_next_limb = unsafe { limb(rem, (i - 1).as_or_panic()) };
+        let div_limb = unsafe { limb(divisor, i.unwrapped_cast()) };
+        let rem_next_limb = unsafe { limb(rem, (i - 1).unwrapped_cast()) };
         rem_limb |= (rem_next_limb >> (gmp::LIMB_BITS - 1)) & 1;
         if rem_limb > div_limb {
             return true;

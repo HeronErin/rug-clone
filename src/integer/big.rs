@@ -19,7 +19,7 @@ use crate::rand::MutRandState;
 use crate::{
     ext::xmpz,
     integer::Order,
-    misc::{self, AsOrPanic},
+    misc::{self, UnwrappedAs, UnwrappedCast},
     ops::DivRounding,
     Assign,
 };
@@ -208,7 +208,7 @@ impl Integer {
             .size
             .checked_abs()
             .expect("overflow")
-            .as_or_panic::<usize>();
+            .unwrapped_as::<usize>();
         unsafe { slice::from_raw_parts(self.inner.d, limbs) }
     }
 }
@@ -272,7 +272,7 @@ impl Integer {
     pub fn capacity(&self) -> usize {
         self.inner
             .alloc
-            .as_or_panic::<usize>()
+            .unwrapped_as::<usize>()
             .checked_mul(gmp::LIMB_BITS.az::<usize>())
             .expect("overflow")
     }
@@ -308,7 +308,7 @@ impl Integer {
             .expect("overflow");
         if alloc_bits < req_bits {
             unsafe {
-                gmp::mpz_realloc2(self.as_raw_mut(), req_bits.as_or_panic());
+                gmp::mpz_realloc2(self.as_raw_mut(), req_bits.unwrapped_cast());
             }
         }
     }
@@ -339,7 +339,7 @@ impl Integer {
         let req_limbs = if used_limbs == 0 { 1 } else { used_limbs };
         if self.inner.alloc > req_limbs {
             unsafe {
-                gmp::_mpz_realloc(self.as_raw_mut(), req_limbs.as_or_panic());
+                gmp::_mpz_realloc(self.as_raw_mut(), req_limbs.unwrapped_cast());
             }
         }
     }
@@ -806,9 +806,9 @@ impl Integer {
         let digit_count = self.significant_digits::<T>();
         let zero_count = len.checked_sub(digit_count).expect("not enough capacity");
         let (zeros, digits) = if order.order() < 0 {
-            (dst.offset(digit_count.as_or_panic()), dst)
+            (dst.offset(digit_count.unwrapped_cast()), dst)
         } else {
-            (dst, dst.offset(zero_count.as_or_panic()))
+            (dst, dst.offset(zero_count.unwrapped_cast()))
         };
         // use *mut u8 to allow for unaligned pointers
         (zeros as *mut u8).write_bytes(0, zero_count * T::PRIVATE.bytes);
@@ -1738,7 +1738,7 @@ impl Integer {
     pub fn to_f64_exp(&self) -> (f64, u32) {
         let mut exp: c_long = 0;
         let f = unsafe { gmp::mpz_get_d_2exp(&mut exp, self.as_raw()) };
-        (f, exp.as_or_panic())
+        (f, exp.unwrapped_cast())
     }
 
     /// Returns a string representation of the number for the
@@ -2183,7 +2183,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn significant_bits(&self) -> u32 {
-        xmpz::significant_bits(self).as_or_panic()
+        xmpz::significant_bits(self).unwrapped_cast()
     }
 
     /// Returns the number of bits required to represent the value
@@ -4427,7 +4427,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
-        let p = unsafe { gmp::mpz_probab_prime_p(self.as_raw(), reps.as_or_panic()) };
+        let p = unsafe { gmp::mpz_probab_prime_p(self.as_raw(), reps.unwrapped_cast()) };
         match p {
             0 => IsPrime::No,
             1 => IsPrime::Probably,
@@ -6209,7 +6209,7 @@ impl Assign<ParseIncomplete> for Integer {
                 src.digits.len(),
                 src.radix,
             );
-            self.inner.size = (if src.is_negative { -size } else { size }).as_or_panic();
+            self.inner.size = (if src.is_negative { -size } else { size }).unwrapped_cast();
         }
     }
 }
@@ -6220,7 +6220,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
     use self::{ParseErrorKind as Kind, ParseIntegerError as Error};
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let bradix = radix.as_or_panic::<u8>();
+    let bradix = radix.unwrapped_as::<u8>();
 
     let mut digits = Vec::with_capacity(bytes.len());
     let mut has_sign = false;
