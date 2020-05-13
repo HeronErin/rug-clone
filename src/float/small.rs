@@ -319,8 +319,8 @@ impl SealedToSmall for u64 {
             }
             #[cfg(gmp_limb_bits_32)]
             {
-                limbs[0] = MaybeUninit::new(sval as u32);
-                limbs[1] = MaybeUninit::new((sval >> 32) as u32);
+                limbs[0] = MaybeUninit::new(sval.wrapping_cast());
+                limbs[1] = MaybeUninit::new((sval >> 32).wrapping_cast());
             }
             xmpfr::custom_regular(ptr, limbs_ptr, (64 - leading).as_or_panic(), 64);
         }
@@ -340,15 +340,15 @@ impl SealedToSmall for u128 {
             let sval = self << leading;
             #[cfg(gmp_limb_bits_64)]
             {
-                limbs[0] = MaybeUninit::new(sval as u64);
-                limbs[1] = MaybeUninit::new((sval >> 64) as u64);
+                limbs[0] = MaybeUninit::new(sval.wrapping_cast());
+                limbs[1] = MaybeUninit::new((sval >> 64).wrapping_cast());
             }
             #[cfg(gmp_limb_bits_32)]
             {
-                limbs[0] = MaybeUninit::new(sval as u32);
-                limbs[1] = MaybeUninit::new((sval >> 32) as u32);
-                limbs[2] = MaybeUninit::new((sval >> 64) as u32);
-                limbs[3] = MaybeUninit::new((sval >> 96) as u32);
+                limbs[0] = MaybeUninit::new(sval.wrapping_cast());
+                limbs[1] = MaybeUninit::new((sval >> 32).wrapping_cast());
+                limbs[2] = MaybeUninit::new((sval >> 64).wrapping_cast());
+                limbs[3] = MaybeUninit::new((sval >> 96).wrapping_cast());
             }
             xmpfr::custom_regular(ptr, limbs_ptr, (128 - leading).as_or_panic(), 128);
         }
@@ -361,11 +361,11 @@ impl SealedToSmall for usize {
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         #[cfg(target_pointer_width = "32")]
         {
-            (self as u32).copy(inner, limbs);
+            (self.az::<u32>()).copy(inner, limbs);
         }
         #[cfg(target_pointer_width = "64")]
         {
-            (self as u64).copy(inner, limbs);
+            (self.az::<u64>()).copy(inner, limbs);
         }
     }
 }

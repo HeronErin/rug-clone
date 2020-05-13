@@ -101,7 +101,8 @@ println!("Maximum precision is {}", float::prec_max());
 pub const fn prec_max() -> u32 {
     const MAX_FITS: bool = mpfr::PREC_MAX < u32::MAX as prec_t;
     const VALUES: [u32; 2] = [u32::MAX, mpfr::PREC_MAX as u32];
-    VALUES[MAX_FITS as usize]
+    const PREC_MAX: u32 = VALUES[MAX_FITS as usize];
+    PREC_MAX
 }
 
 /**
@@ -326,6 +327,7 @@ pub(crate) mod tests {
         ops::NegAssign,
         Assign, Float,
     };
+    use az::Az;
     use core::{
         cmp::Ordering,
         f64,
@@ -539,7 +541,7 @@ pub(crate) mod tests {
     #[test]
     fn check_assumptions() {
         assert_eq!(unsafe { mpfr::custom_get_size(64) }, 8);
-        assert!(unsafe { mpfr::custom_get_size(32) } <= gmp::NUMB_BITS as usize);
+        assert!(unsafe { mpfr::custom_get_size(32) } <= gmp::NUMB_BITS.az::<usize>());
 
         float::free_cache(FreeCache::All);
     }

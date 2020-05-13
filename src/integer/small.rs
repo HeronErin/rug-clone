@@ -15,6 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{misc::NegAbs, Assign, Integer};
+use az::{Az, Cast, WrappingCast};
 use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
@@ -291,11 +292,11 @@ impl SealedToSmall for u64 {
             *size = 0;
         } else if self <= 0xffff_ffff {
             *size = 1;
-            limbs[0] = MaybeUninit::new(self as u32);
+            limbs[0] = MaybeUninit::new(self.wrapping_cast());
         } else {
             *size = 2;
-            limbs[0] = MaybeUninit::new(self as u32);
-            limbs[1] = MaybeUninit::new((self >> 32) as u32);
+            limbs[0] = MaybeUninit::new(self.wrapping_cast());
+            limbs[1] = MaybeUninit::new((self >> 32).wrapping_cast());
         }
     }
 
@@ -312,11 +313,11 @@ impl SealedToSmall for u128 {
             *size = 0;
         } else if self <= 0xffff_ffff_ffff_ffff {
             *size = 1;
-            limbs[0] = MaybeUninit::new(self as u64);
+            limbs[0] = MaybeUninit::new(self.wrapping_cast());
         } else {
             *size = 2;
-            limbs[0] = MaybeUninit::new(self as u64);
-            limbs[1] = MaybeUninit::new((self >> 64) as u64);
+            limbs[0] = MaybeUninit::new(self.wrapping_cast());
+            limbs[1] = MaybeUninit::new((self >> 64).wrapping_cast());
         }
     }
 
@@ -327,22 +328,22 @@ impl SealedToSmall for u128 {
             *size = 0;
         } else if self <= 0xffff_ffff {
             *size = 1;
-            limbs[0] = MaybeUninit::new(self as u32);
+            limbs[0] = MaybeUninit::new(self.wrapping_cast());
         } else if self <= 0xffff_ffff_ffff_ffff {
             *size = 2;
-            limbs[0] = MaybeUninit::new(self as u32);
-            limbs[1] = MaybeUninit::new((self >> 32) as u32);
+            limbs[0] = MaybeUninit::new(self.wrapping_cast());
+            limbs[1] = MaybeUninit::new((self >> 32).wrapping_cast());
         } else if self <= 0xffff_ffff_ffff_ffff_ffff_ffff {
             *size = 3;
-            limbs[0] = MaybeUninit::new(self as u32);
-            limbs[1] = MaybeUninit::new((self >> 32) as u32);
-            limbs[2] = MaybeUninit::new((self >> 64) as u32);
+            limbs[0] = MaybeUninit::new(self.wrapping_cast());
+            limbs[1] = MaybeUninit::new((self >> 32).wrapping_cast());
+            limbs[2] = MaybeUninit::new((self >> 64).wrapping_cast());
         } else {
             *size = 4;
-            limbs[0] = MaybeUninit::new(self as u32);
-            limbs[1] = MaybeUninit::new((self >> 32) as u32);
-            limbs[2] = MaybeUninit::new((self >> 64) as u32);
-            limbs[3] = MaybeUninit::new((self >> 96) as u32);
+            limbs[0] = MaybeUninit::new(self.wrapping_cast());
+            limbs[1] = MaybeUninit::new((self >> 32).wrapping_cast());
+            limbs[2] = MaybeUninit::new((self >> 64).wrapping_cast());
+            limbs[3] = MaybeUninit::new((self >> 96).wrapping_cast());
         }
     }
 
@@ -354,13 +355,13 @@ impl SealedToSmall for usize {
     #[cfg(target_pointer_width = "32")]
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
-        (self as u32).copy(size, limbs);
+        self.az::<u32>().copy(size, limbs);
     }
 
     #[cfg(target_pointer_width = "64")]
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
-        (self as u64).copy(size, limbs);
+        self.az::<u64>().copy(size, limbs);
     }
 
     is_zero! {}
@@ -381,7 +382,7 @@ impl<T: ToSmall> From<T> for SmallInteger {
         src.copy(&mut size, &mut limbs);
         SmallInteger {
             inner: Mpz {
-                alloc: LIMBS_IN_SMALL as c_int,
+                alloc: LIMBS_IN_SMALL.cast(),
                 size,
                 d: UnsafeCell::new(NonNull::dangling()),
             },

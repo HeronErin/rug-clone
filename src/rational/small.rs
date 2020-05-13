@@ -18,6 +18,7 @@ use crate::{
     integer::{small::Mpz, ToSmall},
     Assign, Rational,
 };
+use az::Cast;
 use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},
@@ -196,12 +197,12 @@ impl SmallRational {
         SmallRational {
             inner: Mpq {
                 num: Mpz {
-                    alloc: LIMBS_IN_SMALL as c_int,
+                    alloc: LIMBS_IN_SMALL.cast(),
                     size: num_size,
                     d: UnsafeCell::new(NonNull::dangling()),
                 },
                 den: Mpz {
-                    alloc: LIMBS_IN_SMALL as c_int,
+                    alloc: LIMBS_IN_SMALL.cast(),
                     size: den_size,
                     d: UnsafeCell::new(NonNull::dangling()),
                 },
@@ -306,12 +307,12 @@ impl<Num: ToSmall> From<Num> for SmallRational {
         SmallRational {
             inner: Mpq {
                 num: Mpz {
-                    alloc: LIMBS_IN_SMALL as c_int,
+                    alloc: LIMBS_IN_SMALL.cast(),
                     size: num_size,
                     d: UnsafeCell::new(NonNull::dangling()),
                 },
                 den: Mpz {
-                    alloc: LIMBS_IN_SMALL as c_int,
+                    alloc: LIMBS_IN_SMALL.cast(),
                     size: 1,
                     d: UnsafeCell::new(NonNull::dangling()),
                 },
@@ -345,12 +346,12 @@ impl<Num: ToSmall, Den: ToSmall> From<(Num, Den)> for SmallRational {
         assert!(!src.1.is_zero(), "division by zero");
         let mut inner = Mpq {
             num: Mpz {
-                alloc: LIMBS_IN_SMALL as c_int,
+                alloc: LIMBS_IN_SMALL.cast(),
                 size: 0,
                 d: UnsafeCell::new(NonNull::dangling()),
             },
             den: Mpz {
-                alloc: LIMBS_IN_SMALL as c_int,
+                alloc: LIMBS_IN_SMALL.cast(),
                 size: 0,
                 d: UnsafeCell::new(NonNull::dangling()),
             },

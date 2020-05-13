@@ -29,7 +29,7 @@ use crate::{
     ops::{AddAssignRound, AssignRound, DivRounding, NegAssign},
     Assign,
 };
-use az::{Az, SaturatingCast};
+use az::{Az, SaturatingCast, WrappingAs};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -9379,20 +9379,20 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
         let digits = if digits > 0 {
             digits
         } else {
-            let p = if (format.radix as u32).is_power_of_two() {
+            let p = if (format.radix.wrapping_as::<u32>()).is_power_of_two() {
                 f.prec() - 1
             } else {
                 f.prec()
             };
             // p is u32, dividing can only decrease it, so m fits in u32
-            let m = (f64::from(p) / log2_radix).ceil() as u32;
+            let m = (f64::from(p) / log2_radix).ceil().az::<u32>();
             m.as_or_panic::<usize>().checked_add(2).expect("overflow")
         };
         #[allow(clippy::approx_constant)]
         const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
         let exp = (xmpfr::get_exp(f).az::<f64>() / log2_radix - 1.0).abs();
         // add 1 for '-' and an extra 1 in case of rounding errors
-        let exp_digits = (exp * LOG10_2).ceil() as usize + 2;
+        let exp_digits = (exp * LOG10_2).ceil().az::<usize>() + 2;
         // '.', exp separator, exp_digits
         digits.checked_add(2 + exp_digits).expect("overflow")
     };

@@ -33,7 +33,7 @@ use core::{
     slice,
 };
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
-use libc::{c_char, c_int, c_long, c_void};
+use libc::{c_char, c_long, c_void};
 use std::error::Error;
 #[cfg(feature = "rational")]
 use {crate::rational::big::BorrowRational, gmp_mpfr_sys::gmp::mpq_t};
@@ -303,8 +303,8 @@ impl Integer {
     pub fn reserve(&mut self, additional: usize) {
         let used_bits = xmpz::significant_bits(self);
         let req_bits = used_bits.checked_add(additional).expect("overflow");
-        let alloc_bits = (self.inner.alloc as usize)
-            .checked_mul(gmp::LIMB_BITS as usize)
+        let alloc_bits = (self.inner.alloc.az::<usize>())
+            .checked_mul(gmp::LIMB_BITS.az::<usize>())
             .expect("overflow");
         if alloc_bits < req_bits {
             unsafe {
@@ -5043,7 +5043,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn jacobi(&self, n: &Self) -> i32 {
-        unsafe { gmp::mpz_jacobi(self.as_raw(), n.as_raw()) as i32 }
+        unsafe { gmp::mpz_jacobi(self.as_raw(), n.as_raw()) }.cast()
     }
 
     /// Calculates the Legendre symbol (`self`/<i>p</i>).
@@ -5060,7 +5060,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn legendre(&self, p: &Self) -> i32 {
-        unsafe { gmp::mpz_legendre(self.as_raw(), p.as_raw()) as i32 }
+        unsafe { gmp::mpz_legendre(self.as_raw(), p.as_raw()) }.cast()
     }
 
     /// Calculates the Jacobi symbol (`self`/<i>n</i>) with the
@@ -5080,7 +5080,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn kronecker(&self, n: &Self) -> i32 {
-        unsafe { gmp::mpz_kronecker(self.as_raw(), n.as_raw()) as i32 }
+        unsafe { gmp::mpz_kronecker(self.as_raw(), n.as_raw()) }.cast()
     }
 
     /// Removes all occurrences of `factor`, and returns the number of
@@ -6175,11 +6175,7 @@ pub(crate) fn append_to_string(s: &mut String, i: &Integer, radix: i32, to_upper
     unsafe {
         let bytes = s.as_mut_vec();
         let start = bytes.as_mut_ptr().add(orig_len);
-        gmp::mpz_get_str(
-            cast_ptr_mut!(start, c_char),
-            case_radix as c_int,
-            i.as_raw(),
-        );
+        gmp::mpz_get_str(cast_ptr_mut!(start, c_char), case_radix.cast(), i.as_raw());
         let added = slice::from_raw_parts(start, size);
         let nul_index = added.iter().position(|&x| x == 0).unwrap();
         bytes.set_len(orig_len + nul_index);

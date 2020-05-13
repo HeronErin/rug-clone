@@ -19,7 +19,7 @@ use crate::{
     integer::{big, ParseIntegerError, TryFromIntegerError},
     Assign, Integer,
 };
-use az::CheckedCast;
+use az::{Az, CheckedCast};
 use core::{
     convert::TryFrom,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
@@ -160,21 +160,21 @@ macro_rules! assign {
         impl Assign<$T> for Integer {
             #[inline]
             fn assign(&mut self, src: $T) {
-                self.assign(src as $U);
+                self.assign(src.az::<$U>());
             }
         }
 
         impl Assign<&$T> for Integer {
             #[inline]
             fn assign(&mut self, src: &$T) {
-                self.assign(*src as $U);
+                self.assign((*src).az::<$U>());
             }
         }
 
         impl From<$T> for Integer {
             #[inline]
             fn from(src: $T) -> Self {
-                Integer::from(src as $U)
+                Integer::from(src.az::<$U>())
             }
         }
     };

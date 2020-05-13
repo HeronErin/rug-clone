@@ -141,6 +141,7 @@ impl Order {
 #[allow(clippy::cognitive_complexity, clippy::float_cmp)]
 mod tests {
     use crate::{integer::Order, ops::NegAssign, Assign, Integer};
+    use az::{Az, WrappingAs};
     use core::{f32, f64, i128, i32, i64, u128, u32, u64};
 
     #[test]
@@ -151,10 +152,10 @@ mod tests {
         i.assign(0xff00_0000u32);
         i <<= 4;
         assert_eq!(i.to_u32_wrapping(), 0xf000_0000u32);
-        assert_eq!(i.to_i32_wrapping(), 0xf000_0000u32 as i32);
+        assert_eq!(i.to_i32_wrapping(), 0xf000_0000u32.wrapping_as::<i32>());
         i = i.clone() << 32 | i;
         assert_eq!(i.to_u32_wrapping(), 0xf000_0000u32);
-        assert_eq!(i.to_i32_wrapping(), 0xf000_0000u32 as i32);
+        assert_eq!(i.to_i32_wrapping(), 0xf000_0000u32.wrapping_as::<i32>());
         i.neg_assign();
         assert_eq!(i.to_u32_wrapping(), 0x1000_0000u32);
         assert_eq!(i.to_i32_wrapping(), 0x1000_0000i32);
@@ -184,14 +185,14 @@ mod tests {
         assert_eq!(i.to_u64(), None);
         assert_eq!(i.to_i64(), Some(i64::from(i32::MIN) - 1));
         i.assign(i32::MAX);
-        assert_eq!(i.to_u32(), Some(i32::MAX as u32));
+        assert_eq!(i.to_u32(), Some(i32::MAX.wrapping_as::<u32>()));
         assert_eq!(i.to_i32(), Some(i32::MAX));
-        assert_eq!(i.to_u64(), Some(i32::MAX as u64));
+        assert_eq!(i.to_u64(), Some(i32::MAX.wrapping_as::<u64>()));
         assert_eq!(i.to_i64(), Some(i64::from(i32::MAX)));
         i += 1;
-        assert_eq!(i.to_u32(), Some(i32::MAX as u32 + 1));
+        assert_eq!(i.to_u32(), Some(i32::MAX.wrapping_as::<u32>() + 1));
         assert_eq!(i.to_i32(), None);
-        assert_eq!(i.to_u64(), Some(i32::MAX as u64 + 1));
+        assert_eq!(i.to_u64(), Some(i32::MAX.wrapping_as::<u64>() + 1));
         assert_eq!(i.to_i64(), Some(i64::from(i32::MAX) + 1));
         i.assign(u32::MAX);
         assert_eq!(i.to_u32(), Some(u32::MAX));
@@ -217,12 +218,12 @@ mod tests {
         i.assign(i64::MAX);
         assert_eq!(i.to_u32(), None);
         assert_eq!(i.to_i32(), None);
-        assert_eq!(i.to_u64(), Some(i64::MAX as u64));
+        assert_eq!(i.to_u64(), Some(i64::MAX.wrapping_as::<u64>()));
         assert_eq!(i.to_i64(), Some(i64::MAX));
         i += 1;
         assert_eq!(i.to_u32(), None);
         assert_eq!(i.to_i32(), None);
-        assert_eq!(i.to_u64(), Some(i64::MAX as u64 + 1));
+        assert_eq!(i.to_u64(), Some(i64::MAX.wrapping_as::<u64>() + 1));
         assert_eq!(i.to_i64(), None);
         i.assign(u64::MAX);
         assert_eq!(i.to_u32(), None);
@@ -248,12 +249,12 @@ mod tests {
         i.assign(i128::MAX);
         assert_eq!(i.to_u64(), None);
         assert_eq!(i.to_i64(), None);
-        assert_eq!(i.to_u128(), Some(i128::MAX as u128));
+        assert_eq!(i.to_u128(), Some(i128::MAX.wrapping_as::<u128>()));
         assert_eq!(i.to_i128(), Some(i128::MAX));
         i += 1;
         assert_eq!(i.to_u64(), None);
         assert_eq!(i.to_i64(), None);
-        assert_eq!(i.to_u128(), Some(i128::MAX as u128 + 1));
+        assert_eq!(i.to_u128(), Some(i128::MAX.wrapping_as::<u128>() + 1));
         assert_eq!(i.to_i128(), None);
         i.assign(u128::MAX);
         assert_eq!(i.to_u64(), None);
@@ -288,10 +289,10 @@ mod tests {
         assert_eq!(i.to_f32(), f32::INFINITY);
         assert_eq!(i.to_f64(), f64::INFINITY);
         i.assign(-0xff_ffff);
-        assert_eq!(i.to_f32(), -0xff_ffff as f32);
+        assert_eq!(i.to_f32(), (-0xff_ffff).az::<f32>());
         assert_eq!(i.to_f64(), f64::from(-0xff_ffff));
         i.assign(-0xfff_ffff);
-        assert_eq!(i.to_f32(), -0xfff_fff0 as f32);
+        assert_eq!(i.to_f32(), (-0xfff_fff0).az::<f32>());
         assert_eq!(i.to_f64(), f64::from(-0xfff_ffff));
     }
 
