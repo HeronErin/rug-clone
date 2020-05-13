@@ -167,46 +167,28 @@ static_assert_same_layout!(Complex, mpc_t);
 static_assert_same_layout!(BorrowComplex<'_>, mpc_t);
 
 macro_rules! ref_math_op0_complex {
-    (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Incomplete:ident { $($param:ident: $T:ty),* }
-    ) => {
+    ($($rest:tt)*) => {
         ref_math_op0_round! {
-            Complex, Round2, NEAREST2 => Ordering2;
-            $func;
-            $(#[$attr_ref])*
-            struct $Incomplete { $($param: $T),* }
+            Complex, Round2, NEAREST2, Ordering2;
+            $($rest)*
         }
     };
 }
 
 macro_rules! ref_math_op1_complex {
-    (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Incomplete:ident { $($param:ident: $T:ty),* }
-    ) => {
+    ($($rest:tt)*) => {
         ref_math_op1_round! {
-            Complex, Round2, NEAREST2 => Ordering2;
-            $func;
-            $(#[$attr_ref])*
-            struct $Incomplete { $($param: $T),* }
+            Complex, Round2, NEAREST2, Ordering2;
+            $($rest)*
         }
     };
 }
 
 macro_rules! ref_math_op1_2_complex {
-    (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Incomplete:ident { $($param:ident: $T:ty),* }
-    ) => {
+    ($($rest:tt)*) => {
         ref_math_op1_2_round! {
-            Complex, Round2, NEAREST2 => (Ordering2, Ordering2);
-            $func;
-            $(#[$attr_ref])*
-            struct $Incomplete { $($param: $T),* }
+            Complex, Round2, NEAREST2, (Ordering2, Ordering2);
+            $($rest)*
         }
     };
 }

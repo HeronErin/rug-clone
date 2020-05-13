@@ -274,61 +274,37 @@ static_assert_same_layout!(Float, mpfr_t);
 static_assert_same_layout!(BorrowFloat<'_>, mpfr_t);
 
 macro_rules! ref_math_op0_float {
-    (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Incomplete:ident { $($param:ident: $T:ty),* }
-    ) => {
+    ($($rest:tt)*) => {
         ref_math_op0_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func;
-            $(#[$attr_ref])*
-            struct $Incomplete { $($param: $T),* }
+            Float, Round, Round::Nearest, Ordering;
+            $($rest)*
         }
     };
 }
 
 macro_rules! ref_math_op1_float {
-    (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Incomplete:ident { $($param:ident: $T:ty),* }
-    ) => {
+    ($($rest:tt)*) => {
         ref_math_op1_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func;
-            $(#[$attr_ref])*
-            struct $Incomplete { $($param: $T),* }
+            Float, Round, Round::Nearest, Ordering;
+            $($rest)*
         }
     };
 }
 
 macro_rules! ref_math_op1_2_float {
-    (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Incomplete:ident { $($param:ident: $T:ty),* }
-    ) => {
+    ($($rest:tt)*) => {
         ref_math_op1_2_round! {
-            Float, Round, Round::Nearest => (Ordering, Ordering);
-            $func;
-            $(#[$attr_ref])*
-            struct $Incomplete { $($param: $T),* }
+            Float, Round, Round::Nearest, (Ordering, Ordering);
+            $($rest)*
         }
     };
 }
 
 macro_rules! ref_math_op2_float {
-    (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Incomplete:ident { $op:ident $(, $param:ident: $T:ty),* }
-    ) => {
+    ($($rest:tt)*) => {
         ref_math_op2_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func;
-            $(#[$attr_ref])*
-            struct $Incomplete { $op $(, $param: $T)* }
+            Float, Round, Round::Nearest, Ordering;
+            $($rest)*
         }
     };
 }

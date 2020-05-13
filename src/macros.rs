@@ -1116,7 +1116,7 @@ macro_rules! assign_round_deref {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op0_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
@@ -1147,7 +1147,7 @@ macro_rules! ref_math_op0_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
@@ -1179,7 +1179,7 @@ macro_rules! ref_math_op1_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_2_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
@@ -1238,7 +1238,7 @@ macro_rules! ref_math_op1_2_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op2_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $op:ident $(, $param:ident: $T:ty),* }
@@ -1278,7 +1278,7 @@ macro_rules! ref_math_op2_round {
 #[cfg(feature = "float")]
 macro_rules! arith_binary_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1370,7 +1370,7 @@ macro_rules! arith_binary_round {
 #[cfg(feature = "float")]
 macro_rules! arith_binary_self_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1380,7 +1380,7 @@ macro_rules! arith_binary_self_round {
         $Incomplete:ident
     ) => {
         arith_binary_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1439,7 +1439,7 @@ macro_rules! arith_binary_self_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_forward_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1449,7 +1449,7 @@ macro_rules! arith_forward_round {
         $OwnedIncomplete:ident
     ) => {
         arith_binary_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1504,7 +1504,7 @@ macro_rules! arith_forward_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_commut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1516,7 +1516,7 @@ macro_rules! arith_commut_round {
         $OwnedIncomplete:ident
     ) => {
         arith_forward_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1609,7 +1609,7 @@ macro_rules! arith_commut_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_noncommut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1621,7 +1621,7 @@ macro_rules! arith_noncommut_round {
         $FromIncomplete:ident, $FromOwnedIncomplete:ident
     ) => {
         arith_forward_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1748,7 +1748,7 @@ macro_rules! arith_noncommut_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_exact_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1825,7 +1825,7 @@ macro_rules! arith_prim_exact_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1833,7 +1833,7 @@ macro_rules! arith_prim_round {
         $($T:ty, $Incomplete:ident;)*
     ) => { $(
         arith_prim_exact_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1872,7 +1872,7 @@ macro_rules! arith_prim_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_commut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1882,7 +1882,7 @@ macro_rules! arith_prim_commut_round {
         $($T:ty, $Incomplete:ident;)*
     ) => { $(
         arith_prim_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1972,7 +1972,7 @@ macro_rules! arith_prim_commut_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_noncommut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1982,7 +1982,7 @@ macro_rules! arith_prim_noncommut_round {
         $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
     ) => { $(
         arith_prim_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -2082,7 +2082,7 @@ macro_rules! arith_prim_noncommut_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -2148,7 +2148,7 @@ macro_rules! mul_op_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_commut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -2159,7 +2159,7 @@ macro_rules! mul_op_commut_round {
         $Incomplete:ident
     ) => {
         mul_op_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -2213,7 +2213,7 @@ macro_rules! mul_op_commut_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_noncommut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr => $Ordering:ty;
+        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -2225,7 +2225,7 @@ macro_rules! mul_op_noncommut_round {
         $FromIncomplete:ident
     ) => {
         mul_op_round! {
-            $Big, $Round, $Nearest => $Ordering;
+            $Big, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }

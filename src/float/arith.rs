@@ -76,109 +76,8 @@ impl AssignRound<NegIncomplete<'_>> for Float {
     }
 }
 
-macro_rules! arith_binary_self_float {
-    (
-        $func:path;
-        $Imp:ident { $method:ident }
-        $ImpAssign:ident { $method_assign:ident }
-        $ImpAssignRound:ident { $method_assign_round:ident }
-        $ImpFrom:ident { $method_from:ident }
-        $ImpFromRound:ident { $method_from_round:ident }
-        $Incomplete:ident
-    ) => {
-        arith_binary_self_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func;
-            $Imp { $method }
-            $ImpAssign { $method_assign }
-            $ImpAssignRound { $method_assign_round }
-            $ImpFrom { $method_from }
-            $ImpFromRound { $method_from_round }
-            $Incomplete
-        }
-    };
-}
-
-#[cfg(feature = "integer")]
-macro_rules! arith_forward_float {
-    (
-        $func:path;
-        $Imp:ident { $method:ident }
-        $ImpAssign:ident { $method_assign:ident }
-        $ImpAssignRound:ident { $method_assign_round:ident }
-        $T:ty;
-        $Incomplete:ident,
-        $OwnedIncomplete:ident
-    ) => {
-        arith_forward_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func;
-            $Imp { $method }
-            $ImpAssign { $method_assign }
-            $ImpAssignRound { $method_assign_round }
-            $T;
-            $Incomplete, $OwnedIncomplete
-        }
-    };
-}
-
-#[cfg(feature = "integer")]
-macro_rules! arith_commut_float {
-    (
-        $func:path;
-        $Imp:ident { $method:ident }
-        $ImpAssign:ident { $method_assign:ident }
-        $ImpAssignRound:ident { $method_assign_round:ident }
-        $ImpFrom:ident { $method_from:ident }
-        $ImpFromRound:ident { $method_from_round:ident }
-        $T:ty;
-        $Incomplete:ident,
-        $OwnedIncomplete:ident
-    ) => {
-        arith_commut_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func;
-            $Imp { $method }
-            $ImpAssign { $method_assign }
-            $ImpAssignRound { $method_assign_round }
-            $ImpFrom { $method_from }
-            $ImpFromRound { $method_from_round }
-            $T;
-            $Incomplete, $OwnedIncomplete
-        }
-    };
-}
-
-#[cfg(feature = "integer")]
-macro_rules! arith_noncommut_float {
-    (
-        $func:path,
-        $func_from:path;
-        $Imp:ident { $method:ident }
-        $ImpAssign:ident { $method_assign:ident }
-        $ImpAssignRound:ident { $method_assign_round:ident }
-        $ImpFrom:ident { $method_from:ident }
-        $ImpFromRound:ident { $method_from_round:ident }
-        $T:ty;
-        $Incomplete:ident, $OwnedIncomplete:ident;
-        $FromIncomplete:ident, $FromOwnedIncomplete:ident
-    ) => {
-        arith_noncommut_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func, $func_from;
-            $Imp { $method }
-            $ImpAssign { $method_assign }
-            $ImpAssignRound { $method_assign_round }
-            $ImpFrom { $method_from }
-            $ImpFromRound { $method_from_round }
-            $T;
-            $Incomplete, $OwnedIncomplete;
-            $FromIncomplete, $FromOwnedIncomplete
-        }
-    };
-}
-
-arith_binary_self_float! {
+arith_binary_self_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::add;
     Add { add }
     AddAssign { add_assign }
@@ -187,7 +86,8 @@ arith_binary_self_float! {
     AddFromRound { add_from_round }
     AddIncomplete
 }
-arith_binary_self_float! {
+arith_binary_self_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::sub;
     Sub { sub }
     SubAssign { sub_assign }
@@ -196,7 +96,8 @@ arith_binary_self_float! {
     SubFromRound { sub_from_round }
     SubIncomplete
 }
-arith_binary_self_float! {
+arith_binary_self_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::mul;
     Mul { mul }
     MulAssign { mul_assign }
@@ -205,7 +106,8 @@ arith_binary_self_float! {
     MulFromRound { mul_from_round }
     MulIncomplete
 }
-arith_binary_self_float! {
+arith_binary_self_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::div;
     Div { div }
     DivAssign { div_assign }
@@ -214,7 +116,8 @@ arith_binary_self_float! {
     DivFromRound { div_from_round }
     DivIncomplete
 }
-arith_binary_self_float! {
+arith_binary_self_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::fmod;
     Rem { rem }
     RemAssign { rem_assign }
@@ -223,7 +126,8 @@ arith_binary_self_float! {
     RemFromRound { rem_from_round }
     RemIncomplete
 }
-arith_binary_self_float! {
+arith_binary_self_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::pow;
     Pow { pow }
     PowAssign { pow_assign }
@@ -234,7 +138,8 @@ arith_binary_self_float! {
 }
 
 #[cfg(feature = "integer")]
-arith_commut_float! {
+arith_commut_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::add_z;
     Add { add }
     AddAssign { add_assign }
@@ -245,7 +150,8 @@ arith_commut_float! {
     AddIntegerIncomplete, AddOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
-arith_noncommut_float! {
+arith_noncommut_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::sub_z, xmpfr::z_sub;
     Sub { sub }
     SubAssign { sub_assign }
@@ -257,7 +163,8 @@ arith_noncommut_float! {
     SubFromIntegerIncomplete, SubFromOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
-arith_commut_float! {
+arith_commut_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::mul_z;
     Mul { mul }
     MulAssign { mul_assign }
@@ -268,7 +175,8 @@ arith_commut_float! {
     MulIntegerIncomplete, MulOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
-arith_noncommut_float! {
+arith_noncommut_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::div_z, xmpfr::z_div;
     Div { div }
     DivAssign { div_assign }
@@ -280,7 +188,8 @@ arith_noncommut_float! {
     DivFromIntegerIncomplete, DivFromOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
-arith_forward_float! {
+arith_forward_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::pow_z;
     Pow { pow }
     PowAssign { pow_assign }
@@ -290,7 +199,8 @@ arith_forward_float! {
 }
 
 #[cfg(feature = "rational")]
-arith_commut_float! {
+arith_commut_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::add_q;
     Add { add }
     AddAssign { add_assign }
@@ -301,7 +211,8 @@ arith_commut_float! {
     AddRationalIncomplete, AddOwnedRationalIncomplete
 }
 #[cfg(feature = "rational")]
-arith_noncommut_float! {
+arith_noncommut_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::sub_q, xmpfr::q_sub;
     Sub { sub }
     SubAssign { sub_assign }
@@ -313,7 +224,8 @@ arith_noncommut_float! {
     SubFromRationalIncomplete, SubFromOwnedRationalIncomplete
 }
 #[cfg(feature = "rational")]
-arith_commut_float! {
+arith_commut_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::mul_q;
     Mul { mul }
     MulAssign { mul_assign }
@@ -324,7 +236,8 @@ arith_commut_float! {
     MulRationalIncomplete, MulOwnedRationalIncomplete
 }
 #[cfg(feature = "rational")]
-arith_noncommut_float! {
+arith_noncommut_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::div_q, xmpfr::q_div;
     Div { div }
     DivAssign { div_assign }
@@ -336,71 +249,8 @@ arith_noncommut_float! {
     DivFromRationalIncomplete, DivFromOwnedRationalIncomplete
 }
 
-macro_rules! arith_prim_exact_float {
-    (
-        $func:path;
-        $Imp:ident { $method:ident }
-        $ImpAssign:ident { $method_assign:ident }
-        $($T:ty, $Incomplete:ident;)*
-    ) => {
-        arith_prim_exact_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func;
-            $Imp { $method }
-            $ImpAssign { $method_assign }
-            $($T, $Incomplete;)*
-        }
-    };
-}
-
-macro_rules! arith_prim_commut_float {
-    (
-        $func:path;
-        $Imp:ident { $method:ident }
-        $ImpAssign:ident { $method_assign:ident }
-        $ImpAssignRound:ident { $method_assign_round:ident }
-        $ImpFrom:ident { $method_from:ident }
-        $ImpFromRound:ident { $method_from_round:ident }
-        $($T:ty, $Incomplete:ident;)*
-    ) => {
-        arith_prim_commut_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func;
-            $Imp { $method }
-            $ImpAssign { $method_assign }
-            $ImpAssignRound { $method_assign_round }
-            $ImpFrom { $method_from }
-            $ImpFromRound { $method_from_round }
-            $($T, $Incomplete;)*
-        }
-    };
-}
-
-macro_rules! arith_prim_noncommut_float {
-    (
-        $func:path,
-        $func_from:path;
-        $Imp:ident { $method:ident }
-        $ImpAssign:ident { $method_assign:ident }
-        $ImpAssignRound:ident { $method_assign_round:ident }
-        $ImpFrom:ident { $method_from:ident }
-        $ImpFromRound:ident { $method_from_round:ident }
-        $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
-    ) => {
-        arith_prim_noncommut_round! {
-            Float, Round, Round::Nearest => Ordering;
-            $func, $func_from;
-            $Imp { $method }
-            $ImpAssign { $method_assign }
-            $ImpAssignRound { $method_assign_round }
-            $ImpFrom { $method_from }
-            $ImpFromRound { $method_from_round }
-            $($T, $Incomplete, $FromIncomplete;)*
-        }
-    };
-}
-
-arith_prim_commut_float! {
+arith_prim_commut_round! {
+    Float, Round, Round::Nearest, Ordering;
     PrimOps::add;
     Add { add }
     AddAssign { add_assign }
@@ -420,7 +270,8 @@ arith_prim_commut_float! {
     f32, AddF32Incomplete;
     f64, AddF64Incomplete;
 }
-arith_prim_noncommut_float! {
+arith_prim_noncommut_round! {
+    Float, Round, Round::Nearest, Ordering;
     PrimOps::sub, PrimOps::sub_from;
     Sub { sub }
     SubAssign { sub_assign }
@@ -440,7 +291,8 @@ arith_prim_noncommut_float! {
     f32, SubF32Incomplete, SubFromF32Incomplete;
     f64, SubF64Incomplete, SubFromF64Incomplete;
 }
-arith_prim_commut_float! {
+arith_prim_commut_round! {
+    Float, Round, Round::Nearest, Ordering;
     PrimOps::mul;
     Mul { mul }
     MulAssign { mul_assign }
@@ -460,7 +312,8 @@ arith_prim_commut_float! {
     f32, MulF32Incomplete;
     f64, MulF64Incomplete;
 }
-arith_prim_noncommut_float! {
+arith_prim_noncommut_round! {
+    Float, Round, Round::Nearest, Ordering;
     PrimOps::div, PrimOps::div_from;
     Div { div }
     DivAssign { div_assign }
@@ -480,7 +333,8 @@ arith_prim_noncommut_float! {
     f32, DivF32Incomplete, DivFromF32Incomplete;
     f64, DivF64Incomplete, DivFromF64Incomplete;
 }
-arith_prim_noncommut_float! {
+arith_prim_noncommut_round! {
+    Float, Round, Round::Nearest, Ordering;
     PrimOps::rem, PrimOps::rem_from;
     Rem { rem }
     RemAssign { rem_assign }
@@ -500,7 +354,8 @@ arith_prim_noncommut_float! {
     f32, RemF32Incomplete, RemFromF32Incomplete;
     f64, RemF64Incomplete, RemFromF64Incomplete;
 }
-arith_prim_noncommut_float! {
+arith_prim_noncommut_round! {
+    Float, Round, Round::Nearest, Ordering;
     PrimOps::pow, PrimOps::pow_from;
     Pow { pow }
     PowAssign { pow_assign }
@@ -521,32 +376,36 @@ arith_prim_noncommut_float! {
     f64, PowF64Incomplete, PowFromF64Incomplete;
 }
 
-arith_prim_exact_float! {
+arith_prim_exact_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::shl_u32;
     Shl { shl }
     ShlAssign { shl_assign }
     u32, ShlU32Incomplete;
 }
-arith_prim_exact_float! {
+arith_prim_exact_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::shr_u32;
     Shr { shr }
     ShrAssign { shr_assign }
     u32, ShrU32Incomplete;
 }
-arith_prim_exact_float! {
+arith_prim_exact_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::shl_i32;
     Shl { shl }
     ShlAssign { shl_assign }
     i32, ShlI32Incomplete;
 }
-arith_prim_exact_float! {
+arith_prim_exact_round! {
+    Float, Round, Round::Nearest, Ordering;
     xmpfr::shr_i32;
     Shr { shr }
     ShrAssign { shr_assign }
     i32, ShrI32Incomplete;
 }
 mul_op_commut_round! {
-    Float, Round, Round::Nearest => Ordering;
+    Float, Round, Round::Nearest, Ordering;
     add_mul;
     Add { add }
     AddAssign { add_assign }
@@ -557,7 +416,7 @@ mul_op_commut_round! {
     AddMulIncomplete
 }
 mul_op_noncommut_round! {
-    Float, Round, Round::Nearest => Ordering;
+    Float, Round, Round::Nearest, Ordering;
     sub_mul, mul_sub;
     Sub { sub }
     SubAssign { sub_assign }
