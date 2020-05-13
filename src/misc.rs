@@ -16,7 +16,7 @@
 
 #![allow(dead_code)]
 
-use az::CheckedCast;
+use az::{CheckedCast, WrappingCast};
 
 pub trait AsOrPanic {
     fn as_or_panic<Dst>(self) -> Dst
@@ -45,9 +45,9 @@ macro_rules! neg_abs {
             #[inline]
             fn neg_abs(self) -> (bool, $U) {
                 if self < 0 {
-                    (true, self.wrapping_neg() as $U)
+                    (true, self.wrapping_neg().wrapping_cast())
                 } else {
-                    (false, self as $U)
+                    (false, self.wrapping_cast())
                 }
             }
         }
