@@ -15,6 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    ext::xmpq,
     integer::{small::Mpz, ToSmall},
     Assign, Rational,
 };
@@ -73,8 +74,19 @@ pub struct SmallRational {
     last_limbs: Limbs,
 }
 
+// Safety: SmallRational cannot be Sync because it contains an
+// UnsafeCell which is written to then read without further
+// protection, so it could lead to data races. But SmallRational can
+// be Send because if it is owned, no other reference can be used to
+// modify the UnsafeCell.
 unsafe impl Send for SmallRational {}
 
+// Safety: Mpz has a repr equivalent to mpz_t, so Mpq has a repr
+// equivalent to mpq_t. The difference in the repr(C) types Mpz and
+// mpz_t is that Mpz uses UnsafeCell<NonNull<limb_t>> instead of *mut
+// limb_t, but both UnsafeCell and NonNull are repr(transparent). The
+// difference in the repr(C) types Mpq and mpq_t is that Mpq uses Mpz
+// instead of mpz_t.
 #[derive(Clone)]
 #[repr(C)]
 struct Mpq {
@@ -160,6 +172,8 @@ impl SmallRational {
     /// [`Rational`]: ../struct.Rational.html
     /// [`recip_mut`]: ../struct.Rational.html#method.recip_mut
     #[inline]
+    // Safety: after calling update_d(), self.inner.d points to the
+    // limbs so it is in a consistent state.
     pub unsafe fn as_nonreallocating_rational(&mut self) -> &mut Rational {
         self.update_d();
         let ptr = cast_ptr_mut!(&mut self.inner, Rational);
@@ -247,6 +261,7 @@ impl SmallRational {
     }
 
     #[inline]
+    // Safety: self is not Sync, so reading d does not cause a data race.
     fn num_is_first(&self) -> bool {
         unsafe { *self.inner.num.d.get() <= *self.inner.den.d.get() }
     }
@@ -267,6 +282,7 @@ impl SmallRational {
         } else {
             (last, first)
         };
+        // Safety: self is not Sync, so we can write to d without causing a data race.
         unsafe {
             *self.inner.num.d.get() = num_d.cast();
             *self.inner.den.d.get() = den_d.cast();
@@ -280,6 +296,8 @@ impl Deref for SmallRational {
     fn deref(&self) -> &Rational {
         self.update_d();
         let ptr = cast_ptr!(&self.inner, Rational);
+        // Safety: since we called update_d, the inner pointer is pointing
+        // to the limbs and the rational number is in a consistent state.
         unsafe { &*ptr }
     }
 }
@@ -335,9 +353,8 @@ impl<Num: ToSmall, Den: ToSmall> Assign<(Num, Den)> for SmallRational {
             src.0.copy(&mut self.inner.num.size, num_limbs);
             src.1.copy(&mut self.inner.den.size, den_limbs);
         }
-        unsafe {
-            gmp::mpq_canonicalize(self.as_nonreallocating_rational().as_raw_mut());
-        }
+        // Safety: canonicalization will never need to make a number larger.
+        xmpq::canonicalize(unsafe { self.as_nonreallocating_rational() });
     }
 }
 

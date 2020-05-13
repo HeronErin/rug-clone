@@ -662,9 +662,7 @@ impl Rational {
     #[inline]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
-            unsafe {
-                gmp::mpq_set_d(self.as_raw_mut(), val);
-            }
+            xmpq::set_f64(self, val);
             Ok(())
         } else {
             Err(())
@@ -696,12 +694,9 @@ impl Rational {
     where
         Integer: From<Num> + From<Den>,
     {
+        let (num, den) = (Integer::from(num), Integer::from(den));
         let mut dst = MaybeUninit::uninit();
-        let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpq_t);
-        let dnum = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
-        dnum.write(Integer::from(num));
-        let dden = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
-        dden.write(Integer::from(den));
+        xmpq::write_num_den_unchecked(&mut dst, num, den);
         dst.assume_init()
     }
 
@@ -752,7 +747,7 @@ impl Rational {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn numer(&self) -> &Integer {
-        unsafe { &*cast_ptr!(gmp::mpq_numref_const(self.as_raw()), Integer) }
+        xmpq::numref_const(self)
     }
 
     /// Borrows the denominator as an [`Integer`].
@@ -769,7 +764,7 @@ impl Rational {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn denom(&self) -> &Integer {
-        unsafe { &*cast_ptr!(gmp::mpq_denref_const(self.as_raw()), Integer) }
+        xmpq::denref_const(self)
     }
 
     /// Calls a function with mutable references to the numerator and
@@ -821,12 +816,10 @@ impl Rational {
         F: FnOnce(&mut Integer, &mut Integer),
     {
         unsafe {
-            let numer_ptr = cast_ptr_mut!(gmp::mpq_numref(self.as_raw_mut()), Integer);
-            let denom_ptr = cast_ptr_mut!(gmp::mpq_denref(self.as_raw_mut()), Integer);
-            func(&mut *numer_ptr, &mut *denom_ptr);
-            assert_ne!(self.denom().cmp0(), Ordering::Equal, "division by zero");
-            gmp::mpq_canonicalize(self.as_raw_mut());
+            let (num, den) = xmpq::numref_denref(self);
+            func(num, den);
         }
+        xmpq::canonicalize(self);
     }
 
     /// Borrows the numerator and denominator mutably without
@@ -883,10 +876,7 @@ impl Rational {
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
     ) -> (&mut Integer, &mut Integer) {
-        (
-            &mut *cast_ptr_mut!(gmp::mpq_numref(self.as_raw_mut()), Integer),
-            &mut *cast_ptr_mut!(gmp::mpq_denref(self.as_raw_mut()), Integer),
-        )
+        xmpq::numref_denref(self)
     }
 
     /// Converts into numerator and denominator [`Integer`] values.
@@ -909,11 +899,8 @@ impl Rational {
     #[inline]
     pub fn into_numer_denom(self) -> (Integer, Integer) {
         let raw = self.into_raw();
-        unsafe {
-            let num = gmp::mpq_numref_const(&raw).read();
-            let den = gmp::mpq_denref_const(&raw).read();
-            (Integer::from_raw(num), Integer::from_raw(den))
-        }
+        // Safety: raw contains two valid Integers.
+        unsafe { (Integer::from_raw(raw.num), Integer::from_raw(raw.den)) }
     }
 
     /// Borrows a negated copy of the [`Rational`] number.
@@ -943,6 +930,8 @@ impl Rational {
     pub fn as_neg(&self) -> BorrowRational<'_> {
         let mut raw = self.inner;
         raw.num.size = raw.num.size.checked_neg().expect("overflow");
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
+        // Safety: the number is in canonical form as only the sign of the numerator was changed.
         unsafe { BorrowRational::from_raw(raw) }
     }
 
@@ -973,6 +962,8 @@ impl Rational {
     pub fn as_abs(&self) -> BorrowRational<'_> {
         let mut raw = self.inner;
         raw.num.size = raw.num.size.checked_abs().expect("overflow");
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
+        // Safety: the number is in canonical form as only the sign of the numerator was changed.
         unsafe { BorrowRational::from_raw(raw) }
     }
 
@@ -1014,6 +1005,9 @@ impl Rational {
             raw.den.size = raw.den.size.wrapping_neg();
             raw.num.size = raw.num.size.checked_neg().expect("overflow");
         }
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
+        // Safety: the number is in canonical form as the numerator and denominator are
+        // still mutually prime, and the denominator was made positive.
         unsafe { BorrowRational::from_raw(raw) }
     }
 
@@ -2783,30 +2777,30 @@ pub struct ParseIncomplete {
 }
 
 impl Assign<ParseIncomplete> for Rational {
-    #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
-        let (str, n) = (src.digits.as_ptr(), src.den_start);
-        if n == 0 {
+        let num_len = src.den_start;
+        if num_len == 0 {
             xmpq::set_0(self);
             return;
         }
+        let den_len = src.digits.len() - num_len;
+        let num_str = src.digits.as_ptr();
         unsafe {
             let (num, den) = self.as_mut_numer_denom_no_canonicalization();
-            xmpz::realloc_for_mpn_set_str(num, n, src.radix);
-            let size = gmp::mpn_set_str(num.inner_mut().d, str, n, src.radix);
+            xmpz::realloc_for_mpn_set_str(num, num_len, src.radix);
+            let size = gmp::mpn_set_str(num.inner_mut().d, num_str, num_len, src.radix);
             num.inner_mut().size = (if src.is_negative { -size } else { size }).unwrapped_cast();
 
-            let (str, n) = (str.offset(n.unwrapped_cast()), src.digits.len() - n);
-            if n == 0 {
+            if den_len == 0 {
+                // The number is in canonical form if the denominator is 1.
                 xmpz::set_1(den);
                 return;
             }
-            xmpz::realloc_for_mpn_set_str(den, n, src.radix);
-            let size = gmp::mpn_set_str(den.inner_mut().d, str, n, src.radix);
+            let den_str = num_str.offset(num_len.unwrapped_cast());
+            xmpz::realloc_for_mpn_set_str(den, den_len, src.radix);
+            let size = gmp::mpn_set_str(den.inner_mut().d, den_str, den_len, src.radix);
             den.inner_mut().size = size.unwrapped_cast();
-        }
-        unsafe {
-            gmp::mpq_canonicalize(self.as_raw_mut());
+            xmpq::canonicalize(self);
         }
     }
 }

@@ -21,7 +21,6 @@ use crate::{
 };
 use az::CheckedCast;
 use core::{
-    cmp::Ordering,
     convert::TryFrom,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
     hash::{Hash, Hasher},
@@ -150,10 +149,10 @@ where
 {
     #[inline]
     fn assign(&mut self, src: Num) {
-        // no need to canonicalize, as denominator will be 1.
-        let num_den = unsafe { self.as_mut_numer_denom_no_canonicalization() };
-        num_den.0.assign(src);
-        xmpz::set_1(num_den.1);
+        // Safety: no need to canonicalize, as denominator will be 1.
+        let (num, den) = unsafe { self.as_mut_numer_denom_no_canonicalization() };
+        num.assign(src);
+        xmpz::set_1(den);
     }
 }
 
@@ -163,6 +162,7 @@ where
 {
     #[inline]
     fn from(src: Num) -> Self {
+        // Safety: no need to canonicalize, as denominator will be 1.
         unsafe {
             let mut dst = MaybeUninit::uninit();
             let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpq_t);
@@ -193,18 +193,12 @@ where
     Integer: From<Num> + From<Den>,
 {
     #[inline]
-    fn from(src: (Num, Den)) -> Self {
-        unsafe {
-            let mut dst = MaybeUninit::uninit();
-            let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpq_t);
-            let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
-            num.write(Integer::from(src.0));
-            let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
-            den.write(Integer::from(src.1));
-            assert_ne!((*den).cmp0(), Ordering::Equal, "division by zero");
-            gmp::mpq_canonicalize(inner_ptr);
-            dst.assume_init()
-        }
+    fn from((num, den): (Num, Den)) -> Self {
+        let (num, den) = (Integer::from(num), Integer::from(den));
+        let mut dst = MaybeUninit::uninit();
+        xmpq::write_num_den_canonicalize(&mut dst, num, den);
+        // Safety: write_num_den_canonicalize initializes and canonicalizes dst.
+        unsafe { dst.assume_init() }
     }
 }
 
@@ -227,17 +221,11 @@ where
 {
     #[inline]
     fn from(src: &'a (Num, Den)) -> Self {
-        unsafe {
-            let mut dst = MaybeUninit::uninit();
-            let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpq_t);
-            let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
-            num.write(Integer::from(&src.0));
-            let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
-            den.write(Integer::from(&src.1));
-            assert_ne!((*den).cmp0(), Ordering::Equal, "division by zero");
-            gmp::mpq_canonicalize(inner_ptr);
-            dst.assume_init()
-        }
+        let (num, den) = (Integer::from(&src.0), Integer::from(&src.1));
+        let mut dst = MaybeUninit::uninit();
+        xmpq::write_num_den_canonicalize(&mut dst, num, den);
+        // Safety: write_num_den_canonicalize initializes and canonicalizes dst.
+        unsafe { dst.assume_init() }
     }
 }
 
@@ -293,6 +281,7 @@ impl Display for TryFromFloatError {
     }
 }
 
+// Safety: mpq_t is thread safe as guaranteed by the GMP library.
 unsafe impl Send for Rational {}
 unsafe impl Sync for Rational {}
 

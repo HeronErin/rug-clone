@@ -327,6 +327,61 @@ unsafe_wrap! { fn div(op1: O, op2: P) -> gmp::mpq_div }
 unsafe_wrap! { fn mul_2exp(op1: O; op2: u32) -> gmp::mpq_mul_2exp }
 unsafe_wrap! { fn div_2exp(op1: O; op2: u32) -> gmp::mpq_div_2exp }
 
+// num and den must form a canonical pair
+#[inline]
+pub unsafe fn write_num_den_unchecked(dst: &mut MaybeUninit<Rational>, num: Integer, den: Integer) {
+    let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpq_t);
+    let num_ptr = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+    num_ptr.write(num);
+    let den_ptr = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
+    den_ptr.write(den);
+}
+
+#[inline]
+pub fn write_num_den_canonicalize(dst: &mut MaybeUninit<Rational>, num: Integer, den: Integer) {
+    assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
+    // Safety:
+    //   * We can cast pointers to/from Rational/mpq_t as they are repr(transparent).
+    //   * We can cast pointers to/from Integer/mpz_t as they are repr(transparent).
+    //   * numref/denref only offset the pointers, and can operate on uninit memory.
+    unsafe {
+        let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpq_t);
+        let num_ptr = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+        num_ptr.write(num);
+        let den_ptr = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
+        den_ptr.write(den);
+        gmp::mpq_canonicalize(inner_ptr);
+    }
+}
+
+#[inline]
+pub fn canonicalize(r: &mut Rational) {
+    assert_ne!(r.denom().cmp0(), Ordering::Equal, "division by zero");
+    unsafe {
+        gmp::mpq_canonicalize(r.as_raw_mut());
+    }
+}
+
+#[inline]
+pub fn numref_const(r: &Rational) -> &Integer {
+    unsafe { &*cast_ptr!(gmp::mpq_numref_const(r.as_raw()), Integer) }
+}
+
+#[inline]
+pub fn denref_const(r: &Rational) -> &Integer {
+    unsafe { &*cast_ptr!(gmp::mpq_denref_const(r.as_raw()), Integer) }
+}
+
+// unsafe because this can be used to leave Rational in a non-canonical state
+#[inline]
+pub unsafe fn numref_denref(r: &mut Rational) -> (&mut Integer, &mut Integer) {
+    let r = r.as_raw_mut();
+    (
+        &mut *cast_ptr_mut!(gmp::mpq_numref(r), Integer),
+        &mut *cast_ptr_mut!(gmp::mpq_denref(r), Integer),
+    )
+}
+
 #[inline]
 pub fn set_0(rop: &mut Rational) {
     unsafe {
