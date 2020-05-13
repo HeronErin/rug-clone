@@ -33,7 +33,7 @@ use core::{
     slice,
 };
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
-use libc::{c_char, c_long, c_void};
+use libc::{c_char, c_void};
 use std::error::Error;
 #[cfg(feature = "rational")]
 use {crate::rational::big::BorrowRational, gmp_mpfr_sys::gmp::mpq_t};
@@ -524,6 +524,7 @@ impl Integer {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn assign_digits<T: UnsignedPrimitive>(&mut self, digits: &[T], order: Order) {
+        // Safety: it is valid to read digits.len() digits from digits.as_mut_ptr().
         unsafe {
             self.assign_digits_unaligned(digits.as_ptr(), digits.len(), order);
         }
@@ -716,6 +717,7 @@ impl Integer {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn write_digits<T: UnsignedPrimitive>(&self, digits: &mut [T], order: Order) {
+        // Safety: it is valid to write digits.len() digits into digits.as_mut_ptr().
         unsafe {
             self.write_digits_unaligned(digits.as_mut_ptr(), digits.len(), order);
         }
@@ -1736,8 +1738,7 @@ impl Integer {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, u32) {
-        let mut exp: c_long = 0;
-        let f = unsafe { gmp::mpz_get_d_2exp(&mut exp, self.as_raw()) };
+        let (f, exp) = xmpz::get_f64_2exp(self);
         (f, exp.unwrapped_cast())
     }
 
@@ -1842,6 +1843,7 @@ impl Integer {
     pub fn as_neg(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
         raw.size = raw.size.checked_neg().expect("overflow");
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowInteger::from_raw(raw) }
     }
 
@@ -1872,6 +1874,7 @@ impl Integer {
     pub fn as_abs(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
         raw.size = raw.size.checked_abs().expect("overflow");
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowInteger::from_raw(raw) }
     }
 
@@ -1907,6 +1910,8 @@ impl Integer {
                 d: &ONE as *const limb_t as *mut limb_t,
             },
         };
+        // Safety: the lifetime of the return type is equal to the lifetime of self.
+        // Safety: the number is in canonical form as the denominator is 1.
         unsafe { BorrowRational::from_raw(raw_rational) }
     }
 
@@ -1923,7 +1928,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_even(&self) -> bool {
-        unsafe { gmp::mpz_even_p(self.as_raw()) != 0 }
+        xmpz::even_p(self)
     }
 
     /// Returns [`true`] if the number is odd.
@@ -1939,7 +1944,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_odd(&self) -> bool {
-        unsafe { gmp::mpz_odd_p(self.as_raw()) != 0 }
+        xmpz::odd_p(self)
     }
 
     /// Returns [`true`] if the number is divisible by `divisor`. Unlike
@@ -1958,7 +1963,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible(&self, divisor: &Self) -> bool {
-        unsafe { gmp::mpz_divisible_p(self.as_raw(), divisor.as_raw()) != 0 }
+        xmpz::divisible_p(self, divisor)
     }
 
     /// Returns [`true`] if the number is divisible by `divisor`. Unlike
@@ -1977,7 +1982,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible_u(&self, divisor: u32) -> bool {
-        unsafe { gmp::mpz_divisible_ui_p(self.as_raw(), divisor.into()) != 0 }
+        xmpz::divisible_ui_p(self, divisor.into())
     }
 
     /// Returns [`true`] if the number is divisible by 2<sup><i>b</i></sup>.
@@ -1995,7 +2000,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible_2pow(&self, b: u32) -> bool {
-        unsafe { gmp::mpz_divisible_2exp_p(self.as_raw(), b.into()) != 0 }
+        xmpz::divisible_2exp_p(self, b.into())
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
@@ -2019,7 +2024,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent(&self, c: &Self, divisor: &Self) -> bool {
-        unsafe { gmp::mpz_congruent_p(self.as_raw(), c.as_raw(), divisor.as_raw()) != 0 }
+        xmpz::congruent_p(self, c, divisor)
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
@@ -2041,7 +2046,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent_u(&self, c: u32, divisor: u32) -> bool {
-        unsafe { gmp::mpz_congruent_ui_p(self.as_raw(), c.into(), divisor.into()) != 0 }
+        xmpz::congruent_ui_p(self, c.into(), divisor.into())
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
@@ -2060,7 +2065,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent_2pow(&self, c: &Self, b: u32) -> bool {
-        unsafe { gmp::mpz_congruent_2exp_p(self.as_raw(), c.as_raw(), b.into()) != 0 }
+        xmpz::congruent_2exp_p(self, c, b.into())
     }
 
     /// Returns [`true`] if the number is a perfect power.
@@ -2083,7 +2088,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_power(&self) -> bool {
-        unsafe { gmp::mpz_perfect_power_p(self.as_raw()) != 0 }
+        xmpz::perfect_power_p(self)
     }
 
     /// Returns [`true`] if the number is a perfect square.
@@ -2104,7 +2109,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_square(&self) -> bool {
-        unsafe { gmp::mpz_perfect_square_p(self.as_raw()) != 0 }
+        xmpz::perfect_square_p(self)
     }
 
     /// Returns [`true`] if the number is a power of two.
@@ -2145,7 +2150,7 @@ impl Integer {
     /// [`into`]: https://doc.rust-lang.org/nightly/core/convert/trait.Into.html#tymethod.into
     #[inline]
     pub fn cmp0(&self) -> Ordering {
-        unsafe { gmp::mpz_sgn(self.as_raw()).cmp(&0) }
+        xmpz::sgn(self)
     }
 
     /// Compares the absolute values.
@@ -2162,7 +2167,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn cmp_abs(&self, other: &Self) -> Ordering {
-        unsafe { gmp::mpz_cmpabs(self.as_raw(), other.as_raw()).cmp(&0) }
+        xmpz::cmpabs(self, other)
     }
 
     /// Returns the number of bits required to represent the absolute
@@ -2300,12 +2305,10 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Self {
-        unsafe {
-            if val {
-                gmp::mpz_setbit(self.as_raw_mut(), index.into());
-            } else {
-                gmp::mpz_clrbit(self.as_raw_mut(), index.into());
-            }
+        if val {
+            xmpz::setbit(self, index.into());
+        } else {
+            xmpz::clrbit(self, index.into());
         }
         self
     }
@@ -2329,7 +2332,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn get_bit(&self, index: u32) -> bool {
-        unsafe { gmp::mpz_tstbit(self.as_raw(), index.into()) != 0 }
+        xmpz::tstbit(self, index.into())
     }
 
     /// Toggles the bit at location `index`.
@@ -2344,9 +2347,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn toggle_bit(&mut self, index: u32) -> &mut Self {
-        unsafe {
-            gmp::mpz_combit(self.as_raw_mut(), index.into());
-        }
+        xmpz::combit(self, index.into());
         self
     }
 
@@ -3480,10 +3481,7 @@ impl Integer {
     /// assert_eq!(i, 54321);
     /// ```
     pub fn div_exact_from(&mut self, dividend: &Integer) {
-        xmpz::check_div0(self);
-        unsafe {
-            gmp::mpz_divexact(self.as_raw_mut(), dividend.as_raw(), self.as_raw());
-        }
+        xmpz::divexact(self, dividend, ());
     }
 
     /// Performs an exact division.
@@ -4427,8 +4425,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
-        let p = unsafe { gmp::mpz_probab_prime_p(self.as_raw(), reps.unwrapped_cast()) };
-        match p {
+        match xmpz::probab_prime_p(self, reps.unwrapped_cast()) {
             0 => IsPrime::No,
             1 => IsPrime::Probably,
             2 => IsPrime::Yes,
@@ -5043,7 +5040,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn jacobi(&self, n: &Self) -> i32 {
-        unsafe { gmp::mpz_jacobi(self.as_raw(), n.as_raw()) }.cast()
+        xmpz::jacobi(self, n).cast()
     }
 
     /// Calculates the Legendre symbol (`self`/<i>p</i>).
@@ -5060,7 +5057,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn legendre(&self, p: &Self) -> i32 {
-        unsafe { gmp::mpz_legendre(self.as_raw(), p.as_raw()) }.cast()
+        xmpz::legendre(self, p).cast()
     }
 
     /// Calculates the Jacobi symbol (`self`/<i>n</i>) with the
@@ -5080,7 +5077,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn kronecker(&self, n: &Self) -> i32 {
-        unsafe { gmp::mpz_kronecker(self.as_raw(), n.as_raw()) }.cast()
+        xmpz::kronecker(self, n).cast()
     }
 
     /// Removes all occurrences of `factor`, and returns the number of
@@ -5553,7 +5550,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn random_below_mut(&mut self, rng: &mut dyn MutRandState) {
-        xmpz::urandomm(self, rng.private().0, ());
+        xmpz::urandomm(self, rng, ());
     }
 
     #[cfg(feature = "rand")]
@@ -6044,9 +6041,7 @@ ref_math_op0! { Integer; xmpz::fib_ui; struct FibonacciIncomplete { n: u32 } }
 impl Assign<FibonacciIncomplete> for (&mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: FibonacciIncomplete) {
-        unsafe {
-            gmp::mpz_fib2_ui(self.0.as_raw_mut(), self.1.as_raw_mut(), src.n.into());
-        }
+        xmpz::fib2_ui(self.0, self.1, src.n.into())
     }
 }
 
@@ -6064,9 +6059,7 @@ ref_math_op0! { Integer; xmpz::lucnum_ui; struct LucasIncomplete { n: u32 } }
 impl Assign<LucasIncomplete> for (&mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: LucasIncomplete) {
-        unsafe {
-            gmp::mpz_lucnum2_ui(self.0.as_raw_mut(), self.1.as_raw_mut(), src.n.into());
-        }
+        xmpz::lucnum2_ui(self.0, self.1, src.n.into());
     }
 }
 
@@ -6089,9 +6082,7 @@ pub struct RandomBitsIncomplete<'a> {
 impl Assign<RandomBitsIncomplete<'_>> for Integer {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
-        unsafe {
-            gmp::mpz_urandomb(self.as_raw_mut(), src.rng.private().0, src.bits.into());
-        }
+        xmpz::urandomb(self, src.rng, src.bits.into())
     }
 }
 
@@ -6115,7 +6106,7 @@ pub struct RandomBelowIncomplete<'a> {
 impl Assign<RandomBelowIncomplete<'_>> for Integer {
     #[inline]
     fn assign(&mut self, src: RandomBelowIncomplete) {
-        xmpz::urandomm(self, src.rng.private().0, src.ref_self);
+        xmpz::urandomm(self, src.rng, src.ref_self);
     }
 }
 
@@ -6195,7 +6186,6 @@ pub struct ParseIncomplete {
 }
 
 impl Assign<ParseIncomplete> for Integer {
-    #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
         if src.digits.is_empty() {
             xmpz::set_0(self);
@@ -6396,6 +6386,7 @@ pub struct PrivateUnsignedPrimitive {
     nails: usize,
 }
 
+// unsafe because bit patterns can be written to the implementing type
 pub unsafe trait SealedUnsignedPrimitive: Sized {
     const PRIVATE: PrivateUnsignedPrimitive = PrivateUnsignedPrimitive {
         bytes: mem::size_of::<Self>(),
@@ -6404,6 +6395,7 @@ pub unsafe trait SealedUnsignedPrimitive: Sized {
     };
 }
 
+// Safety: We set nails to 7 so that only 0 or 1 can be written into bool.
 impl UnsignedPrimitive for bool {}
 unsafe impl SealedUnsignedPrimitive for bool {
     const PRIVATE: PrivateUnsignedPrimitive = PrivateUnsignedPrimitive {

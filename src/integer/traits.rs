@@ -292,6 +292,7 @@ impl Display for TryFromIntegerError {
     }
 }
 
+// Safety: mpz_t is thread safe as guaranteed by the GMP library.
 unsafe impl Send for Integer {}
 unsafe impl Sync for Integer {}
 
