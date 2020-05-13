@@ -3918,7 +3918,7 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     big_float::append_to_string(s, re, ff);
     if re_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
-            let bytes = slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
+            let bytes = slice::from_raw_parts_mut(s.as_mut_ptr(), s.len());
             bytes[prefix_start] = b'-';
             bytes[prefix_start + 1..=prefix_end].copy_from_slice(f.prefix.as_bytes());
         }
@@ -3939,7 +3939,7 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     big_float::append_to_string(s, im, ff);
     if im_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
-            let bytes = slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
+            let bytes = slice::from_raw_parts_mut(s.as_mut_ptr(), s.len());
             bytes[prefix_start] = b'-';
             bytes[prefix_start + 1..=prefix_end].copy_from_slice(f.prefix.as_bytes());
         }
