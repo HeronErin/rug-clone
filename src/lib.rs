@@ -423,7 +423,7 @@ use rug::Assign;
 struct I(i32);
 impl Assign<i16> for I {
     fn assign(&mut self, rhs: i16) {
-        self.0 = rhs as i32;
+        self.0 = rhs.into();
     }
 }
 let mut i = I(0);

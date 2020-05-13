@@ -487,7 +487,7 @@ struct U(u32);
 impl Pow<u16> for U {
     type Output = u32;
     fn pow(self, rhs: u16) -> u32 {
-        self.0.pow(rhs as u32)
+        self.0.pow(u32::from(rhs))
     }
 }
 let u = U(5);
@@ -522,7 +522,7 @@ use rug::ops::PowAssign;
 struct U(u32);
 impl PowAssign<u16> for U {
     fn pow_assign(&mut self, rhs: u16) {
-        self.0 = self.0.pow(rhs as u32);
+        self.0 = self.0.pow(u32::from(rhs));
     }
 }
 let mut u = U(5);
