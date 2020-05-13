@@ -15,22 +15,23 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ext::xmpz::*, misc::NegAbs, Integer};
+use az::{WrappingAs, WrappingCast};
 use core::{cmp::Ordering, i32, i64, u32, u64};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
-        set_u64(rop, u as u64);
+        set_u64(rop, u.wrapping_cast());
     } else if u <= !(!0u128 << 96) {
         if rop.inner().alloc < 3 {
             cold_realloc(rop, 3);
         }
         unsafe {
             rop.inner_mut().size = 3;
-            *limb_mut(rop, 0) = u as u32;
-            *limb_mut(rop, 1) = (u >> 32) as u32;
-            *limb_mut(rop, 2) = (u >> 64) as u32;
+            *limb_mut(rop, 0) = u.wrapping_cast();
+            *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
+            *limb_mut(rop, 2) = (u >> 64).wrapping_cast();
         }
     } else {
         if rop.inner().alloc < 4 {
@@ -38,10 +39,10 @@ pub fn set_u128(rop: &mut Integer, u: u128) {
         }
         unsafe {
             rop.inner_mut().size = 4;
-            *limb_mut(rop, 0) = u as u32;
-            *limb_mut(rop, 1) = (u >> 32) as u32;
-            *limb_mut(rop, 2) = (u >> 64) as u32;
-            *limb_mut(rop, 3) = (u >> 96) as u32;
+            *limb_mut(rop, 0) = u.wrapping_cast();
+            *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
+            *limb_mut(rop, 2) = (u >> 64).wrapping_cast();
+            *limb_mut(rop, 3) = (u >> 96).wrapping_cast();
         }
     }
 }
@@ -49,15 +50,15 @@ pub fn set_u128(rop: &mut Integer, u: u128) {
 #[inline]
 pub fn set_u64(rop: &mut Integer, u: u64) {
     if u <= u64::from(u32::MAX) {
-        set_u32(rop, u as u32);
+        set_u32(rop, u.wrapping_cast());
     } else {
         if rop.inner().alloc < 2 {
             cold_realloc(rop, 2);
         }
         unsafe {
             rop.inner_mut().size = 2;
-            *limb_mut(rop, 0) = u as u32;
-            *limb_mut(rop, 1) = (u >> 32) as u32;
+            *limb_mut(rop, 0) = u.wrapping_cast();
+            *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
         }
     }
 }
@@ -70,35 +71,35 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
 #[inline]
 pub unsafe fn init_set_u128(rop: *mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
-        init_set_u64(rop, u as u64);
+        init_set_u64(rop, u.wrapping_cast());
     } else if u <= !(!0u128 << 96) {
         gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 96);
         let rop = &mut *rop;
         rop.inner_mut().size = 3;
-        *limb_mut(rop, 0) = u as u32;
-        *limb_mut(rop, 1) = (u >> 32) as u32;
-        *limb_mut(rop, 2) = (u >> 64) as u32;
+        *limb_mut(rop, 0) = u.wrapping_cast();
+        *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
+        *limb_mut(rop, 2) = (u >> 64).wrapping_cast();
     } else {
         gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 128);
         let rop = &mut *rop;
         rop.inner_mut().size = 4;
-        *limb_mut(rop, 0) = u as u32;
-        *limb_mut(rop, 1) = (u >> 32) as u32;
-        *limb_mut(rop, 2) = (u >> 64) as u32;
-        *limb_mut(rop, 3) = (u >> 96) as u32;
+        *limb_mut(rop, 0) = u.wrapping_cast();
+        *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
+        *limb_mut(rop, 2) = (u >> 64).wrapping_cast();
+        *limb_mut(rop, 3) = (u >> 96).wrapping_cast();
     }
 }
 
 #[inline]
 pub unsafe fn init_set_u64(rop: *mut Integer, u: u64) {
     if u <= u64::from(u32::MAX) {
-        init_set_u32(rop, u as u32);
+        init_set_u32(rop, u.wrapping_cast());
     } else {
         gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 64);
         let rop = &mut *rop;
         rop.inner_mut().size = 2;
-        *limb_mut(rop, 0) = u as u32;
-        *limb_mut(rop, 1) = (u >> 32) as u32;
+        *limb_mut(rop, 0) = u.wrapping_cast();
+        *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
     }
 }
 
@@ -255,8 +256,8 @@ pub fn fits_u32(op: &Integer) -> bool {
 pub fn fits_i32(op: &Integer) -> bool {
     match op.inner().size {
         0 => true,
-        1 => (unsafe { limb(op, 0) }) <= i32::MAX as u32,
-        -1 => (unsafe { limb(op, 0) }) <= i32::MIN as u32,
+        1 => (unsafe { limb(op, 0) }) <= i32::MAX.wrapping_as::<u32>(),
+        -1 => (unsafe { limb(op, 0) }) <= i32::MIN.wrapping_as::<u32>(),
         _ => false,
     }
 }
@@ -273,10 +274,11 @@ pub fn fits_u64(op: &Integer) -> bool {
 pub fn fits_i64(op: &Integer) -> bool {
     match op.inner().size {
         0 | 1 | -1 => true,
-        2 => (unsafe { limb(op, 1) }) <= i32::MAX as u32,
+        2 => (unsafe { limb(op, 1) }) <= i32::MAX.wrapping_as::<u32>(),
         -2 => {
-            (unsafe { limb(op, 1) }) < i32::MIN as u32
-                || ((unsafe { limb(op, 1) }) == i32::MIN as u32 && (unsafe { limb(op, 0) }) == 0)
+            (unsafe { limb(op, 1) }) < i32::MIN.wrapping_as::<u32>()
+                || ((unsafe { limb(op, 1) }) == i32::MIN.wrapping_as::<u32>()
+                    && (unsafe { limb(op, 0) }) == 0)
         }
         _ => false,
     }
@@ -294,10 +296,10 @@ pub fn fits_u128(op: &Integer) -> bool {
 pub fn fits_i128(op: &Integer) -> bool {
     match op.inner().size {
         0 | 1 | -1 | 2 | -2 | 3 | -3 => true,
-        4 => (unsafe { limb(op, 3) }) <= i32::MAX as u32,
+        4 => (unsafe { limb(op, 3) }) <= i32::MAX.wrapping_as::<u32>(),
         -4 => {
-            (unsafe { limb(op, 3) }) < i32::MIN as u32
-                || ((unsafe { limb(op, 3) }) == i32::MIN as u32
+            (unsafe { limb(op, 3) }) < i32::MIN.wrapping_as::<u32>()
+                || ((unsafe { limb(op, 3) }) == i32::MIN.wrapping_as::<u32>()
                     && (unsafe { limb(op, 2) }) == 0
                     && (unsafe { limb(op, 1) }) == 0
                     && (unsafe { limb(op, 0) }) == 0)

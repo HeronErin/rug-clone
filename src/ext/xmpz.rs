@@ -19,7 +19,7 @@ use crate::{
     ops::NegAssign,
     Integer,
 };
-use az::Az;
+use az::{Az, Cast, WrappingAs, WrappingCast};
 use core::{cmp::Ordering, i16, i8, ptr, u16, u8};
 #[cfg(feature = "rand")]
 use gmp_mpfr_sys::gmp::randstate_t;
@@ -144,10 +144,11 @@ pub fn set<O: OptInteger>(rop: &mut Integer, op: O) {
 
 #[inline]
 pub const fn owned_init() -> mpz_t {
+    const UNO_DIEGO_10: limb_t = 0x1D1E_6010;
     mpz_t {
         alloc: 0,
         size: 0,
-        d: &(0x1D1E_6010 as limb_t) as *const limb_t as *mut limb_t,
+        d: &UNO_DIEGO_10 as *const limb_t as *mut limb_t,
     }
 }
 
@@ -668,7 +669,7 @@ unsafe fn set_m1_raw(rop: *mut mpz_t) {
 #[inline]
 pub fn fdiv_u32(n: &Integer, d: u32) -> u32 {
     assert_ne!(d, 0, "division by zero");
-    unsafe { gmp::mpz_fdiv_ui(n.as_raw(), d.into()) as u32 }
+    unsafe { gmp::mpz_fdiv_ui(n.as_raw(), d.into()) }.cast()
 }
 
 #[inline]
@@ -696,7 +697,7 @@ pub fn get_abs_u32(op: &Integer) -> u32 {
     unsafe {
         match op.inner().size {
             0 => 0,
-            _ => limb(op, 0) as u32,
+            _ => limb(op, 0).wrapping_cast(),
         }
     }
 }
@@ -706,7 +707,7 @@ pub fn get_abs_u16(op: &Integer) -> u16 {
     unsafe {
         match op.inner().size {
             0 => 0,
-            _ => limb(op, 0) as u16,
+            _ => limb(op, 0).wrapping_cast(),
         }
     }
 }
@@ -716,7 +717,7 @@ pub fn get_abs_u8(op: &Integer) -> u8 {
     unsafe {
         match op.inner().size {
             0 => 0,
-            _ => limb(op, 0) as u8,
+            _ => limb(op, 0).wrapping_cast(),
         }
     }
 }
@@ -788,8 +789,8 @@ pub fn fits_u8(op: &Integer) -> bool {
 pub fn fits_i8(op: &Integer) -> bool {
     match op.inner().size {
         0 => true,
-        1 => (unsafe { limb(op, 0) }) <= limb_t::from(i8::MAX as u8),
-        -1 => (unsafe { limb(op, 0) }) <= limb_t::from(i8::MIN as u8),
+        1 => (unsafe { limb(op, 0) }) <= limb_t::from(i8::MAX.wrapping_as::<u8>()),
+        -1 => (unsafe { limb(op, 0) }) <= limb_t::from(i8::MIN.wrapping_as::<u8>()),
         _ => false,
     }
 }
@@ -807,8 +808,8 @@ pub fn fits_u16(op: &Integer) -> bool {
 pub fn fits_i16(op: &Integer) -> bool {
     match op.inner().size {
         0 => true,
-        1 => (unsafe { limb(op, 0) }) <= limb_t::from(i16::MAX as u16),
-        -1 => (unsafe { limb(op, 0) }) <= limb_t::from(i16::MIN as u16),
+        1 => (unsafe { limb(op, 0) }) <= limb_t::from(i16::MAX.wrapping_as::<u16>()),
+        -1 => (unsafe { limb(op, 0) }) <= limb_t::from(i16::MIN.wrapping_as::<u16>()),
         _ => false,
     }
 }
@@ -1796,7 +1797,7 @@ pub fn xor_ui<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_ulong) {
 }
 
 pub fn and_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
-    let lop2 = op2 as limb_t;
+    let lop2 = op2.wrapping_as::<limb_t>();
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => {
             set_0(rop);
@@ -1837,7 +1838,7 @@ pub fn and_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
 }
 
 pub fn ior_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
-    let lop2 = op2 as limb_t;
+    let lop2 = op2.wrapping_as::<limb_t>();
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
             gmp::mpz_set_si(rop.as_raw_mut(), op2);
@@ -1876,7 +1877,7 @@ pub fn ior_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
 }
 
 pub fn xor_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
-    let lop2 = op2 as limb_t;
+    let lop2 = op2.wrapping_as::<limb_t>();
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
             gmp::mpz_set_si(rop.as_raw_mut(), op2);
