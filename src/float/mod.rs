@@ -38,8 +38,9 @@ pub use crate::float::{
     ord::OrdFloat,
     small::{SmallFloat, ToSmall},
 };
+use az::SaturatingCast;
 use core::{i32, u32};
-use gmp_mpfr_sys::mpfr::{self, exp_t, prec_t};
+use gmp_mpfr_sys::mpfr::{self, prec_t};
 
 /**
 Returns the minimum value for the exponent.
@@ -53,12 +54,7 @@ println!("Minimum exponent is {}", float::exp_min());
 */
 #[inline]
 pub fn exp_min() -> i32 {
-    let min = unsafe { mpfr::get_emin() };
-    if min > exp_t::from(i32::MIN) {
-        min as i32
-    } else {
-        i32::MIN
-    }
+    unsafe { mpfr::get_emin() }.saturating_cast()
 }
 
 /**
@@ -73,12 +69,7 @@ println!("Maximum exponent is {}", float::exp_max());
 */
 #[inline]
 pub fn exp_max() -> i32 {
-    let max = unsafe { mpfr::get_emax() };
-    if max < exp_t::from(i32::MAX) {
-        max as i32
-    } else {
-        i32::MAX
-    }
+    unsafe { mpfr::get_emax() }.saturating_cast()
 }
 
 /**

@@ -29,7 +29,7 @@ use crate::{
     ops::{AddAssignRound, AssignRound, DivRounding, NegAssign},
     Assign,
 };
-use az::Az;
+use az::{Az, SaturatingCast};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -44,7 +44,7 @@ use gmp_mpfr_sys::{
     gmp::{self, limb_t},
     mpfr::{self, exp_t, mpfr_t},
 };
-use libc::{c_char, c_long, c_ulong};
+use libc::c_char;
 use std::{
     error::Error,
     ffi::{CStr, CString},
@@ -908,15 +908,9 @@ impl Float {
     #[inline]
     pub fn to_i32_saturating_round(&self, round: Round) -> Option<i32> {
         if self.is_nan() {
-            return None;
-        }
-        let i = unsafe { mpfr::get_si(self.as_raw(), raw_round(round)) };
-        if i >= c_long::from(i32::MAX) {
-            Some(i32::MAX)
-        } else if i <= c_long::from(i32::MIN) {
-            Some(i32::MIN)
+            None
         } else {
-            Some(i as i32)
+            Some(xmpfr::get_si(self, round).saturating_cast())
         }
     }
 
@@ -965,13 +959,9 @@ impl Float {
     #[inline]
     pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
         if self.is_nan() {
-            return None;
-        }
-        let u = unsafe { mpfr::get_ui(self.as_raw(), raw_round(round)) };
-        if u >= c_ulong::from(u32::MAX) {
-            Some(u32::MAX)
+            None
         } else {
-            Some(u as u32)
+            Some(xmpfr::get_ui(self, round).saturating_cast())
         }
     }
 

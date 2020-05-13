@@ -557,6 +557,16 @@ pub fn get_f64_2exp(op: &Float, rnd: Round) -> (f64, c_long) {
 }
 
 #[inline]
+pub fn get_si(op: &Float, rnd: Round) -> c_long {
+    unsafe { mpfr::get_si(op.as_raw(), raw_round(rnd)) }
+}
+
+#[inline]
+pub fn get_ui(op: &Float, rnd: Round) -> c_ulong {
+    unsafe { mpfr::get_ui(op.as_raw(), raw_round(rnd)) }
+}
+
+#[inline]
 pub fn get_prec(op: &Float) -> prec_t {
     unsafe { mpfr::get_prec(op.as_raw()) }
 }
