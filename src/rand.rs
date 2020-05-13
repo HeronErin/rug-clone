@@ -49,6 +49,7 @@ Both [`RandState`] and [`ThreadRandState`] implement the
 */
 
 use crate::{misc::AsOrPanic, Integer};
+use az::Cast;
 use core::{
     marker::PhantomData,
     mem::{ManuallyDrop, MaybeUninit},
@@ -554,7 +555,7 @@ impl RandState<'_> {
     #[inline]
     pub fn bits(&mut self, bits: u32) -> u32 {
         assert!(bits <= 32, "bits out of range");
-        unsafe { gmp::urandomb_ui(self.as_raw_mut(), bits.into()) as u32 }
+        unsafe { gmp::urandomb_ui(self.as_raw_mut(), bits.into()) }.cast()
     }
 
     /// Generates a random number below the given boundary value.
@@ -581,7 +582,7 @@ impl RandState<'_> {
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
-        unsafe { gmp::urandomm_ui(self.as_raw_mut(), bound.into()) as u32 }
+        unsafe { gmp::urandomm_ui(self.as_raw_mut(), bound.into()) }.cast()
     }
 }
 
@@ -1067,7 +1068,7 @@ impl ThreadRandState<'_> {
     #[inline]
     pub fn bits(&mut self, bits: u32) -> u32 {
         assert!(bits <= 32, "bits out of range");
-        unsafe { gmp::urandomb_ui(self.as_raw_mut(), bits.into()) as u32 }
+        unsafe { gmp::urandomb_ui(self.as_raw_mut(), bits.into()) }.cast()
     }
 
     /// Generates a random number below the given boundary value.
@@ -1102,7 +1103,7 @@ impl ThreadRandState<'_> {
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
-        unsafe { gmp::urandomm_ui(self.as_raw_mut(), bound.into()) as u32 }
+        unsafe { gmp::urandomm_ui(self.as_raw_mut(), bound.into()) }.cast()
     }
 }
 
@@ -1751,6 +1752,7 @@ impl SealedMutRandState for ThreadRandState<'_> {
 #[cfg(test)]
 mod tests {
     use crate::rand::{RandGen, RandState, ThreadRandGen, ThreadRandState};
+    use az::{Az, Cast};
     use core::ptr;
     use gmp_mpfr_sys::gmp;
 
@@ -1764,7 +1766,7 @@ mod tests {
                 .seed
                 .wrapping_mul(6_364_136_223_846_793_005)
                 .wrapping_add(1);
-            (self.seed >> 32) as u32
+            (self.seed >> 32).cast()
         }
         fn boxed_clone(&self) -> Option<Box<dyn RandGen>> {
             let other = SimpleGenerator { seed: self.seed };
@@ -1834,7 +1836,7 @@ mod tests {
                 .seed
                 .wrapping_mul(6_364_136_223_846_793_005)
                 .wrapping_add(1);
-            (self.seed >> 32) as u32
+            (self.seed >> 32).cast()
         }
         fn boxed_clone(&self) -> Option<Box<dyn ThreadRandGen>> {
             let other = ThreadSimpleGenerator {
@@ -1906,12 +1908,12 @@ mod tests {
         let mut state = unsafe { ThreadRandState::from_raw(check.clone().into_raw()) };
         assert_eq!(state.bits(32), check.bits(32));
         assert_eq!(
-            unsafe { gmp::urandomb_ui(state.as_raw_mut(), 32) as u32 },
+            unsafe { gmp::urandomb_ui(state.as_raw_mut(), 32) }.az::<u32>(),
             check.bits(32)
         );
         let mut raw = state.into_raw();
         assert_eq!(
-            unsafe { gmp::urandomb_ui(&mut raw, 32) as u32 },
+            unsafe { gmp::urandomb_ui(&mut raw, 32) }.az::<u32>(),
             check.bits(32)
         );
         let mut state = unsafe { ThreadRandState::from_raw(raw) };
