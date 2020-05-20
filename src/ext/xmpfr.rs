@@ -426,6 +426,16 @@ unsafe_wrap! { fn shl_u32(op1: O; op2: u32) -> mpfr::mul_2ui }
 unsafe_wrap! { fn shr_u32(op1: O; op2: u32) -> mpfr::div_2ui }
 
 #[inline]
+pub fn check_range(x: &mut Float, dir: Ordering, rnd: Round) -> Ordering {
+    let dir = match dir {
+        Ordering::Less => -1,
+        Ordering::Equal => 0,
+        Ordering::Greater => 1,
+    };
+    ordering1(unsafe { mpfr::check_range(x.as_raw_mut(), dir, raw_round(rnd)) })
+}
+
+#[inline]
 pub fn set_nanflag() {
     unsafe {
         mpfr::set_nanflag();

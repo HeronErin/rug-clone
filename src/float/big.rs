@@ -29,7 +29,7 @@ use crate::{
     ops::{AddAssignRound, AssignRound, DivRounding, NegAssign},
     Assign,
 };
-use az::{Az, SaturatingCast, WrappingAs};
+use az::{Az, CheckedCast, SaturatingCast, WrappingAs};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -54,7 +54,6 @@ use {crate::complex::big::BorrowComplex, gmp_mpfr_sys::mpc::mpc_t};
 #[cfg(feature = "integer")]
 use {
     crate::{integer::big::BorrowInteger, Integer},
-    az::CheckedCast,
     gmp_mpfr_sys::{gmp::mpz_t, mpfr::prec_t},
 };
 
@@ -1609,6 +1608,99 @@ impl Float {
             Some(xmpfr::get_exp(self).unwrapped_cast())
         } else {
             None
+        }
+    }
+
+    /// Clamps the exponent of a [`Float`] within a specified range if
+    /// the range is valid.
+    ///
+    /// This method returns [`None`] if the specified exponent range
+    /// is outside the allowed exponent range obtained using
+    /// [`exp_min`] and [`exp_max`].
+    ///
+    /// This method assumes that `self` is the correctly rounded value
+    /// of some exact result <i>exact</i>, rounded according to
+    /// `round` in the direction `dir`. If necessary, this function
+    /// then modifies `self` to be within the specified exponent
+    /// range. If the exponent of `self` is outside the specified
+    /// range, an underflow or overflow occurs, and the value of the
+    /// input parameter `dir` is used to avoid double rounding.
+    ///
+    /// Unlike most methods functions, the direction is obtained by
+    /// comparing the output `self` to the unknown result
+    /// <i>exact</i>, not to the input value of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, ops::DivAssignRound, Float};
+    /// // use precision 4 for sake of example
+    /// let mut f = Float::with_val(4, 1.0);
+    /// // 1/115_000 is 8.696e-6, rounded down to 0.5625 >> 16 = 8.583e-6
+    /// let dir = f.div_assign_round(115_000, Round::Nearest);
+    /// assert_eq!(f, 0.5625 / 16f32.exp2());
+    /// assert_eq!(dir, Ordering::Less);
+    /// // Limiting exponent range to [-16, 16] leaves f unchanged
+    /// let dir = f.clamp_exp(dir, Round::Nearest, -16, 16).unwrap();
+    /// assert_eq!(f, 0.5625 / 16f32.exp2());
+    /// assert_eq!(dir, Ordering::Less);
+    /// // Limiting exponent range to [-15, 15] pushes f up to 0.5 >> 15
+    /// let dir = f.clamp_exp(dir, Round::Nearest, -15, 15).unwrap();
+    /// assert_eq!(f, 0.5 / 15f32.exp2());
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    ///
+    /// The `dir` parameter can be required to avoid double rounding.
+    /// In the following example, `f` is 1/16, which is a tie between
+    /// 0 and 1/8. With ties rounding to even, this would be double
+    /// rounded to 0, but the exact result was actually > 1/16 as
+    /// indicated by `dir` saying that `f` is less than its exact
+    /// value. `f` can thus be rounded correctly to 1/8.
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, ops::DivAssignRound, Float};
+    /// let mut f = Float::with_val(4, 1.0);
+    /// // 1/15.999 is > 1/16, rounded down to 0.5 >> 3 = 1/16
+    /// let dir = f.div_assign_round(15.999, Round::Nearest);
+    /// assert_eq!(f, 0.5 / 3f32.exp2());
+    /// assert_eq!(dir, Ordering::Less);
+    /// // Limiting exponent range to [-2, 2] pushes f correctly away from zero.
+    /// let dir = f.clamp_exp(dir, Round::Nearest, -2, 2).unwrap();
+    /// assert_eq!(f, 0.5 / 2f32.exp2());
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    ///
+    /// [`Float`]: struct.Float.html
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
+    /// [`exp_max`]: float/fn.exp_max.html
+    /// [`exp_min`]: float/fn.exp_min.html
+    pub fn clamp_exp(
+        &mut self,
+        dir: Ordering,
+        round: Round,
+        exp_min: i32,
+        exp_max: i32,
+    ) -> Option<Ordering> {
+        unsafe {
+            let save_emin = mpfr::get_emin();
+            if mpfr::set_emin(exp_min.checked_cast()?) != 0 {
+                return None;
+            }
+            let save_emax = mpfr::get_emax();
+            if exp_max
+                .checked_cast()
+                .map(|x| mpfr::set_emax(x) != 0)
+                .unwrap_or(true)
+            {
+                mpfr::set_emin(save_emin);
+                return None;
+            }
+            let dir = xmpfr::check_range(self, dir, round);
+            mpfr::set_emax(save_emax);
+            mpfr::set_emin(save_emin);
+            Some(dir)
         }
     }
 
