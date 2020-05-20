@@ -73,6 +73,27 @@ pub fn exp_max() -> i32 {
 }
 
 /**
+Returns the maximum allowed range for the exponent.
+
+# Examples
+
+```rust
+use rug::float;
+let (min, max) = float::allowed_exp_range();
+println!("Minimum and maximum exponents are in [{}, {}]", min, max);
+```
+*/
+#[inline]
+pub fn allowed_exp_range() -> (i32, i32) {
+    unsafe {
+        (
+            mpfr::get_emin_min().saturating_cast(),
+            mpfr::get_emax_max().saturating_cast(),
+        )
+    }
+}
+
+/**
 Returns the minimum value for the precision.
 
 # Examples

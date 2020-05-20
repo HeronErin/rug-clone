@@ -33,6 +33,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.9.0 news (unreleased)
 
+  * A new function
+    <code>[float][flom-1-9]::[allowed\_exp\_range][flom-aer-1-9]</code>
+    was added.
   * The following methods are now const functions:
       * <code>[Integer][int-1-9]::[from\_raw][int-fr-1-9]</code>,
         <code>[Rational][rat-1-9]::[from\_raw][rat-fr-1-9]</code>
@@ -41,6 +44,8 @@ option) any later version. See the full text of the [GNU LGPL] and
     throught the traits of the crate.
 
 [*az* crate]: https://crates.io/crates/az
+[flom-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/float/index.html
+[flom-aer-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/float/fn.allowed_exp_range.html
 [int-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [int-fr-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.from_raw
 [rat-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
