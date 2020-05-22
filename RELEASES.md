@@ -15,6 +15,9 @@ Version 1.9.0 (unreleased)
     will be produced rather than `"4.20e1"` ([issue 18]). This change
     does not affect output when [`LowerExp`] or [`UpperExp`] is used
     (`"{:e}"` or `"{:E}"` in the format string).
+  * The following new methods were added:
+      * <code>[Float][flo-1-9]::[to\_sign\_string\_exp][flo-tsse-1-9]</code>,
+        <code>[Float][flo-1-9]::[to\_sign\_string\_exp\_round][flo-tsser-1-9]</code>
   * A new function
     <code>[float][flom-1-9]::[allowed\_exp\_range][flom-aer-1-9]</code>
     was added.
@@ -23,9 +26,9 @@ Version 1.9.0 (unreleased)
   * The following methods are now const functions:
       * <code>[Integer][int-1-9]::[from\_raw][int-fr-1-9]</code>,
         <code>[Rational][rat-1-9]::[from\_raw][rat-fr-1-9]</code>
-  * The [*az* crate] is now a public dependency, and wrapping
-    and checked casts to/from primitives and big numbers are provided
-    throught the traits of the crate.
+  * The [*az* crate] is now a public dependency, and wrapping and
+    checked casts to/from primitives and big numbers are provided
+    through the traits of the crate.
 
 Compatibility note
 ------------------
@@ -39,6 +42,8 @@ changed as specified above.
 [com-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [flo-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
 [flo-ce-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.clamp_exp
+[flo-tsse-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.to_sign_string_exp
+[flo-tsser-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.to_sign_string_exp_round
 [flom-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/float/index.html
 [flom-aer-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/float/fn.allowed_exp_range.html
 [int-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html

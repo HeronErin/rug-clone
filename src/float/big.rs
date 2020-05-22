@@ -1237,6 +1237,159 @@ impl Float {
         s
     }
 
+    /// Returns a string representation of `self` together with a sign
+    /// and an exponent for the specified `radix`, rounding to the
+    /// nearest.
+    ///
+    /// The returned exponent is [`None`] if the [`Float`] is zero,
+    /// infinite or NaN, that is if the value is not [normal].
+    ///
+    /// For [normal] values, the returned string has an implicit radix
+    /// point before the first digit. If the number of digits is not
+    /// specified, the output string will have enough precision such
+    /// that reading it again will give the exact same number.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Special, Float};
+    /// let inf = Float::with_val(53, Special::Infinity);
+    /// let (sign, s, exp) = inf.to_sign_string_exp(10, None);
+    /// assert_eq!((sign, &*s, exp), (false, "inf", None));
+    /// let (sign, s, exp) = (-inf).to_sign_string_exp(16, None);
+    /// assert_eq!((sign, &*s, exp), (true, "@inf@", None));
+    ///
+    /// let (sign, s, exp) = Float::with_val(8, -0.0625).to_sign_string_exp(10, None);
+    /// assert_eq!((sign, &*s, exp), (true, "6250", Some(-1)));
+    /// let (sign, s, exp) = Float::with_val(8, -0.625).to_sign_string_exp(10, None);
+    /// assert_eq!((sign, &*s, exp), (true, "6250", Some(0)));
+    /// let (sign, s, exp) = Float::with_val(8, -6.25).to_sign_string_exp(10, None);
+    /// assert_eq!((sign, &*s, exp), (true, "6250", Some(1)));
+    /// // −4.8e4 = 48_000, which is rounded to 48_128 using 8 bits of precision
+    /// let (sign, s, exp) = Float::with_val(8, -4.8e4).to_sign_string_exp(10, None);
+    /// assert_eq!((sign, &*s, exp), (true, "4813", Some(5)));
+    /// ```
+    ///
+    /// [`Float`]: struct.Float.html
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
+    /// [normal]: #method.is_normal
+    #[inline]
+    pub fn to_sign_string_exp(
+        &self,
+        radix: i32,
+        num_digits: Option<usize>,
+    ) -> (bool, String, Option<i32>) {
+        self.to_sign_string_exp_round(radix, num_digits, Round::Nearest)
+    }
+
+    /// Returns a string representation of `self` together with a sign
+    /// and an exponent for the specified `radix`, applying the
+    /// specified rounding method.
+    ///
+    /// The returned exponent is [`None`] if the [`Float`] is zero,
+    /// infinite or NaN, that is if the value is not [normal].
+    ///
+    /// For [normal] values, the returned string has an implicit radix
+    /// point before the first digit. If the number of digits is not
+    /// specified, the output string will have enough precision such
+    /// that reading it again will give the exact same number.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Round, Float};
+    /// let val = Float::with_val(53, -0.0625);
+    /// // rounding −0.0625 to two significant digits towards −∞ gives −0.063
+    /// let (sign, s, exp) = val.to_sign_string_exp_round(10, Some(2), Round::Down);
+    /// assert_eq!((sign, &*s, exp), (true, "63", Some(-1)));
+    /// // rounding −0.0625 to two significant digits towards +∞ gives −0.062
+    /// let (sign, s, exp) = val.to_sign_string_exp_round(10, Some(2), Round::Up);
+    /// assert_eq!((sign, &*s, exp), (true, "62", Some(-1)));
+    ///
+    /// let val = Float::with_val(53, 6.25e4);
+    /// // rounding 6.25e4 to two significant digits towards −∞ gives 6.2e4
+    /// let (sign, s, exp) = val.to_sign_string_exp_round(10, Some(2), Round::Down);
+    /// assert_eq!((sign, &*s, exp), (false, "62", Some(5)));
+    /// // rounding 6.25e4 to two significant digits towards +∞ gives 6.3e4
+    /// let (sign, s, exp) = val.to_sign_string_exp_round(10, Some(2), Round::Up);
+    /// assert_eq!((sign, &*s, exp), (false, "63", Some(5)));
+    /// ```
+    pub fn to_sign_string_exp_round(
+        &self,
+        radix: i32,
+        num_digits: Option<usize>,
+        round: Round,
+    ) -> (bool, String, Option<i32>) {
+        assert!(radix >= 2 && radix <= 36, "radix {} out of range", radix);
+        let sign = self.is_sign_negative();
+        if self.is_zero() {
+            return (sign, String::from("0"), None);
+        }
+        if self.is_infinite() {
+            let s = String::from(if radix > 10 { "@inf@" } else { "inf" });
+            return (sign, s, None);
+        }
+        if self.is_nan() {
+            let s = String::from(if radix > 10 { "@NaN@" } else { "NaN" });
+            return (sign, s, None);
+        }
+        let neg_self;
+        let (f, round) = if sign {
+            neg_self = self.as_neg();
+            let reverse_round = match round {
+                Round::Up => Round::Down,
+                Round::Down => Round::Up,
+                unchanged => unchanged,
+            };
+            (&*neg_self, reverse_round)
+        } else {
+            (self, round)
+        };
+        let format = Format {
+            radix,
+            precision: num_digits,
+            round,
+            ..Format::default()
+        };
+        // add 1 for nul terminator
+        let size = req_digits(f, format) + 1;
+        let mut s = String::with_capacity(size);
+        let digits = format
+            .precision
+            .map(|x| if x == 1 { 2 } else { x })
+            .unwrap_or(0);
+        let exp: exp_t;
+        unsafe {
+            let vec = s.as_mut_vec();
+            let write_ptr = vec.as_mut_ptr();
+            let mut maybe_exp = MaybeUninit::uninit();
+            let c_buf = mpfr::get_str(
+                write_ptr as *mut c_char,
+                maybe_exp.as_mut_ptr(),
+                format.radix.unwrapped_cast(),
+                digits,
+                f.as_raw(),
+                raw_round(format.round),
+            );
+            assert_eq!(c_buf, write_ptr as *mut c_char);
+            exp = maybe_exp.assume_init();
+            let c_len = CStr::from_ptr(write_ptr as *mut c_char).to_bytes().len();
+            // there is also 1 byte for nul character, so use < rather than <=
+            assert!(c_len < size, "buffer overflow");
+            vec.set_len(c_len);
+        }
+        let exp = exp.unwrapped_cast();
+        (sign, s, Some(exp))
+    }
+
     /// Borrows a negated copy of the [`Float`].
     ///
     /// The returned object implements
@@ -9468,23 +9621,8 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
             3
         }
     } else {
-        let digits = format
-            .precision
-            .map(|x| if x == 1 { 2 } else { x })
-            .unwrap_or(0);
+        let digits = req_digits(f, format);
         let log2_radix = f64::from(format.radix).log2();
-        let digits = if digits > 0 {
-            digits
-        } else {
-            let p = if (format.radix.wrapping_as::<u32>()).is_power_of_two() {
-                f.prec() - 1
-            } else {
-                f.prec()
-            };
-            // p is u32, dividing can only decrease it, so m fits in u32
-            let m = (f64::from(p) / log2_radix).ceil().az::<u32>();
-            m.unwrapped_as::<usize>().checked_add(2).expect("overflow")
-        };
         #[allow(clippy::approx_constant)]
         const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
         let exp = (xmpfr::get_exp(f).az::<f64>() / log2_radix - 1.0).abs();
@@ -9499,6 +9637,26 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
         size_no_sign
     };
     size.checked_add(extra).expect("overflow")
+}
+
+pub(crate) fn req_digits(f: &Float, format: Format) -> usize {
+    let digits = format
+        .precision
+        .map(|x| if x == 1 { 2 } else { x })
+        .unwrap_or(0);
+    let log2_radix = f64::from(format.radix).log2();
+    if digits > 0 {
+        digits
+    } else {
+        let p = if (format.radix.wrapping_as::<u32>()).is_power_of_two() {
+            f.prec() - 1
+        } else {
+            f.prec()
+        };
+        // p is u32, dividing can only decrease it, so m fits in u32
+        let m = (f64::from(p) / log2_radix).ceil().az::<u32>();
+        m.unwrapped_as::<usize>().checked_add(2).expect("overflow")
+    }
 }
 
 pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
@@ -9557,7 +9715,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         assert_eq!(c_buf, write_ptr as *mut c_char);
         exp = maybe_exp.assume_init();
         let c_len = CStr::from_ptr(write_ptr as *mut c_char).to_bytes().len();
-        // there is also 1 byte for nul character
+        // there is also 1 byte for nul character, which will be used for point
         assert!(c_len + 1 < size, "buffer overflow");
         let added_sign = *write_ptr == b'-';
         let added_digits = c_len - if added_sign { 1 } else { 0 };
