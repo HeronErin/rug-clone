@@ -61,7 +61,7 @@ rounding is returned.
 ```rust
 use rug::{Assign, Complex, Float};
 let c = Complex::with_val(53, (40, 30));
-assert_eq!(format!("{:.3}", c), "(4.00e1 3.00e1)");
+assert_eq!(format!("{:.3}", c), "(40.0 30.0)");
 let mut f = Float::with_val(53, c.abs_ref());
 assert_eq!(f, 50);
 f.assign(c.arg_ref());
@@ -622,12 +622,16 @@ impl Complex {
     /// ```rust
     /// use rug::Complex;
     /// let c1 = Complex::with_val(53, 0);
-    /// assert_eq!(c1.to_string_radix(10, None), "(0.0 0.0)");
+    /// assert_eq!(c1.to_string_radix(10, None), "(0 0)");
     /// let c2 = Complex::with_val(12, (15, 5));
     /// assert_eq!(c2.to_string_radix(16, None), "(f.000 5.000)");
     /// let c3 = Complex::with_val(53, (10, -4));
-    /// assert_eq!(c3.to_string_radix(10, Some(3)), "(1.00e1 -4.00)");
-    /// assert_eq!(c3.to_string_radix(5, Some(3)), "(2.00e1 -4.00)");
+    /// assert_eq!(c3.to_string_radix(10, Some(3)), "(10.0 -4.00)");
+    /// assert_eq!(c3.to_string_radix(5, Some(3)), "(20.0 -4.00)");
+    /// // 2 raised to the power of 80 in hex is 1 followed by 20 zeros
+    /// let c4 = Complex::with_val(53, (80f64.exp2(), 0.25));
+    /// assert_eq!(c4.to_string_radix(10, Some(3)), "(1.21e24 2.50e-1)");
+    /// assert_eq!(c4.to_string_radix(16, Some(3)), "(1.00@20 4.00@-1)");
     /// ```
     #[inline]
     pub fn to_string_radix(&self, radix: i32, num_digits: Option<usize>) -> String {
@@ -654,15 +658,15 @@ impl Complex {
     /// let nearest = (Round::Nearest, Round::Nearest);
     /// let up = (Round::Up, Round::Up);
     /// let nd = c.to_string_radix_round(10, None, down);
-    /// assert_eq!(nd, "(1.0406e1 0.0)");
+    /// assert_eq!(nd, "(10.406 0)");
     /// let nu = c.to_string_radix_round(10, None, up);
-    /// assert_eq!(nu, "(1.0407e1 0.0)");
+    /// assert_eq!(nu, "(10.407 0)");
     /// let sd = c.to_string_radix_round(10, Some(2), down);
-    /// assert_eq!(sd, "(1.0e1 0.0)");
+    /// assert_eq!(sd, "(10 0)");
     /// let sn = c.to_string_radix_round(10, Some(2), nearest);
-    /// assert_eq!(sn, "(1.0e1 0.0)");
+    /// assert_eq!(sn, "(10 0)");
     /// let su = c.to_string_radix_round(10, Some(2), up);
-    /// assert_eq!(su, "(1.1e1 0.0)");
+    /// assert_eq!(su, "(11 0)");
     /// ```
     pub fn to_string_radix_round(
         &self,
@@ -678,7 +682,7 @@ impl Complex {
             to_upper: false,
             sign_plus: false,
             prefix: "",
-            exp: ExpFormat::ExpOrPoint,
+            exp: ExpFormat::Point,
         };
         append_to_string(&mut s, self, format);
         s
@@ -3879,7 +3883,7 @@ impl Default for Format {
             to_upper: false,
             sign_plus: false,
             prefix: "",
-            exp: ExpFormat::ExpOrPoint,
+            exp: ExpFormat::Point,
         }
     }
 }

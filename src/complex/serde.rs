@@ -195,23 +195,26 @@ mod tests {
         Check::DeError((40, 32), "radix 37 greater than maximum 36").check(37, "0");
 
         let mut c = Complex::new((40, 32));
-        Check::SerDe(&c).check(10, "(0.0 0.0)");
+        Check::SerDe(&c).check(10, "(0 0)");
         Check::De(&c).check(10, "0");
 
         c = -c;
-        Check::SerDe(&c).check(10, "(-0.0 -0.0)");
+        Check::SerDe(&c).check(10, "(-0 -0)");
         Check::De(&c).check(16, "(-0 -0)");
 
         c.assign((Special::Nan, 15.0));
-        Check::SerDe(&c).check(10, "(NaN 1.5000000000e1)");
+        Check::SerDe(&c).check(10, "(NaN 15.000000000)");
         Check::De(&c).check(10, "(+@nan@ 15)");
         c = -c;
-        Check::SerDe(&c).check(10, "(-NaN -1.5000000000e1)");
+        Check::SerDe(&c).check(10, "(-NaN -15.000000000)");
 
         c.assign((15.0, Special::Nan));
         Check::SerDe(&c).check(16, "(f.0000000000 @NaN@)");
         Check::De(&c).check(10, "(1.5e1 nan)");
-        Check::De(&c).check(15, "(1.0@1 @nan@)");
+        Check::De(&c).check(15, "(0.10@2 @nan@)");
+
+        c <<= 100;
+        Check::SerDe(&c).check(16, "(f.0000000000@25 @NaN@)");
 
         float::free_cache(FreeCache::All);
     }

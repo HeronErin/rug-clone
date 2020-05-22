@@ -1184,10 +1184,14 @@ impl Float {
     /// assert_eq!(neg_inf.to_string_radix(10, None), "-inf");
     /// assert_eq!(neg_inf.to_string_radix(16, None), "-@inf@");
     /// let twentythree = Float::with_val(8, 23);
-    /// assert_eq!(twentythree.to_string_radix(10, None), "2.300e1");
-    /// assert_eq!(twentythree.to_string_radix(16, None), "1.70@1");
-    /// assert_eq!(twentythree.to_string_radix(10, Some(2)), "2.3e1");
-    /// assert_eq!(twentythree.to_string_radix(16, Some(4)), "1.700@1");
+    /// assert_eq!(twentythree.to_string_radix(10, None), "23.00");
+    /// assert_eq!(twentythree.to_string_radix(16, None), "17.0");
+    /// assert_eq!(twentythree.to_string_radix(10, Some(2)), "23");
+    /// assert_eq!(twentythree.to_string_radix(16, Some(4)), "17.00");
+    /// // 2 raised to the power of 80 in hex is 1 followed by 20 zeros
+    /// let two_to_80 = Float::with_val(53, 80f64.exp2());
+    /// assert_eq!(two_to_80.to_string_radix(10, Some(3)), "1.21e24");
+    /// assert_eq!(two_to_80.to_string_radix(16, Some(3)), "1.00@20");
     /// ```
     #[inline]
     pub fn to_string_radix(&self, radix: i32, num_digits: Option<usize>) -> String {
@@ -1211,9 +1215,9 @@ impl Float {
     /// use rug::{float::Round, Float};
     /// let twentythree = Float::with_val(8, 23.3);
     /// let down = twentythree.to_string_radix_round(10, Some(2), Round::Down);
-    /// assert_eq!(down, "2.3e1");
+    /// assert_eq!(down, "23");
     /// let up = twentythree.to_string_radix_round(10, Some(2), Round::Up);
-    /// assert_eq!(up, "2.4e1");
+    /// assert_eq!(up, "24");
     /// ```
     #[inline]
     pub fn to_string_radix_round(
@@ -9423,7 +9427,6 @@ impl Deref for BorrowFloat<'_> {
 pub(crate) enum ExpFormat {
     Exp,
     Point,
-    ExpOrPoint,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -9443,7 +9446,7 @@ impl Default for Format {
             precision: None,
             round: Round::default(),
             to_upper: false,
-            exp: ExpFormat::ExpOrPoint,
+            exp: ExpFormat::Point,
         }
     }
 }
@@ -9454,8 +9457,10 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
         "radix {} out of range",
         format.radix
     );
+    // Although append_str processess singular values before calling
+    // req_chars, req_chars is called from outside append_str too.
     let size_no_sign = if f.is_zero() {
-        3
+        1
     } else if f.is_infinite() || f.is_nan() {
         if format.radix > 10 {
             5
@@ -9499,14 +9504,8 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
 pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     use core::fmt::Write;
 
-    // no need to add 1 for nul in case of normal numbers, as exponent
-    // will overwrite nul
-    let size = req_chars(f, format, 0);
-    s.reserve(size);
-    let reserved_ptr = s.as_ptr();
-
     if f.is_zero() {
-        s.push_str(if f.is_sign_negative() { "-0.0" } else { "0.0" });
+        s.push_str(if f.is_sign_negative() { "-0" } else { "0" });
         return;
     }
     if f.is_infinite() {
@@ -9528,6 +9527,11 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         return;
     }
 
+    // no need to add 1 for nul, as req_chars includes an allocation for '.'
+    let size = req_chars(f, format, 0);
+    s.reserve(size);
+    let reserved_ptr = s.as_ptr();
+
     let radix_with_case = if format.to_upper {
         -format.radix
     } else {
@@ -9540,37 +9544,46 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     let mut exp: exp_t;
     unsafe {
         let vec = s.as_mut_vec();
-        let write_at = vec.as_mut_ptr().add(vec.len());
-        // start one character late, as we need to insert '.'
-        let write_at_p1 = write_at.add(1);
+        let write_ptr = vec.as_mut_ptr().add(vec.len());
         let mut maybe_exp = MaybeUninit::uninit();
         let c_buf = mpfr::get_str(
-            write_at_p1 as *mut c_char,
+            write_ptr as *mut c_char,
             maybe_exp.as_mut_ptr(),
             radix_with_case.unwrapped_cast(),
             digits,
             f.as_raw(),
             raw_round(format.round),
         );
-        assert_eq!(c_buf, write_at_p1 as *mut c_char);
+        assert_eq!(c_buf, write_ptr as *mut c_char);
         exp = maybe_exp.assume_init();
-        let c_str = CStr::from_ptr(write_at_p1 as *mut c_char);
-        let c_bytes = c_str.to_bytes();
-        // add one because we'll insert a '.'
-        let added = 1 + c_bytes.len();
-        assert!(added < size, "buffer overflow");
-        if *write_at_p1 == b'-' {
-            write_at.write(b'-');
-            write_at_p1.write(write_at.add(2).read());
-            write_at.add(2).write(b'.');
+        let c_len = CStr::from_ptr(write_ptr as *mut c_char).to_bytes().len();
+        // there is also 1 byte for nul character
+        assert!(c_len + 1 < size, "buffer overflow");
+        let added_sign = *write_ptr == b'-';
+        let added_digits = c_len - if added_sign { 1 } else { 0 };
+        let digits_before_point = if format.exp == ExpFormat::Exp
+            || exp <= 0
+            || exp.unwrapped_as::<usize>() > added_digits
+        {
+            exp = exp.checked_sub(1).expect("overflow");
+            1
         } else {
-            write_at.write(write_at_p1.read());
-            write_at_p1.write(b'.');
+            let e = exp.wrapping_as::<usize>();
+            exp = 0;
+            e
+        };
+        let bytes_before_point = digits_before_point + if added_sign { 1 } else { 0 };
+        if bytes_before_point == c_len {
+            // no point
+            vec.set_len(vec.len() + c_len)
+        } else {
+            let point_ptr = write_ptr.add(bytes_before_point);
+            point_ptr.copy_to(point_ptr.offset(1), c_len - bytes_before_point);
+            *point_ptr = b'.';
+            vec.set_len(vec.len() + c_len + 1);
         }
-        vec.set_len(vec.len() + added);
     }
-    exp = exp.checked_sub(1).expect("overflow");
-    if exp != 0 {
+    if format.exp == ExpFormat::Exp || exp != 0 {
         s.push(if format.radix > 10 {
             '@'
         } else if format.to_upper {
@@ -9581,10 +9594,6 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         write!(s, "{}", exp).unwrap();
     }
     debug_assert_eq!(reserved_ptr, s.as_ptr());
-    #[cfg(not(debug_assertions))]
-    {
-        let _ = reserved_ptr;
-    }
 }
 
 #[derive(Debug)]

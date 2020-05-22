@@ -115,7 +115,7 @@ impl Binary for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 2,
-            exp: ExpFormat::Exp,
+            exp: ExpFormat::Point,
             ..Format::default()
         };
         fmt_radix(self, f, format, "0b")
@@ -126,7 +126,7 @@ impl Octal for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 8,
-            exp: ExpFormat::Exp,
+            exp: ExpFormat::Point,
             ..Format::default()
         };
         fmt_radix(self, f, format, "0o")
@@ -137,7 +137,7 @@ impl LowerHex for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 16,
-            exp: ExpFormat::Exp,
+            exp: ExpFormat::Point,
             ..Format::default()
         };
         fmt_radix(self, f, format, "0x")
@@ -149,7 +149,7 @@ impl UpperHex for Float {
         let format = Format {
             radix: 16,
             to_upper: true,
-            exp: ExpFormat::Exp,
+            exp: ExpFormat::Point,
             ..Format::default()
         };
         fmt_radix(self, f, format, "0x")

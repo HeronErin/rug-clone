@@ -174,11 +174,11 @@ mod tests {
         Check::DeError(40, "radix 37 greater than maximum 36").check(37, "0");
 
         let mut f = Float::new(40);
-        Check::SerDe(&f).check(10, "0.0");
-        Check::De(&f).check(10, "+0");
+        Check::SerDe(&f).check(10, "0");
+        Check::De(&f).check(10, "+0.0e5");
 
         f = -f;
-        Check::SerDe(&f).check(10, "-0.0");
+        Check::SerDe(&f).check(10, "-0");
         Check::De(&f).check(16, "-0");
 
         f.assign(Special::Nan);
@@ -189,11 +189,11 @@ mod tests {
 
         f.assign(15.0);
         Check::SerDe(&f).check(16, "f.0000000000");
-        Check::De(&f).check(10, "1.5e1");
-        Check::De(&f).check(15, "1.0@1");
+        Check::De(&f).check(10, "15");
+        Check::De(&f).check(15, "10");
 
         f.set_prec(32);
-        Check::SerDe(&f).check(10, "1.5000000000e1");
+        Check::SerDe(&f).check(10, "15.000000000");
         Check::De(&f).check(16, "f");
         Check::De(&f).check(16, "0.f@1");
         Check::De(&f).check(15, "1.0@1");

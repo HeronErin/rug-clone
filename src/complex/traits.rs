@@ -128,7 +128,7 @@ impl UpperExp for Complex {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             to_upper: true,
-            exp: ExpFormat::Point,
+            exp: ExpFormat::Exp,
             ..Format::default()
         };
         fmt_radix(self, f, format)
@@ -140,7 +140,7 @@ impl Binary for Complex {
         let format = Format {
             radix: 2,
             prefix: "0b",
-            exp: ExpFormat::Exp,
+            exp: ExpFormat::Point,
             ..Format::default()
         };
         fmt_radix(self, f, format)

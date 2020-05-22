@@ -33,6 +33,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.9.0 news (unreleased)
 
+  * Displaying [`Float`][flo-1-9] and [`Complex`][com-1-9] numbers,
+    and converting them to strings, now avoids outputting an
+    exponential term if the radix point can be moved to the correct
+    place without inserting any extra digits. For example `"42.0"`
+    will be produced rather than `"4.20e1"` ([issue 18]). This change
+    does not affect output when [`LowerExp`] or [`UpperExp`] is used
+    (`"{:e}"` or `"{:E}"` in the format string).
   * A new function
     <code>[float][flom-1-9]::[allowed\_exp\_range][flom-aer-1-9]</code>
     was added.
@@ -45,13 +52,22 @@ option) any later version. See the full text of the [GNU LGPL] and
     and checked casts to/from primitives and big numbers are provided
     throught the traits of the crate.
 
+#### Compatibility note
+
+The output of [`Float`][flo-1-9] and [`Complex`][com-1-9] numbers was
+changed as specified above.
+
 [*az* crate]: https://crates.io/crates/az
+[`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
+[`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
+[com-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [flo-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
 [flo-ce-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.clamp_exp
 [flom-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/float/index.html
 [flom-aer-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/float/fn.allowed_exp_range.html
 [int-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [int-fr-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.from_raw
+[issue 18]: https://gitlab.com/tspiteri/rug/issues/18
 [rat-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
 [rat-fr-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.from_raw
 
