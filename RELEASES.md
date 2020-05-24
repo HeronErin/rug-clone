@@ -9,15 +9,17 @@ Version 1.9.0 (unreleased)
 ==========================
 
   * Displaying [`Float`][flo-1-9] and [`Complex`][com-1-9] numbers,
-    and converting them to strings, now avoids outputting an
-    exponential term if the radix point can be moved to the correct
-    place without inserting any extra digits. For example `"42.0"`
-    will be produced rather than `"4.20e1"` ([issue 18]). This change
-    does not affect output when [`LowerExp`] or [`UpperExp`] is used
-    (`"{:e}"` or `"{:E}"` in the format string).
-  * The following new methods were added:
-      * <code>[Float][flo-1-9]::[to\_sign\_string\_exp][flo-tsse-1-9]</code>,
-        <code>[Float][flo-1-9]::[to\_sign\_string\_exp\_round][flo-tsser-1-9]</code>
+    and converting them to strings, now avoids outputting an exponent
+    term if the radix point can be moved to the correct place without
+    inserting any extra digits. For example `"42.0"` will be produced
+    rather than `"4.20e1"` ([issue 18]). This change does not affect
+    output when [`LowerExp`] or [`UpperExp`] is used (`"{:e}"` or
+    `"{:E}"` in the format string).
+  * New methods
+    <code>[Float][flo-1-9]::[to\_sign\_string\_exp][flo-tsse-1-9]</code>
+    and
+    <code>[Float][flo-1-9]::[to\_sign\_string\_exp\_round][flo-tsser-1-9]</code>
+    were added.
   * A new function
     <code>[float][flom-1-9]::[allowed\_exp\_range][flom-aer-1-9]</code>
     was added.

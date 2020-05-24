@@ -1322,6 +1322,10 @@ impl Float {
     /// let (sign, s, exp) = val.to_sign_string_exp_round(10, Some(2), Round::Up);
     /// assert_eq!((sign, &*s, exp), (false, "63", Some(5)));
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
+    /// [normal]: #method.is_normal
     pub fn to_sign_string_exp_round(
         &self,
         radix: i32,
