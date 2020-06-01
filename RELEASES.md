@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.9.0 (unreleased)
+Version 1.9.0 (2020-06-01)
 ==========================
 
   * Displaying [`Float`][flo-1-9] and [`Complex`][com-1-9] numbers,
@@ -13,8 +13,8 @@ Version 1.9.0 (unreleased)
     term if the radix point can be moved to the correct place without
     inserting any extra digits. For example `"42.0"` will be produced
     rather than `"4.20e1"` ([issue 18]). This change does not affect
-    output when [`LowerExp`] or [`UpperExp`] is used (`"{:e}"` or
-    `"{:E}"` in the format string).
+    output when [`LowerExp`] (`"{:e}"` format) or [`UpperExp`]
+    (`"{:E}"` format) is used.
   * New methods
     <code>[Float][flo-1-9]::[to\_sign\_string\_exp][flo-tsse-1-9]</code>
     and
@@ -41,18 +41,18 @@ changed as specified above.
 [*az* crate]: https://crates.io/crates/az
 [`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
 [`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
-[com-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[flo-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[flo-ce-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.clamp_exp
-[flo-tsse-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.to_sign_string_exp
-[flo-tsser-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.to_sign_string_exp_round
-[flom-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/float/index.html
-[flom-aer-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/float/fn.allowed_exp_range.html
-[int-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
-[int-fr-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.from_raw
+[com-1-9]: https://docs.rs/rug/~1.9/rug/struct.Complex.html
+[flo-1-9]: https://docs.rs/rug/~1.9/rug/struct.Float.html
+[flo-ce-1-9]: https://docs.rs/rug/~1.9/rug/struct.Float.html#method.clamp_exp
+[flo-tsse-1-9]: https://docs.rs/rug/~1.9/rug/struct.Float.html#method.to_sign_string_exp
+[flo-tsser-1-9]: https://docs.rs/rug/~1.9/rug/struct.Float.html#method.to_sign_string_exp_round
+[flom-1-9]: https://docs.rs/rug/~1.9/rug/float/index.html
+[flom-aer-1-9]: https://docs.rs/rug/~1.9/rug/float/fn.allowed_exp_range.html
+[int-1-9]: https://docs.rs/rug/~1.9/rug/struct.Integer.html
+[int-fr-1-9]: https://docs.rs/rug/~1.9/rug/struct.Integer.html#method.from_raw
 [issue 18]: https://gitlab.com/tspiteri/rug/issues/18
-[rat-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
-[rat-fr-1-9]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.from_raw
+[rat-1-9]: https://docs.rs/rug/~1.9/rug/struct.Rational.html
+[rat-fr-1-9]: https://docs.rs/rug/~1.9/rug/struct.Rational.html#method.from_raw
 
 Version 1.8.0 (2020-04-08)
 ==========================

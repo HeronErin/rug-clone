@@ -95,7 +95,7 @@ stable-x86_64-gnulinux-tarpaulin:
     TOOLCHAIN: stable-x86_64
     REQ_COVERAGE: "82.4"
   script:
-  - cargo install --version 0.12.4 --locked cargo-tarpaulin
+  - cargo install --version 0.13.2 --locked cargo-tarpaulin
   - etc/extract-doc-tests.sh
   - stdbuf -oL etc/invoke-tarpaulin.sh | tee tarpaulin.log
   - etc/extract-doc-tests.sh restore
