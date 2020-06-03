@@ -166,6 +166,8 @@ assert_eq!(f4, 28);
 ```
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+// TODO: replace with exhaustive once rustc dependency >= 1.40
+#[allow(clippy::manual_non_exhaustive)]
 pub enum Round {
     /// Round towards the nearest.
     Nearest,
@@ -206,6 +208,8 @@ assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
 ```
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+// TODO: replace with exhaustive once rustc dependency >= 1.40
+#[allow(clippy::manual_non_exhaustive)]
 pub enum Constant {
     /// The logarithm of two, 0.693...
     Log2,
@@ -250,6 +254,8 @@ assert!(nan.is_nan());
 ```
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+// TODO: replace with exhaustive once rustc dependency >= 1.40
+#[allow(clippy::manual_non_exhaustive)]
 pub enum Special {
     /// Positive zero.
     Zero,
@@ -286,6 +292,8 @@ fn main() {
 ```
 */
 #[allow(clippy::needless_doctest_main)]
+// TODO: replace with exhaustive once rustc dependency >= 1.40
+#[allow(clippy::manual_non_exhaustive)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum FreeCache {
     /// Free caches local to the current thread.

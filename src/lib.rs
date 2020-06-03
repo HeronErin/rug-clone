@@ -400,7 +400,7 @@ provided by the crate.
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
-#![allow(clippy::identity_conversion)]
+#![allow(clippy::useless_conversion)]
 
 #[macro_use]
 mod macros;
