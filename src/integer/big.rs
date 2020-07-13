@@ -395,8 +395,8 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
-    /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpz_t.html
     /// [gmp roinit]: https://tspiteri.gitlab.io/gmp-mpfr-sys/dev/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpz_t) -> Self {
@@ -423,7 +423,7 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub const fn into_raw(self) -> mpz_t {
         let ret = self.inner;
@@ -451,7 +451,7 @@ impl Integer {
     /// assert_eq!(i, 15);
     /// ```
     ///
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub const fn as_raw(&self) -> *const mpz_t {
         &self.inner
@@ -476,7 +476,7 @@ impl Integer {
     /// assert_eq!(i, 35);
     /// ```
     ///
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpz_t {
         &mut self.inner
@@ -664,7 +664,7 @@ impl Integer {
     /// [`Order`]: integer/enum.Order.html
     /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
     /// [`as_ref`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html#tymethod.as_ref
-    /// [`limb_t`]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/type.limb_t.html
+    /// [`limb_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/type.limb_t.html
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html

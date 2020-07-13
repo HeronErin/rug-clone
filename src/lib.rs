@@ -389,10 +389,10 @@ provided by the crate.
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
-[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-gnulinux
-[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-macos
-[sys win]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html#building-on-windows
-[sys]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html
+[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/index.html#building-on-gnulinux
+[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/index.html#building-on-macos
+[sys win]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/index.html#building-on-windows
+[sys]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/index.html
 */
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/~1.9")]
