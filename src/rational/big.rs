@@ -2788,7 +2788,7 @@ impl Assign<ParseIncomplete> for Rational {
         unsafe {
             let (num, den) = self.as_mut_numer_denom_no_canonicalization();
             xmpz::realloc_for_mpn_set_str(num, num_len, src.radix);
-            let size = gmp::mpn_set_str(num.inner_mut().d, num_str, num_len, src.radix);
+            let size = gmp::mpn_set_str(num.inner_mut().d.as_ptr(), num_str, num_len, src.radix);
             num.inner_mut().size = (if src.is_negative { -size } else { size }).unwrapped_cast();
 
             if den_len == 0 {
@@ -2798,7 +2798,7 @@ impl Assign<ParseIncomplete> for Rational {
             }
             let den_str = num_str.offset(num_len.unwrapped_cast());
             xmpz::realloc_for_mpn_set_str(den, den_len, src.radix);
-            let size = gmp::mpn_set_str(den.inner_mut().d, den_str, den_len, src.radix);
+            let size = gmp::mpn_set_str(den.inner_mut().d.as_ptr(), den_str, den_len, src.radix);
             den.inner_mut().size = size.unwrapped_cast();
             xmpq::canonicalize(self);
         }

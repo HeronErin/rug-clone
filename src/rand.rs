@@ -56,7 +56,7 @@ use az::Cast;
 use core::{
     marker::PhantomData,
     mem::{ManuallyDrop, MaybeUninit},
-    ptr,
+    ptr::{self, NonNull},
 };
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randfnptr_t, randseed_t, randstate_t};
 use libc::{c_ulong, c_void};
@@ -94,9 +94,9 @@ impl Clone for RandState<'_> {
         unsafe {
             let mut inner = MaybeUninit::uninit();
             gmp::randinit_set(inner.as_mut_ptr(), self.as_raw());
-            // If d is null, then boxed_clone must have returned None.
             let inner = inner.assume_init();
-            if inner.seed.d.is_null() {
+            // If algdata is ABORT_FUNCS, then boxed_clone must have returned None.
+            if ptr::eq(inner.algdata, &ABORT_FUNCS) {
                 panic!("`RandGen::boxed_clone` returned `None`");
             }
             RandState {
@@ -267,13 +267,13 @@ impl RandState<'_> {
     /// [`RandGen`]: trait.RandGen.html
     /// [`boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom(custom: &mut dyn RandGen) -> RandState<'_> {
-        let b: Box<&mut dyn RandGen> = Box::new(custom);
-        let r_ptr: *mut &mut dyn RandGen = Box::into_raw(b);
+        let b = Box::<&mut dyn RandGen>::new(custom);
+        let r_ptr = NonNull::<&mut dyn RandGen>::from(Box::leak(b));
         let inner = randstate_t {
             seed: randseed_t {
                 alloc: MaybeUninit::uninit(),
                 size: MaybeUninit::uninit(),
-                d: r_ptr as *mut c_void,
+                d: r_ptr.cast::<c_void>(),
             },
             alg: MaybeUninit::uninit(),
             algdata: &CUSTOM_FUNCS,
@@ -317,13 +317,13 @@ impl RandState<'_> {
     /// [`RandGen`]: trait.RandGen.html
     /// [`boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom_boxed(custom: Box<dyn RandGen>) -> RandState<'static> {
-        let b: Box<Box<dyn RandGen>> = Box::new(custom);
-        let r_ptr: *mut Box<dyn RandGen> = Box::into_raw(b);
+        let b = Box::<Box<dyn RandGen>>::new(custom);
+        let r_ptr = NonNull::<Box<dyn RandGen>>::from(Box::leak(b));
         let inner = randstate_t {
             seed: randseed_t {
                 alloc: MaybeUninit::uninit(),
                 size: MaybeUninit::uninit(),
-                d: r_ptr as *mut c_void,
+                d: r_ptr.cast::<c_void>(),
             },
             alg: MaybeUninit::uninit(),
             algdata: &CUSTOM_BOXED_FUNCS,
@@ -510,7 +510,7 @@ impl RandState<'_> {
             return Err(self);
         }
         let m = ManuallyDrop::new(self);
-        let r_ptr = m.inner.seed.d as *mut Box<dyn RandGen>;
+        let r_ptr = m.inner.seed.d.cast::<Box<dyn RandGen>>().as_ptr();
         let boxed_box: Box<Box<dyn RandGen>> = unsafe { Box::from_raw(r_ptr) };
         Ok(*boxed_box)
     }
@@ -627,9 +627,9 @@ impl Clone for ThreadRandState<'_> {
         unsafe {
             let mut inner = MaybeUninit::uninit();
             gmp::randinit_set(inner.as_mut_ptr(), self.as_raw());
-            // If d is null, then boxed_clone must have returned None.
             let inner = inner.assume_init();
-            if inner.seed.d.is_null() {
+            // If algdata is ABORT_FUNCS, then boxed_clone must have returned None.
+            if ptr::eq(inner.algdata, &ABORT_FUNCS) {
                 panic!("`ThreadRandGen::boxed_clone` returned `None`");
             }
             ThreadRandState {
@@ -686,13 +686,13 @@ impl ThreadRandState<'_> {
     /// [`ThreadRandGen`]: trait.ThreadRandGen.html
     /// [`new_custom`]: struct.RandState.html#method.new_custom
     pub fn new_custom(custom: &mut dyn ThreadRandGen) -> ThreadRandState<'_> {
-        let b: Box<&mut dyn ThreadRandGen> = Box::new(custom);
-        let r_ptr: *mut &mut dyn ThreadRandGen = Box::into_raw(b);
+        let b = Box::<&mut dyn ThreadRandGen>::new(custom);
+        let r_ptr = NonNull::<&mut dyn ThreadRandGen>::from(Box::leak(b));
         let inner = randstate_t {
             seed: randseed_t {
                 alloc: MaybeUninit::uninit(),
                 size: MaybeUninit::uninit(),
-                d: r_ptr as *mut c_void,
+                d: r_ptr.cast::<c_void>(),
             },
             alg: MaybeUninit::uninit(),
             algdata: &THREAD_CUSTOM_FUNCS,
@@ -739,13 +739,13 @@ impl ThreadRandState<'_> {
     /// [`ThreadRandGen`]: trait.ThreadRandGen.html
     /// [`new_custom_boxed`]: struct.RandState.html#method.new_custom_boxed
     pub fn new_custom_boxed(custom: Box<dyn ThreadRandGen>) -> ThreadRandState<'static> {
-        let b: Box<Box<dyn ThreadRandGen>> = Box::new(custom);
-        let r_ptr: *mut Box<dyn ThreadRandGen> = Box::into_raw(b);
+        let b = Box::<Box<dyn ThreadRandGen>>::new(custom);
+        let r_ptr = NonNull::<Box<dyn ThreadRandGen>>::from(Box::leak(b));
         let inner = randstate_t {
             seed: randseed_t {
                 alloc: MaybeUninit::uninit(),
                 size: MaybeUninit::uninit(),
-                d: r_ptr as *mut c_void,
+                d: r_ptr.cast::<c_void>(),
             },
             alg: MaybeUninit::uninit(),
             algdata: &THREAD_CUSTOM_BOXED_FUNCS,
@@ -991,7 +991,7 @@ impl ThreadRandState<'_> {
             return Err(self);
         }
         let m = ManuallyDrop::new(self);
-        let r_ptr = m.inner.seed.d as *mut Box<dyn ThreadRandGen>;
+        let r_ptr = m.inner.seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
         let boxed_box: Box<Box<dyn ThreadRandGen>> = unsafe { Box::from_raw(r_ptr) };
         Ok(*boxed_box)
     }
@@ -1476,47 +1476,47 @@ unsafe extern "C" fn abort_iset(_: *mut randstate_t, _: *const randstate_t) {
 }
 
 unsafe extern "C" fn custom_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-    let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
+    let r_ptr = (*rstate).seed.d.cast::<&mut dyn RandGen>().as_ptr();
     (*r_ptr).seed(&*cast_ptr!(seed, Integer));
 }
 
 unsafe extern "C" fn custom_get(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong) {
-    let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
+    let r_ptr = (*rstate).seed.d.cast::<&mut dyn RandGen>().as_ptr();
     gen_bits(*r_ptr, dest, nbits);
 }
 
 unsafe extern "C" fn custom_clear(rstate: *mut randstate_t) {
-    let r_ptr = (*rstate).seed.d as *mut &mut dyn RandGen;
+    let r_ptr = (*rstate).seed.d.cast::<&mut dyn RandGen>().as_ptr();
     drop(Box::from_raw(r_ptr));
 }
 
 unsafe extern "C" fn custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
-    let r_ptr = (*src).seed.d as *const &mut dyn RandGen;
+    let r_ptr = (*src).seed.d.cast::<&mut dyn RandGen>().as_ptr();
     gen_copy(*r_ptr, dst);
 }
 
 unsafe extern "C" fn custom_boxed_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-    let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
+    let r_ptr = (*rstate).seed.d.cast::<Box<dyn RandGen>>().as_ptr();
     (*r_ptr).seed(&*cast_ptr!(seed, Integer));
 }
 
 unsafe extern "C" fn custom_boxed_get(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong) {
-    let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
+    let r_ptr = (*rstate).seed.d.cast::<Box<dyn RandGen>>().as_ptr();
     gen_bits(&mut **r_ptr, dest, nbits);
 }
 
 unsafe extern "C" fn custom_boxed_clear(rstate: *mut randstate_t) {
-    let r_ptr = (*rstate).seed.d as *mut Box<dyn RandGen>;
+    let r_ptr = (*rstate).seed.d.cast::<Box<dyn RandGen>>().as_ptr();
     drop(Box::from_raw(r_ptr));
 }
 
 unsafe extern "C" fn custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
-    let r_ptr = (*src).seed.d as *const Box<dyn RandGen>;
+    let r_ptr = (*src).seed.d.cast::<Box<dyn RandGen>>().as_ptr();
     gen_copy(&**r_ptr, dst);
 }
 
 unsafe extern "C" fn thread_custom_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-    let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
+    let r_ptr = (*rstate).seed.d.cast::<&mut dyn ThreadRandGen>().as_ptr();
     (*r_ptr).seed(&*cast_ptr!(seed, Integer));
 }
 
@@ -1525,22 +1525,22 @@ unsafe extern "C" fn thread_custom_get(
     dest: *mut limb_t,
     nbits: c_ulong,
 ) {
-    let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
+    let r_ptr = (*rstate).seed.d.cast::<&mut dyn ThreadRandGen>().as_ptr();
     thread_gen_bits(*r_ptr, dest, nbits);
 }
 
 unsafe extern "C" fn thread_custom_clear(rstate: *mut randstate_t) {
-    let r_ptr = (*rstate).seed.d as *mut &mut dyn ThreadRandGen;
+    let r_ptr = (*rstate).seed.d.cast::<&mut dyn ThreadRandGen>().as_ptr();
     drop(Box::from_raw(r_ptr));
 }
 
 unsafe extern "C" fn thread_custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
-    let r_ptr = (*src).seed.d as *const &mut dyn ThreadRandGen;
+    let r_ptr = (*src).seed.d.cast::<&mut dyn ThreadRandGen>().as_ptr();
     thread_gen_copy(*r_ptr, dst);
 }
 
 unsafe extern "C" fn thread_custom_boxed_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-    let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
+    let r_ptr = (*rstate).seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
     (*r_ptr).seed(&*cast_ptr!(seed, Integer));
 }
 
@@ -1549,17 +1549,17 @@ unsafe extern "C" fn thread_custom_boxed_get(
     dest: *mut limb_t,
     nbits: c_ulong,
 ) {
-    let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
+    let r_ptr = (*rstate).seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
     thread_gen_bits(&mut **r_ptr, dest, nbits);
 }
 
 unsafe extern "C" fn thread_custom_boxed_clear(rstate: *mut randstate_t) {
-    let r_ptr = (*rstate).seed.d as *mut Box<dyn ThreadRandGen>;
+    let r_ptr = (*rstate).seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
     drop(Box::from_raw(r_ptr));
 }
 
 unsafe extern "C" fn thread_custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
-    let r_ptr = (*src).seed.d as *const Box<dyn ThreadRandGen>;
+    let r_ptr = (*src).seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
     thread_gen_copy(&**r_ptr, dst);
 }
 
@@ -1602,17 +1602,17 @@ unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
     // Do not panic here if boxed_clone returns None, as panics cannot
     // cross FFI boundaries. Instead, set dst_ptr.seed.d to null.
     let (dst_r_ptr, funcs) = if let Some(other) = gen.boxed_clone() {
-        let b: Box<Box<dyn RandGen>> = Box::new(other);
-        let dst_r_ptr: *mut Box<dyn RandGen> = Box::into_raw(b);
+        let b = Box::<Box<dyn RandGen>>::new(other);
+        let dst_r_ptr = NonNull::<Box<dyn RandGen>>::from(Box::leak(b));
         (dst_r_ptr, &CUSTOM_BOXED_FUNCS)
     } else {
-        (ptr::null_mut(), &ABORT_FUNCS)
+        (NonNull::dangling(), &ABORT_FUNCS)
     };
     *dst = randstate_t {
         seed: randseed_t {
             alloc: MaybeUninit::uninit(),
             size: MaybeUninit::uninit(),
-            d: dst_r_ptr as *mut c_void,
+            d: dst_r_ptr.cast::<c_void>(),
         },
         alg: MaybeUninit::uninit(),
         algdata: funcs,
@@ -1658,17 +1658,17 @@ unsafe fn thread_gen_copy(gen: &dyn ThreadRandGen, dst: *mut randstate_t) {
     // Do not panic here if boxed_clone returns None, as panics cannot
     // cross FFI boundaries. Instead, set dst_ptr.seed.d to null.
     let (dst_r_ptr, funcs) = if let Some(other) = gen.boxed_clone() {
-        let b: Box<Box<dyn ThreadRandGen>> = Box::new(other);
-        let dst_r_ptr: *mut Box<dyn ThreadRandGen> = Box::into_raw(b);
+        let b = Box::<Box<dyn ThreadRandGen>>::new(other);
+        let dst_r_ptr = NonNull::<Box<dyn ThreadRandGen>>::from(Box::leak(b));
         (dst_r_ptr, &THREAD_CUSTOM_BOXED_FUNCS)
     } else {
-        (ptr::null_mut(), &ABORT_FUNCS)
+        (NonNull::dangling(), &ABORT_FUNCS)
     };
     *dst = randstate_t {
         seed: randseed_t {
             alloc: MaybeUninit::uninit(),
             size: MaybeUninit::uninit(),
-            d: dst_r_ptr as *mut c_void,
+            d: dst_r_ptr.cast::<c_void>(),
         },
         alg: MaybeUninit::uninit(),
         algdata: funcs,

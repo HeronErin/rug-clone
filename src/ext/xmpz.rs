@@ -22,7 +22,13 @@ use crate::{
     Integer,
 };
 use az::{Az, Cast, WrappingAs, WrappingCast};
-use core::{cmp::Ordering, i16, i8, mem::MaybeUninit, ptr, u16, u8};
+use core::{
+    cmp::Ordering,
+    i16, i8,
+    mem::MaybeUninit,
+    ptr::{self, NonNull},
+    u16, u8,
+};
 use gmp_mpfr_sys::gmp::{self, bitcnt_t, limb_t, mpz_t, size_t};
 use libc::{c_int, c_long, c_ulong};
 
@@ -150,10 +156,11 @@ pub fn set<O: OptInteger>(rop: &mut Integer, op: O) {
 #[inline]
 pub const fn owned_init() -> mpz_t {
     const UNO_DIEGO_10: limb_t = 0x1D1E_6010;
+    // use NonNull::new_unchecked because NonNull::from is not usable in const
     mpz_t {
         alloc: 0,
         size: 0,
-        d: &UNO_DIEGO_10 as *const limb_t as *mut limb_t,
+        d: unsafe { NonNull::new_unchecked(&UNO_DIEGO_10 as *const limb_t as *mut limb_t) },
     }
 }
 
@@ -214,7 +221,7 @@ pub fn next_pow_of_two<O: OptInteger>(rop: &mut Integer, op: O) {
         return;
     }
     let significant = significant_bits(op).unwrapped_cast();
-    let first_one = unsafe { gmp::mpn_scan1(op.inner().d, 0) };
+    let first_one = unsafe { gmp::mpn_scan1(op.inner().d.as_ptr(), 0) };
     let bit = if first_one == significant - 1 {
         if !O::IS_SOME {
             return;
@@ -695,7 +702,7 @@ unsafe fn set_1_raw(rop: *mut mpz_t) {
     if (*rop).alloc < 1 {
         cold_realloc_raw(rop, 1);
     }
-    *(*rop).d = 1;
+    *(*rop).d.as_ptr() = 1;
     (*rop).size = 1;
 }
 
@@ -704,7 +711,7 @@ unsafe fn set_m1_raw(rop: *mut mpz_t) {
     if (*rop).alloc < 1 {
         cold_realloc_raw(rop, 1);
     }
-    *(*rop).d = 1;
+    *(*rop).d.as_ptr() = 1;
     (*rop).size = -1;
 }
 
@@ -942,7 +949,7 @@ pub fn zerocount(op: &Integer) -> Option<u32> {
     if op.cmp0() == Ordering::Less {
         let size = size_t::from(op.inner().size);
         let abs_size = size.wrapping_neg();
-        let d = op.inner().d;
+        let d = op.inner().d.as_ptr();
         let count = unsafe {
             let abs_popcount = gmp::mpn_popcount(d, abs_size);
             let first_one = gmp::mpn_scan1(d, 0);
@@ -976,13 +983,14 @@ pub fn significant_bits(op: &Integer) -> usize {
         return 0;
     }
     let size = size.neg_abs().1;
-    unsafe { gmp::mpn_sizeinbase(op.inner().d, size.unwrapped_cast(), 2) }
+    unsafe { gmp::mpn_sizeinbase(op.inner().d.as_ptr(), size.unwrapped_cast(), 2) }
 }
 
 pub fn signed_bits(op: &Integer) -> u32 {
     let significant = significant_bits(op);
     if op.cmp0() == Ordering::Less {
-        let first_one = (unsafe { gmp::mpn_scan1(op.inner().d, 0) }).unwrapped_as::<usize>();
+        let first_one =
+            (unsafe { gmp::mpn_scan1(op.inner().d.as_ptr(), 0) }).unwrapped_as::<usize>();
         if first_one == significant - 1 {
             return significant.unwrapped_cast();
         }
@@ -998,18 +1006,18 @@ pub fn power_of_two_p(op: &Integer) -> bool {
         return false;
     }
     let significant = significant_bits(op);
-    let first_one = (unsafe { gmp::mpn_scan1(op.inner().d, 0) }).unwrapped_as::<usize>();
+    let first_one = (unsafe { gmp::mpn_scan1(op.inner().d.as_ptr(), 0) }).unwrapped_as::<usize>();
     first_one == significant - 1
 }
 
 #[inline]
 pub unsafe fn limb(z: &Integer, index: isize) -> limb_t {
-    *z.inner().d.offset(index)
+    *z.inner().d.as_ptr().offset(index)
 }
 
 #[inline]
 pub unsafe fn limb_mut(z: &mut Integer, index: isize) -> &mut limb_t {
-    &mut *z.inner_mut().d.offset(index)
+    &mut *z.inner_mut().d.as_ptr().offset(index)
 }
 
 pub fn realloc_for_mpn_set_str(rop: &mut Integer, len: usize, radix: i32) {

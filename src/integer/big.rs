@@ -36,7 +36,7 @@ use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use libc::{c_char, c_void};
 use std::error::Error;
 #[cfg(feature = "rational")]
-use {crate::rational::big::BorrowRational, gmp_mpfr_sys::gmp::mpq_t};
+use {crate::rational::big::BorrowRational, core::ptr::NonNull, gmp_mpfr_sys::gmp::mpq_t};
 
 /**
 An arbitrary-precision integer.
@@ -209,7 +209,7 @@ impl Integer {
             .checked_abs()
             .expect("overflow")
             .unwrapped_as::<usize>();
-        unsafe { slice::from_raw_parts(self.inner.d, limbs) }
+        unsafe { slice::from_raw_parts(self.inner.d.as_ptr(), limbs) }
     }
 }
 
@@ -1902,12 +1902,13 @@ impl Integer {
     /// [`Rational`]: struct.Rational.html
     pub const fn as_rational(&self) -> BorrowRational<'_> {
         const ONE: limb_t = 1;
+        // use NonNull::new_unchecked because NonNull::from is not usable in const
         let raw_rational = mpq_t {
             num: self.inner,
             den: mpz_t {
                 alloc: 1,
                 size: 1,
-                d: &ONE as *const limb_t as *mut limb_t,
+                d: unsafe { NonNull::new_unchecked(&ONE as *const limb_t as *mut limb_t) },
             },
         };
         // Safety: the lifetime of the return type is equal to the lifetime of self.
@@ -6194,7 +6195,7 @@ impl Assign<ParseIncomplete> for Integer {
         xmpz::realloc_for_mpn_set_str(self, src.digits.len(), src.radix);
         unsafe {
             let size = gmp::mpn_set_str(
-                self.inner.d,
+                self.inner.d.as_ptr(),
                 src.digits.as_ptr(),
                 src.digits.len(),
                 src.radix,

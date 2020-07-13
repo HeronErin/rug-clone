@@ -262,7 +262,7 @@ impl Float {
         if self.is_normal() {
             let prec = self.inner.prec.unwrapped_as::<usize>();
             let limbs = prec.div_ceil(gmp::LIMB_BITS.az::<usize>());
-            unsafe { slice::from_raw_parts(self.inner.d, limbs) }
+            unsafe { slice::from_raw_parts(self.inner.d.as_ptr(), limbs) }
         } else {
             &[]
         }
