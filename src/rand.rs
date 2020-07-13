@@ -1676,38 +1676,38 @@ unsafe fn thread_gen_copy(gen: &dyn ThreadRandGen, dst: *mut randstate_t) {
 }
 
 static ABORT_FUNCS: randfnptr_t = randfnptr_t {
-    seed: Some(abort_seed),
-    get: Some(abort_get),
-    clear: Some(abort_clear),
-    iset: Some(abort_iset),
+    seed: abort_seed,
+    get: abort_get,
+    clear: abort_clear,
+    iset: abort_iset,
 };
 
 static CUSTOM_FUNCS: randfnptr_t = randfnptr_t {
-    seed: Some(custom_seed),
-    get: Some(custom_get),
-    clear: Some(custom_clear),
-    iset: Some(custom_iset),
+    seed: custom_seed,
+    get: custom_get,
+    clear: custom_clear,
+    iset: custom_iset,
 };
 
 static CUSTOM_BOXED_FUNCS: randfnptr_t = randfnptr_t {
-    seed: Some(custom_boxed_seed),
-    get: Some(custom_boxed_get),
-    clear: Some(custom_boxed_clear),
-    iset: Some(custom_boxed_iset),
+    seed: custom_boxed_seed,
+    get: custom_boxed_get,
+    clear: custom_boxed_clear,
+    iset: custom_boxed_iset,
 };
 
 static THREAD_CUSTOM_FUNCS: randfnptr_t = randfnptr_t {
-    seed: Some(thread_custom_seed),
-    get: Some(thread_custom_get),
-    clear: Some(thread_custom_clear),
-    iset: Some(thread_custom_iset),
+    seed: thread_custom_seed,
+    get: thread_custom_get,
+    clear: thread_custom_clear,
+    iset: thread_custom_iset,
 };
 
 static THREAD_CUSTOM_BOXED_FUNCS: randfnptr_t = randfnptr_t {
-    seed: Some(thread_custom_boxed_seed),
-    get: Some(thread_custom_boxed_get),
-    clear: Some(thread_custom_boxed_clear),
-    iset: Some(thread_custom_boxed_iset),
+    seed: thread_custom_boxed_seed,
+    get: thread_custom_boxed_get,
+    clear: thread_custom_boxed_clear,
+    iset: thread_custom_boxed_iset,
 };
 
 /// Used to pass the state of random number generators by mutable
