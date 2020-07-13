@@ -28,14 +28,16 @@ after_script:
 clibs-x86_64-gnulinux:
   image: amd64/rust:1
   stage: clibs
+  variables:
+    TOOLCHAIN: beta-x86_64
   cache:
     key: $CI_JOB_NAME
     paths:
     - cargo/
     - gmp-mpfr-sys-cache/
   script:
-  - cargo fetch
-  - cargo test --no-default-features --features gmp-mpfr-sys/mpc -p gmp-mpfr-sys
+  - cargo +$TOOLCHAIN fetch
+  - cargo +$TOOLCHAIN test --no-default-features --features gmp-mpfr-sys/mpc -p gmp-mpfr-sys
   artifacts:
     paths:
     - cargo/
@@ -134,14 +136,16 @@ beta-x86_64-gnulinux-tidy:
 clibs-i686-gnulinux:
   image: i386/rust:1
   stage: clibs
+  variables:
+    TOOLCHAIN: beta-i686
   cache:
     key: $CI_JOB_NAME
     paths:
     - cargo/
     - gmp-mpfr-sys-cache/
   script:
-  - cargo fetch
-  - cargo test --no-default-features --features gmp-mpfr-sys/mpc -p gmp-mpfr-sys
+  - cargo +$TOOLCHAIN fetch
+  - cargo +$TOOLCHAIN test --no-default-features --features gmp-mpfr-sys/mpc -p gmp-mpfr-sys
   artifacts:
     paths:
     - cargo/
