@@ -27,9 +27,9 @@ use crate::{
     Float,
 };
 use az::CheckedAs;
-use core::{cmp::Ordering, mem::MaybeUninit};
+use core::{cmp::Ordering, mem::MaybeUninit, ptr::NonNull};
 use gmp_mpfr_sys::{
-    gmp::limb_t,
+    gmp::{self, limb_t},
     mpfr::{self, exp_t, mpfr_t, prec_t, rnd_t},
 };
 use libc::{c_int, c_long, c_ulong, c_void, intmax_t, uintmax_t};
@@ -316,6 +316,56 @@ pub unsafe fn sum_raw(rop: *mut mpfr_t, pointers: &[*const mpfr_t], rnd: Round) 
     let n = pointers.len().unwrapped_cast();
     let tab = cast_ptr!(pointers.as_ptr(), *mut mpfr_t);
     ordering1(mpfr::sum(rop, tab, n, raw_round(rnd)))
+}
+
+pub fn dot<'a, I>(rop: &mut Float, values: I, rnd: Round) -> Ordering
+where
+    I: Iterator<Item = (&'a Float, &'a Float)>,
+{
+    let (pointers_a, pointers_b): (Vec<_>, Vec<_>) =
+        values.map(|(a, b)| (a.as_raw(), b.as_raw())).unzip();
+    unsafe { dot_raw(rop.as_raw_mut(), &pointers_a, &pointers_b, rnd) }
+}
+
+// add original value of rop to dot
+pub fn dot_including_old<'a, I>(rop: &mut Float, values: I, rnd: Round) -> Ordering
+where
+    I: Iterator<Item = (&'a Float, &'a Float)>,
+{
+    const LIMB_ONE: limb_t = 1;
+    const LIMB_MSB: limb_t = LIMB_ONE << (gmp::LIMB_BITS - 1);
+    const ONE: mpfr_t = mpfr_t {
+        prec: 1,
+        sign: 1,
+        exp: 1,
+        d: unsafe { NonNull::new_unchecked(&LIMB_MSB as *const limb_t as *mut limb_t) },
+    };
+
+    let rop = rop.as_raw_mut();
+    let capacity = values.size_hint().0.checked_add(1).expect("overflow");
+    let mut pointers_a = Vec::with_capacity(capacity);
+    let mut pointers_b = Vec::with_capacity(capacity);
+    pointers_a.push(rop as *const mpfr_t);
+    pointers_b.push(&ONE as *const mpfr_t);
+    for a_b in values {
+        pointers_a.push(a_b.0.as_raw());
+        pointers_b.push(a_b.1.as_raw());
+    }
+    unsafe { dot_raw(rop, &pointers_a, &pointers_b, rnd) }
+}
+
+// pointers_a and pointers_b must have same length
+unsafe fn dot_raw(
+    rop: *mut mpfr_t,
+    pointers_a: &[*const mpfr_t],
+    pointers_b: &[*const mpfr_t],
+    rnd: Round,
+) -> Ordering {
+    debug_assert_eq!(pointers_a.len(), pointers_b.len());
+    let n = pointers_a.len().unwrapped_cast();
+    let a = cast_ptr!(pointers_a.as_ptr(), *mut mpfr_t);
+    let b = cast_ptr!(pointers_b.as_ptr(), *mut mpfr_t);
+    ordering1(mpfr::dot(rop, a, b, n, raw_round(rnd)))
 }
 
 unsafe_wrap! { fn set(src: O) -> mpfr::set }

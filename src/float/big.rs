@@ -2280,6 +2280,9 @@ impl Float {
     /// let dot = Float::with_val(53, r);
     /// let expected = 2.75 * 10.5 - 1.25 * 0.5;
     /// assert_eq!(dot, expected);
+    /// let r = Float::dot(b.iter().zip(a.iter()));
+    /// let twice = dot + r;
+    /// assert_eq!(twice, expected * 2.0);
     /// ```
     ///
     /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
@@ -9268,17 +9271,6 @@ where
     values: I,
 }
 
-fn exact_prods<'a, I>(i: I) -> Vec<Float>
-where
-    I: Iterator<Item = (&'a Float, &'a Float)>,
-{
-    i.map(|(a, b)| {
-        let prec = a.prec().checked_add(b.prec()).expect("overflow");
-        Float::with_val(prec, a * b)
-    })
-    .collect()
-}
-
 impl<'a, I> AssignRound<DotIncomplete<'a, I>> for Float
 where
     I: Iterator<Item = (&'a Self, &'a Self)>,
@@ -9286,9 +9278,7 @@ where
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
-        let prods = exact_prods(src.values);
-        let sum = Float::sum(prods.iter());
-        self.assign_round(sum, round)
+        xmpfr::dot(self, src.values, round)
     }
 }
 
@@ -9321,9 +9311,7 @@ where
     type Round = Round;
     type Ordering = Ordering;
     fn add_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
-        let prods = exact_prods(src.values);
-        let sum = Float::sum(prods.iter());
-        self.add_assign_round(sum, round)
+        xmpfr::dot_including_old(self, src.values, round)
     }
 }
 
