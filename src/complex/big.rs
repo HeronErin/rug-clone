@@ -3589,6 +3589,7 @@ where
 {
     type Round = Round2;
     type Ordering = Ordering2;
+    #[inline]
     fn assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
         xmpc::sum(self, src.values, round)
     }
@@ -3622,6 +3623,7 @@ where
 {
     type Round = Round2;
     type Ordering = Ordering2;
+    #[inline]
     fn add_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
         xmpc::sum_including_old(self, src.values, round)
     }

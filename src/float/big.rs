@@ -9225,6 +9225,7 @@ where
 {
     type Round = Round;
     type Ordering = Ordering;
+    #[inline]
     fn assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
         xmpfr::sum(self, src.values, round)
     }
@@ -9258,6 +9259,7 @@ where
 {
     type Round = Round;
     type Ordering = Ordering;
+    #[inline]
     fn add_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
         xmpfr::sum_including_old(self, src.values, round)
     }
@@ -9277,6 +9279,7 @@ where
 {
     type Round = Round;
     type Ordering = Ordering;
+    #[inline]
     fn assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
         xmpfr::dot(self, src.values, round)
     }
@@ -9310,6 +9313,7 @@ where
 {
     type Round = Round;
     type Ordering = Ordering;
+    #[inline]
     fn add_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
         xmpfr::dot_including_old(self, src.values, round)
     }
