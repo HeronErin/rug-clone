@@ -397,7 +397,7 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpz_t.html
-    /// [gmp roinit]: https://tspiteri.gitlab.io/gmp-mpfr-sys/dev/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
+    /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }

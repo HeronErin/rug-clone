@@ -252,8 +252,8 @@ impl Rational {
     /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
     /// [`Rational`]: struct.Rational.html
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpq_t.html
-    /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/dev/gmp_mpfr_sys/C/GMP/constant.Rational_Number_Functions.html#index-Rational-number-functions
-    /// [gmp roinit]: https://tspiteri.gitlab.io/gmp-mpfr-sys/dev/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
+    /// [gmp mpq]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/C/GMP/constant.Rational_Number_Functions.html#index-Rational-number-functions
+    /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
