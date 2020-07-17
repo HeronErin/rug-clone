@@ -31,6 +31,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.10.0 news (unreleased)
+
+  * The [gmp-mpfr-sys][sys crate] dependency was updated to [version
+    1.3][sys-1-3].
+
+[sys-1-3]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/index.html
+
 ### Version 1.9.0 news (2020-06-01)
 
   * Displaying [`Float`][flo-1-9] and [`Complex`][com-1-9] numbers,

@@ -5,6 +5,14 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.10.0 (unreleased)
+===========================
+
+  * The [gmp-mpfr-sys] dependency was updated to [version
+    1.3][sys-1-3].
+
+[sys-1-3]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/index.html
+
 Version 1.9.0 (2020-06-01)
 ==========================
 
@@ -77,7 +85,7 @@ Version 1.8.0 (2020-04-08)
   * [`SmallFloat`][smf-1-8] and [`SmallComplex`][smc-1-8] now
     implement [`Default`].
   * [`Integer`][int-1-8] now implements
-    <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][gmp-limb-1-2][\]][slice]&gt;</code>.
+    <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][sys-limb-1-2][\]][slice]&gt;</code>.
   * [`Float`][flo-1-8] now implements
     <code>[AsRef][`AsRef`]&lt;[OrdFloat][of-1-8]&gt;</code>, and
     [`OrdFloat`][of-1-8] now implements
@@ -92,7 +100,6 @@ Version 1.8.0 (2020-04-08)
 [com-1-8]: https://docs.rs/rug/~1.8/rug/struct.Complex.html
 [flo-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html
 [flo-ac-1-8]: https://docs.rs/rug/~1.8/rug/struct.Float.html#method.as_complex
-[gmp-limb-1-2]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/type.limb_t.html
 [int-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html
 [int-arat-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.as_rational
 [int-araw-1-8]: https://docs.rs/rug/~1.8/rug/struct.Integer.html#method.as_raw
@@ -109,11 +116,14 @@ Version 1.8.0 (2020-04-08)
 [smr-1-8]: https://docs.rs/rug/~1.8/rug/rational/struct.SmallRational.html
 [smr-n-1-8]: https://docs.rs/rug/~1.8/rug/rational/struct.SmallRational.html#method.new
 [spe-1-8]: https://docs.rs/rug/~1.8/rug/float/enum.Special.html
+[sys-limb-1-2]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/gmp/type.limb_t.html
 
 Version 1.7.0 (2020-01-21)
 ==========================
 
   * The crate now requires rustc version 1.37.0 or later.
+  * The [gmp-mpfr-sys] dependency was updated to [version
+    1.2][sys-1-2].
   * The [`RemAssignRound`][rar-1-7] and [`RemFromRound`][rfr-1-7]
     traits were added.
   * The [`Rem`], [`RemAssign`], [`RemFrom`][rf-1-7],
@@ -176,6 +186,7 @@ Compatibility note
 [smf-1-7]: https://docs.rs/rug/~1.7/rug/float/struct.SmallFloat.html
 [smi-1-7]: https://docs.rs/rug/~1.7/rug/integer/struct.SmallInteger.html
 [smr-1-7]: https://docs.rs/rug/~1.7/rug/rational/struct.SmallRational.html
+[sys-1-2]: https://docs.rs/gmp-mpfr-sys/~1.2/gmp_mpfr_sys/index.html
 
 Version 1.6.0 (2019-09-03)
 ==========================
