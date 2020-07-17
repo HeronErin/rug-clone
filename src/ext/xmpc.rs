@@ -195,10 +195,7 @@ where
     I: Iterator<Item = &'a Complex>,
 {
     let (real, imag) = rop.as_mut_real_imag();
-    let capacity = match values.size_hint() {
-        (lower, None) => lower,
-        (_, Some(upper)) => upper,
-    };
+    let capacity = values.size_hint().0;
     let mut pointers_real = Vec::<*const mpfr_t>::with_capacity(capacity);
     let mut pointers_imag = Vec::<*const mpfr_t>::with_capacity(capacity);
     for value in values {
@@ -214,17 +211,13 @@ where
 }
 
 // add original value of rop to sum
-#[inline]
 pub fn sum_including_old<'a, I>(rop: &mut Complex, values: I, rnd: Round2) -> Ordering2
 where
     I: Iterator<Item = &'a Complex>,
 {
     let (real, imag) = rop.as_mut_real_imag();
     let (real, imag) = (real.as_raw_mut(), imag.as_raw_mut());
-    let capacity = match values.size_hint() {
-        (lower, None) => lower + 1,
-        (_, Some(upper)) => upper + 1,
-    };
+    let capacity = values.size_hint().0.checked_add(1).expect("overflow");
     let mut pointers_real = Vec::with_capacity(capacity);
     let mut pointers_imag = Vec::with_capacity(capacity);
     pointers_real.push(real as *const mpfr_t);

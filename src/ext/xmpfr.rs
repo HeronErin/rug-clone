@@ -302,10 +302,7 @@ where
     I: Iterator<Item = &'a Float>,
 {
     let rop = rop.as_raw_mut();
-    let capacity = match values.size_hint() {
-        (lower, None) => lower + 1,
-        (_, Some(upper)) => upper + 1,
-    };
+    let capacity = values.size_hint().0.checked_add(1).expect("overflow");
     let mut pointers = Vec::with_capacity(capacity);
     pointers.push(rop as *const mpfr_t);
     pointers.extend(values.map(Float::as_raw));
