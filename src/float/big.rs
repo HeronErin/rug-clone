@@ -272,6 +272,8 @@ impl Float {
 static_assert_same_layout!(Float, mpfr_t);
 static_assert_same_layout!(BorrowFloat<'_>, mpfr_t);
 
+static_assert_same_size!(Float, Option<Float>);
+
 macro_rules! ref_math_op0_float {
     ($($rest:tt)*) => {
         ref_math_op0_round! {

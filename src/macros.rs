@@ -2300,6 +2300,13 @@ macro_rules! static_assert_same_layout {
 }
 
 #[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! static_assert_same_size {
+    ($T:ty, $U:ty) => {
+        static_assert!(core::mem::size_of::<$T>() == core::mem::size_of::<$U>());
+    };
+}
+
+#[cfg(any(feature = "integer", feature = "float"))]
 pub struct CastPtr<Src>(pub *const Src);
 #[cfg(any(feature = "integer", feature = "float"))]
 impl<Src> CastPtr<Src> {

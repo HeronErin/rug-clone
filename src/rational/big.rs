@@ -95,6 +95,8 @@ pub struct Rational {
 static_assert_same_layout!(Rational, mpq_t);
 static_assert_same_layout!(BorrowRational<'_>, mpq_t);
 
+static_assert_same_size!(Rational, Option<Rational>);
+
 macro_rules! ref_rat_op_int {
     (
         $func:path;

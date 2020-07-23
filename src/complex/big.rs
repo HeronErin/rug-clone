@@ -166,6 +166,8 @@ pub struct Complex {
 static_assert_same_layout!(Complex, mpc_t);
 static_assert_same_layout!(BorrowComplex<'_>, mpc_t);
 
+static_assert_same_size!(Complex, Option<Complex>);
+
 macro_rules! ref_math_op0_complex {
     ($($rest:tt)*) => {
         ref_math_op0_round! {

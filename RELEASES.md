@@ -10,8 +10,19 @@ Version 1.10.0 (unreleased)
 
   * The [gmp-mpfr-sys] dependency was updated to [version
     1.3][sys-1-3].
+  * Now <code>[Option][`Option`]&lt;[Integer][int-1-10]&gt;</code> has
+    the same size as [`Integer`][int-1-10]; and similar for
+    [`Rational`][rat-1-10], [`Float`][flo-1-10],
+    [`Complex`][com-1-10], [`RandState`][ras-1-10] and
+    [`ThreadRandState`][trs-1-10].
 
+[com-1-10]: https://docs.rs/rug/~1.10/rug/struct.Complex.html
+[flo-1-10]: https://docs.rs/rug/~1.10/rug/struct.Float.html
+[int-1-10]: https://docs.rs/rug/~1.10/rug/struct.Integer.html
+[ras-1-10]: https://docs.rs/rug/~1.10/rug/rand/struct.RandState.html
+[rat-1-10]: https://docs.rs/rug/~1.10/rug/struct.Rational.html
 [sys-1-3]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/index.html
+[trs-1-10]: https://docs.rs/rug/~1.10/rug/rand/struct.ThreadRandState.html
 
 Version 1.9.0 (2020-06-01)
 ==========================
@@ -651,6 +662,7 @@ Version 0.6.0 (2017-08-09)
 [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
 [`Default`]: https://doc.rust-lang.org/nightly/core/default/trait.Default.html
 [`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
+[`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
 [`Product`]: https://doc.rust-lang.org/nightly/core/iter/trait.Product.html
 [`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
