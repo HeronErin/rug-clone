@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.10.0 (unreleased)
+Version 1.10.0 (2020-07-23)
 ===========================
 
   * The [gmp-mpfr-sys] dependency was updated to [version
@@ -69,7 +69,7 @@ changed as specified above.
 [flom-aer-1-9]: https://docs.rs/rug/~1.9/rug/float/fn.allowed_exp_range.html
 [int-1-9]: https://docs.rs/rug/~1.9/rug/struct.Integer.html
 [int-fr-1-9]: https://docs.rs/rug/~1.9/rug/struct.Integer.html#method.from_raw
-[issue 18]: https://gitlab.com/tspiteri/rug/issues/18
+[issue 18]: https://gitlab.com/tspiteri/rug/-/issues/18
 [rat-1-9]: https://docs.rs/rug/~1.9/rug/struct.Rational.html
 [rat-fr-1-9]: https://docs.rs/rug/~1.9/rug/struct.Rational.html#method.from_raw
 
@@ -250,7 +250,7 @@ Version 1.5.1 (2019-07-10)
 ==========================
 
   * Bug fix: a memory leak in conversions of [`Float`][flo-1-5] to
-    string was fixed (https://gitlab.com/tspiteri/rug/issues/11).
+    string was fixed (https://gitlab.com/tspiteri/rug/-/issues/11).
 
 Version 1.5.0 (2019-07-04)
 ==========================
