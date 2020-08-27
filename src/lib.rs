@@ -401,7 +401,8 @@ provided by the crate.
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
 #![allow(clippy::useless_conversion)]
-
+// matches! requires rustc 1.42
+#![allow(clippy::match_like_matches_macro)]
 #[macro_use]
 mod macros;
 mod ext;
