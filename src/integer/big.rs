@@ -429,7 +429,7 @@ impl Integer {
     #[inline]
     pub const fn into_raw(self) -> mpz_t {
         let ret = self.inner;
-        ManuallyDrop::new(self);
+        let _ = ManuallyDrop::new(self);
         ret
     }
 
