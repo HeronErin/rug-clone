@@ -34,11 +34,11 @@ use crate::{
         ParseFloatError, Round, Special,
     },
     misc::{self, UnwrappedCast},
-    ops::{AddAssignRound, AssignRound, NegAssign},
+    ops::{AddAssignRound, AssignRound},
     Assign, Float,
 };
 use core::{
-    cmp::{self, Ordering},
+    cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
     mem::{ManuallyDrop, MaybeUninit},
@@ -3639,43 +3639,6 @@ where
     values: I,
 }
 
-fn prods_real(pairs: &[(&Complex, &Complex)]) -> Vec<Float> {
-    let mut prods = Vec::with_capacity(pairs.len() * 2);
-    for &(a, b) in pairs {
-        let (ar, ai) = (a.real(), a.imag());
-        let (br, bi) = (b.real(), b.imag());
-        let (arp, aip) = (ar.prec(), ai.prec());
-        let (brp, bip) = (br.prec(), bi.prec());
-        let bp = cmp::max(brp, bip);
-        let mut r = Float::new(arp.checked_add(bp).expect("overflow"));
-        xmpfr::set_prec_nan(&mut r, (arp + brp).unwrapped_cast());
-        r.assign(ar * br);
-        prods.push(r);
-        r = Float::new(aip.checked_add(bp).expect("overflow"));
-        xmpfr::set_prec_nan(&mut r, (aip + bip).unwrapped_cast());
-        r.assign(ai * bi);
-        r.neg_assign();
-        prods.push(r);
-    }
-    prods
-}
-
-fn prods_imag(prods: &mut Vec<Float>, pairs: &[(&Complex, &Complex)]) {
-    let mut i = 0;
-    for &(a, b) in pairs {
-        let (ar, ai) = (a.real(), a.imag());
-        let (br, bi) = (b.real(), b.imag());
-        let (arp, aip) = (ar.prec(), ai.prec());
-        let (brp, bip) = (br.prec(), bi.prec());
-        xmpfr::set_prec_nan(&mut prods[i], (arp + bip).unwrapped_cast());
-        prods[i].assign(ar * bi);
-        i += 1;
-        xmpfr::set_prec_nan(&mut prods[i], (aip + brp).unwrapped_cast());
-        prods[i].assign(ai * br);
-        i += 1;
-    }
-}
-
 impl<'a, I> AssignRound<DotIncomplete<'a, I>> for Complex
 where
     I: Iterator<Item = (&'a Self, &'a Self)>,
@@ -3683,16 +3646,7 @@ where
     type Round = Round2;
     type Ordering = Ordering2;
     fn assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round2) -> Ordering2 {
-        let pairs = src.values.collect::<Vec<_>>();
-        let mut prods = prods_real(&pairs);
-        let ret_real = self
-            .mut_real()
-            .assign_round(Float::sum(prods.iter()), round.0);
-        prods_imag(&mut prods, &pairs);
-        let ret_imag = self
-            .mut_imag()
-            .assign_round(Float::sum(prods.iter()), round.1);
-        (ret_real, ret_imag)
+        xmpc::dot(self, src.values, round)
     }
 }
 
@@ -3725,16 +3679,7 @@ where
     type Round = Round2;
     type Ordering = Ordering2;
     fn add_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round2) -> Ordering2 {
-        let pairs = src.values.collect::<Vec<_>>();
-        let mut prods = prods_real(&pairs);
-        let ret_real = self
-            .mut_real()
-            .add_assign_round(Float::sum(prods.iter()), round.0);
-        prods_imag(&mut prods, &pairs);
-        let ret_imag = self
-            .mut_imag()
-            .add_assign_round(Float::sum(prods.iter()), round.1);
-        (ret_real, ret_imag)
+        xmpc::dot_including_old(self, src.values, round)
     }
 }
 

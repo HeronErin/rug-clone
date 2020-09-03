@@ -20,15 +20,16 @@ use crate::Integer;
 use crate::Rational;
 use crate::{
     complex::SmallComplex,
-    ext::xmpfr::{self, ordering1, raw_round, OptFloat},
+    ext::xmpfr::{self, ordering1, raw_round, OptFloat, EXP_ZERO},
     float::Round,
     misc::UnwrappedCast,
     Complex, Float,
 };
-use core::{cmp::Ordering, mem::MaybeUninit};
+use core::{cmp::Ordering, mem::MaybeUninit, ptr::NonNull};
 use gmp_mpfr_sys::{
+    gmp::{self, limb_t},
     mpc::{self, mpc_t, rnd_t},
-    mpfr::prec_t,
+    mpfr::{mpfr_t, prec_t},
 };
 use libc::{c_int, c_long, c_ulong};
 
@@ -216,6 +217,64 @@ pub unsafe fn sum_raw(rop: *mut mpc_t, pointers: &[*const mpc_t], rnd: Round2) -
     let n = pointers.len().unwrapped_cast();
     let tab = cast_ptr!(pointers.as_ptr(), *mut mpc_t);
     ordering2(mpc::sum(rop, tab, n, raw_round2(rnd)))
+}
+
+pub fn dot<'a, I>(rop: &mut Complex, values: I, rnd: Round2) -> Ordering2
+where
+    I: Iterator<Item = (&'a Complex, &'a Complex)>,
+{
+    let (pointers_a, pointers_b): (Vec<_>, Vec<_>) =
+        values.map(|(a, b)| (a.as_raw(), b.as_raw())).unzip();
+    unsafe { dot_raw(rop.as_raw_mut(), &pointers_a, &pointers_b, rnd) }
+}
+
+// add original value of rop to dot
+pub fn dot_including_old<'a, I>(rop: &mut Complex, values: I, rnd: Round2) -> Ordering2
+where
+    I: Iterator<Item = (&'a Complex, &'a Complex)>,
+{
+    const LIMB_ONE: limb_t = 1;
+    const LIMB_MSB: limb_t = LIMB_ONE << (gmp::LIMB_BITS - 1);
+    const ONE: mpc_t = mpc_t {
+        re: mpfr_t {
+            prec: 1,
+            sign: 1,
+            exp: 1,
+            d: unsafe { NonNull::new_unchecked(&LIMB_MSB as *const limb_t as *mut limb_t) },
+        },
+        im: mpfr_t {
+            prec: 1,
+            sign: 1,
+            exp: EXP_ZERO,
+            d: unsafe { NonNull::new_unchecked(&LIMB_MSB as *const limb_t as *mut limb_t) },
+        },
+    };
+
+    let rop = rop.as_raw_mut();
+    let capacity = values.size_hint().0.checked_add(1).expect("overflow");
+    let mut pointers_a = Vec::with_capacity(capacity);
+    let mut pointers_b = Vec::with_capacity(capacity);
+    pointers_a.push(rop as *const mpc_t);
+    pointers_b.push(&ONE as *const mpc_t);
+    for a_b in values {
+        pointers_a.push(a_b.0.as_raw());
+        pointers_b.push(a_b.1.as_raw());
+    }
+    unsafe { dot_raw(rop, &pointers_a, &pointers_b, rnd) }
+}
+
+// pointers_a and pointers_b must have same length
+unsafe fn dot_raw(
+    rop: *mut mpc_t,
+    pointers_a: &[*const mpc_t],
+    pointers_b: &[*const mpc_t],
+    rnd: Round2,
+) -> Ordering2 {
+    debug_assert_eq!(pointers_a.len(), pointers_b.len());
+    let n = pointers_a.len().unwrapped_cast();
+    let a = cast_ptr!(pointers_a.as_ptr(), *mut mpc_t);
+    let b = cast_ptr!(pointers_b.as_ptr(), *mut mpc_t);
+    ordering2(mpc::dot(rop, a, b, n, raw_round2(rnd)))
 }
 
 unsafe_wrap! { fn set(op: O) -> mpc::set }
