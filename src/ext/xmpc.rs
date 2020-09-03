@@ -22,12 +22,13 @@ use crate::{
     complex::SmallComplex,
     ext::xmpfr::{self, ordering1, raw_round, OptFloat},
     float::Round,
+    misc::UnwrappedCast,
     Complex, Float,
 };
 use core::{cmp::Ordering, mem::MaybeUninit};
 use gmp_mpfr_sys::{
     mpc::{self, mpc_t, rnd_t},
-    mpfr::{mpfr_t, prec_t},
+    mpfr::prec_t,
 };
 use libc::{c_int, c_long, c_ulong};
 
@@ -194,20 +195,8 @@ pub fn sum<'a, I>(rop: &mut Complex, values: I, rnd: Round2) -> Ordering2
 where
     I: Iterator<Item = &'a Complex>,
 {
-    let (real, imag) = rop.as_mut_real_imag();
-    let capacity = values.size_hint().0;
-    let mut pointers_real = Vec::<*const mpfr_t>::with_capacity(capacity);
-    let mut pointers_imag = Vec::<*const mpfr_t>::with_capacity(capacity);
-    for value in values {
-        pointers_real.push(value.real().as_raw());
-        pointers_imag.push(value.imag().as_raw());
-    }
-    unsafe {
-        (
-            xmpfr::sum_raw(real.as_raw_mut(), &pointers_real, rnd.0),
-            xmpfr::sum_raw(imag.as_raw_mut(), &pointers_imag, rnd.1),
-        )
-    }
+    let pointers = values.map(Complex::as_raw).collect::<Vec<_>>();
+    unsafe { sum_raw(rop.as_raw_mut(), &pointers, rnd) }
 }
 
 // add original value of rop to sum
@@ -215,23 +204,18 @@ pub fn sum_including_old<'a, I>(rop: &mut Complex, values: I, rnd: Round2) -> Or
 where
     I: Iterator<Item = &'a Complex>,
 {
-    let (real, imag) = rop.as_mut_real_imag();
-    let (real, imag) = (real.as_raw_mut(), imag.as_raw_mut());
+    let rop = rop.as_raw_mut();
     let capacity = values.size_hint().0.checked_add(1).expect("overflow");
-    let mut pointers_real = Vec::with_capacity(capacity);
-    let mut pointers_imag = Vec::with_capacity(capacity);
-    pointers_real.push(real as *const mpfr_t);
-    pointers_imag.push(imag as *const mpfr_t);
-    for value in values {
-        pointers_real.push(value.real().as_raw());
-        pointers_imag.push(value.imag().as_raw());
-    }
-    unsafe {
-        (
-            xmpfr::sum_raw(real, &pointers_real, rnd.0),
-            xmpfr::sum_raw(imag, &pointers_imag, rnd.1),
-        )
-    }
+    let mut pointers = Vec::with_capacity(capacity);
+    pointers.push(rop as *const mpc_t);
+    pointers.extend(values.map(Complex::as_raw));
+    unsafe { sum_raw(rop, &pointers, rnd) }
+}
+
+pub unsafe fn sum_raw(rop: *mut mpc_t, pointers: &[*const mpc_t], rnd: Round2) -> Ordering2 {
+    let n = pointers.len().unwrapped_cast();
+    let tab = cast_ptr!(pointers.as_ptr(), *mut mpc_t);
+    ordering2(mpc::sum(rop, tab, n, raw_round2(rnd)))
 }
 
 unsafe_wrap! { fn set(op: O) -> mpc::set }
