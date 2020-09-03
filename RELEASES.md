@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.11.0 (unreleased)
+Version 1.11.0 (2020-09-03)
 ===========================
 
   * The [gmp-mpfr-sys] dependency was updated to [version
