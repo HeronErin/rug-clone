@@ -629,6 +629,12 @@ pub fn get_prec(op: &Float) -> prec_t {
 }
 
 #[inline]
+pub fn get_str_ndigits(b: i32, prec: prec_t) -> usize {
+    assert!(2 <= b && b <= 62, "radix out of range");
+    unsafe { mpfr::get_str_ndigits(b.into(), prec) }
+}
+
+#[inline]
 pub fn cmp(op1: &Float, op2: &Float) -> Ordering {
     ordering1(unsafe { mpfr::cmp(op1.as_raw(), op2.as_raw()) })
 }

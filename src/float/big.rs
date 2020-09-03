@@ -9636,18 +9636,11 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
 
 pub(crate) fn req_digits(f: &Float, format: Format) -> usize {
     let digits = format.precision.unwrap_or(0);
-    let log2_radix = f64::from(format.radix).log2();
     if digits > 0 {
         digits
     } else {
-        let p = if (format.radix.wrapping_as::<u32>()).is_power_of_two() {
-            f.prec() - 1
-        } else {
-            f.prec()
-        };
-        // p is u32, dividing can only decrease it, so m fits in u32
-        let m = (f64::from(p) / log2_radix).ceil().az::<u32>();
-        m.unwrapped_as::<usize>().checked_add(2).expect("overflow")
+        let m = xmpfr::get_str_ndigits(format.radix, xmpfr::get_prec(f));
+        m.checked_add(1).expect("overflow")
     }
 }
 
