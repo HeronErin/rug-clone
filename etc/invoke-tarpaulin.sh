@@ -10,7 +10,7 @@
 set -e
 shopt -s globstar
 
-# This filter script is for tarpaulin 0.14.2:
+# This filter script is for tarpaulin 0.14.3:
 
 FILTER_SCRIPT='
 # modify uncovered lines list
