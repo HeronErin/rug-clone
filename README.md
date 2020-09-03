@@ -35,7 +35,10 @@ option) any later version. See the full text of the [GNU LGPL] and
 
   * The [gmp-mpfr-sys][sys crate] dependency was updated to [version
     1.4][sys-1-4].
+  * Now it is possible to display [`Float`][flo-1-11] numbers with
+    only one siginificant digit.
 
+[flo-1-11]: https://docs.rs/rug/~1.11/rug/struct.Float.html
 [sys-1-4]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html
 
 ### Version 1.10.0 news (2020-07-23)

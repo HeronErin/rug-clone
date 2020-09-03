@@ -1368,10 +1368,7 @@ impl Float {
         // add 1 for nul terminator
         let size = req_digits(f, format) + 1;
         let mut s = String::with_capacity(size);
-        let digits = format
-            .precision
-            .map(|x| if x == 1 { 2 } else { x })
-            .unwrap_or(0);
+        let digits = format.precision.unwrap_or(0);
         let exp: exp_t;
         unsafe {
             let vec = s.as_mut_vec();
@@ -9638,10 +9635,7 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
 }
 
 pub(crate) fn req_digits(f: &Float, format: Format) -> usize {
-    let digits = format
-        .precision
-        .map(|x| if x == 1 { 2 } else { x })
-        .unwrap_or(0);
+    let digits = format.precision.unwrap_or(0);
     let log2_radix = f64::from(format.radix).log2();
     if digits > 0 {
         digits
@@ -9693,10 +9687,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     } else {
         format.radix
     };
-    let digits = format
-        .precision
-        .map(|x| if x == 1 { 2 } else { x })
-        .unwrap_or(0);
+    let digits = format.precision.unwrap_or(0);
     let mut exp: exp_t;
     unsafe {
         let vec = s.as_mut_vec();
