@@ -251,11 +251,11 @@ impl Rational {
     /// assert_eq!(*R.denom(), *check.denom());
     /// ```
     ///
-    /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
+    /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
     /// [`Rational`]: struct.Rational.html
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpq_t.html
-    /// [gmp mpq]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/C/GMP/constant.Rational_Number_Functions.html#index-Rational-number-functions
-    /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [gmp mpq]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Rational_Number_Functions.html#index-Rational-number-functions
+    /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
@@ -282,7 +282,7 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn into_raw(self) -> mpq_t {
         let m = ManuallyDrop::new(self);
@@ -309,7 +309,7 @@ impl Rational {
     /// assert_eq!(r, (-145, 10));
     /// ```
     ///
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpq_t {
         &self.inner
@@ -334,7 +334,7 @@ impl Rational {
     /// assert_eq!(r, (-10, 145));
     /// ```
     ///
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpq_t {
         &mut self.inner

@@ -499,7 +499,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
-    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpfr_t) -> Self {
         Float { inner: raw }
@@ -526,7 +526,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
-    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn into_raw(self) -> mpfr_t {
         let m = ManuallyDrop::new(self);
@@ -554,7 +554,7 @@ impl Float {
     /// assert_eq!(f, -14.5);
     /// ```
     ///
-    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpfr_t {
         &self.inner
@@ -579,7 +579,7 @@ impl Float {
     /// assert_eq!(f, -4.5);
     /// ```
     ///
-    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpfr_t {
         &mut self.inner

@@ -395,7 +395,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }
@@ -429,7 +429,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn into_raw(self) -> mpc_t {
         let m = ManuallyDrop::new(self);
@@ -463,7 +463,7 @@ impl Complex {
     /// assert_eq!(c, (-14.5, 3.25));
     /// ```
     ///
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpc_t {
         &self.inner
@@ -488,7 +488,7 @@ impl Complex {
     /// assert_eq!(c, (-14.5, -3.25));
     /// ```
     ///
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpc_t {
         &mut self.inner
