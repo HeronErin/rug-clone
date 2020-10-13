@@ -221,8 +221,8 @@ values:
  2. Convert them to the final value using the [`From`] trait or a
     similar method, for example
     <code>[Integer][`Integer`]::[from][`From::from`](incomplete)</code>
-    and <code>[Float][`Float`]::[with_val][`with_val`](53,
-    incomplete)</code>.
+    and
+    <code>[Float][`Float`]::[with_val][`with_val`](53, incomplete)</code>.
 
 Let us consider a couple of examples.
 
@@ -261,24 +261,23 @@ The precision to use for the result depends on the requirements of the
 algorithm being implemented. Here `z` is created with a precision
 of 45.
 
-Many operations can return incomplete-computation values:
+Many operations can return incomplete-computation values, for example
 
-  * unary operators applied to references, for example `-&int`;
+  * unary operators applied to references, for example `-&int`
   * binary operators applied to two references, for example
-    `&int1 + &int2`;
+    `&int1 + &int2`
   * binary operators applied to a primitive and a reference, for
-    example `&int * 10`;
+    example `&int * 10`
   * methods that take a reference, for example
-    <code>int.[abs_ref][`abs_ref`]()</code>;
+    <code>int.[abs_ref][`abs_ref`]()</code>
   * methods that take two references, for example
-    <code>int1.[gcd_ref][`gcd_ref`](&amp;int2)</code>;
+    <code>int1.[gcd_ref][`gcd_ref`](&amp;int2)</code>
   * string parsing, for example
-    <code>[Integer][`Integer`]::[parse][`parse`]("12")</code>;
-  * and more.
+    <code>[Integer][`Integer`]::[parse][`parse`]("12")</code>
 
 These operations return objects that can be stored in temporary
-variables like `incomplete` in the last few examples. However, the
-names of the types are not public, and consequently, the
+variables like `incomplete` in the last few code examples. However,
+the names of the types are not public, and consequently, the
 incomplete-computation values cannot be for example stored in a
 struct. If you need to store the value in a struct, convert it to its
 final type and value.
