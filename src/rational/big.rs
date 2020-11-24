@@ -681,6 +681,17 @@ impl Rational {
     /// and denominator are in canonical form, as the rest of the
     /// library assumes that they are.
     ///
+    /// There are a few methods that can be called on [`Rational`]
+    /// numbers that are not in canonical form:
+    ///
+    ///   * [`numer`] and [`denom`], which treat the numerator and
+    ///     denominator separately
+    ///   * assignment methods, which overwrite the previous value and
+    ///     leave the number in canonical form
+    ///   * [`mutate_numer_denom`], which treats the numerator and
+    ///     denominator seprarately, and leaves the number in
+    ///     canoncial form
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -692,6 +703,9 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`denom`]: #method.denom
+    /// [`mutate_numer_denom`]: #method.mutate_numer_denom
+    /// [`numer`]: #method.numer
     pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
     where
         Integer: From<Num> + From<Den>,
@@ -712,6 +726,17 @@ impl Rational {
     /// ensure that the numerator and denominator are in canonical
     /// form, as the rest of the library assumes that they are.
     ///
+    /// There are a few methods that can be called on [`Rational`]
+    /// numbers that are not in canonical form:
+    ///
+    ///   * [`numer`] and [`denom`], which treat the numerator and
+    ///     denominator separately
+    ///   * assignment methods, which overwrite the previous value and
+    ///     leave the number in canonical form
+    ///   * [`mutate_numer_denom`], which treats the numerator and
+    ///     denominator seprarately, and leaves the number in
+    ///     canoncial form
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -726,6 +751,9 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`denom`]: #method.denom
+    /// [`mutate_numer_denom`]: #method.mutate_numer_denom
+    /// [`numer`]: #method.numer
     pub unsafe fn assign_canonical<Num, Den>(&mut self, num: Num, den: Den)
     where
         Integer: Assign<Num> + Assign<Den>,
@@ -835,6 +863,17 @@ impl Rational {
     /// canonical form, as the rest of the library assumes that they
     /// are.
     ///
+    /// There are a few methods that can be called on [`Rational`]
+    /// numbers that are not in canonical form:
+    ///
+    ///   * [`numer`] and [`denom`], which treat the numerator and
+    ///     denominator separately
+    ///   * assignment methods, which overwrite the previous value and
+    ///     leave the number in canonical form
+    ///   * [`mutate_numer_denom`], which treats the numerator and
+    ///     denominator seprarately, and leaves the number in
+    ///     canoncial form
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -874,6 +913,9 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`denom`]: #method.denom
+    /// [`mutate_numer_denom`]: #method.mutate_numer_denom
+    /// [`numer`]: #method.numer
     #[inline]
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
