@@ -1334,7 +1334,7 @@ impl Float {
         num_digits: Option<usize>,
         round: Round,
     ) -> (bool, String, Option<i32>) {
-        assert!(radix >= 2 && radix <= 36, "radix {} out of range", radix);
+        assert!((2..=36).contains(&radix), "radix {} out of range", radix);
         let sign = self.is_sign_negative();
         if self.is_zero() {
             return (sign, String::from("0"), None);
@@ -9782,7 +9782,7 @@ macro_rules! parse_error {
 }
 
 fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatError> {
-    assert!(radix >= 2 && radix <= 36, "radix {} out of range", radix);
+    assert!((2..=36).contains(&radix), "radix {} out of range", radix);
     let bradix = radix.unwrapped_as::<u8>();
     let small_bound = b'a' - 10 + bradix;
     let capital_bound = b'A' - 10 + bradix;

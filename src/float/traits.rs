@@ -329,6 +329,7 @@ impl TryFrom<&Float> for Rational {
     }
 }
 
+#[allow(clippy::manual_strip)]
 // overwrites format.precision
 fn fmt_radix(flt: &Float, fmt: &mut Formatter<'_>, format: Format, prefix: &str) -> FmtResult {
     let format = Format {

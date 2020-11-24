@@ -639,6 +639,7 @@ impl Rational {
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     #[inline]
+    #[allow(clippy::result_unit_err)]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val.into())
     }
@@ -662,6 +663,7 @@ impl Rational {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     #[inline]
+    #[allow(clippy::result_unit_err)]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
             xmpq::set_f64(self, val);
@@ -2854,7 +2856,7 @@ from_assign! { ParseIncomplete => Rational }
 fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError> {
     use self::{ParseErrorKind as Kind, ParseRationalError as Error};
 
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    assert!((2..=36).contains(&radix), "radix out of range");
     let bradix = radix.unwrapped_as::<u8>();
 
     let mut digits = Vec::with_capacity(bytes.len() + 1);

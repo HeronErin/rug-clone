@@ -630,7 +630,7 @@ pub fn get_prec(op: &Float) -> prec_t {
 
 #[inline]
 pub fn get_str_ndigits(b: i32, prec: prec_t) -> usize {
-    assert!(2 <= b && b <= 62, "radix out of range");
+    assert!((2..=62).contains(&b), "radix out of range");
     unsafe { mpfr::get_str_ndigits(b.into(), prec) }
 }
 

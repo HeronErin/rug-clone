@@ -175,6 +175,7 @@ impl AsMut<Complex> for OrdComplex {
     }
 }
 
+#[allow(clippy::eq_op)]
 #[cfg(test)]
 mod tests {
     use crate::{

@@ -218,6 +218,7 @@ impl AsMut<Float> for OrdFloat {
     }
 }
 
+#[allow(clippy::eq_op)]
 #[cfg(test)]
 mod tests {
     use crate::{

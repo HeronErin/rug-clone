@@ -245,6 +245,7 @@ impl UpperHex for Integer {
     }
 }
 
+#[allow(clippy::manual_strip)]
 fn fmt_radix(
     i: &Integer,
     f: &mut Formatter<'_>,
