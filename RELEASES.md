@@ -5,6 +5,13 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.12.0 (unreleased)
+===========================
+
+  * The [*az* crate] dependency was updated to [version 1.1][az-1-1].
+
+[az-1-1]: https://docs.rs/az/~1.1/az/index.html
+
 Version 1.11.0 (2020-09-03)
 ===========================
 
@@ -68,9 +75,6 @@ Compatibility note
 The output of [`Float`][flo-1-9] and [`Complex`][com-1-9] numbers was
 changed as specified above.
 
-[*az* crate]: https://crates.io/crates/az
-[`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
-[`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
 [com-1-9]: https://docs.rs/rug/~1.9/rug/struct.Complex.html
 [flo-1-9]: https://docs.rs/rug/~1.9/rug/struct.Float.html
 [flo-ce-1-9]: https://docs.rs/rug/~1.9/rug/struct.Float.html#method.clamp_exp
@@ -669,9 +673,11 @@ Version 0.6.0 (2017-08-09)
   * Add `OrdFloat` and `OrdComplex` for complete ordering.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
+[*az* crate]: https://crates.io/crates/az
 [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
 [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
 [`Default`]: https://doc.rust-lang.org/nightly/core/default/trait.Default.html
+[`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
 [`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
 [`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
 [`Product`]: https://doc.rust-lang.org/nightly/core/iter/trait.Product.html
@@ -682,6 +688,7 @@ Version 0.6.0 (2017-08-09)
 [`Sum`]: https://doc.rust-lang.org/nightly/core/iter/trait.Sum.html
 [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+[`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
 [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
 [`deref`]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html

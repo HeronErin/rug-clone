@@ -17,10 +17,10 @@
 use crate::{
     ext::xmpfr::{self, raw_round},
     float::{self, Round, Special},
-    misc::{NegAbs, UnwrappedCast},
+    misc::NegAbs,
     Assign, Float,
 };
-use az::{Az, WrappingCast};
+use az::{Az, UnwrappedCast, WrappingCast};
 use core::{
     cell::UnsafeCell,
     mem::{self, MaybeUninit},

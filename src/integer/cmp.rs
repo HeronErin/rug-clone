@@ -14,7 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpz, misc::UnwrappedAs, Integer};
+use crate::{ext::xmpz, Integer};
+use az::UnwrappedAs;
 use core::cmp::Ordering;
 
 impl Eq for Integer {}

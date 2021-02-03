@@ -16,14 +16,8 @@
 
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
-use crate::{
-    ext::xmpz,
-    integer::Order,
-    misc::{self, UnwrappedAs, UnwrappedCast},
-    ops::DivRounding,
-    Assign,
-};
-use az::{Az, Cast, CheckedCast, WrappingCast};
+use crate::{ext::xmpz, integer::Order, misc, ops::DivRounding, Assign};
+use az::{Az, Cast, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingCast};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},

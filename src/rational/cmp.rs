@@ -14,11 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpq,
-    misc::{NegAbs, UnwrappedAs, UnwrappedCast},
-    Integer, Rational,
-};
+use crate::{ext::xmpq, misc::NegAbs, Integer, Rational};
+use az::{UnwrappedAs, UnwrappedCast};
 use core::cmp::Ordering;
 
 impl Eq for Rational {}

@@ -16,33 +16,7 @@
 
 #![allow(dead_code)]
 
-use az::{CheckedCast, WrappingCast};
-
-pub trait UnwrappedCast<Dst> {
-    fn unwrapped_cast(self) -> Dst;
-}
-impl<Dst, Src: CheckedCast<Dst>> UnwrappedCast<Dst> for Src {
-    #[inline]
-    fn unwrapped_cast(self) -> Dst {
-        self.checked_cast().expect("overflow")
-    }
-}
-
-pub trait UnwrappedAs {
-    fn unwrapped_as<Dst>(self) -> Dst
-    where
-        Self: UnwrappedCast<Dst>;
-}
-
-impl<T> UnwrappedAs for T {
-    #[inline]
-    fn unwrapped_as<Dst>(self) -> Dst
-    where
-        Self: UnwrappedCast<Dst>,
-    {
-        self.unwrapped_cast()
-    }
-}
+use az::WrappingCast;
 
 pub trait NegAbs {
     type Abs;

@@ -22,9 +22,9 @@ use crate::{
     complex::SmallComplex,
     ext::xmpfr::{self, ordering1, raw_round, OptFloat, EXP_ZERO},
     float::Round,
-    misc::UnwrappedCast,
     Complex, Float,
 };
+use az::UnwrappedCast;
 use core::{cmp::Ordering, mem::MaybeUninit, ptr::NonNull};
 use gmp_mpfr_sys::{
     gmp::{self, limb_t},

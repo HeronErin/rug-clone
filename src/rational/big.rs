@@ -17,10 +17,9 @@
 use crate::{
     ext::{xmpq, xmpz},
     integer::big as big_integer,
-    misc::{UnwrappedAs, UnwrappedCast},
     Assign, Integer,
 };
-use az::{Cast, CheckedCast};
+use az::{Cast, CheckedCast, UnwrappedAs, UnwrappedCast};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},

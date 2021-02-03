@@ -69,7 +69,8 @@ fn de_data<'de, D: Deserializer<'de>>(deserializer: D) -> Result<(i32, String), 
 
 #[cfg(test)]
 mod tests {
-    use crate::{misc::UnwrappedCast, Assign, Rational};
+    use crate::{Assign, Rational};
+    use az::UnwrappedCast;
     use serde_json::json;
 
     fn assert(a: &Rational, b: &Rational) {

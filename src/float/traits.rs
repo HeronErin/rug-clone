@@ -22,10 +22,10 @@ use crate::{
         big::{self, ExpFormat, Format},
         Constant, OrdFloat, Round, Special,
     },
-    misc::{UnwrappedAs, UnwrappedCast},
     ops::AssignRound,
     Assign, Float,
 };
+use az::{UnwrappedAs, UnwrappedCast};
 use core::{
     cmp::Ordering,
     fmt::{

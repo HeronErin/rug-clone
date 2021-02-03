@@ -33,10 +33,11 @@ use crate::{
         },
         ParseFloatError, Round, Special,
     },
-    misc::{self, UnwrappedCast},
+    misc,
     ops::{AddAssignRound, AssignRound},
     Assign, Float,
 };
+use az::UnwrappedCast;
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},

@@ -22,11 +22,11 @@ use crate::Integer;
 use crate::Rational;
 use crate::{
     float::{Round, SmallFloat, Special},
-    misc::{NegAbs, UnwrappedCast},
+    misc::NegAbs,
     ops::NegAssign,
     Float,
 };
-use az::CheckedAs;
+use az::{CheckedAs, UnwrappedCast};
 use core::{cmp::Ordering, mem::MaybeUninit, ptr::NonNull};
 use gmp_mpfr_sys::{
     gmp::{self, limb_t},

@@ -16,12 +16,12 @@
 
 use crate::{
     ext::xmpz::{self, OptInteger},
-    misc::{NegAbs, UnwrappedAs, UnwrappedCast},
+    misc::NegAbs,
     ops::{NegAssign, SubFrom},
     rational::SmallRational,
     Assign, Integer, Rational,
 };
-use az::{Az, CheckedAs};
+use az::{Az, CheckedAs, UnwrappedAs, UnwrappedCast};
 use core::{
     cmp::Ordering,
     mem::{self, MaybeUninit},

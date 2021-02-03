@@ -25,11 +25,11 @@ use crate::{
         arith::{AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete},
         OrdFloat, Round, SmallFloat, Special,
     },
-    misc::{self, UnwrappedAs, UnwrappedCast},
+    misc,
     ops::{AddAssignRound, AssignRound, DivRounding, NegAssign},
     Assign,
 };
-use az::{Az, CheckedCast, SaturatingCast, WrappingAs};
+use az::{Az, CheckedCast, SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs};
 use core::{
     cmp::Ordering,
     fmt::{Display, Formatter, Result as FmtResult},

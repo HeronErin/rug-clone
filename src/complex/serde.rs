@@ -18,10 +18,10 @@ use crate::{
     complex::OrdComplex,
     ext::xmpfr,
     float,
-    misc::UnwrappedCast,
     serdeize::{self, Data, PrecReq, PrecVal},
     Assign, Complex,
 };
+use az::UnwrappedCast;
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError},
     ser::{Serialize, Serializer},
@@ -111,9 +111,9 @@ impl<'de> Deserialize<'de> for OrdComplex {
 mod tests {
     use crate::{
         float::{self, FreeCache, Special},
-        misc::UnwrappedCast,
         Assign, Complex,
     };
+    use az::UnwrappedCast;
     use serde_json::json;
 
     fn assert(a: &Complex, b: &Complex) {

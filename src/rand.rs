@@ -48,11 +48,8 @@ Both [`RandState`] and [`ThreadRandState`] implement the
 [`random_below`]: ../struct.Integer.html#method.random_below
 */
 
-use crate::{
-    misc::{UnwrappedAs, UnwrappedCast},
-    Integer,
-};
-use az::Cast;
+use crate::Integer;
+use az::{Cast, UnwrappedAs, UnwrappedCast};
 use core::{
     marker::PhantomData,
     mem::{ManuallyDrop, MaybeUninit},

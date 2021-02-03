@@ -31,6 +31,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.12.0 news (unreleased)
+
+  * The [*az* crate] dependency was updated to [version 1.1][az-1-1].
+
+[*az* crate]: https://crates.io/crates/az
+[az-1-1]: https://docs.rs/az/~1.1/az/index.html
+
 ### Version 1.11.0 news (2020-09-03)
 
   * The [gmp-mpfr-sys][sys crate] dependency was updated to [version
