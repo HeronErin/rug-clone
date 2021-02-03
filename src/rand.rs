@@ -595,7 +595,7 @@ This is similar to [`RandState`] but can only be used in a single thread.
 
 ```rust
 use rug::rand::ThreadRandState;
-# struct Gen { _dummy: *const i32, seed: u64 };
+# struct Gen { _dummy: *const i32, seed: u64 }
 # impl rug::rand::ThreadRandGen for Gen {
 #     fn gen(&mut self) -> u32 {
 #         self.seed = self.seed.wrapping_mul(0x5851_F42D_4C95_7F2D).wrapping_add(1);
@@ -826,7 +826,7 @@ impl ThreadRandState<'_> {
     /// ```rust
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::ThreadRandState;
-    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # struct Gen { _dummy: *const i32, seed: u64 }
     /// # impl rug::rand::ThreadRandGen for Gen {
     /// #     fn gen(&mut self) -> u32 {
     /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
@@ -876,7 +876,7 @@ impl ThreadRandState<'_> {
     ///
     /// ```rust
     /// use rug::rand::ThreadRandState;
-    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # struct Gen { _dummy: *const i32, seed: u64 }
     /// # impl rug::rand::ThreadRandGen for Gen {
     /// #     fn gen(&mut self) -> u32 {
     /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
@@ -915,7 +915,7 @@ impl ThreadRandState<'_> {
     /// ```rust
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::ThreadRandState;
-    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # struct Gen { _dummy: *const i32, seed: u64 }
     /// # impl rug::rand::ThreadRandGen for Gen {
     /// #     fn gen(&mut self) -> u32 {
     /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
@@ -1003,7 +1003,7 @@ impl ThreadRandState<'_> {
     /// ```rust
     /// use rug::{rand::ThreadRandState, Integer};
     /// # use az::WrappingCast;
-    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # struct Gen { _dummy: *const i32, seed: u64 }
     /// # impl rug::rand::ThreadRandGen for Gen {
     /// #     fn gen(&mut self) -> u32 {
     /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
@@ -1048,7 +1048,7 @@ impl ThreadRandState<'_> {
     ///
     /// ```rust
     /// use rug::rand::ThreadRandState;
-    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # struct Gen { _dummy: *const i32, seed: u64 }
     /// # impl rug::rand::ThreadRandGen for Gen {
     /// #     fn gen(&mut self) -> u32 {
     /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
@@ -1083,7 +1083,7 @@ impl ThreadRandState<'_> {
     ///
     /// ```rust
     /// use rug::rand::ThreadRandState;
-    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # struct Gen { _dummy: *const i32, seed: u64 }
     /// # impl rug::rand::ThreadRandGen for Gen {
     /// #     fn gen(&mut self) -> u32 {
     /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
@@ -1255,7 +1255,7 @@ pub trait RandGen: Send + Sync {
     /// };
     /// struct Seed {
     ///     inner: Integer,
-    /// };
+    /// }
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
     ///         self.inner.to_u32_wrapping()
