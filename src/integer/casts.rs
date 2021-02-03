@@ -398,9 +398,10 @@ mod tests {
     use crate::Integer;
     use az::{
         Az, Cast, CheckedAs, CheckedCast, OverflowingAs, OverflowingCast, Round, SaturatingAs,
-        SaturatingCast, WrappingAs, WrappingCast,
+        SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast,
     };
     use core::{borrow::Borrow, f32, f64, fmt::Debug};
+    use std::panic;
 
     #[test]
     fn check_bool() {
@@ -413,8 +414,12 @@ mod tests {
     fn check_there_and_back<T>(min: T, max: T)
     where
         T: Copy + Debug + Eq + Cast<Integer>,
-        for<'a> &'a Integer:
-            Cast<T> + CheckedCast<T> + SaturatingCast<T> + WrappingCast<T> + OverflowingCast<T>,
+        for<'a> &'a Integer: Cast<T>
+            + CheckedCast<T>
+            + SaturatingCast<T>
+            + WrappingCast<T>
+            + OverflowingCast<T>
+            + UnwrappedCast<T>,
     {
         let min_int: Integer = min.az::<Integer>();
         let max_int: Integer = max.az::<Integer>();
@@ -428,6 +433,8 @@ mod tests {
         assert_eq!(max_int.borrow().wrapping_as::<T>(), max);
         assert_eq!(min_int.borrow().overflowing_as::<T>(), (min, false));
         assert_eq!(max_int.borrow().overflowing_as::<T>(), (max, false));
+        assert_eq!(min_int.borrow().unwrapped_as::<T>(), min);
+        assert_eq!(max_int.borrow().unwrapped_as::<T>(), max);
 
         let too_small: Integer = min_int - 1;
         let too_large: Integer = max_int + 1;
@@ -439,6 +446,8 @@ mod tests {
         assert_eq!(too_large.borrow().wrapping_as::<T>(), min);
         assert_eq!(too_small.borrow().overflowing_as::<T>(), (max, true));
         assert_eq!(too_large.borrow().overflowing_as::<T>(), (min, true));
+        assert!(panic::catch_unwind(|| too_small.borrow().unwrapped_as::<T>()).is_err());
+        assert!(panic::catch_unwind(|| too_large.borrow().unwrapped_as::<T>()).is_err());
     }
 
     #[test]
@@ -463,7 +472,9 @@ mod tests {
         let f64_max: Integer = Integer::from((1u64 << 53) - 1) << (1023 - 52);
 
         assert_eq!(f32::NAN.checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| f32::NAN.unwrapped_as::<Integer>()).is_err());
         assert_eq!(f32::NEG_INFINITY.checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| f32::NEG_INFINITY.unwrapped_as::<Integer>()).is_err());
         assert_eq!((-f32::MAX).az::<Integer>(), *f32_max.as_neg());
         assert_eq!((-2f32).az::<Integer>(), -2);
         assert_eq!((-1.99f32).az::<Integer>(), -1);
@@ -475,9 +486,12 @@ mod tests {
         assert_eq!(2f32.az::<Integer>(), 2);
         assert_eq!(f32::MAX.az::<Integer>(), f32_max);
         assert_eq!(f32::INFINITY.checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| f32::INFINITY.unwrapped_as::<Integer>()).is_err());
 
         assert_eq!(f64::NAN.checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| f64::NAN.unwrapped_as::<Integer>()).is_err());
         assert_eq!(f64::NEG_INFINITY.checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| f64::NEG_INFINITY.unwrapped_as::<Integer>()).is_err());
         assert_eq!((-f64::MAX).az::<Integer>(), *f64_max.as_neg());
         assert_eq!((-2f64).az::<Integer>(), -2);
         assert_eq!((-1.99f64).az::<Integer>(), -1);
@@ -489,6 +503,7 @@ mod tests {
         assert_eq!(2f64.az::<Integer>(), 2);
         assert_eq!(f64::MAX.az::<Integer>(), f64_max);
         assert_eq!(f64::INFINITY.checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| f64::INFINITY.unwrapped_as::<Integer>()).is_err());
 
         let zero: Integer = Integer::new();
         let one: Integer = Integer::from(1);
@@ -534,7 +549,11 @@ mod tests {
         let f64_max: Integer = Integer::from((1u64 << 53) - 1) << (1023 - 52);
 
         assert_eq!(Round(f32::NAN).checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| Round(f32::NAN).unwrapped_as::<Integer>()).is_err());
         assert_eq!(Round(f32::NEG_INFINITY).checked_as::<Integer>(), None);
+        assert!(
+            panic::catch_unwind(|| Round(f32::NEG_INFINITY).unwrapped_as::<Integer>()).is_err()
+        );
         assert_eq!(Round(-f32::MAX).az::<Integer>(), *f32_max.as_neg());
         assert_eq!(Round(-4f32).az::<Integer>(), -4);
         assert_eq!(Round(-3.5f32).az::<Integer>(), -4);
@@ -558,9 +577,14 @@ mod tests {
         assert_eq!(Round(4f32).az::<Integer>(), 4);
         assert_eq!(Round(f32::MAX).az::<Integer>(), f32_max);
         assert_eq!(Round(f32::INFINITY).checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| Round(f32::INFINITY).unwrapped_as::<Integer>()).is_err());
 
         assert_eq!(Round(f64::NAN).checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| Round(f64::NAN).unwrapped_as::<Integer>()).is_err());
         assert_eq!(Round(f64::NEG_INFINITY).checked_as::<Integer>(), None);
+        assert!(
+            panic::catch_unwind(|| Round(f64::NEG_INFINITY).unwrapped_as::<Integer>()).is_err()
+        );
         assert_eq!(Round(-f64::MAX).az::<Integer>(), *f64_max.as_neg());
         assert_eq!(Round(-4f64).az::<Integer>(), -4);
         assert_eq!(Round(-3.5f64).az::<Integer>(), -4);
@@ -584,5 +608,6 @@ mod tests {
         assert_eq!(Round(4f64).az::<Integer>(), 4);
         assert_eq!(Round(f64::MAX).az::<Integer>(), f64_max);
         assert_eq!(Round(f64::INFINITY).checked_as::<Integer>(), None);
+        assert!(panic::catch_unwind(|| Round(f64::INFINITY).unwrapped_as::<Integer>()).is_err());
     }
 }
