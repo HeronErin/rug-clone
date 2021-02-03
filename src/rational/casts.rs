@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ext::xmpq, misc, Integer, Rational};
-use az::{Az, Cast, CheckedCast};
+use az::{Az, Cast, CheckedCast, UnwrappedCast};
 
 macro_rules! cast_int {
     ($Prim:ty) => {
@@ -66,6 +66,13 @@ impl CheckedCast<Rational> for f32 {
     }
 }
 
+impl UnwrappedCast<Rational> for f32 {
+    #[inline]
+    fn unwrapped_cast(self) -> Rational {
+        self.checked_cast().expect("not finite")
+    }
+}
+
 impl Cast<f32> for Rational {
     #[inline]
     fn cast(self) -> f32 {
@@ -97,6 +104,13 @@ impl CheckedCast<Rational> for f64 {
         } else {
             None
         }
+    }
+}
+
+impl UnwrappedCast<Rational> for f64 {
+    #[inline]
+    fn unwrapped_cast(self) -> Rational {
+        self.checked_cast().expect("not finite")
     }
 }
 

@@ -15,7 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ext::xmpz, misc, ops::NegAssign, Integer};
-use az::{Az, Cast, CheckedCast, OverflowingCast, Round, SaturatingCast, WrappingCast};
+use az::{
+    Az, Cast, CheckedCast, OverflowingCast, Round, SaturatingCast, UnwrappedCast, WrappingCast,
+};
 use core::cmp::Ordering;
 
 macro_rules! cast_int {
@@ -105,6 +107,22 @@ macro_rules! cast_int {
                 (self.wrapping_cast(), !$fits(self))
             }
         }
+        impl UnwrappedCast<$Prim> for Integer {
+            #[inline]
+            fn unwrapped_cast(self) -> $Prim {
+                (&self).unwrapped_cast()
+            }
+        }
+        impl UnwrappedCast<$Prim> for &'_ Integer {
+            #[inline]
+            fn unwrapped_cast(self) -> $Prim {
+                if $fits(self) {
+                    self.wrapping_cast()
+                } else {
+                    panic!("overflow")
+                }
+            }
+        }
     };
 }
 
@@ -178,6 +196,13 @@ impl CheckedCast<Integer> for f32 {
     }
 }
 
+impl UnwrappedCast<Integer> for f32 {
+    #[inline]
+    fn unwrapped_cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
+    }
+}
+
 impl Cast<f32> for Integer {
     #[inline]
     fn cast(self) -> f32 {
@@ -229,6 +254,13 @@ impl CheckedCast<Integer> for f64 {
             }
             Some(val)
         }
+    }
+}
+
+impl UnwrappedCast<Integer> for f64 {
+    #[inline]
+    fn unwrapped_cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
     }
 }
 
@@ -296,6 +328,13 @@ impl CheckedCast<Integer> for Round<f32> {
     }
 }
 
+impl UnwrappedCast<Integer> for Round<f32> {
+    #[inline]
+    fn unwrapped_cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
+    }
+}
+
 impl Cast<Integer> for Round<f64> {
     #[inline]
     fn cast(self) -> Integer {
@@ -343,6 +382,13 @@ impl CheckedCast<Integer> for Round<f64> {
             }
             Some(val)
         }
+    }
+}
+
+impl UnwrappedCast<Integer> for Round<f64> {
+    #[inline]
+    fn unwrapped_cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
     }
 }
 

@@ -25,7 +25,10 @@ use az::{Cast, SaturatingAs, SaturatingCast, WrappingAs};
 use core::cmp::Ordering;
 use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "integer")]
-use {crate::Integer, az::CheckedCast};
+use {
+    crate::Integer,
+    az::{CheckedCast, UnwrappedCast},
+};
 
 macro_rules! cast_int {
     ($Prim:ty, $U:ty, $nbits:expr, $unchecked_get:path) => {
@@ -295,6 +298,22 @@ impl CheckedCast<Integer> for &'_ Float {
     }
 }
 
+#[cfg(feature = "integer")]
+impl UnwrappedCast<Integer> for Float {
+    #[inline]
+    fn unwrapped_cast(self) -> Integer {
+        (&self).unwrapped_cast()
+    }
+}
+
+#[cfg(feature = "integer")]
+impl UnwrappedCast<Integer> for &'_ Float {
+    #[inline]
+    fn unwrapped_cast(self) -> Integer {
+        self.checked_cast().expect("not finite")
+    }
+}
+
 #[cfg(feature = "rational")]
 impl Cast<Rational> for Float {
     #[inline]
@@ -329,6 +348,22 @@ impl CheckedCast<Rational> for &'_ Float {
         let mut r = Rational::new();
         xmpfr::get_q(&mut r, self);
         Some(r)
+    }
+}
+
+#[cfg(feature = "rational")]
+impl UnwrappedCast<Rational> for Float {
+    #[inline]
+    fn unwrapped_cast(self) -> Rational {
+        (&self).unwrapped_cast()
+    }
+}
+
+#[cfg(feature = "rational")]
+impl UnwrappedCast<Rational> for &'_ Float {
+    #[inline]
+    fn unwrapped_cast(self) -> Rational {
+        self.checked_cast().expect("not finite")
     }
 }
 
