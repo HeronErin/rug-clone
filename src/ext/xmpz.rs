@@ -151,12 +151,12 @@ pub fn set<O: OptInteger>(rop: &mut Integer, op: O) {
 
 #[inline]
 pub const fn owned_init() -> mpz_t {
-    const UNO_DIEGO_10: limb_t = 0x1D1E_6010;
+    const UNO_DIEGO_10: &limb_t = &0x1D1E_6010;
     // use NonNull::new_unchecked because NonNull::from is not usable in const
     mpz_t {
         alloc: 0,
         size: 0,
-        d: unsafe { NonNull::new_unchecked(&UNO_DIEGO_10 as *const limb_t as *mut limb_t) },
+        d: unsafe { NonNull::new_unchecked(UNO_DIEGO_10 as *const limb_t as *mut limb_t) },
     }
 }
 
