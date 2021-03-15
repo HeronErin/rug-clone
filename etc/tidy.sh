@@ -43,7 +43,7 @@ print_eval_check \
 # integer,rand = rand
 # float,complex = complex
 for features in \
-    '' gmp-mpfr-sys{,/mpfr,/mpc} \
+    '' gmp-mpfr-sys{,\ gmp-mpfr-sys/{mpfr,mpc}} \
     integer{,\ float,\ complex}{,\ serde} \
     rational{,\ float,\ complex}{,\ rand}{,\ serde} \
     float{,\ rand}{,\ serde} \
