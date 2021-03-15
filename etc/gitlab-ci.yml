@@ -37,7 +37,7 @@ clibs-x86_64-gnulinux:
     - gmp-mpfr-sys-cache/
   script:
   - cargo +$TOOLCHAIN fetch
-  - cargo +$TOOLCHAIN test --no-default-features --features gmp-mpfr-sys/mpc -p gmp-mpfr-sys
+  - cargo +$TOOLCHAIN test --no-default-features --features "gmp-mpfr-sys gmp-mpfr-sys/mpc" -p gmp-mpfr-sys
   artifacts:
     paths:
     - cargo/
@@ -145,7 +145,7 @@ clibs-i686-gnulinux:
     - gmp-mpfr-sys-cache/
   script:
   - cargo +$TOOLCHAIN fetch
-  - cargo +$TOOLCHAIN test --no-default-features --features gmp-mpfr-sys/mpc -p gmp-mpfr-sys
+  - cargo +$TOOLCHAIN test --no-default-features --features "gmp-mpfr-sys gmp-mpfr-sys/mpc" -p gmp-mpfr-sys
   artifacts:
     paths:
     - cargo/
