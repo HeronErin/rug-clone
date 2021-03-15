@@ -43,6 +43,7 @@ install:
 build: false
 
 before_test:
+  - bash -c "if cd ""$USERPROFILE/.cargo/registry"" && [ -d src ]; then rm -r src; fi"
   - bash -c "if cd ""$USERPROFILE/.cargo/registry"" && [ -d cache ]; then find cache -name \*.crate | sort; fi"
   - bash -c "if cd ""$LOCALAPPDATA"" && [ -d gmp-mpfr-sys ]; then find gmp-mpfr-sys -name \*.[ah] | sort; fi"
 
@@ -56,7 +57,7 @@ test_script:
   - cargo +1.37.0-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
 
 after_test:
-  - bash -c "cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate | sort"
+  - bash -c "cd ""$USERPROFILE/.cargo/registry""; for c in cache/*/*.crate; do s=src/${c#cache/}; if [ ! -e ${s/.crate/} ]; then rm -v $c; fi; done; find cache -name \*.crate | sort"
   - bash -c "cd ""$LOCALAPPDATA""; find gmp-mpfr-sys -name \*.[ah] | sort"
   # cache updating bug workaround
   - bash -c "cd ""$LOCALAPPDATA""; find gmp-mpfr-sys -name \*.[ah] | sort > gmp-mpfr-sys/list"
