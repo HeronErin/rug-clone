@@ -9881,7 +9881,9 @@ fn parse_special(
 ) -> Option<Result<ParseIncomplete, ParseFloatError>> {
     let small = if radix <= 10 { Some(()) } else { None };
 
-    let inf10: &[&[u8]] = &[b"inf", b"infinity"];
+    // "infinity" must precede "inf" in inf10, otherwise "infinity"
+    // will be parsed as "inf" with trailing characters.
+    let inf10: &[&[u8]] = &[b"infinity", b"inf"];
     let inf: &[&[u8]] = &[b"@inf@", b"@infinity@"];
     if let Some(after_inf) = small
         .and_then(|()| misc::skip_lcase_match(bytes, inf10))

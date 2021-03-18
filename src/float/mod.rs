@@ -456,6 +456,7 @@ pub(crate) mod tests {
         }
         let good_strings = [
             ("INF", 10, Cmp::inf(false)),
+            ("iNfIniTY", 10, Cmp::inf(false)),
             ("- @iNf@", 16, Cmp::inf(true)),
             ("+0e99", 2, Cmp::F64(0.0)),
             ("-9.9e1", 10, Cmp::F64(-99.0)),
