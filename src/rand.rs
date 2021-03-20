@@ -399,7 +399,7 @@ impl RandState<'_> {
     /// }
     /// ```
     ///
-    /// [`RandState`]: struct.RandState.html
+    /// [`RandState`]: #
     /// [`new_custom_boxed`]: #method.new_custom_boxed
     /// [`new_custom`]: #method.new_custom
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
@@ -846,7 +846,7 @@ impl ThreadRandState<'_> {
     /// ```
     ///
     /// [`RandState`]: struct.RandState.html
-    /// [`ThreadRandState`]: struct.ThreadRandState.html
+    /// [`ThreadRandState`]: #
     /// [`from_raw`]: struct.RandState.html#method.from_raw
     /// [`into_raw`]: struct.RandState.html#method.into_raw
     /// [`new_custom_boxed`]: #method.new_custom_boxed

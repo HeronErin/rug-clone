@@ -232,7 +232,7 @@ impl Complex {
     /// assert_eq!(c2, 0);
     /// ```
     ///
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     #[inline]
     pub fn new<P: Prec>(prec: P) -> Self {
         Self::with_val(prec, (Special::Zero, Special::Zero))
@@ -258,7 +258,7 @@ impl Complex {
     /// assert_eq!(c2, (42, 0));
     /// ```
     ///
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     #[inline]
     pub fn with_val<P, T>(prec: P, val: T) -> Self
     where
@@ -291,7 +291,7 @@ impl Complex {
     /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
     ///
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     #[inline]
     pub fn with_val_round<P, T>(prec: P, val: T, round: Round2) -> (Self, Ordering2)
     where
@@ -395,7 +395,7 @@ impl Complex {
     /// // since c is a Complex now, deallocation is automatic
     /// ```
     ///
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpc_t) -> Self {
@@ -429,7 +429,7 @@ impl Complex {
     /// }
     /// ```
     ///
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn into_raw(self) -> mpc_t {
@@ -537,7 +537,7 @@ impl Complex {
     /// ```
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`Float`]: struct.Float.html
     /// [`parse`]: struct.Float.html#method.parse
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
@@ -594,7 +594,7 @@ impl Complex {
     /// ```
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`Float`]: struct.Float.html
     /// [`parse_radix`]: struct.Float.html#method.parse_radix
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
@@ -819,7 +819,7 @@ impl Complex {
     ///
     /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
     /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     pub fn as_neg(&self) -> BorrowComplex<'_> {
         let mut raw = self.inner;
         raw.re.sign = -raw.re.sign;
@@ -854,7 +854,7 @@ impl Complex {
     ///
     /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
     /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     pub fn as_conj(&self) -> BorrowComplex<'_> {
         let mut raw = self.inner;
         raw.im.sign = -raw.im.sign;
@@ -892,7 +892,7 @@ impl Complex {
     ///
     /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
     /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`mul_i`]: #method.mul_i
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
         let mut raw = mpc_t {
@@ -941,7 +941,7 @@ impl Complex {
     /// ```
     ///
     /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`OrdComplex`]: complex/struct.OrdComplex.html
     #[inline]
     pub fn as_ord(&self) -> &OrdComplex {
@@ -1042,7 +1042,7 @@ impl Complex {
     /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
@@ -1102,7 +1102,7 @@ impl Complex {
     /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
@@ -1179,7 +1179,7 @@ impl Complex {
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
     /// ```
     ///
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     #[inline]
     pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round2) -> Ordering2 {
         xmpc::fma(self, (), mul, add, round)
@@ -1209,7 +1209,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
@@ -1283,7 +1283,7 @@ impl Complex {
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
     /// ```
     ///
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     #[inline]
     pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round2) -> Ordering2 {
         xmpc::fma(self, (), mul, &*sub.as_neg(), round)
@@ -1313,7 +1313,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
@@ -1407,7 +1407,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn proj_ref(&self) -> ProjIncomplete<'_> {
@@ -1490,7 +1490,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> SquareIncomplete<'_> {
@@ -1574,7 +1574,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
@@ -1630,7 +1630,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn conj_ref(&self) -> ConjIncomplete<'_> {
@@ -1722,7 +1722,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -1828,7 +1828,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -1918,7 +1918,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_i_ref(&self, negative: bool) -> MulIIncomplete<'_> {
@@ -2000,7 +2000,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn recip_ref(&self) -> RecipIncomplete<'_> {
@@ -2092,7 +2092,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -2173,7 +2173,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn ln_ref(&self) -> LnIncomplete<'_> {
@@ -2253,7 +2253,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn log10_ref(&self) -> Log10Incomplete<'_> {
@@ -2283,7 +2283,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn root_of_unity(n: u32, k: u32) -> RootOfUnityIncomplete {
@@ -2363,7 +2363,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn exp_ref(&self) -> ExpIncomplete<'_> {
@@ -2442,7 +2442,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sin_ref(&self) -> SinIncomplete<'_> {
@@ -2521,7 +2521,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn cos_ref(&self) -> CosIncomplete<'_> {
@@ -2656,7 +2656,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
     #[inline]
@@ -2736,7 +2736,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn tan_ref(&self) -> TanIncomplete<'_> {
@@ -2816,7 +2816,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sinh_ref(&self) -> SinhIncomplete<'_> {
@@ -2896,7 +2896,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn cosh_ref(&self) -> CoshIncomplete<'_> {
@@ -2976,7 +2976,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn tanh_ref(&self) -> TanhIncomplete<'_> {
@@ -3056,7 +3056,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn asin_ref(&self) -> AsinIncomplete<'_> {
@@ -3136,7 +3136,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn acos_ref(&self) -> AcosIncomplete<'_> {
@@ -3216,7 +3216,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn atan_ref(&self) -> AtanIncomplete<'_> {
@@ -3296,7 +3296,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn asinh_ref(&self) -> AsinhIncomplete<'_> {
@@ -3378,7 +3378,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn acosh_ref(&self) -> AcoshIncomplete<'_> {
@@ -3460,7 +3460,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn atanh_ref(&self) -> AtanhIncomplete<'_> {
@@ -3508,7 +3508,7 @@ impl Complex {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_bits(rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
@@ -3567,7 +3567,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: struct.Complex.html
+    /// [`Complex`]: #
     /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [`assign_random_bits`]: #method.assign_random_bits

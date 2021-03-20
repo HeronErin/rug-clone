@@ -327,7 +327,7 @@ impl Float {
     /// assert_eq!(f, 0);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     #[inline]
     pub fn new(prec: u32) -> Self {
         Self::with_val(prec, Special::Zero)
@@ -349,7 +349,7 @@ impl Float {
     /// assert_eq!(f, 1.3);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     #[inline]
     pub fn with_val<T>(prec: u32, val: T) -> Self
     where
@@ -384,7 +384,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     #[inline]
     pub fn with_val_round<T>(prec: u32, val: T, round: Round) -> (Self, Ordering)
     where
@@ -498,7 +498,7 @@ impl Float {
     /// // since f is a Float now, deallocation is automatic
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpfr_t) -> Self {
@@ -525,7 +525,7 @@ impl Float {
     /// }
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn into_raw(self) -> mpfr_t {
@@ -631,7 +631,7 @@ impl Float {
     /// ```
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
@@ -695,7 +695,7 @@ impl Float {
     /// ```
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
@@ -853,7 +853,7 @@ impl Float {
     /// assert_eq!(*small_r.denom(), 8);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`Rational`]: struct.Rational.html
     /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
     /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
@@ -1276,7 +1276,7 @@ impl Float {
     /// assert_eq!((sign, &*s, exp), (true, "4813", Some(5)));
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [normal]: #method.is_normal
     #[inline]
@@ -1325,7 +1325,7 @@ impl Float {
     /// assert_eq!((sign, &*s, exp), (false, "63", Some(5)));
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [normal]: #method.is_normal
     pub fn to_sign_string_exp_round(
@@ -1416,7 +1416,7 @@ impl Float {
     ///
     /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
     /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     pub fn as_neg(&self) -> BorrowFloat<'_> {
         let mut raw = self.inner;
         raw.sign = -raw.sign;
@@ -1450,7 +1450,7 @@ impl Float {
     ///
     /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
     /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     pub fn as_abs(&self) -> BorrowFloat<'_> {
         let mut raw = self.inner;
         raw.sign = 1;
@@ -1490,7 +1490,7 @@ impl Float {
     /// ```
     ///
     /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`OrdFloat`]: float/struct.OrdFloat.html
     #[inline]
     pub fn as_ord(&self) -> &OrdFloat {
@@ -1524,7 +1524,7 @@ impl Float {
     /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
     /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     pub fn as_complex(&self) -> BorrowComplex<'_> {
         // im.d is set to be the same as re.d since the precision is equal;
         // though it will not be read as the imaginary part is 0 (which is singular).
@@ -1652,7 +1652,7 @@ impl Float {
     /// assert!(!f.is_normal());
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_normal(&self) -> bool {
@@ -1677,7 +1677,7 @@ impl Float {
     /// assert_eq!(normal.classify(), FpCategory::Normal);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     #[inline]
     pub fn classify(&self) -> FpCategory {
         if xmpfr::nan_p(self) {
@@ -1832,7 +1832,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`exp_max`]: float/fn.exp_max.html
     /// [`exp_min`]: float/fn.exp_min.html
@@ -2242,7 +2242,7 @@ impl Float {
     /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
@@ -2289,7 +2289,7 @@ impl Float {
     /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
@@ -2513,7 +2513,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -2606,7 +2606,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Equal);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     #[inline]
     pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round) -> Ordering {
         xmpfr::fma(self, (), mul, add, round)
@@ -2641,7 +2641,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
@@ -2730,7 +2730,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Less);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     #[inline]
     pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round) -> Ordering {
         xmpfr::fms(self, (), mul, sub, round)
@@ -2765,7 +2765,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
@@ -2845,7 +2845,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Equal);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     #[inline]
     pub fn mul_add_mul_round(
         &mut self,
@@ -2882,7 +2882,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_add_mul_ref<'a>(
@@ -2969,7 +2969,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Equal);
     /// ```
     ///
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     #[inline]
     pub fn mul_sub_mul_round(
         &mut self,
@@ -3007,7 +3007,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_sub_mul_ref<'a>(
@@ -3047,7 +3047,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`PartialEq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html
     /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html
     /// [icv]: index.html#incomplete-computation-values
@@ -3084,7 +3084,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`PartialEq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html
     /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html
     /// [icv]: index.html#incomplete-computation-values
@@ -3111,7 +3111,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete {
@@ -3136,7 +3136,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete {
@@ -3213,7 +3213,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> SquareIncomplete<'_> {
@@ -3291,7 +3291,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
@@ -3316,7 +3316,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sqrt_u(u: u32) -> SqrtUIncomplete {
@@ -3394,7 +3394,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn recip_sqrt_ref(&self) -> RecipSqrtIncomplete<'_> {
@@ -3472,7 +3472,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn cbrt_ref(&self) -> CbrtIncomplete<'_> {
@@ -3550,7 +3550,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn root_ref(&self, k: u32) -> RootIncomplete<'_> {
@@ -3607,7 +3607,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete<'_> {
@@ -3677,7 +3677,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn signum_ref(&self) -> SignumIncomplete<'_> {
@@ -3740,7 +3740,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn copysign_ref<'a>(&'a self, y: &'a Self) -> CopysignIncomplete<'_> {
@@ -3909,7 +3909,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'min, 'max, Min, Max>(
@@ -4001,7 +4001,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn recip_ref(&self) -> RecipIncomplete<'_> {
@@ -4079,7 +4079,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn min_ref<'a>(&'a self, other: &'a Self) -> MinIncomplete<'_> {
@@ -4160,7 +4160,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn max_ref<'a>(&'a self, other: &'a Self) -> MaxIncomplete<'_> {
@@ -4270,7 +4270,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn positive_diff_ref<'a>(&'a self, other: &'a Self) -> PositiveDiffIncomplete<'_> {
@@ -4353,7 +4353,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn ln_ref(&self) -> LnIncomplete<'_> {
@@ -4379,7 +4379,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn ln_u(u: u32) -> LnUIncomplete {
@@ -4459,7 +4459,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn log2_ref(&self) -> Log2Incomplete<'_> {
@@ -4539,7 +4539,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn log10_ref(&self) -> Log10Incomplete<'_> {
@@ -4619,7 +4619,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn exp_ref(&self) -> ExpIncomplete<'_> {
@@ -4699,7 +4699,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn exp2_ref(&self) -> Exp2Incomplete<'_> {
@@ -4779,7 +4779,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn exp10_ref(&self) -> Exp10Incomplete<'_> {
@@ -4858,7 +4858,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sin_ref(&self) -> SinIncomplete<'_> {
@@ -4937,7 +4937,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn cos_ref(&self) -> CosIncomplete<'_> {
@@ -5016,7 +5016,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn tan_ref(&self) -> TanIncomplete<'_> {
@@ -5149,7 +5149,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
     #[inline]
@@ -5229,7 +5229,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sec_ref(&self) -> SecIncomplete<'_> {
@@ -5308,7 +5308,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn csc_ref(&self) -> CscIncomplete<'_> {
@@ -5388,7 +5388,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn cot_ref(&self) -> CotIncomplete<'_> {
@@ -5467,7 +5467,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn asin_ref(&self) -> AsinIncomplete<'_> {
@@ -5547,7 +5547,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn acos_ref(&self) -> AcosIncomplete<'_> {
@@ -5627,7 +5627,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn atan_ref(&self) -> AtanIncomplete<'_> {
@@ -5726,7 +5726,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn atan2_ref<'a>(&'a self, x: &'a Self) -> Atan2Incomplete<'_> {
@@ -5806,7 +5806,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sinh_ref(&self) -> SinhIncomplete<'_> {
@@ -5886,7 +5886,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn cosh_ref(&self) -> CoshIncomplete<'_> {
@@ -5966,7 +5966,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn tanh_ref(&self) -> TanhIncomplete<'_> {
@@ -6099,7 +6099,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
     #[inline]
@@ -6180,7 +6180,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sech_ref(&self) -> SechIncomplete<'_> {
@@ -6260,7 +6260,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn csch_ref(&self) -> CschIncomplete<'_> {
@@ -6340,7 +6340,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn coth_ref(&self) -> CothIncomplete<'_> {
@@ -6420,7 +6420,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn asinh_ref(&self) -> AsinhIncomplete<'_> {
@@ -6502,7 +6502,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn acosh_ref(&self) -> AcoshIncomplete<'_> {
@@ -6584,7 +6584,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn atanh_ref(&self) -> AtanhIncomplete<'_> {
@@ -6610,7 +6610,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn factorial(n: u32) -> FactorialIncomplete {
@@ -6696,7 +6696,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn ln_1p_ref(&self) -> Ln1pIncomplete<'_> {
@@ -6783,7 +6783,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn exp_m1_ref(&self) -> ExpM1Incomplete<'_> {
@@ -6863,7 +6863,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn eint_ref(&self) -> EintIncomplete<'_> {
@@ -6946,7 +6946,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn li2_ref(&self) -> Li2Incomplete<'_> {
@@ -7028,7 +7028,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn gamma_ref(&self) -> GammaIncomplete<'_> {
@@ -7114,7 +7114,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn gamma_inc_ref<'a>(&'a self, x: &'a Self) -> GammaIncIncomplete<'_> {
@@ -7197,7 +7197,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn ln_gamma_ref(&self) -> LnGammaIncomplete<'_> {
@@ -7368,7 +7368,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [icv]: index.html#incomplete-computation-values
     /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -7452,7 +7452,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn digamma_ref(&self) -> DigammaIncomplete<'_> {
@@ -7534,7 +7534,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn zeta_ref(&self) -> ZetaIncomplete<'_> {
@@ -7560,7 +7560,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn zeta_u(u: u32) -> ZetaUIncomplete {
@@ -7642,7 +7642,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn erf_ref(&self) -> ErfIncomplete<'_> {
@@ -7724,7 +7724,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn erfc_ref(&self) -> ErfcIncomplete<'_> {
@@ -7806,7 +7806,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn j0_ref(&self) -> J0Incomplete<'_> {
@@ -7888,7 +7888,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn j1_ref(&self) -> J1Incomplete<'_> {
@@ -7970,7 +7970,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn jn_ref(&self, n: i32) -> JnIncomplete<'_> {
@@ -8052,7 +8052,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn y0_ref(&self) -> Y0Incomplete<'_> {
@@ -8134,7 +8134,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn y1_ref(&self) -> Y1Incomplete<'_> {
@@ -8216,7 +8216,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn yn_ref(&self, n: i32) -> YnIncomplete<'_> {
@@ -8302,7 +8302,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn agm_ref<'a>(&'a self, other: &'a Self) -> AgmIncomplete<'_> {
@@ -8391,7 +8391,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn hypot_ref<'a>(&'a self, other: &'a Self) -> HypotIncomplete<'_> {
@@ -8476,7 +8476,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn ai_ref(&self) -> AiIncomplete<'_> {
@@ -8542,7 +8542,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn ceil_ref(&self) -> CeilIncomplete<'_> {
@@ -8608,7 +8608,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn floor_ref(&self) -> FloorIncomplete<'_> {
@@ -8696,7 +8696,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn round_ref(&self) -> RoundIncomplete<'_> {
@@ -8765,7 +8765,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn round_even_ref(&self) -> RoundEvenIncomplete<'_> {
@@ -8831,7 +8831,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn trunc_ref(&self) -> TruncIncomplete<'_> {
@@ -8896,7 +8896,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn fract_ref(&self) -> FractIncomplete<'_> {
@@ -9038,7 +9038,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
     #[inline]
@@ -9083,7 +9083,7 @@ impl Float {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_bits(rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
@@ -9132,7 +9132,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [`random_bits`]: #method.random_bits
     /// [icv]: index.html#incomplete-computation-values
@@ -9167,7 +9167,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -9201,7 +9201,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
-    /// [`Float`]: struct.Float.html
+    /// [`Float`]: #
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
