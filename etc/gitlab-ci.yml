@@ -235,9 +235,10 @@ pages:
   script:
   - rm -rf public
   - mkdir public
-  - cp etc/{index.html,rug.svg} public
+  - cp etc/rug.svg public
   - cargo +$TOOLCHAIN doc --no-deps --features serde
   - mv target/doc public/dev
+  - bash etc/gen-doc-index.sh
   artifacts:
     paths:
     - public
