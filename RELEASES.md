@@ -8,9 +8,14 @@ as-is, without any warranty. -->
 Version 1.12.0 (unreleased)
 ===========================
 
+  * A new method
+    <code>[Integer][int-1-12]::[as\_limbs][int-al-1-12]</code> was
+    added.
   * The [*az* crate] dependency was updated to [version 1.1][az-1-1].
 
 [az-1-1]: https://docs.rs/az/~1.1/az/index.html
+[int-1-12]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[int-al-1-12]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.as_limbs
 
 Version 1.11.0 (2020-09-03)
 ===========================

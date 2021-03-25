@@ -264,14 +264,15 @@ fn fmt_radix(
 }
 
 /// Provides a reference to the underlying digits as
-/// <code>&amp;[\[][slice][limb_t][`limb_t`][\]][slice]</code>. See [`to_digits`].
+/// <code>&amp;[\[][slice][limb_t][`limb_t`][\]][slice]</code>. See [`as_limbs`].
 ///
+/// [`as_limbs`]: #method.as_limbs
 /// [`limb_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/type.limb_t.html
-/// [`to_digits`]: #method.to_digits
 /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
 impl AsRef<[limb_t]> for Integer {
+    #[inline]
     fn as_ref(&self) -> &[limb_t] {
-        self.inner_data()
+        self.as_limbs()
     }
 }
 

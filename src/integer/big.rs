@@ -611,11 +611,9 @@ impl Integer {
     /// `T`, where `T` can be any
     /// [unsigned integer primitive type][upt].
     ///
-    /// The [`Integer`] type also implements
-    /// <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][`limb_t`][\]][slice]&gt;</code>,
-    /// which can be used to borrow the digits without copying them.
-    /// This does come with some disadvantages compared to
-    /// `to_digits`:
+    /// The [`Integer`] type also has the [`as_limbs`] method, which
+    /// can be used to borrow the digits without copying them. This
+    /// does come with some more constraints compared to `to_digits`:
     ///
     ///  1. The digit width is not optional and depends on the
     ///     implementation: [`limb_t`] is typically [`u64`] on 64-bit
@@ -637,33 +635,14 @@ impl Integer {
     /// assert!(digits_zero.is_empty());
     /// ```
     ///
-    /// <code>int.[as_ref][`as_ref`]()</code> is like a borrowing
-    /// non-copy version of
-    /// <code>int.to_digits::&lt;[limb_t][`limb_t`]&gt;([Order][`Order`]::[Lsf][`Lsf`])</code>.
-    ///
-    /// ```rust
-    /// use gmp_mpfr_sys::gmp::limb_t;
-    /// use rug::{integer::Order, Integer};
-    /// let int = Integer::from(0x1234_5678_9abc_def0u64);
-    /// // no copying for int_slice, which is borrowing int
-    /// let int_slice = int.as_ref();
-    /// // digits is a copy and does not borrow int
-    /// let digits = int.to_digits::<limb_t>(Order::Lsf);
-    /// // no copying for digits_slice, which is borrowing digits
-    /// let digits_slice = &digits[..];
-    /// assert_eq!(int_slice, digits_slice);
-    /// ```
-    ///
-    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
     /// [`Integer`]: #
     /// [`Lsf`]: integer/enum.Order.html#variant.Lsf
     /// [`Order`]: integer/enum.Order.html
     /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
-    /// [`as_ref`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html#tymethod.as_ref
+    /// [`as_limbs`]: #method.as_limbs
     /// [`limb_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/type.limb_t.html
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn to_digits<T: UnsignedPrimitive>(&self, order: Order) -> Vec<T> {
         let digit_count = self.significant_digits::<T>();
@@ -821,6 +800,50 @@ impl Integer {
             self.as_raw(),
         );
         assert_eq!(count.assume_init(), digit_count);
+    }
+
+    /// Extracts a [slice] of [limbs][`limb_t`] used to store the value.
+    ///
+    /// The [slice] contains the absolute value of `self`, with the
+    /// least significant limb first.
+    ///
+    /// The [`Integer`] type also implements
+    /// <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][`limb_t`][\]][slice]&gt;</code>,
+    /// which is equivalent to this method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// assert!(Integer::new().as_limbs().is_empty());
+    /// assert_eq!(Integer::from(13).as_limbs(), &[13]);
+    /// assert_eq!(Integer::from(-23).as_limbs(), &[23]);
+    /// ```
+    ///
+    /// `int.as_limbs()` is like a borrowing non-copy version of
+    /// <code>int.[to_digits][`to_digits`]::&lt;[limb_t][`limb_t`]&gt;([Order][`Order`]::[Lsf][`Lsf`])</code>.
+    ///
+    /// ```rust
+    /// use gmp_mpfr_sys::gmp::limb_t;
+    /// use rug::{integer::Order, Integer};
+    /// let int = Integer::from(0x1234_5678_9abc_def0u64);
+    /// // no copying for int_slice, which is borrowing int
+    /// let int_slice = int.as_limbs();
+    /// // digits is a copy and does not borrow int
+    /// let digits = int.to_digits::<limb_t>(Order::Lsf);
+    /// // no copying for digits_slice, which is borrowing digits
+    /// let digits_slice = &digits[..];
+    /// assert_eq!(int_slice, digits_slice);
+    /// ```
+    ///
+    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
+    /// [`Lsf`]: integer/enum.Order.html#variant.Lsf
+    /// [`Order`]: integer/enum.Order.html
+    /// [`limb_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/type.limb_t.html
+    /// [`to_digits`]: #method.to_digits
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    pub fn as_limbs(&self) -> &[limb_t] {
+        self.inner_data()
     }
 
     /// Creates an [`Integer`] from an [`f32`] if it is
