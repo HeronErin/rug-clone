@@ -31,7 +31,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
-### Version 1.12.0 news (unreleased)
+### Version 1.12.0 news (2021-03-25)
 
   * A new method
     <code>[Integer][int-1-12]::[as\_limbs][int-al-1-12]</code> was
@@ -40,37 +40,8 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 [*az* crate]: https://crates.io/crates/az
 [az-1-1]: https://docs.rs/az/~1.1/az/index.html
-[int-1-12]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
-[int-al-1-12]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.as_limbs
-
-### Version 1.11.0 news (2020-09-03)
-
-  * The [gmp-mpfr-sys][sys crate] dependency was updated to [version
-    1.4][sys-1-4].
-  * Now it is possible to display [`Float`][flo-1-11] numbers with
-    only one siginificant digit.
-
-[flo-1-11]: https://docs.rs/rug/~1.11/rug/struct.Float.html
-[sys-1-4]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html
-
-### Version 1.10.0 news (2020-07-23)
-
-  * The [gmp-mpfr-sys][sys crate] dependency was updated to [version
-    1.3][sys-1-3].
-  * Now <code>[Option][`Option`]&lt;[Integer][int-1-10]&gt;</code> has
-    the same size as [`Integer`][int-1-10]; and similar for
-    [`Rational`][rat-1-10], [`Float`][flo-1-10],
-    [`Complex`][com-1-10], [`RandState`][ras-1-10] and
-    [`ThreadRandState`][trs-1-10].
-
-[`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
-[com-1-10]: https://docs.rs/rug/~1.10/rug/struct.Complex.html
-[flo-1-10]: https://docs.rs/rug/~1.10/rug/struct.Float.html
-[int-1-10]: https://docs.rs/rug/~1.10/rug/struct.Integer.html
-[ras-1-10]: https://docs.rs/rug/~1.10/rug/rand/struct.RandState.html
-[rat-1-10]: https://docs.rs/rug/~1.10/rug/struct.Rational.html
-[sys-1-3]: https://docs.rs/gmp-mpfr-sys/~1.3/gmp_mpfr_sys/index.html
-[trs-1-10]: https://docs.rs/rug/~1.10/rug/rand/struct.ThreadRandState.html
+[int-1-12]: https://docs.rs/rug/~1.12/rug/struct.Integer.html
+[int-al-1-12]: https://docs.rs/rug/~1.12/rug/struct.Integer.html#method.as_limbs
 
 ### Other releases
 
@@ -170,7 +141,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.11"
+rug = "1.12"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -209,7 +180,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.11"
+version = "1.12"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -221,7 +192,7 @@ is not required and thus not enabled. In that case, only the
 provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.11/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.12/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -229,20 +200,20 @@ provided by the crate.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.11/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.11/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.11/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.11/rug/struct.Float.html
-[`Integer`]: https://docs.rs/rug/~1.11/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.11/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.11/rug/struct.Rational.html
-[`new`]: https://docs.rs/rug/~1.11/rug/struct.Integer.html#method.new
-[`ops`]: https://docs.rs/rug/~1.11/rug/ops/index.html
-[`parse_radix`]: https://docs.rs/rug/~1.11/rug/struct.Integer.html#method.parse_radix
-[`parse`]: https://docs.rs/rug/~1.11/rug/struct.Integer.html#method.parse
+[`Assign::assign`]: https://docs.rs/rug/~1.12/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.12/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.12/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.12/rug/struct.Float.html
+[`Integer`]: https://docs.rs/rug/~1.12/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.12/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.12/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.12/rug/struct.Integer.html#method.new
+[`ops`]: https://docs.rs/rug/~1.12/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.12/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.12/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.11/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.11/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.12/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.12/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
