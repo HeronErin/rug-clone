@@ -83,8 +83,7 @@ assert_eq!(abs_c, (19, 2));
 assert_eq!(c, (-19, 2));
 ```
 
-[`Integer`]: struct.Integer.html
-[icv]: index.html#incomplete-computation-values
+[icv]: `crate`#incomplete-computation-values
 */
 #[repr(transparent)]
 pub struct Rational {
@@ -169,8 +168,6 @@ impl Rational {
     /// let r = Rational::new();
     /// assert_eq!(r, 0);
     /// ```
-    ///
-    /// [`Rational`]: #
     #[inline]
     pub fn new() -> Self {
         unsafe {
@@ -250,9 +247,7 @@ impl Rational {
     /// assert_eq!(*R.denom(), *check.denom());
     /// ```
     ///
-    /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
-    /// [`Rational`]: #
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [`MPZ_ROINIT_N`]: `gmp::MPZ_ROINIT_N`
     /// [gmp mpq]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Rational_Number_Functions.html#index-Rational-number-functions
     /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
@@ -279,9 +274,6 @@ impl Rational {
     ///     gmp::mpq_clear(&mut q);
     /// }
     /// ```
-    ///
-    /// [`Rational`]: #
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn into_raw(self) -> mpq_t {
         let m = ManuallyDrop::new(self);
@@ -307,8 +299,6 @@ impl Rational {
     /// // r is still valid
     /// assert_eq!(r, (-145, 10));
     /// ```
-    ///
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpq_t {
         &self.inner
@@ -332,8 +322,6 @@ impl Rational {
     /// }
     /// assert_eq!(r, (-10, 145));
     /// ```
-    ///
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpq_t {
         &mut self.inner
@@ -358,11 +346,9 @@ impl Rational {
     /// assert!(inf.is_none());
     /// ```
     ///
-    /// [`Rational`]: #
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
-    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`is_finite`]: `f32::is_finite`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn from_f32(value: f32) -> Option<Self> {
         value.checked_cast()
@@ -387,11 +373,9 @@ impl Rational {
     /// assert!(inf.is_none());
     /// ```
     ///
-    /// [`Rational`]: #
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
-    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`is_finite`]: `f64::is_finite`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn from_f64(value: f64) -> Option<Self> {
         value.checked_cast()
@@ -414,8 +398,6 @@ impl Rational {
     /// assert_eq!(*r2.numer(), 51);
     /// assert_eq!(*r2.denom(), 2);
     /// ```
-    ///
-    /// [`Rational`]: #
     #[inline]
     pub fn from_str_radix(src: &str, radix: i32) -> Result<Self, ParseRationalError> {
         Ok(Rational::from(Rational::parse_radix(src, radix)?))
@@ -457,13 +439,7 @@ impl Rational {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-    /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(src: S) -> Result<ParseIncomplete, ParseRationalError> {
         parse(src.as_ref(), 10)
@@ -508,13 +484,7 @@ impl Rational {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-    /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
@@ -543,9 +513,8 @@ impl Rational {
     /// assert_eq!(times_three_two.to_f32(), f32::NEG_INFINITY);
     /// ```
     ///
-    /// [`az`]: https://docs.rs/az/1/az/trait.Az.html#tymethod.az
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+    /// [`az`]: `az::Az::az`
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
     #[inline]
     pub fn to_f32(&self) -> f32 {
         self.cast()
@@ -585,9 +554,8 @@ impl Rational {
     /// assert_eq!(times_three_two.to_f64(), f64::INFINITY);
     /// ```
     ///
-    /// [`az`]: https://docs.rs/az/1/az/trait.Az.html#tymethod.az
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+    /// [`az`]: `az::Az::az`
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
     #[inline]
     pub fn to_f64(&self) -> f64 {
         self.cast()
@@ -635,8 +603,7 @@ impl Rational {
     /// assert_eq!(r, (1275, 100));
     /// ```
     ///
-    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
-    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
+    /// [`is_finite`]: `f32::is_finite`
     #[inline]
     #[allow(clippy::result_unit_err)]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
@@ -659,8 +626,7 @@ impl Rational {
     /// assert_eq!(r, (1275, 100));
     /// ```
     ///
-    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
-    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
+    /// [`is_finite`]: `f64::is_finite`
     #[inline]
     #[allow(clippy::result_unit_err)]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
@@ -703,10 +669,9 @@ impl Rational {
     /// assert_eq!(r, (-3, 5));
     /// ```
     ///
-    /// [`Rational`]: #
-    /// [`denom`]: #method.denom
-    /// [`mutate_numer_denom`]: #method.mutate_numer_denom
-    /// [`numer`]: #method.numer
+    /// [`denom`]: `Rational::denom`
+    /// [`mutate_numer_denom`]: `Rational::mutate_numer_denom`
+    /// [`numer`]: `Rational::numer`
     pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
     where
         Integer: From<Num> + From<Den>,
@@ -751,10 +716,9 @@ impl Rational {
     /// assert_eq!(r, (-3, 5));
     /// ```
     ///
-    /// [`Rational`]: #
-    /// [`denom`]: #method.denom
-    /// [`mutate_numer_denom`]: #method.mutate_numer_denom
-    /// [`numer`]: #method.numer
+    /// [`denom`]: `Rational::denom`
+    /// [`mutate_numer_denom`]: `Rational::mutate_numer_denom`
+    /// [`numer`]: `Rational::numer`
     pub unsafe fn assign_canonical<Num, Den>(&mut self, num: Num, den: Den)
     where
         Integer: Assign<Num> + Assign<Den>,
@@ -774,8 +738,6 @@ impl Rational {
     /// // r will be canonicalized to −3/5
     /// assert_eq!(*r.numer(), -3)
     /// ```
-    ///
-    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn numer(&self) -> &Integer {
         xmpq::numref_const(self)
@@ -791,8 +753,6 @@ impl Rational {
     /// // r will be canonicalized to −3/5
     /// assert_eq!(*r.denom(), 5);
     /// ```
-    ///
-    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn denom(&self) -> &Integer {
         xmpq::denref_const(self)
@@ -913,10 +873,9 @@ impl Rational {
     /// assert_eq!(*r.denom(), 2);
     /// ```
     ///
-    /// [`Rational`]: #
-    /// [`denom`]: #method.denom
-    /// [`mutate_numer_denom`]: #method.mutate_numer_denom
-    /// [`numer`]: #method.numer
+    /// [`denom`]: `Rational::denom`
+    /// [`mutate_numer_denom`]: `Rational::mutate_numer_denom`
+    /// [`numer`]: `Rational::numer`
     #[inline]
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
@@ -939,8 +898,6 @@ impl Rational {
     /// assert_eq!(num, -3);
     /// assert_eq!(den, 5);
     /// ```
-    ///
-    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn into_numer_denom(self) -> (Integer, Integer) {
         let raw = self.into_raw();
@@ -951,7 +908,7 @@ impl Rational {
     /// Borrows a negated copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -968,10 +925,6 @@ impl Rational {
     /// assert_eq!(*reneg_r, (7, 11));
     /// assert_eq!(*reneg_r, r);
     /// ```
-    ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Rational`]: #
     pub fn as_neg(&self) -> BorrowRational<'_> {
         let mut raw = self.inner;
         raw.num.size = raw.num.size.checked_neg().expect("overflow");
@@ -983,7 +936,7 @@ impl Rational {
     /// Borrows an absolute copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -1000,10 +953,6 @@ impl Rational {
     /// assert_eq!(*reabs_r, (7, 11));
     /// assert_eq!(*reabs_r, *abs_r);
     /// ```
-    ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Rational`]: #
     pub fn as_abs(&self) -> BorrowRational<'_> {
         let mut raw = self.inner;
         raw.num.size = raw.num.size.checked_abs().expect("overflow");
@@ -1015,7 +964,7 @@ impl Rational {
     /// Borrows a reciprocal copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
     ///
     /// This method performs some shallow copying, swapping numerator
     /// and denominator and making sure the sign is in the numerator.
@@ -1036,10 +985,6 @@ impl Rational {
     /// assert_eq!(*rerecip_r, (-7, 11));
     /// assert_eq!(*rerecip_r, r);
     /// ```
-    ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Rational`]: #
     pub fn as_recip(&self) -> BorrowRational<'_> {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
         let mut raw = mpq_t {
@@ -1070,8 +1015,8 @@ impl Rational {
     /// assert_eq!(Rational::from((5, 7)).cmp0(), Ordering::Greater);
     /// ```
     ///
-    /// [`cmp`]: https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html#tymethod.cmp
-    /// [`into`]: https://doc.rust-lang.org/nightly/core/convert/trait.Into.html#tymethod.into
+    /// [`cmp`]: `Ord::cmp`
+    /// [`into`]: `Into::into`
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         self.numer().cmp0()
@@ -1120,12 +1065,7 @@ impl Rational {
     /// assert_eq!(sum, expected);
     /// ```
     ///
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
@@ -1157,12 +1097,7 @@ impl Rational {
     /// assert_eq!(dot, expected);
     /// ```
     ///
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
     where
@@ -1197,12 +1132,7 @@ impl Rational {
     /// assert_eq!(product, expected);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`MulAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.MulAssign.html
-    /// [`Mul`]: https://doc.rust-lang.org/nightly/core/ops/trait.Mul.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn product<'a, I>(values: I) -> ProductIncomplete<'a, I>
     where
@@ -1259,10 +1189,7 @@ impl Rational {
     /// assert_eq!(abs, (100, 17));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete<'_> {
         AbsIncomplete { ref_self: self }
@@ -1330,11 +1257,7 @@ impl Rational {
     /// assert_eq!(signum, -1);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn signum_ref(&self) -> SignumIncomplete<'_> {
         SignumIncomplete { ref_self: self }
@@ -1427,10 +1350,7 @@ impl Rational {
     /// assert_eq!(clamped2, (1, 2));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'min, 'max, Min, Max>(
         &self,
@@ -1508,10 +1428,7 @@ impl Rational {
     /// assert_eq!(recip, (-17, 100));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn recip_ref(&self) -> RecipIncomplete<'_> {
         RecipIncomplete { ref_self: self }
@@ -1582,11 +1499,7 @@ impl Rational {
     /// assert_eq!(trunc, 3);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn trunc_ref(&self) -> TruncIncomplete<'_> {
         TruncIncomplete { ref_self: self }
@@ -1643,10 +1556,7 @@ impl Rational {
     /// assert_eq!(rem, (-15, 17));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn rem_trunc_ref(&self) -> RemTruncIncomplete<'_> {
         RemTruncIncomplete { ref_self: self }
@@ -1719,12 +1629,7 @@ impl Rational {
     /// assert_eq!(trunc, -5);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn fract_trunc_ref(&self) -> FractTruncIncomplete<'_> {
         FractTruncIncomplete { ref_self: self }
@@ -1795,11 +1700,7 @@ impl Rational {
     /// assert_eq!(ceil, 4);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn ceil_ref(&self) -> CeilIncomplete<'_> {
         CeilIncomplete { ref_self: self }
@@ -1856,10 +1757,7 @@ impl Rational {
     /// assert_eq!(rem, (-2, 17));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn rem_ceil_ref(&self) -> RemCeilIncomplete<'_> {
         RemCeilIncomplete { ref_self: self }
@@ -1938,12 +1836,7 @@ impl Rational {
     /// assert_eq!(ceil, 6);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn fract_ceil_ref(&self) -> FractCeilIncomplete<'_> {
         FractCeilIncomplete { ref_self: self }
@@ -2012,11 +1905,7 @@ impl Rational {
     /// assert_eq!(floor, 3);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn floor_ref(&self) -> FloorIncomplete<'_> {
         FloorIncomplete { ref_self: self }
@@ -2073,10 +1962,7 @@ impl Rational {
     /// assert_eq!(rem, (2, 17));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn rem_floor_ref(&self) -> RemFloorIncomplete<'_> {
         RemFloorIncomplete { ref_self: self }
@@ -2155,12 +2041,7 @@ impl Rational {
     /// assert_eq!(floor, -6);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn fract_floor_ref(&self) -> FractFloorIncomplete<'_> {
         FractFloorIncomplete { ref_self: self }
@@ -2240,11 +2121,7 @@ impl Rational {
     /// assert_eq!(round, 4);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn round_ref(&self) -> RoundIncomplete<'_> {
         RoundIncomplete { ref_self: self }
@@ -2317,10 +2194,7 @@ impl Rational {
     /// assert_eq!(rem2, (-3, 10));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn rem_round_ref(&self) -> RemRoundIncomplete<'_> {
         RemRoundIncomplete { ref_self: self }
@@ -2426,12 +2300,7 @@ impl Rational {
     /// assert_eq!(round2, 4);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: struct.Integer.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn fract_round_ref(&self) -> FractRoundIncomplete<'_> {
         FractRoundIncomplete { ref_self: self }
@@ -2483,10 +2352,7 @@ impl Rational {
     /// assert_eq!(Rational::from(r.square_ref()), (169, 4));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Rational`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> SquareIncomplete<'_> {
         SquareIncomplete { ref_self: self }
@@ -2953,8 +2819,7 @@ let error: ParseRationalError = match Rational::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 
-[`Rational`]: ../struct.Rational.html
-[`parse_radix`]: ../struct.Rational.html#method.parse_radix
+[`parse_radix`]: `Rational::parse_radix`
 */
 pub struct ParseRationalError {
     kind: ParseErrorKind,

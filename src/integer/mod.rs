@@ -34,8 +34,7 @@ int.assign(small.abs_ref());
 assert_eq!(int, 15);
 ```
 
-[`Integer`]: ../struct.Integer.html
-[`SmallInteger`]: struct.SmallInteger.html
+[`Integer`]: `crate::Integer`
 */
 
 pub(crate) mod arith;
@@ -73,7 +72,7 @@ let error: TryFromIntegerError = match u32::try_from(&i) {
 println!("Error: {}", error);
 ```
 
-[`Integer`]: ../struct.Integer.html
+[`Integer`]: `crate::Integer`
 */
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromIntegerError {
@@ -98,8 +97,6 @@ assert_eq!(buf, [0, 0, 0x0102u16.to_le(), 0x0304u16.to_le()]);
 i.write_digits(&mut buf, Order::LsfBe);
 assert_eq!(buf, [0x0304u16.to_be(), 0x0102u16.to_be(), 0, 0]);
 ```
-
-[slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Order {

@@ -60,7 +60,7 @@ different precisions.
 
 The `SmallComplex` type can be coerced to a [`Complex`], as it
 implements
-<code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
+<code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Complex][`Complex`]&gt;</code>.
 
 # Examples
 
@@ -75,25 +75,8 @@ assert_eq!(*a.real(), -9);
 assert_eq!(*a.imag(), -18.5);
 ```
 
-[Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-[Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-[`Complex`]: ../struct.Complex.html
-[`Special`]: ../float/enum.Special.html
-[`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
-[`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
-[`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
-[`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
-[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-[`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
-[`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
-[`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
-[`prec_min`]: ../float/fn.prec_min.html
-[`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-[`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
-[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-[`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-[`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
+[`Special`]: `crate::float::Special`
+[`prec_min`]: `crate::float::prec_min`
 */
 #[derive(Clone)]
 pub struct SmallComplex {
@@ -145,8 +128,7 @@ impl SmallComplex {
     /// assert_eq!(*c, 0);
     /// ```
     ///
-    /// [`SmallComplex`]: struct.SmallComplex.html
-    /// [`prec_min`]: ../float/fn.prec_min.html
+    /// [`prec_min`]: `crate::float::prec_min`
     #[inline]
     pub const fn new() -> Self {
         SmallComplex {
@@ -190,8 +172,6 @@ impl SmallComplex {
     /// }
     /// assert_eq!(*c, (-3.0, 1.0));
     /// ```
-    ///
-    /// [`Complex`]: ../struct.Complex.html
     #[inline]
     // Safety: after calling update_d(), self.inner.d points to the
     // limbs so it is in a consistent state.

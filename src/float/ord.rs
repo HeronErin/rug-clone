@@ -84,10 +84,6 @@ impl OrdFloat {
     /// let f_ref = ord.as_float();
     /// assert_eq!(f_ref.to_f64(), 1.5);
     /// ```
-    ///
-    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
-    /// [`Float`]: ../struct.Float.html
-    /// [`OrdFloat`]: struct.OrdFloat.html
     #[inline]
     pub fn as_float(&self) -> &Float {
         &self.inner
@@ -108,10 +104,6 @@ impl OrdFloat {
     /// ord.as_float_mut().abs_mut();
     /// assert_eq!(ord.as_float().to_f64(), 1.5);
     /// ```
-    ///
-    /// [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
-    /// [`Float`]: ../struct.Float.html
-    /// [`OrdFloat`]: struct.OrdFloat.html
     #[inline]
     pub fn as_float_mut(&mut self) -> &mut Float {
         &mut self.inner

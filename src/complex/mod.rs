@@ -19,7 +19,7 @@ Multi-precision complex numbers with correct rounding.
 
 This module provides support for complex numbers of type [`Complex`].
 
-[`Complex`]: ../struct.Complex.html
+[`Complex`]: `crate::Complex`
 */
 
 pub(crate) mod arith;
@@ -51,9 +51,7 @@ let c2 = Complex::new((32, 64));
 assert_eq!(c2.prec(), (32, 64));
 ```
 
-[`Complex`]: ../struct.Complex.html
-[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-[tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+[`Complex`]: `crate::Complex`
 */
 pub trait Prec {
     /// Returns the precision for the real and imaginary parts.

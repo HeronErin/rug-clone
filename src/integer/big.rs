@@ -179,7 +179,7 @@ assert_eq!(abs_c, 17);
 assert_eq!(c, -17);
 ```
 
-[icv]: index.html#incomplete-computation-values
+[icv]: `crate`#incomplete-computation-values
 */
 #[repr(transparent)]
 pub struct Integer {
@@ -224,8 +224,6 @@ impl Integer {
     /// let i = Integer::new();
     /// assert_eq!(i, 0);
     /// ```
-    ///
-    /// [`Integer`]: #
     #[inline]
     pub const fn new() -> Self {
         Integer {
@@ -243,8 +241,6 @@ impl Integer {
     /// let i = Integer::with_capacity(137);
     /// assert!(i.capacity() >= 137);
     /// ```
-    ///
-    /// [`Integer`]: #
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
         unsafe {
@@ -294,8 +290,6 @@ impl Integer {
     /// i.reserve(291);
     /// assert!(i.capacity() >= 321);
     /// ```
-    ///
-    /// [`Integer`]: #
     pub fn reserve(&mut self, additional: usize) {
         let used_bits = xmpz::significant_bits(self);
         let req_bits = used_bits.checked_add(additional).expect("overflow");
@@ -328,8 +322,6 @@ impl Integer {
     /// assert!(i.capacity() >= 20);
     /// # assert!(i.capacity() < 100);
     /// ```
-    ///
-    /// [`Integer`]: #
     pub fn shrink_to_fit(&mut self) {
         let used_limbs = self.inner.size.checked_abs().expect("overflow");
         let req_limbs = if used_limbs == 0 { 1 } else { used_limbs };
@@ -390,9 +382,7 @@ impl Integer {
     /// assert_eq!(I, check);
     /// ```
     ///
-    /// [`Integer`]: #
-    /// [`MPZ_ROINIT_N`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/fn.MPZ_ROINIT_N.html
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    /// [`MPZ_ROINIT_N`]: `gmp::MPZ_ROINIT_N`
     /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpz_t) -> Self {
@@ -417,9 +407,6 @@ impl Integer {
     ///     gmp::mpz_clear(&mut z);
     /// }
     /// ```
-    ///
-    /// [`Integer`]: #
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub const fn into_raw(self) -> mpz_t {
         let ret = self.inner;
@@ -446,8 +433,6 @@ impl Integer {
     /// // i is still valid
     /// assert_eq!(i, 15);
     /// ```
-    ///
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub const fn as_raw(&self) -> *const mpz_t {
         &self.inner
@@ -471,15 +456,13 @@ impl Integer {
     /// }
     /// assert_eq!(i, 35);
     /// ```
-    ///
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpz_t {
         &mut self.inner
     }
 
     /// Creates an [`Integer`] from a [slice] of digits of type `T`,
-    /// where `T` can be any [unsigned integer primitive type][upt].
+    /// where `T` can be any [unsigned integer primitive type][`UnsignedPrimitive`].
     ///
     /// The resulting value cannot be negative.
     ///
@@ -492,9 +475,7 @@ impl Integer {
     /// assert_eq!(i, 0x1234_5678);
     /// ```
     ///
-    /// [`Integer`]: #
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [upt]: integer/trait.UnsignedPrimitive.html
+    /// [slice]: prim@slice
     pub fn from_digits<T: UnsignedPrimitive>(digits: &[T], order: Order) -> Self {
         let capacity = digits.len().checked_mul(T::PRIVATE.bits).expect("overflow");
         let mut i = Integer::with_capacity(capacity);
@@ -503,7 +484,7 @@ impl Integer {
     }
 
     /// Assigns from a [slice] of digits of type `T`, where `T` can be
-    /// any [unsigned integer primitive type][upt].
+    /// any [unsigned integer primitive type][`UnsignedPrimitive`].
     ///
     /// The resulting value cannot be negative.
     ///
@@ -517,8 +498,7 @@ impl Integer {
     /// assert_eq!(i, 0x1234_5678);
     /// ```
     ///
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [upt]: integer/trait.UnsignedPrimitive.html
+    /// [slice]: prim@slice
     pub fn assign_digits<T: UnsignedPrimitive>(&mut self, digits: &[T], order: Order) {
         // Safety: it is valid to read digits.len() digits from digits.as_mut_ptr().
         unsafe {
@@ -527,7 +507,7 @@ impl Integer {
     }
 
     /// Assigns from digits of type `T` in a memory area, where `T`
-    /// can be any [unsigned integer primitive type][upt].
+    /// can be any [unsigned integer primitive type][`UnsignedPrimitive`].
     ///
     /// The memory area is addressed using a pointer and a length. The
     /// `len` parameter is the number of digits, *not* the number of
@@ -562,8 +542,7 @@ impl Integer {
     /// assert_eq!(i, 0xba98_8787_8787_7654u64);
     /// ```
     ///
-    /// [upt]: integer/trait.UnsignedPrimitive.html
-    /// [valid]: https://doc.rust-lang.org/nightly/core/ptr/index.html#safety
+    /// [valid]: `core::ptr`#safety
     pub unsafe fn assign_digits_unaligned<T: UnsignedPrimitive>(
         &mut self,
         src: *const T,
@@ -586,7 +565,7 @@ impl Integer {
     /// Returns the number of digits of type `T` required to represent
     /// the absolute value.
     ///
-    /// `T` can be any [unsigned integer primitive type][upt].
+    /// `T` can be any [unsigned integer primitive type][`UnsignedPrimitive`].
     ///
     /// # Examples
     ///
@@ -600,8 +579,6 @@ impl Integer {
     /// assert_eq!(i.significant_digits::<u32>(), 9);
     /// assert_eq!(i.significant_digits::<u64>(), 5);
     /// ```
-    ///
-    /// [upt]: integer/trait.UnsignedPrimitive.html
     #[inline]
     pub fn significant_digits<T: UnsignedPrimitive>(&self) -> usize {
         xmpz::significant_bits(self).div_ceil(T::PRIVATE.bits)
@@ -609,7 +586,7 @@ impl Integer {
 
     /// Converts the absolute value to a [`Vec`] of digits of type
     /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][upt].
+    /// [unsigned integer primitive type][`UnsignedPrimitive`].
     ///
     /// The [`Integer`] type also has the [`as_limbs`] method, which
     /// can be used to borrow the digits without copying them. This
@@ -635,15 +612,8 @@ impl Integer {
     /// assert!(digits_zero.is_empty());
     /// ```
     ///
-    /// [`Integer`]: #
-    /// [`Lsf`]: integer/enum.Order.html#variant.Lsf
-    /// [`Order`]: integer/enum.Order.html
-    /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
-    /// [`as_limbs`]: #method.as_limbs
-    /// [`limb_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/type.limb_t.html
-    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-    /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-    /// [upt]: integer/trait.UnsignedPrimitive.html
+    /// [`Lsf`]: `Order::Lsf`
+    /// [`as_limbs`]: `Integer::as_limbs`
     pub fn to_digits<T: UnsignedPrimitive>(&self, order: Order) -> Vec<T> {
         let digit_count = self.significant_digits::<T>();
         let mut v = Vec::with_capacity(digit_count);
@@ -667,7 +637,7 @@ impl Integer {
 
     /// Writes the absolute value into a [slice] of digits of type
     /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][upt].
+    /// [unsigned integer primitive type][`UnsignedPrimitive`].
     ///
     /// The slice must be large enough to hold the digits; the minimum
     /// size can be obtained using the [`significant_digits`] method.
@@ -688,9 +658,8 @@ impl Integer {
     /// assert_eq!(digits, [0, 0, word1.to_be(), word0.to_be()]);
     /// ```
     ///
-    /// [`significant_digits`]: #method.significant_digits
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [upt]: integer/trait.UnsignedPrimitive.html
+    /// [`significant_digits`]: `Integer::significant_digits`
+    /// [slice]: prim@slice
     pub fn write_digits<T: UnsignedPrimitive>(&self, digits: &mut [T], order: Order) {
         // Safety: it is valid to write digits.len() digits into digits.as_mut_ptr().
         unsafe {
@@ -700,7 +669,7 @@ impl Integer {
 
     /// Writes the absolute value into a memory area of digits of type
     /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][upt].
+    /// [unsigned integer primitive type][`UnsignedPrimitive`].
     ///
     /// The memory area is addressed using a pointer and a length. The
     /// `len` parameter is the number of digits, *not* the number of
@@ -770,10 +739,9 @@ impl Integer {
     /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
     /// ```
     ///
-    /// [`significant_digits`]: #method.significant_digits
-    /// [`to_digits`]: #method.to_digits
-    /// [upt]: integer/trait.UnsignedPrimitive.html
-    /// [valid]: https://doc.rust-lang.org/nightly/core/ptr/index.html#safety
+    /// [`significant_digits`]: `Integer::significant_digits`
+    /// [`to_digits`]: `Integer::to_digits`
+    /// [valid]: `core::ptr`#safety
     pub unsafe fn write_digits_unaligned<T: UnsignedPrimitive>(
         &self,
         dst: *mut T,
@@ -836,12 +804,9 @@ impl Integer {
     /// assert_eq!(int_slice, digits_slice);
     /// ```
     ///
-    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
-    /// [`Lsf`]: integer/enum.Order.html#variant.Lsf
-    /// [`Order`]: integer/enum.Order.html
-    /// [`limb_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/type.limb_t.html
-    /// [`to_digits`]: #method.to_digits
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [`Lsf`]: `Order::Lsf`
+    /// [`to_digits`]: `Integer::to_digits`
+    /// [slice]: prim@slice
     pub fn as_limbs(&self) -> &[limb_t] {
         self.inner_data()
     }
@@ -863,10 +828,8 @@ impl Integer {
     /// assert!(neg_inf.is_none());
     /// ```
     ///
-    /// [`Integer`]: #
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
-    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`is_finite`]: `f32::is_finite`
     #[inline]
     pub fn from_f32(value: f32) -> Option<Self> {
         value.checked_cast()
@@ -889,10 +852,8 @@ impl Integer {
     /// assert!(inf.is_none());
     /// ```
     ///
-    /// [`Integer`]: #
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
-    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`is_finite`]: `f64::is_finite`
     #[inline]
     pub fn from_f64(value: f64) -> Option<Self> {
         value.checked_cast()
@@ -911,8 +872,6 @@ impl Integer {
     /// let i = Integer::from_str_radix("-ff", 16).unwrap();
     /// assert_eq!(i, -0xff);
     /// ```
-    ///
-    /// [`Integer`]: #
     #[inline]
     pub fn from_str_radix(src: &str, radix: i32) -> Result<Self, ParseIntegerError> {
         Ok(Integer::from(Integer::parse_radix(src, radix)?))
@@ -949,13 +908,8 @@ impl Integer {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-    /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    /// [icv]: `crate`#incomplete-computation-values
+    /// [slice]: prim@slice
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(src: S) -> Result<ParseIncomplete, ParseIntegerError> {
         parse(src.as_ref(), 10)
@@ -995,13 +949,8 @@ impl Integer {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-    /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    /// [icv]: `crate`#incomplete-computation-values
+    /// [slice]: prim@slice
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
@@ -1030,10 +979,9 @@ impl Integer {
     /// assert_eq!(large.to_i8(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_i8(&self) -> Option<i8> {
         self.checked_cast()
@@ -1059,10 +1007,9 @@ impl Integer {
     /// assert_eq!(large.to_i16(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_i16(&self) -> Option<i16> {
         self.checked_cast()
@@ -1088,10 +1035,9 @@ impl Integer {
     /// assert_eq!(large.to_i32(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_i32(&self) -> Option<i32> {
         self.checked_cast()
@@ -1117,10 +1063,9 @@ impl Integer {
     /// assert_eq!(large.to_i64(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_i64(&self) -> Option<i64> {
         self.checked_cast()
@@ -1146,10 +1091,9 @@ impl Integer {
     /// assert_eq!(large.to_i128(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_i128(&self) -> Option<i128> {
         self.checked_cast()
@@ -1173,10 +1117,9 @@ impl Integer {
     /// assert_eq!(large.to_isize(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_isize(&self) -> Option<isize> {
         self.checked_cast()
@@ -1202,10 +1145,9 @@ impl Integer {
     /// assert_eq!(large.to_u8(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_u8(&self) -> Option<u8> {
         self.checked_cast()
@@ -1231,10 +1173,9 @@ impl Integer {
     /// assert_eq!(large.to_u16(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_u16(&self) -> Option<u16> {
         self.checked_cast()
@@ -1260,10 +1201,9 @@ impl Integer {
     /// assert_eq!(large.to_u32(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_u32(&self) -> Option<u32> {
         self.checked_cast()
@@ -1289,10 +1229,9 @@ impl Integer {
     /// assert_eq!(large.to_u64(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.tryfrom
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_u64(&self) -> Option<u64> {
         self.checked_cast()
@@ -1320,10 +1259,9 @@ impl Integer {
     /// assert_eq!(large.to_u128(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.tryfrom
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_u128(&self) -> Option<u128> {
         self.checked_cast()
@@ -1349,10 +1287,9 @@ impl Integer {
     /// assert_eq!(large.to_usize(), None);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`checked_as`]: https://docs.rs/az/1/az/trait.CheckedAs.html#tymethod.checked_as
-    /// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
-    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`checked_as`]: `az::CheckedAs::checked_as`
+    /// [`try_from`]: `core::convert::TryFrom::try_from`
     #[inline]
     pub fn to_usize(&self) -> Option<usize> {
         self.checked_cast()
@@ -1372,9 +1309,8 @@ impl Integer {
     /// assert_eq!(large.to_i8_wrapping(), 0x34);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
-    /// [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_i8_wrapping(&self) -> i8 {
         self.wrapping_cast()
@@ -1394,9 +1330,8 @@ impl Integer {
     /// assert_eq!(large.to_i16_wrapping(), 0x5678);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_i16_wrapping(&self) -> i16 {
         self.wrapping_cast()
@@ -1416,9 +1351,8 @@ impl Integer {
     /// assert_eq!(large.to_i32_wrapping(), 0x9abc_def0_u32 as i32);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_i32_wrapping(&self) -> i32 {
         self.wrapping_cast()
@@ -1438,9 +1372,8 @@ impl Integer {
     /// assert_eq!(large.to_i64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_i64_wrapping(&self) -> i64 {
         self.wrapping_cast()
@@ -1464,9 +1397,8 @@ impl Integer {
     /// );
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_i128_wrapping(&self) -> i128 {
         self.wrapping_cast()
@@ -1486,9 +1418,8 @@ impl Integer {
     /// assert_eq!(large.to_isize_wrapping(), 0x1234);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_isize_wrapping(&self) -> isize {
         self.wrapping_cast()
@@ -1510,9 +1441,8 @@ impl Integer {
     /// assert_eq!(large.to_u8_wrapping(), 0x34);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_u8_wrapping(&self) -> u8 {
         self.wrapping_cast()
@@ -1534,9 +1464,8 @@ impl Integer {
     /// assert_eq!(large.to_u16_wrapping(), 0x5678);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_u16_wrapping(&self) -> u16 {
         self.wrapping_cast()
@@ -1558,9 +1487,8 @@ impl Integer {
     /// assert_eq!(large.to_u32_wrapping(), 0x9abc_def0);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_u32_wrapping(&self) -> u32 {
         self.wrapping_cast()
@@ -1582,9 +1510,8 @@ impl Integer {
     /// assert_eq!(large.to_u64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
         self.wrapping_cast()
@@ -1613,9 +1540,8 @@ impl Integer {
     /// );
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_u128_wrapping(&self) -> u128 {
         self.wrapping_cast()
@@ -1635,9 +1561,8 @@ impl Integer {
     /// assert_eq!(large.to_usize_wrapping(), 0x1234);
     /// ```
     ///
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
-    /// [`wrapping_as`]: https://docs.rs/az/1/az/trait.WrappingAs.html#tymethod.wrapping_as
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
     #[inline]
     pub fn to_usize_wrapping(&self) -> usize {
         self.wrapping_cast()
@@ -1663,9 +1588,8 @@ impl Integer {
     /// assert_eq!(times_two.to_f32(), f32::NEG_INFINITY);
     /// ```
     ///
-    /// [`az`]: https://docs.rs/az/1/az/trait.Az.html#tymethod.az
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+    /// [`az`]: `az::Az::az`
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
     #[inline]
     pub fn to_f32(&self) -> f32 {
         self.cast()
@@ -1704,9 +1628,8 @@ impl Integer {
     /// assert_eq!(times_two.to_f64(), f64::INFINITY);
     /// ```
     ///
-    /// [`az`]: https://docs.rs/az/1/az/trait.Az.html#tymethod.az
-    /// [`borrow`]: https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow
-    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+    /// [`az`]: `az::Az::az`
+    /// [`borrow`]: `core::borrow::Borrow::borrow`
     #[inline]
     pub fn to_f64(&self) -> f64 {
         self.cast()
@@ -1728,8 +1651,6 @@ impl Integer {
     /// let (d15, exp15) = fifteen.to_f32_exp();
     /// assert_eq!((d15, exp15), (15.0 / 16.0, 4));
     /// ```
-    ///
-    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32_exp(&self) -> (f32, u32) {
         let (f, exp) = self.to_f64_exp();
@@ -1753,8 +1674,6 @@ impl Integer {
     /// let (d15, exp15) = fifteen.to_f64_exp();
     /// assert_eq!((d15, exp15), (15.0 / 16.0, 4));
     /// ```
-    ///
-    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, u32) {
         let (f, exp) = xmpz::get_f64_2exp(self);
@@ -1805,8 +1724,7 @@ impl Integer {
     /// assert_eq!(i, -12);
     /// ```
     ///
-    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
-    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
+    /// [`is_finite`]: `f32::is_finite`
     #[inline]
     #[allow(clippy::result_unit_err)]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
@@ -1829,8 +1747,7 @@ impl Integer {
     /// assert_eq!(i, 12);
     /// ```
     ///
-    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
-    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
+    /// [`is_finite`]: `f64::is_finite`
     #[inline]
     #[allow(clippy::result_unit_err)]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
@@ -1840,7 +1757,7 @@ impl Integer {
     /// Borrows a negated copy of the [`Integer`].
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Integer][`Integer`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Integer][`Integer`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1857,10 +1774,6 @@ impl Integer {
     /// assert_eq!(*reneg_i, 42);
     /// assert_eq!(*reneg_i, i);
     /// ```
-    ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Integer`]: #
     pub fn as_neg(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
         raw.size = raw.size.checked_neg().expect("overflow");
@@ -1871,7 +1784,7 @@ impl Integer {
     /// Borrows an absolute copy of the [`Integer`].
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Integer][`Integer`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Integer][`Integer`]&gt;</code>.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -1888,10 +1801,6 @@ impl Integer {
     /// assert_eq!(*reabs_i, 42);
     /// assert_eq!(*reabs_i, *abs_i);
     /// ```
-    ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Integer`]: #
     pub fn as_abs(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
         raw.size = raw.size.checked_abs().expect("overflow");
@@ -1903,7 +1812,7 @@ impl Integer {
     /// Borrows a copy of the [`Integer`] as a [`Rational`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
     ///
     /// # Examples
     ///
@@ -1917,10 +1826,7 @@ impl Integer {
     /// assert_eq!(*recip_r, (1, 42));
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Integer`]: #
-    /// [`Rational`]: struct.Rational.html
+    /// [`Rational`]: `crate::Rational`
     pub const fn as_rational(&self) -> BorrowRational<'_> {
         const ONE: limb_t = 1;
         // use NonNull::new_unchecked because NonNull::from is not usable in const
@@ -1946,8 +1852,6 @@ impl Integer {
     /// assert!(!(Integer::from(13).is_even()));
     /// assert!(Integer::from(-14).is_even());
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_even(&self) -> bool {
         xmpz::even_p(self)
@@ -1962,8 +1866,6 @@ impl Integer {
     /// assert!(Integer::from(13).is_odd());
     /// assert!(!Integer::from(-14).is_odd());
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_odd(&self) -> bool {
         xmpz::odd_p(self)
@@ -1981,8 +1883,6 @@ impl Integer {
     /// assert!(!i.is_divisible(&Integer::from(100)));
     /// assert!(!i.is_divisible(&Integer::new()));
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible(&self, divisor: &Self) -> bool {
         xmpz::divisible_p(self, divisor)
@@ -2000,8 +1900,6 @@ impl Integer {
     /// assert!(!i.is_divisible_u(100));
     /// assert!(!i.is_divisible_u(0));
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible_u(&self, divisor: u32) -> bool {
         xmpz::divisible_ui_p(self, divisor.into())
@@ -2018,8 +1916,6 @@ impl Integer {
     /// assert!(i.is_divisible_2pow(17));
     /// assert!(!i.is_divisible_2pow(18));
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible_2pow(&self, b: u32) -> bool {
         xmpz::divisible_2exp_p(self, b.into())
@@ -2042,8 +1938,6 @@ impl Integer {
     /// // n is congruent to itself if divisor is 0
     /// assert!(n.is_congruent(&n, &Integer::from(0)));
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent(&self, c: &Self, divisor: &Self) -> bool {
         xmpz::congruent_p(self, c, divisor)
@@ -2064,8 +1958,6 @@ impl Integer {
     /// // n is congruent to itself if divisor is 0
     /// assert!(n.is_congruent_u(105, 0));
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent_u(&self, c: u32, divisor: u32) -> bool {
         xmpz::congruent_ui_p(self, c.into(), divisor.into())
@@ -2083,8 +1975,6 @@ impl Integer {
     /// assert!(n.is_congruent_2pow(&Integer::from(7 << 17 | 21), 17));
     /// assert!(!n.is_congruent_2pow(&Integer::from(13 << 17 | 22), 17));
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent_2pow(&self, c: &Self, b: u32) -> bool {
         xmpz::congruent_2exp_p(self, c, b.into())
@@ -2106,8 +1996,6 @@ impl Integer {
     /// assert!(!Integer::from(24).is_perfect_power());
     /// assert!(!Integer::from(-100).is_perfect_power());
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_power(&self) -> bool {
         xmpz::perfect_power_p(self)
@@ -2127,8 +2015,6 @@ impl Integer {
     /// assert!(!Integer::from(15).is_perfect_square());
     /// assert!(!Integer::from(-9).is_perfect_square());
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_square(&self) -> bool {
         xmpz::perfect_square_p(self)
@@ -2148,8 +2034,6 @@ impl Integer {
     /// assert!(!Integer::from(0).is_power_of_two());
     /// assert!(!Integer::from(-1).is_power_of_two());
     /// ```
-    ///
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_power_of_two(&self) -> bool {
         xmpz::power_of_two_p(self)
@@ -2168,8 +2052,8 @@ impl Integer {
     /// assert_eq!(Integer::from(5).cmp0(), Ordering::Greater);
     /// ```
     ///
-    /// [`cmp`]: https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html#tymethod.cmp
-    /// [`into`]: https://doc.rust-lang.org/nightly/core/convert/trait.Into.html#tymethod.into
+    /// [`cmp`]: `Ord::cmp`
+    /// [`into`]: `Into::into`
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         xmpz::sgn(self)
@@ -2237,7 +2121,7 @@ impl Integer {
     /// assert_eq!(Integer::from(4).signed_bits(), 4);  // “0100”
     /// ```
     ///
-    /// [`significant_bits`]: #method.significant_bits
+    /// [`significant_bits`]: `Integer::significant_bits`
     #[inline]
     pub fn signed_bits(&self) -> u32 {
         xmpz::signed_bits(self)
@@ -2322,9 +2206,6 @@ impl Integer {
     /// i.assign(0xff);
     /// assert_eq!(*i.set_bit(11, true), 0x8ff);
     /// ```
-    ///
-    /// [`false`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Self {
         if val {
@@ -2349,9 +2230,6 @@ impl Integer {
     /// let neg = Integer::from(-1);
     /// assert!(neg.get_bit(1000));
     /// ```
-    ///
-    /// [`false`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
-    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn get_bit(&self, index: u32) -> bool {
         xmpz::tstbit(self, index.into())
@@ -2420,12 +2298,7 @@ impl Integer {
     /// assert_eq!(sum, expected);
     /// ```
     ///
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
@@ -2457,12 +2330,7 @@ impl Integer {
     /// assert_eq!(dot, expected);
     /// ```
     ///
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
     where
@@ -2498,12 +2366,7 @@ impl Integer {
     /// assert_eq!(product, expected);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [`MulAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.MulAssign.html
-    /// [`Mul`]: https://doc.rust-lang.org/nightly/core/ops/trait.Mul.html
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn product<'a, I>(values: I) -> ProductIncomplete<'a, I>
     where
@@ -2561,10 +2424,7 @@ impl Integer {
     /// assert_eq!(i, -100);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete {
         AbsIncomplete { ref_self: self }
@@ -2631,10 +2491,7 @@ impl Integer {
     /// assert_eq!(i, -100);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn signum_ref(&self) -> SignumIncomplete {
         SignumIncomplete { ref_self: self }
@@ -2727,10 +2584,7 @@ impl Integer {
     /// assert_eq!(clamped2, 3);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'min, 'max, Min, Max>(
         &self,
@@ -2798,10 +2652,7 @@ impl Integer {
     /// assert_eq!(eight_bits, 0xff);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     pub fn keep_bits_ref(&self, n: u32) -> KeepBitsIncomplete {
         KeepBitsIncomplete { ref_self: self, n }
     }
@@ -2866,10 +2717,7 @@ impl Integer {
     /// assert_eq!(eight_bits, -1);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn keep_signed_bits_ref(&self, n: u32) -> KeepSignedBitsIncomplete<'_> {
         KeepSignedBitsIncomplete { ref_self: self, n }
@@ -2926,10 +2774,7 @@ impl Integer {
     /// assert_eq!(next, 64);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn next_power_of_two_ref(&self) -> NextPowerOfTwoIncomplete<'_> {
         NextPowerOfTwoIncomplete { ref_self: self }
@@ -3016,11 +2861,7 @@ impl Integer {
     /// assert_eq!(rem, -3);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn div_rem_ref<'a>(&'a self, divisor: &'a Self) -> DivRemIncomplete<'_> {
         DivRemIncomplete {
@@ -3113,11 +2954,7 @@ impl Integer {
     /// assert_eq!(rem, 7);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn div_rem_ceil_ref<'a>(&'a self, divisor: &'a Self) -> DivRemCeilIncomplete<'_> {
         DivRemCeilIncomplete {
@@ -3207,11 +3044,7 @@ impl Integer {
     /// assert_eq!(rem, -3);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn div_rem_floor_ref<'a>(&'a self, divisor: &'a Self) -> DivRemFloorIncomplete<'_> {
         DivRemFloorIncomplete {
@@ -3310,11 +3143,7 @@ impl Integer {
     /// assert_eq!(rem, 2);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn div_rem_round_ref<'a>(&'a self, divisor: &'a Self) -> DivRemRoundIncomplete<'_> {
         DivRemRoundIncomplete {
@@ -3398,11 +3227,7 @@ impl Integer {
     /// assert_eq!(rem, 7);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn div_rem_euc_ref<'a>(&'a self, divisor: &'a Self) -> DivRemEucIncomplete<'_> {
         DivRemEucIncomplete {
@@ -3433,8 +3258,6 @@ impl Integer {
     /// assert_eq!(neg.mod_u(10), 7);
     /// assert_eq!(neg.mod_u(100), 77);
     /// ```
-    ///
-    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn mod_u(&self, modulo: u32) -> u32 {
         xmpz::fdiv_u32(self, modulo)
@@ -3527,10 +3350,7 @@ impl Integer {
     /// assert_eq!(quotient, 54321);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn div_exact_ref<'a>(&'a self, divisor: &'a Self) -> DivExactIncomplete<'_> {
         DivExactIncomplete {
@@ -3603,10 +3423,7 @@ impl Integer {
     /// assert_eq!(Integer::from(r), 54321);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn div_exact_u_ref(&self, divisor: u32) -> DivExactUIncomplete<'_> {
         DivExactUIncomplete {
@@ -3642,9 +3459,6 @@ impl Integer {
     /// };
     /// assert_eq!(inv_mod_5, 3);
     /// ```
-    ///
-    /// [`Err`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Err
-    /// [`Ok`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Ok
     #[inline]
     pub fn invert(mut self, modulo: &Self) -> Result<Self, Self> {
         match self.invert_mut(modulo) {
@@ -3715,10 +3529,7 @@ impl Integer {
     /// assert_eq!(inverse, 3);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> Option<InvertIncomplete<'a>> {
         xmpz::start_invert(self, modulo).map(|sinverse| InvertIncomplete { sinverse, modulo })
     }
@@ -3764,9 +3575,6 @@ impl Integer {
     /// };
     /// assert_eq!(power, 943);
     /// ```
-    ///
-    /// [`Err`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Err
-    /// [`Ok`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Ok
     #[inline]
     pub fn pow_mod(mut self, exponent: &Self, modulo: &Self) -> Result<Self, Self> {
         match self.pow_mod_mut(exponent, modulo) {
@@ -3846,10 +3654,7 @@ impl Integer {
     /// assert_eq!(power, 943);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     pub fn pow_mod_ref<'a>(
         &'a self,
         exponent: &'a Self,
@@ -3979,10 +3784,7 @@ impl Integer {
     /// assert_eq!(power, 9);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn secure_pow_mod_ref<'a>(
         &'a self,
@@ -4012,10 +3814,7 @@ impl Integer {
     /// assert_eq!(i, 13_u64.pow(12));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete {
         UPowUIncomplete { base, exponent }
@@ -4040,10 +3839,7 @@ impl Integer {
     /// assert_eq!(i2, (13_i64).pow(13));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete {
         IPowUIncomplete { base, exponent }
@@ -4105,10 +3901,7 @@ impl Integer {
     /// assert_eq!(Integer::from(i.root_ref(3)), 10);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn root_ref(&self, n: u32) -> RootIncomplete<'_> {
         RootIncomplete { ref_self: self, n }
@@ -4205,11 +3998,7 @@ impl Integer {
     /// assert_eq!(other_rem, 4);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn root_rem_ref(&self, n: u32) -> RootRemIncomplete<'_> {
         RootRemIncomplete { ref_self: self, n }
@@ -4261,10 +4050,7 @@ impl Integer {
     /// assert_eq!(Integer::from(i.square_ref()), 169);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> SquareIncomplete<'_> {
         SquareIncomplete { ref_self: self }
@@ -4324,10 +4110,7 @@ impl Integer {
     /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
         SqrtIncomplete { ref_self: self }
@@ -4419,11 +4202,7 @@ impl Integer {
     /// assert_eq!(other_rem, 4);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sqrt_rem_ref(&self) -> SqrtRemIncomplete<'_> {
         SqrtRemIncomplete { ref_self: self }
@@ -4508,10 +4287,7 @@ impl Integer {
     /// assert_eq!(prime, 800_000_011);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn next_prime_ref(&self) -> NextPrimeIncomplete<'_> {
         NextPrimeIncomplete { ref_self: self }
@@ -4595,10 +4371,7 @@ impl Integer {
     /// assert_eq!(Integer::from(r), 25);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn gcd_ref<'a>(&'a self, other: &'a Self) -> GcdIncomplete<'_> {
         GcdIncomplete {
@@ -4686,12 +4459,7 @@ impl Integer {
     /// assert_eq!(Option::<u32>::from(r), Some(25));
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
-    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn gcd_u_ref(&self, other: u32) -> GcdUIncomplete<'_> {
         GcdUIncomplete {
@@ -4876,11 +4644,7 @@ impl Integer {
     /// assert_eq!(t2, 1);
     /// ```
     ///
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdIncomplete<'_> {
         GcdIncomplete {
@@ -4959,10 +4723,7 @@ impl Integer {
     /// assert_eq!(Integer::from(r), 500);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn lcm_ref<'a>(&'a self, other: &'a Self) -> LcmIncomplete<'_> {
         LcmIncomplete {
@@ -5036,10 +4797,7 @@ impl Integer {
     /// assert_eq!(Integer::from(r), 500);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn lcm_u_ref(&self, other: u32) -> LcmUIncomplete<'_> {
         LcmUIncomplete {
@@ -5182,10 +4940,7 @@ impl Integer {
     /// assert_eq!(i, 3628800);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn factorial(n: u32) -> FactorialIncomplete {
         FactorialIncomplete { n }
@@ -5208,10 +4963,7 @@ impl Integer {
     /// assert_eq!(i, 3840);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn factorial_2(n: u32) -> Factorial2Incomplete {
         Factorial2Incomplete { n }
@@ -5234,10 +4986,7 @@ impl Integer {
     /// assert_eq!(i, 280);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete {
         FactorialMIncomplete { n, m }
@@ -5260,10 +5009,7 @@ impl Integer {
     /// assert_eq!(i, 210);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn primorial(n: u32) -> PrimorialIncomplete {
         PrimorialIncomplete { n }
@@ -5318,10 +5064,7 @@ impl Integer {
     /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn binomial_ref(&self, k: u32) -> BinomialIncomplete<'_> {
         BinomialIncomplete { ref_self: self, k }
@@ -5344,10 +5087,7 @@ impl Integer {
     /// assert_eq!(i, 21);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete {
         BinomialUIncomplete { n, k }
@@ -5374,11 +5114,8 @@ impl Integer {
     /// assert_eq!(i, 144);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`fibonacci_2`]: #method.fibonacci_2
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [`fibonacci_2`]: `Integer::fibonacci_2`
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn fibonacci(n: u32) -> FibonacciIncomplete {
         FibonacciIncomplete { n }
@@ -5418,11 +5155,7 @@ impl Integer {
     /// assert_eq!(pair.1, 1);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn fibonacci_2(n: u32) -> FibonacciIncomplete {
         FibonacciIncomplete { n }
@@ -5449,11 +5182,8 @@ impl Integer {
     /// assert_eq!(i, 322);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [`lucas_2`]: #method.lucas_2
-    /// [icv]: index.html#incomplete-computation-values
+    /// [`lucas_2`]: `Integer::lucas_2`
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn lucas(n: u32) -> LucasIncomplete {
         LucasIncomplete { n }
@@ -5491,11 +5221,7 @@ impl Integer {
     /// assert_eq!(pair.1, -1);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn lucas_2(n: u32) -> LucasIncomplete {
         LucasIncomplete { n }
@@ -5521,10 +5247,7 @@ impl Integer {
     /// assert!(i.significant_bits() <= 80);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn random_bits(bits: u32, rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
         RandomBitsIncomplete { bits, rng }
@@ -5601,10 +5324,7 @@ impl Integer {
     /// assert!(i < bound);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-    /// [`Integer`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn random_below_ref<'a>(
         &'a self,
@@ -6304,8 +6024,7 @@ let error: ParseIntegerError = match Integer::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 
-[`parse_radix`]: ../struct.Integer.html#method.parse_radix
-[`Integer`]: ../struct.Integer.html
+[`parse_radix`]: `Integer::parse_radix`
 */
 pub struct ParseIntegerError {
     kind: ParseErrorKind,
@@ -6360,8 +6079,7 @@ let probably = Integer::from(16_412_292_043_871_650_369_u64);
 assert_eq!(probably.is_probably_prime(30), IsPrime::Probably);
 ```
 
-[`Integer`]: ../struct.Integer.html
-[`is_probably_prime`]: ../struct.Integer.html#method.is_probably_prime
+[`is_probably_prime`]: `Integer::is_probably_prime`
 */
 pub enum IsPrime {
     /// The number is definitely not prime.
@@ -6388,20 +6106,12 @@ pub enum IsPrime {
 /// is implemented for [`bool`] and the unsigned integer types [`u8`],
 /// [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
 ///
-/// [`Integer`]: ../struct.Integer.html
-/// [`assign_digits`]: ../struct.Integer.html#method.assign_digits
-/// [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
-/// [`from_digits`]: ../struct.Integer.html#method.from_digits
-/// [`significant_digits`]: ../struct.Integer.html#method.significant_digits
-/// [`to_digits`]: ../struct.Integer.html#method.to_digits
-/// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-/// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
-/// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-/// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-/// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-/// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
-/// [`write_digits`]: ../struct.Integer.html#method.write_digits
-/// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+/// [`assign_digits`]: `Integer::assign_digits`
+/// [`from_digits`]: `Integer::from_digits`
+/// [`significant_digits`]: `Integer::significant_digits`
+/// [`to_digits`]: `Integer::to_digits`
+/// [`write_digits`]: `Integer::write_digits`
+/// [slice]: prim@slice
 pub trait UnsignedPrimitive: SealedUnsignedPrimitive {}
 
 pub struct PrivateUnsignedPrimitive {

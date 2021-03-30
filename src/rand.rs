@@ -35,17 +35,7 @@ have to implement [`Send`] or [`Sync`].
 
 Both [`RandState`] and [`ThreadRandState`] implement the
 [`MutRandState`] trait so that they can be used with methods like
-<code>[Integer][`Integer`]::[random_below][`random_below`]</code>.
-
-[`Integer`]: ../struct.Integer.html
-[`MutRandState`]: trait.MutRandState.html
-[`RandGen`]: trait.RandGen.html
-[`RandState`]: struct.RandState.html
-[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
-[`ThreadRandGen`]: trait.ThreadRandGen.html
-[`ThreadRandState`]: struct.ThreadRandState.html
-[`random_below`]: ../struct.Integer.html#method.random_below
+<code>[Integer][`Integer`]::[random_below][`Integer::random_below`]</code>.
 */
 
 use crate::Integer;
@@ -131,7 +121,7 @@ impl RandState<'_> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [`new_mersenne_twister`]: #method.new_mersenne_twister
+    /// [`new_mersenne_twister`]: `RandState::new_mersenne_twister`
     #[inline]
     pub fn new() -> RandState<'static> {
         RandState::new_mersenne_twister()
@@ -215,8 +205,7 @@ impl RandState<'_> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
-    /// [`new_linear_congruential`]: #method.new_linear_congruential
+    /// [`new_linear_congruential`]: `RandState::new_linear_congruential`
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'static>> {
         unsafe {
             let mut inner = MaybeUninit::uninit();
@@ -260,9 +249,7 @@ impl RandState<'_> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
-    /// [`RandGen`]: trait.RandGen.html
-    /// [`boxed_clone`]: trait.RandGen.html#method.boxed_clone
+    /// [`boxed_clone`]: `RandGen::boxed_clone`
     pub fn new_custom(custom: &mut dyn RandGen) -> RandState<'_> {
         let b = Box::<&mut dyn RandGen>::new(custom);
         let r_ptr = NonNull::<&mut dyn RandGen>::from(Box::leak(b));
@@ -310,9 +297,7 @@ impl RandState<'_> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
-    /// [`RandGen`]: trait.RandGen.html
-    /// [`boxed_clone`]: trait.RandGen.html#method.boxed_clone
+    /// [`boxed_clone`]: `RandGen::boxed_clone`
     pub fn new_custom_boxed(custom: Box<dyn RandGen>) -> RandState<'static> {
         let b = Box::<Box<dyn RandGen>>::new(custom);
         let r_ptr = NonNull::<Box<dyn RandGen>>::from(Box::leak(b));
@@ -360,8 +345,6 @@ impl RandState<'_> {
     /// println!("32 random bits: {:032b}", u);
     /// // since rand is a RandState now, deallocation is automatic
     /// ```
-    ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> RandState<'static> {
         RandState {
@@ -399,10 +382,8 @@ impl RandState<'_> {
     /// }
     /// ```
     ///
-    /// [`RandState`]: #
-    /// [`new_custom_boxed`]: #method.new_custom_boxed
-    /// [`new_custom`]: #method.new_custom
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`new_custom_boxed`]: `RandState::new_custom_boxed`
+    /// [`new_custom`]: `RandState::new_custom`
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         assert!(
@@ -432,8 +413,6 @@ impl RandState<'_> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// ```
-    ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw(&self) -> *const randstate_t {
         &self.inner
@@ -459,8 +438,6 @@ impl RandState<'_> {
     /// let u2 = rand.bits(32);
     /// println!("another 32 random bits: {:032b}", u2);
     /// ```
-    ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         &mut self.inner
@@ -496,11 +473,8 @@ impl RandState<'_> {
     /// assert_eq!(back_to_seed.gen(), 0x8CEF_7310);
     /// ```
     ///
-    /// [`Box`]: https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html
-    /// [`Err`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Err
-    /// [`RandGen`]: trait.RandGen.html
-    /// [`new_custom_boxed`]: #method.new_custom_boxed
-    /// [`new_custom`]: #method.new_custom
+    /// [`new_custom_boxed`]: `RandState::new_custom_boxed`
+    /// [`new_custom`]: `RandState::new_custom`
     #[inline]
     pub fn into_custom_boxed(self) -> Result<Box<dyn RandGen>, Self> {
         if !ptr::eq(self.inner.algdata, &CUSTOM_BOXED_FUNCS) {
@@ -578,7 +552,7 @@ impl RandState<'_> {
     /// println!("0 ≤ {} < 10000", u);
     /// ```
     ///
-    /// [`bits`]: #method.bits
+    /// [`bits`]: `RandState::bits`
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
@@ -608,8 +582,6 @@ let mut rand = ThreadRandState::new_custom(&mut gen);
 let u = rand.bits(32);
 println!("32 random bits: {:032b}", u);
 ```
-
-[`RandState`]: struct.RandState.html
 */
 #[derive(Debug)]
 #[repr(transparent)]
@@ -650,7 +622,7 @@ impl ThreadRandState<'_> {
     /// Creates a new custom random generator.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[new_custom][`new_custom`]</code>.
+    /// <code>[RandState][`RandState`]::[new_custom][`RandState::new_custom`]</code>.
     /// The difference is that this method takes a [`ThreadRandGen`]
     /// that does not have to implement [`Send`] or [`Sync`].
     ///
@@ -676,12 +648,6 @@ impl ThreadRandState<'_> {
     /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-    /// [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
-    /// [`ThreadRandGen`]: trait.ThreadRandGen.html
-    /// [`new_custom`]: struct.RandState.html#method.new_custom
     pub fn new_custom(custom: &mut dyn ThreadRandGen) -> ThreadRandState<'_> {
         let b = Box::<&mut dyn ThreadRandGen>::new(custom);
         let r_ptr = NonNull::<&mut dyn ThreadRandGen>::from(Box::leak(b));
@@ -703,7 +669,7 @@ impl ThreadRandState<'_> {
     /// Creates a new custom random generator.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[new_custom_boxed][`new_custom_boxed`]</code>.
+    /// <code>[RandState][`RandState`]::[new_custom_boxed][`RandState::new_custom_boxed`]</code>.
     /// The difference is that this method takes a [`ThreadRandGen`]
     /// that does not have to implement [`Send`] or [`Sync`].
     ///
@@ -729,12 +695,6 @@ impl ThreadRandState<'_> {
     /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-    /// [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
-    /// [`ThreadRandGen`]: trait.ThreadRandGen.html
-    /// [`new_custom_boxed`]: struct.RandState.html#method.new_custom_boxed
     pub fn new_custom_boxed(custom: Box<dyn ThreadRandGen>) -> ThreadRandState<'static> {
         let b = Box::<Box<dyn ThreadRandGen>>::new(custom);
         let r_ptr = NonNull::<Box<dyn ThreadRandGen>>::from(Box::leak(b));
@@ -757,10 +717,10 @@ impl ThreadRandState<'_> {
     /// [GMP random generator][`randstate_t`].
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[from_raw][`from_raw`]</code>,
+    /// <code>[RandState][`RandState`]::[from_raw][`RandState::from_raw`]</code>,
     /// but the object does not need to be thread safe. You *can* use
     /// this method if the object is thread safe, but in that case
-    /// <code>[RandState][`RandState`]::[from_raw][`from_raw`]</code>
+    /// <code>[RandState][`RandState`]::[from_raw][`RandState::from_raw`]</code>
     /// is probably better as it allows the returned object to be
     /// shared and transferred across threads.
     ///
@@ -789,10 +749,6 @@ impl ThreadRandState<'_> {
     /// println!("32 random bits: {:032b}", u);
     /// // since rand is a ThreadRandState now, deallocation is automatic
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`from_raw`]: struct.RandState.html#method.from_raw
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> ThreadRandState<'static> {
         ThreadRandState {
@@ -807,10 +763,10 @@ impl ThreadRandState<'_> {
     /// The returned object should be freed to avoid memory leaks.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[into_raw][`into_raw`]</code>,
+    /// <code>[RandState][`RandState`]::[into_raw][`RandState::into_raw`]</code>,
     /// but the returned object is not thread safe. Notably, it should
     /// *not* be used in
-    /// <code>[RandState][`RandState`]::[from_raw][`from_raw`]</code>.
+    /// <code>[RandState][`RandState`]::[from_raw][`RandState::from_raw`]</code>.
     ///
     /// # Panics
     ///
@@ -845,13 +801,8 @@ impl ThreadRandState<'_> {
     /// }
     /// ```
     ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`ThreadRandState`]: #
-    /// [`from_raw`]: struct.RandState.html#method.from_raw
-    /// [`into_raw`]: struct.RandState.html#method.into_raw
-    /// [`new_custom_boxed`]: #method.new_custom_boxed
-    /// [`new_custom`]: #method.new_custom
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`new_custom_boxed`]: `ThreadRandState::new_custom_boxed`
+    /// [`new_custom`]: `ThreadRandState::new_custom`
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         assert!(
@@ -870,7 +821,8 @@ impl ThreadRandState<'_> {
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
     ///
-    /// This is similar to <code>[RandState][`RandState`]::[as_raw][`as_raw`]</code>.
+    /// This is similar to
+    /// <code>[RandState][`RandState`]::[as_raw][`RandState::as_raw`]</code>.
     ///
     /// # Examples
     ///
@@ -892,10 +844,6 @@ impl ThreadRandState<'_> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`as_raw`]: struct.RandState.html#method.as_raw
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw(&self) -> *const randstate_t {
         &self.inner
@@ -908,7 +856,7 @@ impl ThreadRandState<'_> {
     /// valid.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[as_raw_mut][`as_raw_mut`]</code>.
+    /// <code>[RandState][`RandState`]::[as_raw_mut][`RandState::as_raw_mut`]</code>.
     ///
     /// # Examples
     ///
@@ -933,10 +881,6 @@ impl ThreadRandState<'_> {
     /// let u2 = rand.bits(32);
     /// println!("another 32 random bits: {:032b}", u2);
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`as_raw_mut`]: struct.RandState.html#method.as_raw_mut
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         &mut self.inner
@@ -956,7 +900,7 @@ impl ThreadRandState<'_> {
     /// [`new_custom_boxed`].
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[into_custom_boxed][`into_custom_boxed`]</code>.
+    /// <code>[RandState][`RandState`]::[into_custom_boxed][`RandState::into_custom_boxed`]</code>.
     ///
     /// # Examples
     ///
@@ -975,13 +919,8 @@ impl ThreadRandState<'_> {
     /// assert_eq!(back_to_seed.gen(), 0x8CEF_7310);
     /// ```
     ///
-    /// [`Box`]: https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html
-    /// [`Err`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Err
-    /// [`RandState`]: struct.RandState.html
-    /// [`ThreadRandGen`]: trait.ThreadRandGen.html
-    /// [`into_custom_boxed`]: struct.RandState.html#method.into_custom_boxed
-    /// [`new_custom_boxed`]: #method.new_custom_boxed
-    /// [`new_custom`]: #method.new_custom
+    /// [`new_custom_boxed`]: `ThreadRandState::new_custom_boxed`
+    /// [`new_custom`]: `ThreadRandState::new_custom`
     #[inline]
     pub fn into_custom_boxed(self) -> Result<Box<dyn ThreadRandGen>, Self> {
         if !ptr::eq(self.inner.algdata, &THREAD_CUSTOM_BOXED_FUNCS) {
@@ -996,7 +935,7 @@ impl ThreadRandState<'_> {
     /// Seeds the random generator.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[seed][`seed`]</code>.
+    /// <code>[RandState][`RandState`]::[seed][`RandState::seed`]</code>.
     ///
     /// # Examples
     ///
@@ -1025,9 +964,6 @@ impl ThreadRandState<'_> {
     /// assert_eq!(u1a, u2a);
     /// assert_eq!(u1b, u2b);
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`seed`]: struct.RandState.html#method.seed
     #[inline]
     pub fn seed(&mut self, seed: &Integer) {
         unsafe {
@@ -1038,7 +974,7 @@ impl ThreadRandState<'_> {
     /// Generates a random number with the specified number of bits.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[bits][`bits`]</code>.
+    /// <code>[RandState][`RandState`]::[bits][`RandState::bits`]</code>.
     ///
     /// # Panics
     ///
@@ -1062,9 +998,6 @@ impl ThreadRandState<'_> {
     /// assert!(u < (1 << 16));
     /// println!("16 random bits: {:016b}", u);
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`bits`]: struct.RandState.html#method.bits
     #[inline]
     pub fn bits(&mut self, bits: u32) -> u32 {
         assert!(bits <= 32, "bits out of range");
@@ -1073,7 +1006,8 @@ impl ThreadRandState<'_> {
 
     /// Generates a random number below the given boundary value.
     ///
-    /// This is similar to <code>[RandState][`RandState`]::[below][`below`]</code>.
+    /// This is similar to
+    /// <code>[RandState][`RandState`]::[below][`RandState::below`]</code>.
     ///
     /// # Panics
     ///
@@ -1097,9 +1031,6 @@ impl ThreadRandState<'_> {
     /// assert!(u < 10000);
     /// println!("0 ≤ {} < 10000", u);
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`below`]: struct.RandState.html#method.below
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
@@ -1141,8 +1072,6 @@ let mut state = RandState::new_custom(&mut gen);
 assert_eq!(state.bits(32), 0x5851_F42D);
 assert_eq!(state.bits(32), 0xC0B1_8CCF);
 ```
-
-[`RandState`]: struct.RandState.html
 */
 pub trait RandGen: Send + Sync {
     /// Gets a random 32-bit unsigned integer.
@@ -1227,7 +1156,7 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(rand.gen_bits(16), second_32 & 0xFFFF);
     /// ```
     ///
-    /// [`gen`]: #tymethod.gen
+    /// [`gen`]: `RandGen::gen`
     fn gen_bits(&mut self, bits: u32) -> u32 {
         let gen = self.gen();
         match bits {
@@ -1242,9 +1171,9 @@ pub trait RandGen: Send + Sync {
     /// The default implementation of this function does nothing.
     ///
     /// Note that the
-    /// <code>[RandState][`RandState`]::[seed][`seed`]</code> method
-    /// will pass its seed parameter exactly to this function without
-    /// using it otherwise.
+    /// <code>[RandState][`RandState`]::[seed][`RandState::seed`]</code>
+    /// method will pass its seed parameter exactly to this function
+    /// without using it otherwise.
     ///
     /// # Examples
     ///
@@ -1274,9 +1203,6 @@ pub trait RandGen: Send + Sync {
     /// }
     /// assert_eq!(seed.inner, i);
     /// ```
-    ///
-    /// [`RandState`]: struct.RandState.html
-    /// [`seed`]: struct.RandState.html#method.seed
     #[inline]
     fn seed(&mut self, seed: &Integer) {
         let _ = seed;
@@ -1315,8 +1241,6 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(rand.seed, 0xC0B1_8CCF_4E25_2D17);
     /// assert_eq!(other.gen(), 0xC0B1_8CCF);
     /// ```
-    ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     #[inline]
     fn boxed_clone(&self) -> Option<Box<dyn RandGen>> {
         None
@@ -1375,20 +1299,12 @@ impl RandGen for Generator {
     }
 }
 ```
-
-[`RandGen`]: trait.RandGen.html
-[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
-[`ThreadRandState`]: struct.ThreadRandState.html
 */
 pub trait ThreadRandGen {
     /// Gets a random 32-bit unsigned integer.
     ///
     /// This is similar to
-    /// <code>[RandGen][`RandGen`]::[gen][`gen`]</code>.
-    ///
-    /// [`RandGen`]: trait.RandGen.html
-    /// [`gen`]: trait.RandGen.html#tymethod.gen
+    /// <code>[RandGen][`RandGen`]::[gen][`RandGen::gen`]</code>.
     fn gen(&mut self) -> u32;
 
     /// Gets up to 32 random bits.
@@ -1401,11 +1317,9 @@ pub trait ThreadRandGen {
     /// generation process is computationally expensive.
     ///
     /// This method is similar to
-    /// <code>[RandGen][`RandGen`]::[gen_bits][`gen_bits`]</code>.
+    /// <code>[RandGen][`RandGen`]::[gen_bits][`RandGen::gen_bits`]</code>.
     ///
-    /// [`RandGen`]: trait.RandGen.html
-    /// [`gen_bits`]: trait.RandGen.html#method.gen_bits
-    /// [`gen`]: #tymethod.gen
+    /// [`gen`]: `ThreadRandGen::gen`
     fn gen_bits(&mut self, bits: u32) -> u32 {
         let gen = self.gen();
         match bits {
@@ -1420,17 +1334,12 @@ pub trait ThreadRandGen {
     /// The default implementation of this function does nothing.
     ///
     /// Note that the
-    /// <code>[ThreadRandState][`ThreadRandState`]::[seed][`seed`]</code>
+    /// <code>[ThreadRandState][`ThreadRandState`]::[seed][`ThreadRandState::seed`]</code>
     /// method will pass its seed parameter exactly to this function
     /// without using it otherwise.
     ///
     /// This method is similar to
     /// <code>[RandGen][`RandGen`]::[seed][`RandGen::seed`]</code>.
-    ///
-    /// [`RandGen::seed`]: trait.RandGen.html#method.seed
-    /// [`RandGen`]: trait.RandGen.html
-    /// [`ThreadRandState`]: struct.ThreadRandState.html
-    /// [`seed`]: struct.ThreadRandState.html#method.seed
     #[inline]
     fn seed(&mut self, seed: &Integer) {
         let _ = seed;
@@ -1441,11 +1350,7 @@ pub trait ThreadRandGen {
     /// The default implementation returns [`None`].
     ///
     /// This method is similar to
-    /// <code>[RandGen][`RandGen`]::[boxed_clone][`boxed_clone`]</code>.
-    ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
-    /// [`RandGen`]: trait.RandGen.html
-    /// [`boxed_clone`]: trait.RandGen.html#method.boxed_clone
+    /// <code>[RandGen][`RandGen`]::[boxed_clone][`RandGen::boxed_clone`]</code>.
     #[inline]
     fn boxed_clone(&self) -> Option<Box<dyn ThreadRandGen>> {
         None
@@ -1721,10 +1626,6 @@ static THREAD_CUSTOM_BOXED_FUNCS: randfnptr_t = randfnptr_t {
 ///
 /// This trait is sealed and cannot be implemented for more types.
 ///
-/// [`RandState`]: struct.RandState.html
-/// [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
-/// [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
-/// [`ThreadRandState`]: struct.ThreadRandState.html
 pub trait MutRandState: SealedMutRandState {}
 
 mod hide {

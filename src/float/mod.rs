@@ -20,7 +20,7 @@ Multi-precision floating-point numbers with correct rounding.
 This module provides support for floating-point numbers of type
 [`Float`].
 
-[`Float`]: ../struct.Float.html
+[`Float`]: `crate::Float`
 */
 
 pub(crate) mod arith;
@@ -220,7 +220,7 @@ pub enum Constant {
     /// Note that this is *not* Euler’s number e, which can be
     /// obtained using one of the [`exp`] functions.
     ///
-    /// [`exp`]: ../struct.Float.html#method.exp
+    /// [`exp`]: `crate::Float::exp`
     Euler,
     /// Catalan’s constant, 0.915...
     Catalan,

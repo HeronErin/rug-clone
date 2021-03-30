@@ -20,7 +20,7 @@ Arbitrary-precision rational numbers.
 This module provides support for arbitrary-precision rational numbers
 of type [`Rational`].
 
-[`Rational`]: ../struct.Rational.html
+[`Rational`]: `crate::Rational`
 */
 
 mod arith;
@@ -53,7 +53,7 @@ let error: TryFromFloatError = match Rational::try_from(inf) {
 println!("Error: {}", error);
 ```
 
-[`Rational`]: ../struct.Rational.html
+[`Rational`]: `crate::Rational`
 */
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromFloatError {

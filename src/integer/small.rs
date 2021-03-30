@@ -41,7 +41,7 @@ of an [`Integer`] obtained using `SmallInteger`.
 
 The `SmallInteger` type can be coerced to an [`Integer`], as it
 implements
-<code>[Deref]&lt;[Target] = [Integer][`Integer`]&gt;</code>.
+<code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Integer][`Integer`]&gt;</code>.
 
 # Examples
 
@@ -57,14 +57,6 @@ assert_eq!(a, 500);
 a.lcm_mut(&SmallInteger::from(30));
 assert_eq!(a, 1500);
 ```
-
-[Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-[Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-[`Integer`]: ../struct.Integer.html
-[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-[`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
-[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
 */
 #[derive(Clone)]
 pub struct SmallInteger {
@@ -121,8 +113,6 @@ impl SmallInteger {
     /// // Borrow i as if it were Integer.
     /// assert_eq!(*i, 0);
     /// ```
-    ///
-    /// [`SmallInteger`]: struct.SmallInteger.html
     #[inline]
     pub const fn new() -> Self {
         SmallInteger {
@@ -162,8 +152,6 @@ impl SmallInteger {
     /// assert_eq!(*i, 2);
     /// assert_eq!(i.capacity(), capacity);
     /// ```
-    ///
-    /// [`Integer`]: ../struct.Integer.html
     #[inline]
     // Safety: after calling update_d(), self.inner.d points to the
     // limbs so it is in a consistent state.
@@ -205,17 +193,6 @@ impl Deref for SmallInteger {
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for [`bool`] and the unsigned integer types [`u8`],
 /// [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
-///
-/// [`Assign`]: ../trait.Assign.html
-/// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-/// [`SmallInteger`]: struct.SmallInteger.html
-/// [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
-/// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-/// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
-/// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-/// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-/// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-/// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
 pub trait ToSmall: SealedToSmall {}
 
 pub trait SealedToSmall: Sized {

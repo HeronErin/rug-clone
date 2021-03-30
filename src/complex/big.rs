@@ -151,13 +151,11 @@ assert!(*(sin_d - &expected).abs().real() < 0.0001);
 assert_eq!(d, (1, 1));
 ```
 
-[`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
-[`Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
-[`Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
-[`Nearest`]: float/enum.Round.html#variant.Nearest
-[`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
-[`Round`]: float/enum.Round.html
-[icv]: index.html#incomplete-computation-values
+[`Equal`]: `Ordering::Equal`
+[`Greater`]: `Ordering::Greater`
+[`Less`]: `Ordering::Less`
+[`Nearest`]: `Round::Nearest`
+[icv]: `crate`#incomplete-computation-values
 */
 #[repr(transparent)]
 pub struct Complex {
@@ -231,8 +229,6 @@ impl Complex {
     /// assert_eq!(c2.prec(), (32, 64));
     /// assert_eq!(c2, 0);
     /// ```
-    ///
-    /// [`Complex`]: #
     #[inline]
     pub fn new<P: Prec>(prec: P) -> Self {
         Self::with_val(prec, (Special::Zero, Special::Zero))
@@ -257,8 +253,6 @@ impl Complex {
     /// assert_eq!(c2, 42);
     /// assert_eq!(c2, (42, 0));
     /// ```
-    ///
-    /// [`Complex`]: #
     #[inline]
     pub fn with_val<P, T>(prec: P, val: T) -> Self
     where
@@ -290,8 +284,6 @@ impl Complex {
     /// assert_eq!(c, (3.25, 2.5));
     /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
-    ///
-    /// [`Complex`]: #
     #[inline]
     pub fn with_val_round<P, T>(prec: P, val: T, round: Round2) -> (Self, Ordering2)
     where
@@ -394,9 +386,6 @@ impl Complex {
     /// assert_eq!(c, (-14.5, 3.25));
     /// // since c is a Complex now, deallocation is automatic
     /// ```
-    ///
-    /// [`Complex`]: #
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }
@@ -428,9 +417,6 @@ impl Complex {
     ///     mpc::clear(&mut m);
     /// }
     /// ```
-    ///
-    /// [`Complex`]: #
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn into_raw(self) -> mpc_t {
         let m = ManuallyDrop::new(self);
@@ -463,8 +449,6 @@ impl Complex {
     /// // c is still valid
     /// assert_eq!(c, (-14.5, 3.25));
     /// ```
-    ///
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpc_t {
         &self.inner
@@ -488,8 +472,6 @@ impl Complex {
     /// }
     /// assert_eq!(c, (-14.5, -3.25));
     /// ```
-    ///
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpc_t {
         &mut self.inner
@@ -497,7 +479,7 @@ impl Complex {
 
     /// Parses a decimal string slice (<code>&amp;[str]</code>) or
     /// byte slice
-    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// (<code>[&amp;\[][prim@slice][u8][`u8`][\]][prim@slice]</code>) into a
     /// [`Complex`] number.
     ///
     /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
@@ -536,21 +518,15 @@ impl Complex {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Complex`]: #
-    /// [`Float`]: struct.Float.html
-    /// [`parse`]: struct.Float.html#method.parse
-    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-    /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    /// [`parse`]: `Float::parse`
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(src: S) -> Result<ParseIncomplete, ParseComplexError> {
         parse(src.as_ref(), 10)
     }
 
     /// Parses a string slice (<code>&amp;[str]</code>) or byte slice
-    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// (<code>[&amp;\[][prim@slice][u8][`u8`][\]][prim@slice]</code>) into a
     /// [`Complex`] number.
     ///
     /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
@@ -593,14 +569,8 @@ impl Complex {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Complex`]: #
-    /// [`Float`]: struct.Float.html
-    /// [`parse_radix`]: struct.Float.html#method.parse_radix
-    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-    /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    /// [`parse_radix`]: `Float::parse_radix`
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
@@ -700,8 +670,6 @@ impl Complex {
     /// let c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(*c.real(), 12.5)
     /// ```
-    ///
-    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn real(&self) -> &Float {
         xmpc::realref_const(self)
@@ -716,8 +684,6 @@ impl Complex {
     /// let c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(*c.imag(), -20.75)
     /// ```
-    ///
-    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn imag(&self) -> &Float {
         xmpc::imagref_const(self)
@@ -789,8 +755,6 @@ impl Complex {
     /// assert_eq!(real, 12.5);
     /// assert_eq!(imag, -20.75);
     /// ```
-    ///
-    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn into_real_imag(self) -> (Float, Float) {
         xmpc::split(self)
@@ -799,7 +763,7 @@ impl Complex {
     /// Borrows a negated copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Complex][`Complex`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -816,10 +780,6 @@ impl Complex {
     /// assert_eq!(*reneg_c, (4.2, -2.3));
     /// assert_eq!(*reneg_c, c);
     /// ```
-    ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Complex`]: #
     pub fn as_neg(&self) -> BorrowComplex<'_> {
         let mut raw = self.inner;
         raw.re.sign = -raw.re.sign;
@@ -834,7 +794,7 @@ impl Complex {
     /// Borrows a conjugate copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Complex][`Complex`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates its imaginary
     /// part, and negation does not change the allocated data.
@@ -851,10 +811,6 @@ impl Complex {
     /// assert_eq!(*reconj_c, (4.2, -2.3));
     /// assert_eq!(*reconj_c, c);
     /// ```
-    ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Complex`]: #
     pub fn as_conj(&self) -> BorrowComplex<'_> {
         let mut raw = self.inner;
         raw.im.sign = -raw.im.sign;
@@ -868,7 +824,7 @@ impl Complex {
     /// Borrows a rotated copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
+    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Complex][`Complex`]&gt;</code>.
     ///
     /// This method operates by performing some shallow copying;
     /// unlike the [`mul_i`] method and friends, this method swaps the
@@ -890,10 +846,7 @@ impl Complex {
     /// assert_eq!(*mul_1_c, c);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-    /// [`Complex`]: #
-    /// [`mul_i`]: #method.mul_i
+    /// [`mul_i`]: `Complex::mul_i`
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
         let mut raw = mpc_t {
             re: self.inner.im,
@@ -939,10 +892,6 @@ impl Complex {
     /// let zero_inf = zero_inf_c.as_ord();
     /// assert_eq!(one_pos0.cmp(zero_inf), Ordering::Greater);
     /// ```
-    ///
-    /// [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
-    /// [`Complex`]: #
-    /// [`OrdComplex`]: complex/struct.OrdComplex.html
     #[inline]
     pub fn as_ord(&self) -> &OrdComplex {
         // Safety: OrdComplex is repr(transparent) over Complex
@@ -964,7 +913,7 @@ impl Complex {
     /// assert!(!c.eq0());
     /// ```
     ///
-    /// [`eq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq
+    /// [`eq`]: `PartialEq::eq`
     #[inline]
     pub fn eq0(&self) -> bool {
         self.real().cmp0() == Some(Ordering::Equal) && self.imag().cmp0() == Some(Ordering::Equal)
@@ -1037,13 +986,7 @@ impl Complex {
     /// assert_eq!(sum3, (16, 15));
     /// ```
     ///
-    /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
@@ -1097,13 +1040,7 @@ impl Complex {
     /// assert_eq!(add_dot2, add_expected);
     /// ```
     ///
-    /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
     where
@@ -1178,8 +1115,6 @@ impl Complex {
     /// assert_eq!(a, (1010, 990));
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
     /// ```
-    ///
-    /// [`Complex`]: #
     #[inline]
     pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round2) -> Ordering2 {
         xmpc::fma(self, (), mul, add, round)
@@ -1207,10 +1142,7 @@ impl Complex {
     /// assert_eq!(ans, (1010, 990));
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
         self * mul + add
@@ -1282,8 +1214,6 @@ impl Complex {
     /// assert_eq!(a, (-990, -1010));
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
     /// ```
-    ///
-    /// [`Complex`]: #
     #[inline]
     pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round2) -> Ordering2 {
         xmpc::fma(self, (), mul, &*sub.as_neg(), round)
@@ -1311,10 +1241,7 @@ impl Complex {
     /// assert_eq!(ans, (-990, -1010));
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
         self * mul - sub
@@ -1405,10 +1332,7 @@ impl Complex {
     /// assert!(proj2.imag().is_sign_negative());
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn proj_ref(&self) -> ProjIncomplete<'_> {
         ProjIncomplete { ref_self: self }
@@ -1488,10 +1412,7 @@ impl Complex {
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> SquareIncomplete<'_> {
         SquareIncomplete { ref_self: self }
@@ -1572,10 +1493,7 @@ impl Complex {
     /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
         SqrtIncomplete { ref_self: self }
@@ -1628,10 +1546,7 @@ impl Complex {
     /// assert_eq!(conj, (1.5, -2.5));
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn conj_ref(&self) -> ConjIncomplete<'_> {
         ConjIncomplete { ref_self: self }
@@ -1720,11 +1635,7 @@ impl Complex {
     /// assert_eq!(f, 50);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [`Float`]: struct.Float.html
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete<'_> {
         AbsIncomplete { ref_self: self }
@@ -1826,11 +1737,7 @@ impl Complex {
     /// assert_eq!(arg, f64::consts::FRAC_PI_4);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [`Float`]: struct.Float.html
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn arg_ref(&self) -> ArgIncomplete<'_> {
         ArgIncomplete { ref_self: self }
@@ -1916,10 +1823,7 @@ impl Complex {
     /// assert_eq!(rotated, (-24, 13));
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn mul_i_ref(&self, negative: bool) -> MulIIncomplete<'_> {
         MulIIncomplete {
@@ -1998,10 +1902,7 @@ impl Complex {
     /// assert_eq!(recip, (0.5, -0.5));
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn recip_ref(&self) -> RecipIncomplete<'_> {
         RecipIncomplete { ref_self: self }
@@ -2090,11 +1991,7 @@ impl Complex {
     /// assert_eq!(f, 25);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [`Float`]: struct.Float.html
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn norm_ref(&self) -> NormIncomplete<'_> {
         NormIncomplete { ref_self: self }
@@ -2171,10 +2068,7 @@ impl Complex {
     /// assert!(*(ln - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn ln_ref(&self) -> LnIncomplete<'_> {
         LnIncomplete { ref_self: self }
@@ -2251,10 +2145,7 @@ impl Complex {
     /// assert!(*(log10 - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn log10_ref(&self) -> Log10Incomplete<'_> {
         Log10Incomplete { ref_self: self }
@@ -2281,10 +2172,7 @@ impl Complex {
     /// assert!(*(c - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn root_of_unity(n: u32, k: u32) -> RootOfUnityIncomplete {
         RootOfUnityIncomplete { n, k }
@@ -2361,10 +2249,7 @@ impl Complex {
     /// assert!(*(exp - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn exp_ref(&self) -> ExpIncomplete<'_> {
         ExpIncomplete { ref_self: self }
@@ -2440,10 +2325,7 @@ impl Complex {
     /// assert!(*(sin - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sin_ref(&self) -> SinIncomplete<'_> {
         SinIncomplete { ref_self: self }
@@ -2519,10 +2401,7 @@ impl Complex {
     /// assert!(*(cos - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn cos_ref(&self) -> CosIncomplete<'_> {
         CosIncomplete { ref_self: self }
@@ -2654,11 +2533,7 @@ impl Complex {
     /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
-    /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sin_cos_ref(&self) -> SinCosIncomplete<'_> {
         SinCosIncomplete { ref_self: self }
@@ -2734,10 +2609,7 @@ impl Complex {
     /// assert!(*(tan - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn tan_ref(&self) -> TanIncomplete<'_> {
         TanIncomplete { ref_self: self }
@@ -2814,10 +2686,7 @@ impl Complex {
     /// assert!(*(sinh - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn sinh_ref(&self) -> SinhIncomplete<'_> {
         SinhIncomplete { ref_self: self }
@@ -2894,10 +2763,7 @@ impl Complex {
     /// assert!(*(cosh - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn cosh_ref(&self) -> CoshIncomplete<'_> {
         CoshIncomplete { ref_self: self }
@@ -2974,10 +2840,7 @@ impl Complex {
     /// assert!(*(tanh - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn tanh_ref(&self) -> TanhIncomplete<'_> {
         TanhIncomplete { ref_self: self }
@@ -3054,10 +2917,7 @@ impl Complex {
     /// assert!(*(asin - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn asin_ref(&self) -> AsinIncomplete<'_> {
         AsinIncomplete { ref_self: self }
@@ -3134,10 +2994,7 @@ impl Complex {
     /// assert!(*(acos - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn acos_ref(&self) -> AcosIncomplete<'_> {
         AcosIncomplete { ref_self: self }
@@ -3214,10 +3071,7 @@ impl Complex {
     /// assert!(*(atan - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn atan_ref(&self) -> AtanIncomplete<'_> {
         AtanIncomplete { ref_self: self }
@@ -3294,10 +3148,7 @@ impl Complex {
     /// assert!(*(asinh - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn asinh_ref(&self) -> AsinhIncomplete<'_> {
         AsinhIncomplete { ref_self: self }
@@ -3376,10 +3227,7 @@ impl Complex {
     /// assert!(*(acosh - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn acosh_ref(&self) -> AcoshIncomplete<'_> {
         AcoshIncomplete { ref_self: self }
@@ -3458,10 +3306,7 @@ impl Complex {
     /// assert!(*(atanh - expected).abs().real() < 0.0001);
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn atanh_ref(&self) -> AtanhIncomplete<'_> {
         AtanhIncomplete { ref_self: self }
@@ -3507,9 +3352,7 @@ impl Complex {
     /// println!("0.0 ≤ {} < 1.0", im);
     /// ```
     ///
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn random_bits(rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
         RandomBitsIncomplete { rng }
@@ -3521,13 +3364,13 @@ impl Complex {
     /// rounds to the nearest.
     ///
     /// The result parts can be rounded up to be equal to one. Unlike
-    /// the [`assign_random_bits`] method which generates a discrete
-    /// random number at intervals depending on the precision, this
-    /// method is equivalent to generating a continuous random number
-    /// with infinite precision and then rounding the result. This
-    /// means that even the smaller numbers will be using all the
-    /// available precision bits, and rounding is performed in all
-    /// cases, not in some corner case.
+    /// the [`random_bits`] method which generates a discrete random
+    /// number at intervals depending on the precision, this method is
+    /// equivalent to generating a continuous random number with
+    /// infinite precision and then rounding the result. This means
+    /// that even the smaller numbers will be using all the available
+    /// precision bits, and rounding is performed in all cases, not in
+    /// some corner case.
     ///
     /// Rounding directions for generated random numbers cannot be
     /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>,
@@ -3565,13 +3408,9 @@ impl Complex {
     /// );
     /// ```
     ///
-    /// [`AssignRound`]: ops/trait.AssignRound.html
-    /// [`Assign`]: trait.Assign.html
-    /// [`Complex`]: #
-    /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
-    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
-    /// [`assign_random_bits`]: #method.assign_random_bits
-    /// [icv]: index.html#incomplete-computation-values
+    /// [`Equal`]: `Ordering::Equal`
+    /// [`random_bits`]: `Complex::random_bits`
+    /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn random_cont(rng: &mut dyn MutRandState) -> RandomContIncomplete {
         RandomContIncomplete { rng }
@@ -4013,8 +3852,7 @@ let error: ParseComplexError = match Complex::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 
-[`Complex`]: ../struct.Complex.html
-[`parse_radix`]: ../struct.Complex.html#method.parse_radix
+[`parse_radix`]: `Complex::parse_radix`
 */
 pub struct ParseComplexError {
     kind: ParseErrorKind,

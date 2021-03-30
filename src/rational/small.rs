@@ -45,7 +45,7 @@ denominator need to be canonicalized.
 
 The `SmallRational` type can be coerced to a [`Rational`], as it
 implements
-<code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
+<code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
 
 # Examples
 
@@ -59,12 +59,6 @@ a /= &*b;
 assert_eq!(*a.numer(), -21);
 assert_eq!(*a.denom(), 13);
 ```
-
-[Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
-[Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
-[`Rational`]: ../struct.Rational.html
-[`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
-[`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 */
 #[derive(Clone)]
 pub struct SmallRational {
@@ -115,8 +109,6 @@ impl SmallRational {
     /// assert_eq!(*r.numer(), 0);
     /// assert_eq!(*r.denom(), 1);
     /// ```
-    ///
-    /// [`SmallRational`]: struct.SmallRational.html
     #[inline]
     pub const fn new() -> Self {
         SmallRational {
@@ -169,8 +161,7 @@ impl SmallRational {
     /// assert_eq!(r.denom().capacity(), den_capacity);
     /// ```
     ///
-    /// [`Rational`]: ../struct.Rational.html
-    /// [`recip_mut`]: ../struct.Rational.html#method.recip_mut
+    /// [`recip_mut`]: `Rational::recip_mut`
     #[inline]
     // Safety: after calling update_d(), self.inner.d points to the
     // limbs so it is in a consistent state.
@@ -198,8 +189,6 @@ impl SmallRational {
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());
     /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
-    ///
-    /// [`SmallRational`]: struct.SmallRational.html
     pub unsafe fn from_canonical<Num: ToSmall, Den: ToSmall>(num: Num, den: Den) -> Self {
         let mut num_size = 0;
         let mut den_size = 0;
@@ -248,8 +237,6 @@ impl SmallRational {
     /// assert_eq!(a.numer(), b.numer());
     /// assert_eq!(a.denom(), b.denom());
     /// ```
-    ///
-    /// [`SmallRational`]: struct.SmallRational.html
     pub unsafe fn assign_canonical<Num: ToSmall, Den: ToSmall>(&mut self, num: Num, den: Den) {
         let (num_limbs, den_limbs) = if self.num_is_first() {
             (&mut self.first_limbs, &mut self.last_limbs)
