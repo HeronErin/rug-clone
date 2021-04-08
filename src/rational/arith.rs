@@ -18,7 +18,7 @@ use crate::{
     ext::xmpq::{self, OptRational},
     integer::{arith::AsLong, SmallInteger},
     ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom},
-    Assign, Integer, Rational,
+    Assign, Complete, Integer, Rational,
 };
 use az::{CheckedAs, CheckedCast};
 use core::{

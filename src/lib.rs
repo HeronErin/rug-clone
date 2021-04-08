@@ -218,11 +218,14 @@ values:
     method, for example
     <code>int.[assign][`Assign::assign`]\(incomplete)</code> and
     <code>float.[assign_round][`assign_round`](incomplete, [Round][`Round`]::[Up][`Up`])</code>.
- 2. Convert them to the final value using the [`From`] trait or a
-    similar method, for example
-    <code>[Integer][`Integer`]::[from][`From::from`]\(incomplete)</code>
-    and
-    <code>[Float][`Float`]::[with_val][`with_val`](53, incomplete)</code>.
+ 2. Convert them to the final value using the [`Complete`] trait, the
+    [`From`] trait or a similar method. For example incomplete
+    integers can be completed using
+    <code>incomplete.[complete][Complete::complete]\()</code> or
+    <code>[Integer]::[from][From::from]\(incomplete)</code>.
+    Incomplete floating-point numbers can be completed using
+    <code>[Float]::[with_val][Float::with_val]\(53, incomplete)</code>
+    since the precision has to be specified.
 
 Let us consider a couple of examples.
 
@@ -279,7 +282,7 @@ These operations return objects that can be stored in temporary
 variables like `incomplete` in the last few code examples. However,
 the names of the types are not public, and consequently, the
 incomplete-computation values cannot be for example stored in a
-struct. If you need to store the value in a struct, convert it to its
+struct. If you need to store the value in a struct, complete it to its
 final type and value.
 
 ## Using Rug
@@ -359,7 +362,6 @@ provided by the crate.
 [`new`]: `Integer::new`
 [`parse_radix`]: `Integer::parse_radix`
 [`parse`]: `Integer::parse`
-[`with_val`]: `Float::with_val`
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
@@ -394,6 +396,8 @@ Assigns to a number from another value.
 
 # Examples
 
+Implementing the trait:
+
 ```rust
 use rug::Assign;
 struct I(i32);
@@ -406,22 +410,63 @@ let mut i = I(0);
 i.assign(42_i16);
 assert_eq!(i.0, 42);
 ```
+
+Performing an assignment operation using the trait:
+
+```rust
+# #[cfg(feature = "integer")] {
+use rug::{Assign, Integer};
+let mut i = Integer::from(15);
+assert_eq!(i, 15);
+i.assign(23);
+assert_eq!(i, 23);
+# }
+```
 */
 pub trait Assign<Src = Self> {
     /// Peforms the assignement.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # #[cfg(feature = "integer")] {
-    /// use rug::{Assign, Integer};
-    /// let mut i = Integer::from(15);
-    /// assert_eq!(i, 15);
-    /// i.assign(23);
-    /// assert_eq!(i, 23);
-    /// # }
-    /// ```
     fn assign(&mut self, src: Src);
+}
+
+/**
+Completes an [incomplete-computation value][icv].
+
+# Examples
+
+Implementing the trait:
+
+```rust
+# #[cfg(feature = "integer")] {
+use rug::{Complete, Integer};
+struct LazyPow4<'a>(&'a Integer);
+impl Complete for LazyPow4<'_> {
+    type Completed = Integer;
+    fn complete(self) -> Integer {
+        self.0.clone().square().square()
+    }
+}
+# }
+```
+
+Completing an [incomplete-computation value][icv]:
+
+```rust
+# #[cfg(feature = "integer")] {
+use rug::{Complete, Integer};
+let incomplete = Integer::fibonacci(12);
+let complete = incomplete.complete();
+assert_eq!(complete, 144);
+# }
+```
+
+[icv]: crate#incomplete-computation-values
+*/
+pub trait Complete {
+    /// The type of the completed operation.
+    type Completed;
+
+    /// Completes the operation.
+    fn complete(self) -> Self::Completed;
 }
 
 #[cfg(feature = "integer")]

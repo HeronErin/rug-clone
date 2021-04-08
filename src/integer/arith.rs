@@ -21,7 +21,7 @@ use crate::{
         AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
         PowAssign, RemFrom, SubFrom,
     },
-    Assign, Integer,
+    Assign, Complete, Integer,
 };
 use az::{CheckedAs, CheckedCast};
 use core::{

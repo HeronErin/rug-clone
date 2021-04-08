@@ -16,7 +16,7 @@
 
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
-use crate::{ext::xmpz, integer::Order, misc, ops::DivRounding, Assign};
+use crate::{ext::xmpz, integer::Order, misc, ops::DivRounding, Assign, Complete};
 use az::{Az, Cast, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingCast};
 use core::{
     cmp::Ordering,
@@ -333,7 +333,7 @@ impl Integer {
     }
 
     /// Creates an [`Integer`] from an initialized
-    /// [GMP integer][`mpz_t`].
+    /// [GMP integer][mpz_t].
     ///
     /// # Safety
     ///
@@ -389,7 +389,7 @@ impl Integer {
         Integer { inner: raw }
     }
 
-    /// Converts an [`Integer`] into a [GMP integer][`mpz_t`].
+    /// Converts an [`Integer`] into a [GMP integer][mpz_t].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -414,7 +414,7 @@ impl Integer {
         ret
     }
 
-    /// Returns a pointer to the inner [GMP integer][`mpz_t`].
+    /// Returns a pointer to the inner [GMP integer][mpz_t].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -439,7 +439,7 @@ impl Integer {
     }
 
     /// Returns an unsafe mutable pointer to the inner
-    /// [GMP integer][`mpz_t`].
+    /// [GMP integer][mpz_t].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -462,7 +462,7 @@ impl Integer {
     }
 
     /// Creates an [`Integer`] from a [slice] of digits of type `T`,
-    /// where `T` can be any [unsigned integer primitive type][`UnsignedPrimitive`].
+    /// where `T` can be any [unsigned integer primitive type][UnsignedPrimitive].
     ///
     /// The resulting value cannot be negative.
     ///
@@ -484,7 +484,7 @@ impl Integer {
     }
 
     /// Assigns from a [slice] of digits of type `T`, where `T` can be
-    /// any [unsigned integer primitive type][`UnsignedPrimitive`].
+    /// any [unsigned integer primitive type][UnsignedPrimitive].
     ///
     /// The resulting value cannot be negative.
     ///
@@ -507,7 +507,7 @@ impl Integer {
     }
 
     /// Assigns from digits of type `T` in a memory area, where `T`
-    /// can be any [unsigned integer primitive type][`UnsignedPrimitive`].
+    /// can be any [unsigned integer primitive type][UnsignedPrimitive].
     ///
     /// The memory area is addressed using a pointer and a length. The
     /// `len` parameter is the number of digits, *not* the number of
@@ -565,7 +565,7 @@ impl Integer {
     /// Returns the number of digits of type `T` required to represent
     /// the absolute value.
     ///
-    /// `T` can be any [unsigned integer primitive type][`UnsignedPrimitive`].
+    /// `T` can be any [unsigned integer primitive type][UnsignedPrimitive].
     ///
     /// # Examples
     ///
@@ -586,18 +586,19 @@ impl Integer {
 
     /// Converts the absolute value to a [`Vec`] of digits of type
     /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][`UnsignedPrimitive`].
+    /// [unsigned integer primitive type][UnsignedPrimitive].
     ///
-    /// The [`Integer`] type also has the [`as_limbs`] method, which
-    /// can be used to borrow the digits without copying them. This
-    /// does come with some more constraints compared to `to_digits`:
+    /// The [`Integer`] type also has the
+    /// [`as_limbs`][Integer::as_limbs] method, which can be used to
+    /// borrow the digits without copying them. This does come with
+    /// some more constraints compared to `to_digits`:
     ///
     ///  1. The digit width is not optional and depends on the
     ///     implementation: [`limb_t`] is typically [`u64`] on 64-bit
     ///     systems and [`u32`] on 32-bit systems.
     ///  2. The order is not optional and is least significant digit
     ///     first, with each digit in the target’s endianness,
-    ///     equivalent to <code>[Order][`Order`]::[Lsf][`Lsf`]</code>.
+    ///     equivalent to <code>[Order]::[Lsf][Order::Lsf]</code>.
     ///
     /// # Examples
     ///
@@ -611,9 +612,6 @@ impl Integer {
     /// let digits_zero = zero.to_digits::<u32>(Order::MsfBe);
     /// assert!(digits_zero.is_empty());
     /// ```
-    ///
-    /// [`Lsf`]: `Order::Lsf`
-    /// [`as_limbs`]: `Integer::as_limbs`
     pub fn to_digits<T: UnsignedPrimitive>(&self, order: Order) -> Vec<T> {
         let digit_count = self.significant_digits::<T>();
         let mut v = Vec::with_capacity(digit_count);
@@ -637,7 +635,7 @@ impl Integer {
 
     /// Writes the absolute value into a [slice] of digits of type
     /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][`UnsignedPrimitive`].
+    /// [unsigned integer primitive type][UnsignedPrimitive].
     ///
     /// The slice must be large enough to hold the digits; the minimum
     /// size can be obtained using the [`significant_digits`] method.
@@ -669,7 +667,7 @@ impl Integer {
 
     /// Writes the absolute value into a memory area of digits of type
     /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][`UnsignedPrimitive`].
+    /// [unsigned integer primitive type][UnsignedPrimitive].
     ///
     /// The memory area is addressed using a pointer and a length. The
     /// `len` parameter is the number of digits, *not* the number of
@@ -770,13 +768,13 @@ impl Integer {
         assert_eq!(count.assume_init(), digit_count);
     }
 
-    /// Extracts a [slice] of [limbs][`limb_t`] used to store the value.
+    /// Extracts a [slice] of [limbs][limb_t] used to store the value.
     ///
     /// The [slice] contains the absolute value of `self`, with the
     /// least significant limb first.
     ///
     /// The [`Integer`] type also implements
-    /// <code>[AsRef][`AsRef`]&lt;[\[][slice][limb_t][`limb_t`][\]][slice]&gt;</code>,
+    /// <code>[AsRef]&lt;[\[][slice][limb_t][][\]][slice]&gt;</code>,
     /// which is equivalent to this method.
     ///
     /// # Examples
@@ -789,7 +787,7 @@ impl Integer {
     /// ```
     ///
     /// `int.as_limbs()` is like a borrowing non-copy version of
-    /// <code>int.[to_digits][`to_digits`]::&lt;[limb_t][`limb_t`]&gt;([Order][`Order`]::[Lsf][`Lsf`])</code>.
+    /// <code>int.[to_digits][Integer::to_digits]::&lt;[limb_t]&gt;([Order]::[Lsf][Order::Lsf])</code>.
     ///
     /// ```rust
     /// use gmp_mpfr_sys::gmp::limb_t;
@@ -804,18 +802,16 @@ impl Integer {
     /// assert_eq!(int_slice, digits_slice);
     /// ```
     ///
-    /// [`Lsf`]: `Order::Lsf`
-    /// [`to_digits`]: `Integer::to_digits`
     /// [slice]: prim@slice
     pub fn as_limbs(&self) -> &[limb_t] {
         self.inner_data()
     }
 
     /// Creates an [`Integer`] from an [`f32`] if it is
-    /// [finite][`is_finite`], rounding towards zero.
+    /// [finite][f32::is_finite], rounding towards zero.
     ///
     /// This conversion can also be performed using
-    /// <code>value.[checked\_as][`checked_as`]::&lt;[Integer][`Integer`]&gt;()</code>.
+    /// <code>value.[checked\_as]::&lt;[Integer]&gt;()</code>.
     ///
     /// # Examples
     ///
@@ -828,18 +824,17 @@ impl Integer {
     /// assert!(neg_inf.is_none());
     /// ```
     ///
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`is_finite`]: `f32::is_finite`
+    /// [checked\_as]: az::CheckedAs::checked_as
     #[inline]
     pub fn from_f32(value: f32) -> Option<Self> {
         value.checked_cast()
     }
 
     /// Creates an [`Integer`] from an [`f64`] if it is
-    /// [finite][`is_finite`], rounding towards zero.
+    /// [finite][f64::is_finite], rounding towards zero.
     ///
     /// This conversion can also be performed using
-    /// <code>value.[checked\_as][`checked_as`]::&lt;[Integer][`Integer`]&gt;()</code>.
+    /// <code>value.[checked\_as]::&lt;[Integer]&gt;()</code>.
     ///
     /// # Examples
     ///
@@ -852,8 +847,7 @@ impl Integer {
     /// assert!(inf.is_none());
     /// ```
     ///
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`is_finite`]: `f64::is_finite`
+    /// [checked\_as]: az::CheckedAs::checked_as
     #[inline]
     pub fn from_f64(value: f64) -> Option<Self> {
         value.checked_cast()
@@ -879,13 +873,14 @@ impl Integer {
 
     /// Parses a decimal string slice (<code>&amp;[str]</code>) or
     /// byte slice
-    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into an
+    /// (<code>[&amp;\[][slice][u8][][\]][slice]</code>) into an
     /// [`Integer`].
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -895,14 +890,10 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     ///
-    /// let valid1 = Integer::parse("1223");
-    /// let i1 = Integer::from(valid1.unwrap());
-    /// assert_eq!(i1, 1223);
-    /// let valid2 = Integer::parse("123 456 789");
-    /// let i2 = Integer::from(valid2.unwrap());
-    /// assert_eq!(i2, 123_456_789);
+    /// assert_eq!(Integer::parse("1223").unwrap().complete(), 1223);
+    /// assert_eq!(Integer::parse("123 456 789").unwrap().complete(), 123_456_789);
     ///
     /// let invalid = Integer::parse("789a");
     /// assert!(invalid.is_err());
@@ -916,13 +907,14 @@ impl Integer {
     }
 
     /// Parses a string slice (<code>&amp;[str]</code>) or byte slice
-    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into an
+    /// (<code>[&amp;\[][slice][u8][][\]][slice]</code>) into an
     /// [`Integer`].
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -936,14 +928,12 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     ///
     /// let valid1 = Integer::parse_radix("1223", 4);
-    /// let i1 = Integer::from(valid1.unwrap());
-    /// assert_eq!(i1, 3 + 4 * (2 + 4 * (2 + 4 * 1)));
+    /// assert_eq!(valid1.unwrap().complete(), 3 + 4 * (2 + 4 * (2 + 4 * 1)));
     /// let valid2 = Integer::parse_radix("1234 abcd", 16);
-    /// let i2 = Integer::from(valid2.unwrap());
-    /// assert_eq!(i2, 0x1234_abcd);
+    /// assert_eq!(valid2.unwrap().complete(), 0x1234_abcd);
     ///
     /// let invalid = Integer::parse_radix("123", 3);
     /// assert!(invalid.is_err());
@@ -962,10 +952,10 @@ impl Integer {
     /// Converts to an [`i8`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[i8][`i8`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[i8][`i8`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i8][`i8`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i8][`i8`]&gt;()</code>
+    ///   * <code>[i8]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[i8]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[i8]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[i8]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -979,9 +969,9 @@ impl Integer {
     /// assert_eq!(large.to_i8(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_i8(&self) -> Option<i8> {
         self.checked_cast()
@@ -990,10 +980,10 @@ impl Integer {
     /// Converts to an [`i16`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[i16][`i16`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[i16][`i16`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i16][`i16`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i16][`i16`]&gt;()</code>
+    ///   * <code>[i16]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[i16]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[i16]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[i16]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1007,9 +997,9 @@ impl Integer {
     /// assert_eq!(large.to_i16(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_i16(&self) -> Option<i16> {
         self.checked_cast()
@@ -1018,10 +1008,10 @@ impl Integer {
     /// Converts to an [`i32`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[i32][`i32`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[i32][`i32`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i32][`i32`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i32][`i32`]&gt;()</code>
+    ///   * <code>[i32]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[i32]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[i32]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[i32]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1035,9 +1025,9 @@ impl Integer {
     /// assert_eq!(large.to_i32(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_i32(&self) -> Option<i32> {
         self.checked_cast()
@@ -1046,10 +1036,10 @@ impl Integer {
     /// Converts to an [`i64`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[i64][`i64`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[i64][`i64`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i64][`i64`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i64][`i64`]&gt;()</code>
+    ///   * <code>[i64]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[i64]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[i64]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[i64]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1063,9 +1053,9 @@ impl Integer {
     /// assert_eq!(large.to_i64(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_i64(&self) -> Option<i64> {
         self.checked_cast()
@@ -1074,10 +1064,10 @@ impl Integer {
     /// Converts to an [`i128`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[i128][`i128`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[i128][`i128`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[i128][`i128`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[i128][`i128`]&gt;()</code>
+    ///   * <code>[i128]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[i128]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[i128]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[i128]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1091,9 +1081,9 @@ impl Integer {
     /// assert_eq!(large.to_i128(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_i128(&self) -> Option<i128> {
         self.checked_cast()
@@ -1102,10 +1092,10 @@ impl Integer {
     /// Converts to an [`isize`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[isize][`isize`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[isize][`isize`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[isize][`isize`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[isize][`isize`]&gt;()</code>
+    ///   * <code>[isize]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[isize]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[isize]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[isize]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1117,21 +1107,21 @@ impl Integer {
     /// assert_eq!(large.to_isize(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_isize(&self) -> Option<isize> {
         self.checked_cast()
     }
 
-    /// Converts to a [`u8`] if the value fits.
+    /// Converts to an [`u8`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[u8][`u8`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[u8][`u8`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u8][`u8`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u8][`u8`]&gt;()</code>
+    ///   * <code>[u8]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[u8]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[u8]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[u8]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1145,21 +1135,21 @@ impl Integer {
     /// assert_eq!(large.to_u8(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_u8(&self) -> Option<u8> {
         self.checked_cast()
     }
 
-    /// Converts to a [`u16`] if the value fits.
+    /// Converts to an [`u16`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[u16][`u16`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[u16][`u16`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u16][`u16`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u16][`u16`]&gt;()</code>
+    ///   * <code>[u16]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[u16]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[u16]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[u16]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1173,21 +1163,21 @@ impl Integer {
     /// assert_eq!(large.to_u16(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_u16(&self) -> Option<u16> {
         self.checked_cast()
     }
 
-    /// Converts to a [`u32`] if the value fits.
+    /// Converts to an [`u32`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[u32][`u32`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[u32][`u32`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u32][`u32`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u32][`u32`]&gt;()</code>
+    ///   * <code>[u32]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[u32]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[u32]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[u32]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1201,21 +1191,21 @@ impl Integer {
     /// assert_eq!(large.to_u32(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_u32(&self) -> Option<u32> {
         self.checked_cast()
     }
 
-    /// Converts to a [`u64`] if the value fits.
+    /// Converts to an [`u64`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[u64][`u64`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[u64][`u64`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u64][`u64`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u64][`u64`]&gt;()</code>
+    ///   * <code>[u64]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[u64]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[u64]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[u64]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1229,21 +1219,21 @@ impl Integer {
     /// assert_eq!(large.to_u64(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_u64(&self) -> Option<u64> {
         self.checked_cast()
     }
 
-    /// Converts to a [`u128`] if the value fits.
+    /// Converts to an [`u128`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[u128][`u128`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[u128][`u128`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[u128][`u128`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[u128][`u128`]&gt;()</code>
+    ///   * <code>[u128]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[u128]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[u128]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[u128]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1259,21 +1249,21 @@ impl Integer {
     /// assert_eq!(large.to_u128(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_u128(&self) -> Option<u128> {
         self.checked_cast()
     }
 
-    /// Converts to a [`usize`] if the value fits.
+    /// Converts to an [`usize`] if the value fits.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[usize][`usize`]::[try_from][`try_from`](&amp;integer)</code>
-    ///   * <code>[usize][`usize`]::[try_from][`try_from`](integer)</code>
-    ///   * <code>(&amp;integer).[checked\_as][`checked_as`]::&lt;[usize][`usize`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[checked\_as][`checked_as`]::&lt;[usize][`usize`]&gt;()</code>
+    ///   * <code>[usize]::[try\_from]\(&amp;integer)</code>
+    ///   * <code>[usize]::[try\_from]\(integer)</code>
+    ///   * <code>(&amp;integer).[checked\_as]::&lt;[usize]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[checked\_as]::&lt;[usize]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1287,9 +1277,9 @@ impl Integer {
     /// assert_eq!(large.to_usize(), None);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_usize(&self) -> Option<usize> {
         self.checked_cast()
@@ -1298,8 +1288,8 @@ impl Integer {
     /// Converts to an [`i8`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i8][`i8`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i8][`i8`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[i8]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[i8]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1309,8 +1299,8 @@ impl Integer {
     /// assert_eq!(large.to_i8_wrapping(), 0x34);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_i8_wrapping(&self) -> i8 {
         self.wrapping_cast()
@@ -1319,8 +1309,8 @@ impl Integer {
     /// Converts to an [`i16`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i16][`i16`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i16][`i16`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[i16]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[i16]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1330,8 +1320,8 @@ impl Integer {
     /// assert_eq!(large.to_i16_wrapping(), 0x5678);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_i16_wrapping(&self) -> i16 {
         self.wrapping_cast()
@@ -1340,8 +1330,8 @@ impl Integer {
     /// Converts to an [`i32`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i32][`i32`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i32][`i32`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[i32]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[i32]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1351,8 +1341,8 @@ impl Integer {
     /// assert_eq!(large.to_i32_wrapping(), 0x9abc_def0_u32 as i32);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_i32_wrapping(&self) -> i32 {
         self.wrapping_cast()
@@ -1361,8 +1351,8 @@ impl Integer {
     /// Converts to an [`i64`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i64][`i64`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i64][`i64`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[i64]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[i64]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1372,8 +1362,8 @@ impl Integer {
     /// assert_eq!(large.to_i64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_i64_wrapping(&self) -> i64 {
         self.wrapping_cast()
@@ -1382,8 +1372,8 @@ impl Integer {
     /// Converts to an [`i128`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[i128][`i128`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[i128][`i128`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[i128]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[i128]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1397,8 +1387,8 @@ impl Integer {
     /// );
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_i128_wrapping(&self) -> i128 {
         self.wrapping_cast()
@@ -1407,8 +1397,8 @@ impl Integer {
     /// Converts to an [`isize`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[isize][`isize`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[isize][`isize`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[isize]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[isize]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1418,8 +1408,8 @@ impl Integer {
     /// assert_eq!(large.to_isize_wrapping(), 0x1234);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_isize_wrapping(&self) -> isize {
         self.wrapping_cast()
@@ -1428,8 +1418,8 @@ impl Integer {
     /// Converts to a [`u8`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u8][`u8`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u8][`u8`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[u8]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[u8]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1441,8 +1431,8 @@ impl Integer {
     /// assert_eq!(large.to_u8_wrapping(), 0x34);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_u8_wrapping(&self) -> u8 {
         self.wrapping_cast()
@@ -1451,8 +1441,8 @@ impl Integer {
     /// Converts to a [`u16`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u16][`u16`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u16][`u16`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[u16]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[u16]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1464,8 +1454,8 @@ impl Integer {
     /// assert_eq!(large.to_u16_wrapping(), 0x5678);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_u16_wrapping(&self) -> u16 {
         self.wrapping_cast()
@@ -1474,8 +1464,8 @@ impl Integer {
     /// Converts to a [`u32`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u32][`u32`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u32][`u32`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[u32]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[u32]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1487,8 +1477,8 @@ impl Integer {
     /// assert_eq!(large.to_u32_wrapping(), 0x9abc_def0);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_u32_wrapping(&self) -> u32 {
         self.wrapping_cast()
@@ -1497,8 +1487,8 @@ impl Integer {
     /// Converts to a [`u64`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u64][`u64`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u64][`u64`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[u64]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[u64]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1510,8 +1500,8 @@ impl Integer {
     /// assert_eq!(large.to_u64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
         self.wrapping_cast()
@@ -1520,8 +1510,8 @@ impl Integer {
     /// Converts to a [`u128`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[u128][`u128`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[u128][`u128`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[u128]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[u128]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1540,8 +1530,8 @@ impl Integer {
     /// );
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_u128_wrapping(&self) -> u128 {
         self.wrapping_cast()
@@ -1550,8 +1540,8 @@ impl Integer {
     /// Converts to a [`usize`], wrapping if the value does not fit.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[wrapping\_as][`wrapping_as`]::&lt;[usize][`usize`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[wrapping\_as][`wrapping_as`]::&lt;[usize][`usize`]&gt;()</code>
+    ///   * <code>(&amp;integer).[wrapping\_as]::&lt;[usize]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[wrapping\_as]::&lt;[usize]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1561,8 +1551,8 @@ impl Integer {
     /// assert_eq!(large.to_usize_wrapping(), 0x1234);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`wrapping_as`]: `az::WrappingAs::wrapping_as`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [wrapping\_as]: az::WrappingAs::wrapping_as
     #[inline]
     pub fn to_usize_wrapping(&self) -> usize {
         self.wrapping_cast()
@@ -1571,8 +1561,8 @@ impl Integer {
     /// Converts to an [`f32`], rounding towards zero.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[az][`az`]::&lt;[f32][`f32`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[az][`az`]::&lt;[f32][`f32`]&gt;()</code>
+    ///   * <code>(&amp;integer).[az]::&lt;[f32]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[az]::&lt;[f32]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1588,8 +1578,8 @@ impl Integer {
     /// assert_eq!(times_two.to_f32(), f32::NEG_INFINITY);
     /// ```
     ///
-    /// [`az`]: `az::Az::az`
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [az]: az::Az::az
+    /// [borrow]: core::borrow::Borrow::borrow
     #[inline]
     pub fn to_f32(&self) -> f32 {
         self.cast()
@@ -1598,8 +1588,8 @@ impl Integer {
     /// Converts to an [`f64`], rounding towards zero.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;integer).[az][`az`]::&lt;[f64][`f64`]&gt;()</code>
-    ///   * <code>integer.[borrow][`borrow`]().[az][`az`]::&lt;[f64][`f64`]&gt;()</code>
+    ///   * <code>(&amp;integer).[az]::&lt;[f64]&gt;()</code>
+    ///   * <code>integer.[borrow]\().[az]::&lt;[f64]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -1628,8 +1618,8 @@ impl Integer {
     /// assert_eq!(times_two.to_f64(), f64::INFINITY);
     /// ```
     ///
-    /// [`az`]: `az::Az::az`
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [az]: az::Az::az
+    /// [borrow]: core::borrow::Borrow::borrow
     #[inline]
     pub fn to_f64(&self) -> f64 {
         self.cast()
@@ -1707,7 +1697,7 @@ impl Integer {
         s
     }
 
-    /// Assigns from an [`f32`] if it is [finite][`is_finite`],
+    /// Assigns from an [`f32`] if it is [finite][f32::is_finite],
     /// rounding towards zero.
     ///
     /// # Examples
@@ -1723,15 +1713,13 @@ impl Integer {
     /// assert!(ret.is_err());
     /// assert_eq!(i, -12);
     /// ```
-    ///
-    /// [`is_finite`]: `f32::is_finite`
     #[inline]
     #[allow(clippy::result_unit_err)]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val.into())
     }
 
-    /// Assigns from an [`f64`] if it is [finite][`is_finite`],
+    /// Assigns from an [`f64`] if it is [finite][f64::is_finite],
     /// rounding towards zero.
     ///
     /// # Examples
@@ -1746,8 +1734,6 @@ impl Integer {
     /// assert!(ret.is_err());
     /// assert_eq!(i, 12);
     /// ```
-    ///
-    /// [`is_finite`]: `f64::is_finite`
     #[inline]
     #[allow(clippy::result_unit_err)]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
@@ -1757,7 +1743,7 @@ impl Integer {
     /// Borrows a negated copy of the [`Integer`].
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Integer][`Integer`]&gt;</code>.
+    /// <code>[Deref]&lt;[Target][Deref::Target] = [Integer]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1784,7 +1770,7 @@ impl Integer {
     /// Borrows an absolute copy of the [`Integer`].
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Integer][`Integer`]&gt;</code>.
+    /// <code>[Deref]&lt;[Target][Deref::Target] = [Integer]&gt;</code>.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -1809,10 +1795,10 @@ impl Integer {
     }
 
     #[cfg(feature = "rational")]
-    /// Borrows a copy of the [`Integer`] as a [`Rational`] number.
+    /// Borrows a copy of the [`Integer`] as a [`Rational`][Rational] number.
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
+    /// <code>[Deref]&lt;[Target][Deref::Target] = [Rational]&gt;</code>.
     ///
     /// # Examples
     ///
@@ -1826,7 +1812,7 @@ impl Integer {
     /// assert_eq!(*recip_r, (1, 42));
     /// ```
     ///
-    /// [`Rational`]: `crate::Rational`
+    /// [Rational]: crate::Rational
     pub const fn as_rational(&self) -> BorrowRational<'_> {
         const ONE: limb_t = 1;
         // use NonNull::new_unchecked because NonNull::from is not usable in const
@@ -2040,7 +2026,7 @@ impl Integer {
     }
 
     /// Returns the same result as
-    /// <code>self.[cmp][`cmp`](&amp;0.[into][`into`]())</code>, but is faster.
+    /// <code>self.[cmp][Ord::cmp]\(&amp;0.[into][Into::into]\())</code>, but is faster.
     ///
     /// # Examples
     ///
@@ -2051,9 +2037,6 @@ impl Integer {
     /// assert_eq!(Integer::from(0).cmp0(), Ordering::Equal);
     /// assert_eq!(Integer::from(5).cmp0(), Ordering::Greater);
     /// ```
-    ///
-    /// [`cmp`]: `Ord::cmp`
-    /// [`into`]: `Into::into`
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         xmpz::sgn(self)
@@ -2275,15 +2258,16 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
+    ///   * <code>[AddAssign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Add]&lt;Src&gt; for [Integer]</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     ///
     /// let values = [
     ///     Integer::from(5),
@@ -2292,8 +2276,7 @@ impl Integer {
     ///     Integer::from(-4),
     /// ];
     ///
-    /// let r = Integer::sum(values.iter());
-    /// let sum = Integer::from(r);
+    /// let sum = Integer::sum(values.iter()).complete();
     /// let expected = 5 + 1024 - 100_000 - 4;
     /// assert_eq!(sum, expected);
     /// ```
@@ -2311,21 +2294,21 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
+    ///   * <code>[AddAssign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Add]&lt;Src&gt; for [Integer]</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     ///
     /// let a = [Integer::from(270), Integer::from(-11)];
     /// let b = [Integer::from(100), Integer::from(5)];
     ///
-    /// let r = Integer::dot(a.iter().zip(b.iter()));
-    /// let dot = Integer::from(r);
+    /// let dot = Integer::dot(a.iter().zip(b.iter())).complete();
     /// let expected = 270 * 100 - 11 * 5;
     /// assert_eq!(dot, expected);
     /// ```
@@ -2343,15 +2326,16 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[MulAssign][`MulAssign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[Mul][`Mul`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
+    ///   * <code>[MulAssign]&lt;Src&gt;0 for [Integer]</code>
+    ///   * <code>[Mul]&lt;Src&gt; for [Integer]</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     ///
     /// let values = [
     ///     Integer::from(5),
@@ -2360,8 +2344,7 @@ impl Integer {
     ///     Integer::from(-4),
     /// ];
     ///
-    /// let r = Integer::product(values.iter());
-    /// let product = Integer::from(r);
+    /// let product = Integer::product(values.iter()).complete();
     /// let expected = 5 * 1024 * -100_000 * -4;
     /// assert_eq!(product, expected);
     /// ```
@@ -2410,8 +2393,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -2477,8 +2461,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -2561,8 +2546,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Panics
     ///
@@ -2639,8 +2625,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -2704,8 +2691,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -2761,8 +2749,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -2837,26 +2826,20 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// The remainder has the same sign as the dividend.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// let dividend = Integer::from(-23);
     /// let divisor = Integer::from(-10);
-    /// let r = dividend.div_rem_ref(&divisor);
-    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// let (quotient, rem) = dividend.div_rem_ref(&divisor).complete();
     /// assert_eq!(quotient, 2);
     /// assert_eq!(rem, -3);
     /// ```
@@ -2932,24 +2915,18 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// let dividend = Integer::from(-23);
     /// let divisor = Integer::from(-10);
-    /// let r = dividend.div_rem_ceil_ref(&divisor);
-    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// let (quotient, rem) = dividend.div_rem_ceil_ref(&divisor).complete();
     /// assert_eq!(quotient, 3);
     /// assert_eq!(rem, 7);
     /// ```
@@ -3022,24 +2999,18 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// let dividend = Integer::from(-23);
     /// let divisor = Integer::from(-10);
-    /// let r = dividend.div_rem_floor_ref(&divisor);
-    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// let (quotient, rem) = dividend.div_rem_floor_ref(&divisor).complete();
     /// assert_eq!(quotient, 2);
     /// assert_eq!(rem, -3);
     /// ```
@@ -3120,25 +3091,19 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// // −28 / −10 → 3 rem 2
     /// let dividend = Integer::from(-28);
     /// let divisor = Integer::from(-10);
-    /// let r = dividend.div_rem_round_ref(&divisor);
-    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// let (quotient, rem) = dividend.div_rem_round_ref(&divisor).complete();
     /// assert_eq!(quotient, 3);
     /// assert_eq!(rem, 2);
     /// ```
@@ -3205,24 +3170,18 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// let dividend = Integer::from(-23);
     /// let divisor = Integer::from(-10);
-    /// let r = dividend.div_rem_euc_ref(&divisor);
-    /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+    /// let (quotient, rem) = dividend.div_rem_euc_ref(&divisor).complete();
     /// assert_eq!(quotient, 3);
     /// assert_eq!(rem, 7);
     /// ```
@@ -3336,8 +3295,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -3411,8 +3371,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -3433,8 +3394,8 @@ impl Integer {
     }
 
     /// Finds the inverse modulo `modulo` and returns
-    /// [`Ok(inverse)`][`Ok`] if it exists, or
-    /// [`Err(unchanged)`][`Err`] if the inverse does not exist.
+    /// [`Ok(inverse)`][Ok] if it exists, or
+    /// [`Err(unchanged)`][Err] if the inverse does not exist.
     ///
     /// The inverse exists if the modulo is not zero, and `self` and
     /// the modulo are co-prime, that is their GCD is 1.
@@ -3507,8 +3468,9 @@ impl Integer {
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -3535,8 +3497,8 @@ impl Integer {
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
-    /// returns [`Ok(power)`][`Ok`] if an answer exists, or
-    /// [`Err(unchanged)`][`Err`] if it does not.
+    /// returns [`Ok(power)`][Ok] if an answer exists, or
+    /// [`Err(unchanged)`][Err] if it does not.
     ///
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
@@ -3632,8 +3594,9 @@ impl Integer {
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -3765,8 +3728,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Panics
     ///
@@ -3802,16 +3766,15 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
-    /// let p = Integer::u_pow_u(13, 12);
-    /// let i = Integer::from(p);
-    /// assert_eq!(i, 13_u64.pow(12));
+    /// use rug::{Complete, Integer};
+    /// assert_eq!(Integer::u_pow_u(13, 12).complete(), 13_u64.pow(12));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -3824,19 +3787,19 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
-    /// let p1 = Integer::i_pow_u(-13, 13);
-    /// let i1 = Integer::from(p1);
-    /// assert_eq!(i1, (-13_i64).pow(13));
-    /// let p2 = Integer::i_pow_u(13, 13);
-    /// let i2 = Integer::from(p2);
-    /// assert_eq!(i2, (13_i64).pow(13));
+    /// use rug::{Assign, Integer};
+    /// let mut ans = Integer::new();
+    /// ans.assign(Integer::i_pow_u(-13, 13));
+    /// assert_eq!(ans, (-13_i64).pow(13));
+    /// ans.assign(Integer::i_pow_u(13, 13));
+    /// assert_eq!(ans, (13_i64).pow(13));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -3890,8 +3853,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -3971,31 +3935,26 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Integer};
+    /// use rug::{Assign, Complete, Integer};
     /// let i = Integer::from(1004);
     /// let mut root = Integer::new();
     /// let mut rem = Integer::new();
-    /// let r = i.root_rem_ref(3);
-    /// (&mut root, &mut rem).assign(r);
+    /// // 1004 = 10^3 + 5
+    /// (&mut root, &mut rem).assign(i.root_rem_ref(3));
     /// assert_eq!(root, 10);
     /// assert_eq!(rem, 4);
-    /// let r = i.root_rem_ref(3);
-    /// let (other_root, other_rem) = <(Integer, Integer)>::from(r);
-    /// assert_eq!(other_root, 10);
-    /// assert_eq!(other_rem, 4);
+    /// // 1004 = 3^6 + 275
+    /// let (other_root, other_rem) = i.root_rem_ref(6).complete();
+    /// assert_eq!(other_root, 3);
+    /// assert_eq!(other_rem, 275);
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -4039,8 +3998,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -4099,8 +4059,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -4175,15 +4136,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -4274,8 +4230,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -4357,8 +4314,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -4438,9 +4396,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Option][`Option`]&lt;[u32][`u32`]&gt;</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Option]&lt;[u32]&gt;</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// The last item above is useful to obtain the result as a
     /// [`u32`] if it fits. If `other` > 0 , the result always
@@ -4561,30 +4520,16 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// In the case that only one of the two cofactors is
     /// required, the following are also implemented:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
     ///
     /// The GCD is always positive except when both inputs are
     /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
@@ -4646,8 +4591,8 @@ impl Integer {
     ///
     /// [icv]: `crate`#incomplete-computation-values
     #[inline]
-    pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdIncomplete<'_> {
-        GcdIncomplete {
+    pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdCofactorsIncomplete<'_> {
+        GcdCofactorsIncomplete {
             ref_self: self,
             other,
         }
@@ -4709,8 +4654,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -4784,8 +4730,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -4927,17 +4874,16 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// // 10 × 9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1
-    /// let f = Integer::factorial(10);
-    /// let i = Integer::from(f);
-    /// assert_eq!(i, 3628800);
+    /// assert_eq!(Integer::factorial(10).complete(), 3628800);
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -4950,17 +4896,16 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// // 10 × 8 × 6 × 4 × 2
-    /// let f = Integer::factorial_2(10);
-    /// let i = Integer::from(f);
-    /// assert_eq!(i, 3840);
+    /// assert_eq!(Integer::factorial_2(10).complete(), 3840);
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -4973,17 +4918,16 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// // 10 × 7 × 4 × 1
-    /// let f = Integer::factorial_m(10, 3);
-    /// let i = Integer::from(f);
-    /// assert_eq!(i, 280);
+    /// assert_eq!(Integer::factorial_m(10, 3).complete(), 280);
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -4996,17 +4940,16 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// // 7 × 5 × 3 × 2
-    /// let p = Integer::primorial(10);
-    /// let i = Integer::from(p);
-    /// assert_eq!(i, 210);
+    /// assert_eq!(Integer::primorial(10).complete(), 210);
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -5052,16 +4995,17 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Complete, Integer};
     /// // 7 choose 2 is 21
     /// let i = Integer::from(7);
-    /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
+    /// assert_eq!(i.binomial_ref(2).complete(), 21);
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -5074,8 +5018,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -5097,8 +5042,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// This function is meant for an isolated number. If a
     /// sequence of Fibonacci numbers is required, the first two
@@ -5108,10 +5054,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
-    /// let f = Integer::fibonacci(12);
-    /// let i = Integer::from(f);
-    /// assert_eq!(i, 144);
+    /// use rug::{Complete, Integer};
+    /// assert_eq!(Integer::fibonacci(12).complete(), 144);
     /// ```
     ///
     /// [`fibonacci_2`]: `Integer::fibonacci_2`
@@ -5126,15 +5070,11 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// This function is meant to calculate isolated numbers. If a
     /// sequence of Fibonacci numbers is required, the first two
@@ -5157,16 +5097,17 @@ impl Integer {
     ///
     /// [icv]: `crate`#incomplete-computation-values
     #[inline]
-    pub fn fibonacci_2(n: u32) -> FibonacciIncomplete {
-        FibonacciIncomplete { n }
+    pub fn fibonacci_2(n: u32) -> Fibonacci2Incomplete {
+        Fibonacci2Incomplete { n }
     }
 
     /// Computes the Lucas number.
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// This function is meant for an isolated number. If a
     /// sequence of Lucas numbers is required, the first two
@@ -5176,10 +5117,8 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
-    /// let l = Integer::lucas(12);
-    /// let i = Integer::from(l);
-    /// assert_eq!(i, 322);
+    /// use rug::{Complete, Integer};
+    /// assert_eq!(Integer::lucas(12).complete(), 322);
     /// ```
     ///
     /// [`lucas_2`]: `Integer::lucas_2`
@@ -5193,15 +5132,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Integer][`Integer`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Integer][`Integer`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// This function is meant to calculate isolated numbers. If a
     /// sequence of Lucas numbers is required, the first two values of
@@ -5223,8 +5157,8 @@ impl Integer {
     ///
     /// [icv]: `crate`#incomplete-computation-values
     #[inline]
-    pub fn lucas_2(n: u32) -> LucasIncomplete {
-        LucasIncomplete { n }
+    pub fn lucas_2(n: u32) -> Lucas2Incomplete {
+        Lucas2Incomplete { n }
     }
 
     #[cfg(feature = "rand")]
@@ -5233,8 +5167,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -5306,8 +5241,9 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Integer]&gt; for Src</code>
     ///
     /// # Panics
     ///
@@ -5377,6 +5313,17 @@ where
     }
 }
 
+impl<'a, I> Complete for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Integer>,
+{
+    type Completed = Integer;
+    #[inline]
+    fn complete(self) -> Integer {
+        Integer::from(self)
+    }
+}
+
 impl<'a, I> Add<SumIncomplete<'a, I>> for Integer
 where
     I: Iterator<Item = &'a Self>,
@@ -5437,6 +5384,17 @@ where
         };
         dst.add_assign(src);
         dst
+    }
+}
+
+impl<'a, I> Complete for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    type Completed = Integer;
+    #[inline]
+    fn complete(self) -> Integer {
+        Integer::from(self)
     }
 }
 
@@ -5501,6 +5459,17 @@ where
         };
         dst.mul_assign(src);
         dst
+    }
+}
+
+impl<'a, I> Complete for ProductIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Integer>,
+{
+    type Completed = Integer;
+    #[inline]
+    fn complete(self) -> Integer {
+        Integer::from(self)
     }
 }
 
@@ -5688,37 +5657,50 @@ impl From<GcdUIncomplete<'_>> for Option<u32> {
     }
 }
 
-impl Assign<GcdIncomplete<'_>> for (&mut Integer, &mut Integer) {
-    #[inline]
-    fn assign(&mut self, src: GcdIncomplete<'_>) {
-        xmpz::gcdext(self.0, self.1, None, src.ref_self, src.other);
-    }
+#[derive(Debug)]
+pub struct GcdCofactorsIncomplete<'a> {
+    ref_self: &'a Integer,
+    other: &'a Integer,
 }
 
-impl Assign<GcdIncomplete<'_>> for (Integer, Integer) {
+impl Assign<GcdCofactorsIncomplete<'_>> for (&mut Integer, &mut Integer, &mut Integer) {
     #[inline]
-    fn assign(&mut self, src: GcdIncomplete<'_>) {
-        (&mut self.0, &mut self.1).assign(src);
-    }
-}
-
-from_assign! { GcdIncomplete<'_> => Integer, Integer }
-
-impl Assign<GcdIncomplete<'_>> for (&mut Integer, &mut Integer, &mut Integer) {
-    #[inline]
-    fn assign(&mut self, src: GcdIncomplete<'_>) {
+    fn assign(&mut self, src: GcdCofactorsIncomplete<'_>) {
         xmpz::gcdext(self.0, self.1, Some(self.2), src.ref_self, src.other);
     }
 }
 
-impl Assign<GcdIncomplete<'_>> for (Integer, Integer, Integer) {
+impl Assign<GcdCofactorsIncomplete<'_>> for (Integer, Integer, Integer) {
     #[inline]
-    fn assign(&mut self, src: GcdIncomplete<'_>) {
+    fn assign(&mut self, src: GcdCofactorsIncomplete<'_>) {
         (&mut self.0, &mut self.1, &mut self.2).assign(src);
     }
 }
 
-from_assign! { GcdIncomplete<'_> => Integer, Integer, Integer }
+from_assign! { GcdCofactorsIncomplete<'_> => Integer, Integer, Integer }
+
+impl Assign<GcdCofactorsIncomplete<'_>> for (&mut Integer, &mut Integer) {
+    #[inline]
+    fn assign(&mut self, src: GcdCofactorsIncomplete<'_>) {
+        xmpz::gcdext(self.0, self.1, None, src.ref_self, src.other);
+    }
+}
+
+impl Assign<GcdCofactorsIncomplete<'_>> for (Integer, Integer) {
+    #[inline]
+    fn assign(&mut self, src: GcdCofactorsIncomplete<'_>) {
+        Assign::assign(&mut (&mut self.0, &mut self.1), src);
+    }
+}
+
+impl From<GcdCofactorsIncomplete<'_>> for (Integer, Integer) {
+    #[inline]
+    fn from(src: GcdCofactorsIncomplete<'_>) -> Self {
+        let mut dst = Self::default();
+        Assign::assign(&mut (&mut dst.0, &mut dst.1), src);
+        dst
+    }
+}
 
 ref_math_op2! { Integer; xmpz::lcm; struct LcmIncomplete { other } }
 ref_math_op1! { Integer; xmpz::lcm_u32; struct LcmUIncomplete { other: u32 } }
@@ -5781,40 +5763,9 @@ ref_math_op0! { Integer; xmpz::primorial_ui; struct PrimorialIncomplete { n: u32
 ref_math_op1! { Integer; xmpz::bin_ui; struct BinomialIncomplete { k: u32 } }
 ref_math_op0! { Integer; xmpz::bin_uiui; struct BinomialUIncomplete { n: u32, k: u32 } }
 ref_math_op0! { Integer; xmpz::fib_ui; struct FibonacciIncomplete { n: u32 } }
-
-impl Assign<FibonacciIncomplete> for (&mut Integer, &mut Integer) {
-    #[inline]
-    fn assign(&mut self, src: FibonacciIncomplete) {
-        xmpz::fib2_ui(self.0, self.1, src.n.into())
-    }
-}
-
-impl Assign<FibonacciIncomplete> for (Integer, Integer) {
-    #[inline]
-    fn assign(&mut self, src: FibonacciIncomplete) {
-        (&mut self.0, &mut self.1).assign(src);
-    }
-}
-
-from_assign! { FibonacciIncomplete => Integer, Integer }
-
+ref_math_op0_2! { Integer; xmpz::fib2_ui; struct Fibonacci2Incomplete { n: u32 } }
 ref_math_op0! { Integer; xmpz::lucnum_ui; struct LucasIncomplete { n: u32 } }
-
-impl Assign<LucasIncomplete> for (&mut Integer, &mut Integer) {
-    #[inline]
-    fn assign(&mut self, src: LucasIncomplete) {
-        xmpz::lucnum2_ui(self.0, self.1, src.n.into());
-    }
-}
-
-impl Assign<LucasIncomplete> for (Integer, Integer) {
-    #[inline]
-    fn assign(&mut self, src: LucasIncomplete) {
-        (&mut self.0, &mut self.1).assign(src);
-    }
-}
-
-from_assign! { LucasIncomplete => Integer, Integer }
+ref_math_op0_2! { Integer; xmpz::lucnum2_ui; struct Lucas2Incomplete { n: u32 } }
 
 #[cfg(feature = "rand")]
 pub struct RandomBitsIncomplete<'a> {
@@ -6007,9 +5958,8 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
 /**
 An error which can be returned when parsing an [`Integer`].
 
-See the
-<code>[Integer][`Integer`]::[parse_radix][`parse_radix`]</code> method
-for details on what strings are accepted.
+See the <code>[Integer]::[parse\_radix][Integer::parse_radix]</code> method for details on
+what strings are accepted.
 
 # Examples
 
@@ -6023,8 +5973,6 @@ let error: ParseIntegerError = match Integer::parse_radix(s, 4) {
 };
 println!("Parse error: {}", error);
 ```
-
-[`parse_radix`]: `Integer::parse_radix`
 */
 pub struct ParseIntegerError {
     kind: ParseErrorKind,
@@ -6063,7 +6011,7 @@ impl Display for ParseIntegerError {
 Whether a number is prime.
 
 See the
-<code>[Integer][`Integer`]::[is_probably_prime][`is_probably_prime`]</code>
+<code>[Integer]::[is\_probably\_prime][Integer::is_probably_prime]</code>
 method.
 
 # Examples
@@ -6078,8 +6026,6 @@ assert_eq!(yes.is_probably_prime(30), IsPrime::Yes);
 let probably = Integer::from(16_412_292_043_871_650_369_u64);
 assert_eq!(probably.is_probably_prime(30), IsPrime::Probably);
 ```
-
-[`is_probably_prime`]: `Integer::is_probably_prime`
 */
 pub enum IsPrime {
     /// The number is definitely not prime.
@@ -6094,23 +6040,18 @@ pub enum IsPrime {
 /// type are provided.
 ///
 /// For conversion from digits to [`Integer`], see
-/// <code>[Integer][`Integer`]::[from_digits][`from_digits`]</code>
+/// <code>[Integer]::[from\_digits][Integer::from_digits]</code>
 /// and
-/// <code>[Integer][`Integer`]::[assign_digits][`assign_digits`]</code>.
+/// <code>[Integer]::[assign\_digits][Integer::assign_digits]</code>.
 /// For conversion from [`Integer`] to digits, see
-/// <code>[Integer][`Integer`]::[significant_digits][`significant_digits`]</code>,
-/// <code>[Integer][`Integer`]::[to_digits][`to_digits`]</code>, and
-/// <code>[Integer][`Integer`]::[write_digits][`write_digits`]</code>.
+/// <code>[Integer]::[significant\_digits][Integer::significant_digits]</code>,
+/// <code>[Integer]::[to\_digits][Integer::to_digits]</code>, and
+/// <code>[Integer]::[write\_digits][Integer::write_digits]</code>.
 ///
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for [`bool`] and the unsigned integer types [`u8`],
 /// [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
 ///
-/// [`assign_digits`]: `Integer::assign_digits`
-/// [`from_digits`]: `Integer::from_digits`
-/// [`significant_digits`]: `Integer::significant_digits`
-/// [`to_digits`]: `Integer::to_digits`
-/// [`write_digits`]: `Integer::write_digits`
 /// [slice]: prim@slice
 pub trait UnsignedPrimitive: SealedUnsignedPrimitive {}
 

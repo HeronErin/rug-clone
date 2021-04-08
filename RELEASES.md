@@ -5,6 +5,16 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.13.0 (unreleased)
+===========================
+
+  * The [`Complete`][comp-1-13] trait was added to make it easier to
+    convert [incomplete-computation values][icv-1-13] to their final
+    value.
+
+[comp-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html
+[icv-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#incomplete-computation-values
+
 Version 1.12.0 (2021-03-25)
 ===========================
 

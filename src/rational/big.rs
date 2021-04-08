@@ -17,7 +17,7 @@
 use crate::{
     ext::{xmpq, xmpz},
     integer::big as big_integer,
-    Assign, Integer,
+    Assign, Complete, Integer,
 };
 use az::{Cast, CheckedCast, UnwrappedAs, UnwrappedCast};
 use core::{
@@ -115,7 +115,22 @@ macro_rules! ref_rat_op_int {
             }
         }
 
-        from_assign! { $Incomplete<'_> => Integer }
+        impl From<$Incomplete<'_>> for Integer {
+            #[inline]
+            fn from(src: $Incomplete<'_>) -> Self {
+                let mut dst = Self::default();
+                dst.assign(src);
+                dst
+            }
+        }
+
+        impl Complete for $Incomplete<'_> {
+            type Completed = Rational;
+            #[inline]
+            fn complete(self) -> Rational {
+                Rational::from(self)
+            }
+        }
     };
 }
 
@@ -146,14 +161,7 @@ macro_rules! ref_rat_op_rat_int {
             }
         }
 
-        impl From<$Incomplete<'_>> for (Rational, Integer) {
-            #[inline]
-            fn from(src: $Incomplete<'_>) -> Self {
-                let mut dst = Self::default();
-                Assign::assign(&mut dst, src);
-                dst
-            }
-        }
+        from_assign! { $Incomplete<'_> => Rational, Integer }
     };
 }
 
@@ -178,7 +186,7 @@ impl Rational {
     }
 
     /// Creates a [`Rational`] number from an initialized
-    /// [GMP rational number][`mpq_t`].
+    /// [GMP rational number][mpq_t].
     ///
     /// # Safety
     ///
@@ -256,7 +264,7 @@ impl Rational {
     }
 
     /// Converts a [`Rational`] number into a
-    /// [GMP rational number][`mpq_t`].
+    /// [GMP rational number][mpq_t].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -280,7 +288,7 @@ impl Rational {
         m.inner
     }
 
-    /// Returns a pointer to the inner [GMP rational number][`mpq_t`].
+    /// Returns a pointer to the inner [GMP rational number][mpq_t].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -305,7 +313,7 @@ impl Rational {
     }
 
     /// Returns an unsafe mutable pointer to the inner
-    /// [GMP rational number][`mpq_t`].
+    /// [GMP rational number][mpq_t].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -328,11 +336,11 @@ impl Rational {
     }
 
     /// Creates a [`Rational`] number from an [`f32`] if it is
-    /// [finite][`is_finite`], losing no precision.
+    /// [finite][f32::is_finite], losing no precision.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>
-    ///   * <code>value.[checked\_as][`checked_as`]::&lt;[Rational][`Rational`]&gt;()</code>
+    ///   * <code>[Rational]::[try\_from]\(value)</code>
+    ///   * <code>value.[checked\_as]::&lt;[Rational]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -346,20 +354,19 @@ impl Rational {
     /// assert!(inf.is_none());
     /// ```
     ///
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`is_finite`]: `f32::is_finite`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn from_f32(value: f32) -> Option<Self> {
         value.checked_cast()
     }
 
     /// Creates a [`Rational`] number from an [`f64`] if it is
-    /// [finite][`is_finite`], losing no precision.
+    /// [finite][f64::is_finite], losing no precision.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>
-    ///   * <code>value.[checked\_as][`checked_as`]::&lt;[Rational][`Rational`]&gt;()</code>
+    ///   * <code>[Rational]::[try\_from]\(value)</code>
+    ///   * <code>value.[checked\_as]::&lt;[Rational]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -373,9 +380,8 @@ impl Rational {
     /// assert!(inf.is_none());
     /// ```
     ///
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`is_finite`]: `f64::is_finite`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn from_f64(value: f64) -> Option<Self> {
         value.checked_cast()
@@ -405,13 +411,14 @@ impl Rational {
 
     /// Parses a decimal string slice (<code>&amp;[str]</code>) or
     /// byte slice
-    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// (<code>[&amp;\[][slice][u8][][\]][slice]</code>) into a
     /// [`Rational`] number.
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -426,14 +433,10 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     ///
-    /// let valid1 = Rational::parse("-12/23");
-    /// let r1 = Rational::from(valid1.unwrap());
-    /// assert_eq!(r1, (-12, 23));
-    /// let valid2 = Rational::parse("+ 12 / 23");
-    /// let r2 = Rational::from(valid2.unwrap());
-    /// assert_eq!(r2, (12, 23));
+    /// assert_eq!(Rational::parse("-12/23").unwrap().complete(), (-12, 23));
+    /// assert_eq!(Rational::parse("+ 12 / 23").unwrap().complete(), (12, 23));
     ///
     /// let invalid = Rational::parse("12/");
     /// assert!(invalid.is_err());
@@ -446,13 +449,14 @@ impl Rational {
     }
 
     /// Parses a string slice (<code>&amp;[str]</code>) or byte slice
-    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// (<code>[&amp;\[][slice][u8][][\]][slice]</code>) into a
     /// [`Rational`] number.
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -471,16 +475,14 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     ///
     /// let valid1 = Rational::parse_radix("12/23", 4);
-    /// let r1 = Rational::from(valid1.unwrap());
-    /// assert_eq!(r1, (2 + 4 * 1, 3 + 4 * 2));
+    /// assert_eq!(valid1.unwrap().complete(), (2 + 4 * 1, 3 + 4 * 2));
     /// let valid2 = Rational::parse_radix("12 / yz", 36);
-    /// let r2 = Rational::from(valid2.unwrap());
-    /// assert_eq!(r2, (2 + 36 * 1, 35 + 36 * 34));
+    /// assert_eq!(valid2.unwrap().complete(), (2 + 36 * 1, 35 + 36 * 34));
     ///
-    /// let invalid = Rational::parse_radix("12/", 10);
+    /// let invalid = Rational::parse_radix("12/23", 3);
     /// assert!(invalid.is_err());
     /// ```
     ///
@@ -496,8 +498,8 @@ impl Rational {
     /// Converts to an [`f32`], rounding towards zero.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;rational).[az][`az`]::&lt;[f32][`f32`]&gt;()</code>
-    ///   * <code>rational.[borrow][`borrow`]().[az][`az`]::&lt;[f32][`f32`]&gt;()</code>
+    ///   * <code>(&amp;rational).[az][az::Az::az]::&lt;[f32]&gt;()</code>
+    ///   * <code>rational.[borrow]\().[az][az::Az::az]::&lt;[f32]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -513,8 +515,7 @@ impl Rational {
     /// assert_eq!(times_three_two.to_f32(), f32::NEG_INFINITY);
     /// ```
     ///
-    /// [`az`]: `az::Az::az`
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [borrow]: core::borrow::Borrow::borrow
     #[inline]
     pub fn to_f32(&self) -> f32 {
         self.cast()
@@ -523,8 +524,8 @@ impl Rational {
     /// Converts to an [`f64`], rounding towards zero.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(&amp;rational).[az][`az`]::&lt;[f64][`f64`]&gt;()</code>
-    ///   * <code>rational.[borrow][`borrow`]().[az][`az`]::&lt;[f64][`f64`]&gt;()</code>
+    ///   * <code>(&amp;rational).[az][az::Az::az]::&lt;[f64]&gt;()</code>
+    ///   * <code>rational.[borrow]\().[az][az::Az::az]::&lt;[f64]&gt;()</code>
     ///
     /// # Examples
     ///
@@ -554,8 +555,7 @@ impl Rational {
     /// assert_eq!(times_three_two.to_f64(), f64::INFINITY);
     /// ```
     ///
-    /// [`az`]: `az::Az::az`
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
+    /// [borrow]: core::borrow::Borrow::borrow
     #[inline]
     pub fn to_f64(&self) -> f64 {
         self.cast()
@@ -586,7 +586,7 @@ impl Rational {
         s
     }
 
-    /// Assigns from an [`f32`] if it is [finite][`is_finite`], losing
+    /// Assigns from an [`f32`] if it is [finite][f32::is_finite], losing
     /// no precision.
     ///
     /// # Examples
@@ -602,15 +602,13 @@ impl Rational {
     /// assert!(ret.is_err());
     /// assert_eq!(r, (1275, 100));
     /// ```
-    ///
-    /// [`is_finite`]: `f32::is_finite`
     #[inline]
     #[allow(clippy::result_unit_err)]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val.into())
     }
 
-    /// Assigns from an [`f64`] if it is [finite][`is_finite`], losing
+    /// Assigns from an [`f64`] if it is [finite][f64::is_finite], losing
     /// no precision.
     ///
     /// # Examples
@@ -625,8 +623,6 @@ impl Rational {
     /// assert!(ret.is_err());
     /// assert_eq!(r, (1275, 100));
     /// ```
-    ///
-    /// [`is_finite`]: `f64::is_finite`
     #[inline]
     #[allow(clippy::result_unit_err)]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
@@ -908,7 +904,7 @@ impl Rational {
     /// Borrows a negated copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
+    /// <code>[Deref]&lt;[Target][Deref::Target] = [Rational]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -936,7 +932,7 @@ impl Rational {
     /// Borrows an absolute copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
+    /// <code>[Deref]&lt;[Target][Deref::Target] = [Rational]&gt;</code>.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -964,7 +960,7 @@ impl Rational {
     /// Borrows a reciprocal copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
+    /// <code>[Deref]&lt;[Target][Deref::Target] = [Rational]&gt;</code>.
     ///
     /// This method performs some shallow copying, swapping numerator
     /// and denominator and making sure the sign is in the numerator.
@@ -1002,7 +998,7 @@ impl Rational {
     }
 
     /// Returns the same result as
-    /// <code>self.[cmp][`cmp`](&amp;0.[into][`into`]())</code>, but
+    /// <code>self.[cmp][Ord::cmp]\(&amp;0.[into][Into::into]\())</code>, but
     /// is faster.
     ///
     /// # Examples
@@ -1014,9 +1010,6 @@ impl Rational {
     /// assert_eq!(Rational::from(0).cmp0(), Ordering::Equal);
     /// assert_eq!(Rational::from((5, 7)).cmp0(), Ordering::Greater);
     /// ```
-    ///
-    /// [`cmp`]: `Ord::cmp`
-    /// [`into`]: `Into::into`
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         self.numer().cmp0()
@@ -1043,15 +1036,16 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
+    ///   * <code>[AddAssign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Add]&lt;Src&gt; for [Rational]</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     ///
     /// let values = [
     ///     Rational::from((5, 2)),
@@ -1059,8 +1053,7 @@ impl Rational {
     ///     Rational::from(-4),
     /// ];
     ///
-    /// let r = Rational::sum(values.iter());
-    /// let sum = Rational::from(r);
+    /// let sum = Rational::sum(values.iter()).complete();
     /// let expected = (5 * 7 - 100_000 * 2 - 4 * 14, 14);
     /// assert_eq!(sum, expected);
     /// ```
@@ -1078,21 +1071,21 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
+    ///   * <code>[AddAssign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Add]&lt;Src&gt; for [Rational]</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     ///
     /// let a = [Rational::from((270, 7)), Rational::from((-11, 10))];
     /// let b = [Rational::from(7), Rational::from((1, 2))];
     ///
-    /// let r = Rational::dot(a.iter().zip(b.iter()));
-    /// let dot = Rational::from(r);
+    /// let dot = Rational::dot(a.iter().zip(b.iter())).complete();
     /// let expected = (270 * 20 - 11, 20);
     /// assert_eq!(dot, expected);
     /// ```
@@ -1110,15 +1103,16 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[MulAssign][`MulAssign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[Mul][`Mul`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
+    ///   * <code>[MulAssign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Mul]&lt;Src&gt; for [Rational]</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     ///
     /// let values = [
     ///     Rational::from((5, 2)),
@@ -1126,8 +1120,7 @@ impl Rational {
     ///     Rational::from(-4),
     /// ];
     ///
-    /// let r = Rational::product(values.iter());
-    /// let product = Rational::from(r);
+    /// let product = Rational::product(values.iter()).complete();
     /// let expected = (5 * -100_000 * -4, 2 * 7);
     /// assert_eq!(product, expected);
     /// ```
@@ -1176,16 +1169,16 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     /// let r = Rational::from((-100, 17));
-    /// let r_ref = r.abs_ref();
-    /// let abs = Rational::from(r_ref);
+    /// let abs = r.abs_ref().complete();
     /// assert_eq!(abs, (100, 17));
     /// ```
     ///
@@ -1242,10 +1235,11 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -1327,8 +1321,9 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Panics
     ///
@@ -1337,17 +1332,15 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Assign, Complete, Rational};
     /// let min = (-3, 2);
     /// let max = (3, 2);
     /// let too_small = Rational::from((-5, 2));
-    /// let r1 = too_small.clamp_ref(&min, &max);
-    /// let clamped1 = Rational::from(r1);
-    /// assert_eq!(clamped1, (-3, 2));
+    /// let mut clamped = too_small.clamp_ref(&min, &max).complete();
+    /// assert_eq!(clamped, (-3, 2));
     /// let in_range = Rational::from((1, 2));
-    /// let r2 = in_range.clamp_ref(&min, &max);
-    /// let clamped2 = Rational::from(r2);
-    /// assert_eq!(clamped2, (1, 2));
+    /// clamped.assign(in_range.clamp_ref(&min, &max));
+    /// assert_eq!(clamped, (1, 2));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -1415,17 +1408,16 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     /// let r = Rational::from((-100, 17));
-    /// let r_ref = r.recip_ref();
-    /// let recip = Rational::from(r_ref);
-    /// assert_eq!(recip, (-17, 100));
+    /// assert_eq!(r.recip_ref().complete(), (-17, 100));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -1479,10 +1471,11 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -1542,18 +1535,17 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     /// // −100/17 = −5 − 15/17
     /// let r = Rational::from((-100, 17));
-    /// let r_ref = r.rem_trunc_ref();
-    /// let rem = Rational::from(r_ref);
-    /// assert_eq!(rem, (-15, 17));
+    /// assert_eq!(r.rem_trunc_ref().complete(), (-15, 17));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -1606,15 +1598,10 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Rational][`Rational`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Rational][`Rational`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Rational][`Rational`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Rational], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -1680,10 +1667,11 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -1743,18 +1731,17 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     /// // 100/17 = 6 − 2/17
     /// let r = Rational::from((100, 17));
-    /// let r_ref = r.rem_ceil_ref();
-    /// let rem = Rational::from(r_ref);
-    /// assert_eq!(rem, (-2, 17));
+    /// assert_eq!(r.rem_ceil_ref().complete(), (-2, 17));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -1813,15 +1800,10 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Rational][`Rational`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Rational][`Rational`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Rational][`Rational`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Rational], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -1885,10 +1867,11 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -1948,18 +1931,17 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     /// // −100/17 = −6 + 2/17
     /// let r = Rational::from((-100, 17));
-    /// let r_ref = r.rem_floor_ref();
-    /// let rem = Rational::from(r_ref);
-    /// assert_eq!(rem, (2, 17));
+    /// assert_eq!(r.rem_floor_ref().complete(), (2, 17));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -2018,15 +2000,10 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Rational][`Rational`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Rational][`Rational`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Rational][`Rational`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Rational], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -2101,10 +2078,11 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Integer`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Integer]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -2175,23 +2153,22 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Assign, Complete, Rational};
     /// // −3.5 = −4 + 0.5 = −4 + 1/2
     /// let r1 = Rational::from((-35, 10));
-    /// let r_ref1 = r1.rem_round_ref();
-    /// let rem1 = Rational::from(r_ref1);
-    /// assert_eq!(rem1, (1, 2));
+    /// let mut rem = r1.rem_round_ref().complete();
+    /// assert_eq!(rem, (1, 2));
     /// // 3.7 = 4 − 0.3 = 4 − 3/10
     /// let r2 = Rational::from((37, 10));
-    /// let r_ref2 = r2.rem_round_ref();
-    /// let rem2 = Rational::from(r_ref2);
-    /// assert_eq!(rem2, (-3, 10));
+    /// rem.assign(r2.rem_round_ref());
+    /// assert_eq!(rem, (-3, 10));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -2270,15 +2247,10 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple][Rational][`Rational`],
-    ///     [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Rational][`Rational`],
-    ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for
-    ///     [(][tuple][Rational][`Rational`],
-    ///     [Integer][`Integer`][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Rational], &amp;mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]&lt;Src&gt; for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]&gt; for Src</code>
     ///
     /// # Examples
     ///
@@ -2341,15 +2313,16 @@ impl Rational {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Assign]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[From]&lt;Src&gt; for [Rational]</code>
+    ///   * <code>[Complete]&lt;[Completed][Complete::Completed] = [Rational]&gt; for Src</code>
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
+    /// use rug::{Complete, Rational};
     /// let r = Rational::from((-13, 2));
-    /// assert_eq!(Rational::from(r.square_ref()), (169, 4));
+    /// assert_eq!(r.square_ref().complete(), (169, 4));
     /// ```
     ///
     /// [icv]: `crate`#incomplete-computation-values
@@ -2396,6 +2369,17 @@ where
         };
         dst.add_assign(src);
         dst
+    }
+}
+
+impl<'a, I> Complete for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Rational>,
+{
+    type Completed = Rational;
+    #[inline]
+    fn complete(self) -> Rational {
+        Rational::from(self)
     }
 }
 
@@ -2462,6 +2446,17 @@ where
     }
 }
 
+impl<'a, I> Complete for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    type Completed = Rational;
+    #[inline]
+    fn complete(self) -> Rational {
+        Rational::from(self)
+    }
+}
+
 impl<'a, I> Add<DotIncomplete<'a, I>> for Rational
 where
     I: Iterator<Item = (&'a Rational, &'a Rational)>,
@@ -2525,6 +2520,17 @@ where
         };
         dst.mul_assign(src);
         dst
+    }
+}
+
+impl<'a, I> Complete for ProductIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Rational>,
+{
+    type Completed = Rational;
+    #[inline]
+    fn complete(self) -> Rational {
+        Rational::from(self)
     }
 }
 
@@ -2614,6 +2620,17 @@ where
         let mut dst = Rational::new();
         dst.assign(src);
         dst
+    }
+}
+
+impl<Min, Max> Complete for ClampIncomplete<'_, '_, '_, Min, Max>
+where
+    Rational: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
+{
+    type Completed = Rational;
+    #[inline]
+    fn complete(self) -> Rational {
+        Rational::from(self)
     }
 }
 
@@ -2803,7 +2820,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError
 An error which can be returned when parsing a [`Rational`] number.
 
 See the
-<code>[Rational][`Rational`]::[parse_radix][`parse_radix`]</code>
+<code>[Rational]::[parse_radix][Rational::parse_radix]</code>
 method for details on what strings are accepted.
 
 # Examples
@@ -2818,8 +2835,6 @@ let error: ParseRationalError = match Rational::parse_radix(s, 4) {
 };
 println!("Parse error: {}", error);
 ```
-
-[`parse_radix`]: `Rational::parse_radix`
 */
 pub struct ParseRationalError {
     kind: ParseErrorKind,

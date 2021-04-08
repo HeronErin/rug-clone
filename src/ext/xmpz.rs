@@ -1158,16 +1158,16 @@ pub fn kronecker(a: &Integer, b: &Integer) -> c_int {
 }
 
 #[inline]
-pub fn fib2_ui(f_n: &mut Integer, fnsub1: &mut Integer, n: c_ulong) {
+pub fn fib2_ui(f_n: &mut Integer, fnsub1: &mut Integer, n: u32) {
     unsafe {
-        gmp::mpz_fib2_ui(f_n.as_raw_mut(), fnsub1.as_raw_mut(), n);
+        gmp::mpz_fib2_ui(f_n.as_raw_mut(), fnsub1.as_raw_mut(), n.into());
     }
 }
 
 #[inline]
-pub fn lucnum2_ui(ln: &mut Integer, lnsub1: &mut Integer, n: c_ulong) {
+pub fn lucnum2_ui(ln: &mut Integer, lnsub1: &mut Integer, n: u32) {
     unsafe {
-        gmp::mpz_lucnum2_ui(ln.as_raw_mut(), lnsub1.as_raw_mut(), n);
+        gmp::mpz_lucnum2_ui(ln.as_raw_mut(), lnsub1.as_raw_mut(), n.into());
     }
 }
 

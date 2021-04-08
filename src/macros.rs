@@ -25,6 +25,14 @@ macro_rules! from_assign {
                 dst
             }
         }
+
+        impl Complete for $Src {
+            type Completed = $Dst;
+            #[inline]
+            fn complete(self) -> $Dst {
+                <$Dst>::from(self)
+            }
+        }
     };
 
     ($Src:ty => $Dst1:ty, $Dst2:ty) => {
@@ -36,6 +44,14 @@ macro_rules! from_assign {
                 dst
             }
         }
+
+        impl Complete for $Src {
+            type Completed = ($Dst1, $Dst2);
+            #[inline]
+            fn complete(self) -> ($Dst1, $Dst2) {
+                <($Dst1, $Dst2)>::from(self)
+            }
+        }
     };
 
     ($Src:ty => $Dst1:ty, $Dst2:ty, $Dst3:ty) => {
@@ -45,6 +61,14 @@ macro_rules! from_assign {
                 let mut dst = Self::default();
                 Assign::assign(&mut (&mut dst.0, &mut dst.1, &mut dst.2), src);
                 dst
+            }
+        }
+
+        impl Complete for $Src {
+            type Completed = ($Dst1, $Dst2, $Dst3);
+            #[inline]
+            fn complete(self) -> ($Dst1, $Dst2, $Dst3) {
+                <($Dst1, $Dst2, $Dst3)>::from(self)
             }
         }
     };
@@ -75,6 +99,41 @@ macro_rules! ref_math_op0 {
         }
 
         from_assign! { $Incomplete => $Big }
+    };
+}
+
+// struct Incomplete
+// (Big, Big) = Incomplete
+// Incomplete -> (Big, Big)
+#[cfg(feature = "integer")]
+macro_rules! ref_math_op0_2 {
+    (
+        $Big:ty;
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
+    ) => {
+        $(#[$attr_ref])*
+        #[derive(Debug)]
+        pub struct $Incomplete {
+            $($param: $T,)*
+        }
+
+        impl Assign<$Incomplete> for (&mut $Big, &mut $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Incomplete) {
+                $func(self.0, self.1, $(src.$param),*);
+            }
+        }
+
+        impl Assign<$Incomplete> for ($Big, $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Incomplete) {
+                Assign::assign(&mut (&mut self.0, &mut self.1), src);
+            }
+        }
+
+        from_assign! { $Incomplete => $Big, $Big }
     };
 }
 
