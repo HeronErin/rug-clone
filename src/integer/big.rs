@@ -5070,7 +5070,6 @@ impl Integer {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]&lt;Src&gt; for
     ///   * <code>[Assign]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
     ///   * <code>[Assign]&lt;Src&gt; for [(][tuple]&amp;mut [Integer], &amp;mut [Integer][][)][tuple]</code>
     ///   * <code>[From]&lt;Src&gt; for [(][tuple][Integer][], [Integer][][)][tuple]</code>
