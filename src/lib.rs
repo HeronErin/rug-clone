@@ -445,6 +445,8 @@ impl Complete for LazyPow4<'_> {
         self.0.clone().square().square()
     }
 }
+
+assert_eq!(LazyPow4(&Integer::from(3)).complete(), 3i32.pow(4));
 # }
 ```
 
