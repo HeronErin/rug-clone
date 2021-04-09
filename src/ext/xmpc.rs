@@ -216,7 +216,8 @@ where
 pub unsafe fn sum_raw(rop: *mut mpc_t, pointers: &[*const mpc_t], rnd: Round2) -> Ordering2 {
     let n = pointers.len().unwrapped_cast();
     let tab = cast_ptr!(pointers.as_ptr(), *mut mpc_t);
-    ordering2(mpc::sum(rop, tab, n, raw_round2(rnd)))
+    let rnd = raw_round2(rnd);
+    ordering2(unsafe { mpc::sum(rop, tab, n, rnd) })
 }
 
 pub fn dot<'a, I>(rop: &mut Complex, values: I, rnd: Round2) -> Ordering2
@@ -274,7 +275,8 @@ unsafe fn dot_raw(
     let n = pointers_a.len().unwrapped_cast();
     let a = cast_ptr!(pointers_a.as_ptr(), *mut mpc_t);
     let b = cast_ptr!(pointers_b.as_ptr(), *mut mpc_t);
-    ordering2(mpc::dot(rop, a, b, n, raw_round2(rnd)))
+    let rnd = raw_round2(rnd);
+    ordering2(unsafe { mpc::dot(rop, a, b, n, rnd) })
 }
 
 unsafe_wrap! { fn set(op: O) -> mpc::set }

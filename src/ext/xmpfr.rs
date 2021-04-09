@@ -312,7 +312,8 @@ where
 pub unsafe fn sum_raw(rop: *mut mpfr_t, pointers: &[*const mpfr_t], rnd: Round) -> Ordering {
     let n = pointers.len().unwrapped_cast();
     let tab = cast_ptr!(pointers.as_ptr(), *mut mpfr_t);
-    ordering1(mpfr::sum(rop, tab, n, raw_round(rnd)))
+    let rnd = raw_round(rnd);
+    ordering1(unsafe { mpfr::sum(rop, tab, n, rnd) })
 }
 
 pub fn dot<'a, I>(rop: &mut Float, values: I, rnd: Round) -> Ordering
@@ -362,7 +363,8 @@ unsafe fn dot_raw(
     let n = pointers_a.len().unwrapped_cast();
     let a = cast_ptr!(pointers_a.as_ptr(), *mut mpfr_t);
     let b = cast_ptr!(pointers_b.as_ptr(), *mut mpfr_t);
-    ordering1(mpfr::dot(rop, a, b, n, raw_round(rnd)))
+    let rnd = raw_round(rnd);
+    ordering1(unsafe { mpfr::dot(rop, a, b, n, rnd) })
 }
 
 unsafe_wrap! { fn set(src: O) -> mpfr::set }
@@ -809,19 +811,25 @@ pub fn submul<O: OptFloat>(
 
 #[inline]
 pub unsafe fn custom_zero(f: *mut mpfr_t, limbs: *mut limb_t, prec: prec_t) {
-    mpfr::custom_init(limbs as *mut c_void, prec);
-    mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs as *mut c_void);
+    unsafe {
+        mpfr::custom_init(limbs as *mut c_void, prec);
+        mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs as *mut c_void);
+    }
 }
 
 #[inline]
 pub unsafe fn custom_regular(f: *mut mpfr_t, limbs: *mut limb_t, exp: exp_t, prec: prec_t) {
-    mpfr::custom_init(limbs as *mut c_void, prec);
-    mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut c_void);
+    unsafe {
+        mpfr::custom_init(limbs as *mut c_void, prec);
+        mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut c_void);
+    }
 }
 
 #[inline]
 pub unsafe fn custom_special(f: *mut mpfr_t, limbs: *mut limb_t, special: Special, prec: prec_t) {
-    mpfr::custom_init(limbs as *mut c_void, prec);
+    unsafe {
+        mpfr::custom_init(limbs as *mut c_void, prec);
+    }
     let kind = match special {
         Special::Zero => mpfr::ZERO_KIND,
         Special::NegZero => -mpfr::ZERO_KIND,
@@ -830,7 +838,9 @@ pub unsafe fn custom_special(f: *mut mpfr_t, limbs: *mut limb_t, special: Specia
         Special::Nan => mpfr::NAN_KIND,
         _ => unreachable!(),
     };
-    mpfr::custom_init_set(f, kind, 0, prec, limbs as *mut c_void);
+    unsafe {
+        mpfr::custom_init_set(f, kind, 0, prec, limbs as *mut c_void);
+    }
 }
 
 pub const EXP_ZERO: mpfr::exp_t = -mpfr::exp_t::max_value();

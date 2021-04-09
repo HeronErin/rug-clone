@@ -551,15 +551,12 @@ impl Integer {
     ) {
         let bytes = mem::size_of::<T>();
         let nails = 8 * bytes - T::PRIVATE.bits;
-        gmp::mpz_import(
-            self.as_raw_mut(),
-            len,
-            order.order(),
-            bytes,
-            order.endian(),
-            nails,
-            src as *const c_void,
-        );
+        let raw = self.as_raw_mut();
+        let (order, endian) = (order.order(), order.endian());
+        let src = src as *const c_void;
+        unsafe {
+            gmp::mpz_import(raw, len, order, bytes, endian, nails, src);
+        }
     }
 
     /// Returns the number of digits of type `T` required to represent
@@ -748,24 +745,35 @@ impl Integer {
     ) {
         let digit_count = self.significant_digits::<T>();
         let zero_count = len.checked_sub(digit_count).expect("not enough capacity");
+        let zero_bytes = zero_count * T::PRIVATE.bytes;
         let (zeros, digits) = if order.order() < 0 {
-            (dst.offset(digit_count.unwrapped_cast()), dst)
+            let offset = digit_count.unwrapped_cast();
+            (unsafe { dst.offset(offset) }, dst)
         } else {
-            (dst, dst.offset(zero_count.unwrapped_cast()))
+            let offset = zero_count.unwrapped_cast();
+            (dst, unsafe { dst.offset(offset) })
         };
-        // use *mut u8 to allow for unaligned pointers
-        (zeros as *mut u8).write_bytes(0, zero_count * T::PRIVATE.bytes);
+        unsafe {
+            // use *mut u8 to allow for unaligned pointers
+            (zeros as *mut u8).write_bytes(0, zero_bytes);
+        }
         let mut count = MaybeUninit::uninit();
-        gmp::mpz_export(
-            digits as *mut c_void,
-            count.as_mut_ptr(),
-            order.order(),
-            T::PRIVATE.bytes,
-            order.endian(),
-            T::PRIVATE.nails,
-            self.as_raw(),
-        );
-        assert_eq!(count.assume_init(), digit_count);
+        let digits = digits as *mut c_void;
+        let count_ptr = count.as_mut_ptr();
+        let (order, endian) = (order.order(), order.endian());
+        let raw = self.as_raw();
+        unsafe {
+            gmp::mpz_export(
+                digits,
+                count_ptr,
+                order,
+                T::PRIVATE.bytes,
+                endian,
+                T::PRIVATE.nails,
+                raw,
+            );
+        }
+        assert_eq!(unsafe { count.assume_init() }, digit_count);
     }
 
     /// Extracts a [slice] of [limbs][limb_t] used to store the value.
@@ -5825,7 +5833,7 @@ impl BorrowInteger<'_> {
     // unsafe because the lifetime is obtained from return type
     pub(crate) unsafe fn from_raw<'a>(raw: mpz_t) -> BorrowInteger<'a> {
         BorrowInteger {
-            inner: ManuallyDrop::new(Integer::from_raw(raw)),
+            inner: ManuallyDrop::new(unsafe { Integer::from_raw(raw) }),
             phantom: PhantomData,
         }
     }

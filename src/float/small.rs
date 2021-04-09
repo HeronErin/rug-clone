@@ -176,7 +176,7 @@ impl SmallFloat {
     pub unsafe fn as_nonreallocating_float(&mut self) -> &mut Float {
         self.update_d();
         let ptr = cast_ptr_mut!(&mut self.inner, Float);
-        &mut *ptr
+        unsafe { &mut *ptr }
     }
 
     #[inline]
@@ -228,9 +228,11 @@ macro_rules! unsafe_signed {
             #[inline]
             unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
                 let (neg, abs) = self.neg_abs();
-                abs.copy(inner, limbs);
-                if neg {
-                    (*inner).sign = -1;
+                unsafe{
+                    abs.copy(inner, limbs);
+                    if neg {
+                        (*inner).sign = -1;
+                    }
                 }
             }
         }
@@ -246,13 +248,17 @@ macro_rules! unsafe_unsigned_32 {
                 let ptr = cast_ptr_mut!(inner, mpfr_t);
                 let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
                 if self == 0 {
-                    xmpfr::custom_zero(ptr, limbs_ptr, $bits);
+                    unsafe {
+                        xmpfr::custom_zero(ptr, limbs_ptr, $bits);
+                    }
                 } else {
                     let leading = self.leading_zeros();
                     let limb_leading = leading + gmp::LIMB_BITS.az::<u32>() - $bits;
                     limbs[0] = MaybeUninit::new(limb_t::from(self) << limb_leading);
-                    let exp = $bits - leading;
-                    xmpfr::custom_regular(ptr, limbs_ptr, exp.unwrapped_cast(), $bits);
+                    let exp = ($bits - leading).unwrapped_cast();
+                    unsafe {
+                        xmpfr::custom_regular(ptr, limbs_ptr, exp, $bits);
+                    }
                 }
             }
         }
@@ -272,7 +278,9 @@ impl SealedToSmall for u64 {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
         if self == 0 {
-            xmpfr::custom_zero(ptr, limbs_ptr, 64);
+            unsafe {
+                xmpfr::custom_zero(ptr, limbs_ptr, 64);
+            }
         } else {
             let leading = self.leading_zeros();
             let sval = self << leading;
@@ -285,7 +293,10 @@ impl SealedToSmall for u64 {
                 limbs[0] = MaybeUninit::new(sval.wrapping_cast());
                 limbs[1] = MaybeUninit::new((sval >> 32).wrapping_cast());
             }
-            xmpfr::custom_regular(ptr, limbs_ptr, (64 - leading).unwrapped_cast(), 64);
+            let exp = (64 - leading).unwrapped_cast();
+            unsafe {
+                xmpfr::custom_regular(ptr, limbs_ptr, exp, 64);
+            }
         }
     }
 }
@@ -297,7 +308,9 @@ impl SealedToSmall for u128 {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
         if self == 0 {
-            xmpfr::custom_zero(ptr, limbs_ptr, 128);
+            unsafe {
+                xmpfr::custom_zero(ptr, limbs_ptr, 128);
+            }
         } else {
             let leading = self.leading_zeros();
             let sval = self << leading;
@@ -313,7 +326,10 @@ impl SealedToSmall for u128 {
                 limbs[2] = MaybeUninit::new((sval >> 64).wrapping_cast());
                 limbs[3] = MaybeUninit::new((sval >> 96).wrapping_cast());
             }
-            xmpfr::custom_regular(ptr, limbs_ptr, (128 - leading).unwrapped_cast(), 128);
+            let exp = (128 - leading).unwrapped_cast();
+            unsafe {
+                xmpfr::custom_regular(ptr, limbs_ptr, exp, 128);
+            }
         }
     }
 }
@@ -324,11 +340,17 @@ impl SealedToSmall for usize {
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         #[cfg(target_pointer_width = "32")]
         {
-            (self.az::<u32>()).copy(inner, limbs);
+            let val = self.az::<u32>();
+            unsafe {
+                val.copy(inner, limbs);
+            }
         }
         #[cfg(target_pointer_width = "64")]
         {
-            (self.az::<u64>()).copy(inner, limbs);
+            let val = self.az::<u64>();
+            unsafe {
+                val.copy(inner, limbs);
+            }
         }
     }
 }
@@ -339,11 +361,17 @@ impl SealedToSmall for f32 {
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
-        xmpfr::custom_zero(ptr, limbs_ptr, 24);
-        mpfr::set_d(ptr, self.into(), raw_round(Round::Nearest));
+        let val = self.into();
+        let rnd = raw_round(Round::Nearest);
+        unsafe {
+            xmpfr::custom_zero(ptr, limbs_ptr, 24);
+            mpfr::set_d(ptr, val, rnd);
+        }
         // retain sign in case of NaN
         if self.is_sign_negative() {
-            (*inner).sign = -1;
+            unsafe {
+                (*inner).sign = -1;
+            }
         }
     }
 }
@@ -354,11 +382,16 @@ impl SealedToSmall for f64 {
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
-        xmpfr::custom_zero(ptr, limbs_ptr, 53);
-        mpfr::set_d(ptr, self, raw_round(Round::Nearest));
+        let rnd = raw_round(Round::Nearest);
+        unsafe {
+            xmpfr::custom_zero(ptr, limbs_ptr, 53);
+            mpfr::set_d(ptr, self, rnd);
+        }
         // retain sign in case of NaN
         if self.is_sign_negative() {
-            (*inner).sign = -1;
+            unsafe {
+                (*inner).sign = -1;
+            }
         }
     }
 }
@@ -369,7 +402,10 @@ impl SealedToSmall for Special {
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr = cast_ptr_mut!(limbs.as_mut_ptr(), limb_t);
-        xmpfr::custom_special(ptr, limbs_ptr, self, float::prec_min().az());
+        let prec = float::prec_min().az();
+        unsafe {
+            xmpfr::custom_special(ptr, limbs_ptr, self, prec);
+        }
     }
 }
 
@@ -417,14 +453,14 @@ impl Assign for SmallFloat {
 pub(crate) unsafe fn unchecked_get_unshifted_u8(small: &SmallFloat) -> u8 {
     debug_assert!(small.prec() >= 8);
     debug_assert!(small.is_normal());
-    (small.limbs[0].assume_init() >> (gmp::LIMB_BITS - 8)).wrapping_cast()
+    (unsafe { small.limbs[0].assume_init() } >> (gmp::LIMB_BITS - 8)).wrapping_cast()
 }
 
 #[inline]
 pub(crate) unsafe fn unchecked_get_unshifted_u16(small: &SmallFloat) -> u16 {
     debug_assert!(small.prec() >= 16);
     debug_assert!(small.is_normal());
-    (small.limbs[0].assume_init() >> (gmp::LIMB_BITS - 16)).wrapping_cast()
+    (unsafe { small.limbs[0].assume_init() } >> (gmp::LIMB_BITS - 16)).wrapping_cast()
 }
 
 #[inline]
@@ -433,11 +469,11 @@ pub(crate) unsafe fn unchecked_get_unshifted_u32(small: &SmallFloat) -> u32 {
     debug_assert!(small.is_normal());
     #[cfg(gmp_limb_bits_32)]
     {
-        small.limbs[0].assume_init()
+        unsafe { small.limbs[0].assume_init() }
     }
     #[cfg(gmp_limb_bits_64)]
     {
-        (small.limbs[0].assume_init() >> 32).wrapping_cast()
+        (unsafe { small.limbs[0].assume_init() } >> 32).wrapping_cast()
     }
 }
 
@@ -447,11 +483,12 @@ pub(crate) unsafe fn unchecked_get_unshifted_u64(small: &SmallFloat) -> u64 {
     debug_assert!(small.is_normal());
     #[cfg(gmp_limb_bits_32)]
     {
-        u64::from(small.limbs[0].assume_init()) | (u64::from(small.limbs[1].assume_init()) << 32)
+        u64::from(unsafe { small.limbs[0].assume_init() })
+            | (u64::from(unsafe { small.limbs[1].assume_init() }) << 32)
     }
     #[cfg(gmp_limb_bits_64)]
     {
-        small.limbs[0].assume_init()
+        unsafe { small.limbs[0].assume_init() }
     }
 }
 
@@ -461,14 +498,15 @@ pub(crate) unsafe fn unchecked_get_unshifted_u128(small: &SmallFloat) -> u128 {
     debug_assert!(small.is_normal());
     #[cfg(gmp_limb_bits_32)]
     {
-        u128::from(small.limbs[0].assume_init())
-            | (u128::from(small.limbs[1].assume_init()) << 32)
-            | (u128::from(small.limbs[2].assume_init()) << 64)
-            | (u128::from(small.limbs[3].assume_init()) << 96)
+        u128::from(unsafe { small.limbs[0].assume_init() })
+            | (u128::from(unsafe { small.limbs[1].assume_init() }) << 32)
+            | (u128::from(unsafe { small.limbs[2].assume_init() }) << 64)
+            | (u128::from(unsafe { small.limbs[3].assume_init() }) << 96)
     }
     #[cfg(gmp_limb_bits_64)]
     {
-        u128::from(small.limbs[0].assume_init()) | (u128::from(small.limbs[1].assume_init()) << 64)
+        u128::from(unsafe { small.limbs[0].assume_init() })
+            | (u128::from(unsafe { small.limbs[1].assume_init() }) << 64)
     }
 }
 

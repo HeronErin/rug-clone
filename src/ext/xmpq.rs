@@ -120,17 +120,23 @@ pub fn get_f64(op: &Rational) -> f64 {
 }
 
 #[inline]
-pub unsafe fn clear(rop: &mut Rational) {
-    gmp::mpq_clear(rop.as_raw_mut());
+pub unsafe fn clear(rop: *mut Rational) {
+    let rop = cast_ptr_mut!(rop, mpq_t);
+    unsafe {
+        gmp::mpq_clear(rop);
+    }
 }
 
 #[inline]
 pub unsafe fn init_set(rop: *mut Rational, op: &Rational) {
     let rop = cast_ptr_mut!(rop, mpq_t);
-    let num = cast_ptr_mut!(gmp::mpq_numref(rop), Integer);
-    let den = cast_ptr_mut!(gmp::mpq_denref(rop), Integer);
-    xmpz::init_set(num, op.numer());
-    xmpz::init_set(den, op.denom());
+    let (op_numer, op_denom) = (op.numer(), op.denom());
+    unsafe {
+        let num = cast_ptr_mut!(gmp::mpq_numref(rop), Integer);
+        let den = cast_ptr_mut!(gmp::mpq_denref(rop), Integer);
+        xmpz::init_set(num, op_numer);
+        xmpz::init_set(den, op_denom);
+    }
 }
 
 macro_rules! int_rat {
@@ -331,10 +337,12 @@ unsafe_wrap! { fn div_2exp(op1: O; op2: u32) -> gmp::mpq_div_2exp }
 #[inline]
 pub unsafe fn write_num_den_unchecked(dst: &mut MaybeUninit<Rational>, num: Integer, den: Integer) {
     let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpq_t);
-    let num_ptr = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
-    num_ptr.write(num);
-    let den_ptr = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
-    den_ptr.write(den);
+    unsafe {
+        let num_ptr = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+        num_ptr.write(num);
+        let den_ptr = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
+        den_ptr.write(den);
+    }
 }
 
 #[inline]
@@ -376,10 +384,12 @@ pub fn denref_const(r: &Rational) -> &Integer {
 #[inline]
 pub unsafe fn numref_denref(r: &mut Rational) -> (&mut Integer, &mut Integer) {
     let r = r.as_raw_mut();
-    (
-        &mut *cast_ptr_mut!(gmp::mpq_numref(r), Integer),
-        &mut *cast_ptr_mut!(gmp::mpq_denref(r), Integer),
-    )
+    unsafe {
+        (
+            &mut *cast_ptr_mut!(gmp::mpq_numref(r), Integer),
+            &mut *cast_ptr_mut!(gmp::mpq_denref(r), Integer),
+        )
+    }
 }
 
 #[inline]

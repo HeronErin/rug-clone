@@ -3637,7 +3637,7 @@ impl BorrowComplex<'_> {
     // unsafe because the lifetime is obtained from return type
     pub(crate) unsafe fn from_raw<'a>(raw: mpc_t) -> BorrowComplex<'a> {
         BorrowComplex {
-            inner: ManuallyDrop::new(Complex::from_raw(raw)),
+            inner: ManuallyDrop::new(unsafe { Complex::from_raw(raw) }),
             phantom: PhantomData,
         }
     }

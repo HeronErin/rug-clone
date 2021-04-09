@@ -9168,7 +9168,7 @@ impl BorrowFloat<'_> {
     // unsafe because the lifetime is obtained from return type
     unsafe fn from_raw<'a>(raw: mpfr_t) -> BorrowFloat<'a> {
         BorrowFloat {
-            inner: ManuallyDrop::new(Float::from_raw(raw)),
+            inner: ManuallyDrop::new(unsafe { Float::from_raw(raw) }),
             phantom: PhantomData,
         }
     }

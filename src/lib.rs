@@ -376,6 +376,8 @@ provided by the crate.
 #![doc(html_logo_url = "https://tspiteri.gitlab.io/rug/rug.svg")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(unsafe_in_unsafe, warn(unsafe_op_in_unsafe_fn))]
+#![cfg_attr(not(unsafe_in_unsafe), allow(unused_unsafe))]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
 #![allow(clippy::useless_conversion)]
 // matches! requires rustc 1.42

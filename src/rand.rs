@@ -1381,48 +1381,74 @@ unsafe extern "C" fn abort_iset(_: *mut randstate_t, _: *const randstate_t) {
 }
 
 unsafe extern "C" fn custom_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-    let r_ptr = (*rstate).seed.d.cast::<&mut dyn RandGen>().as_ptr();
-    (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<&mut dyn RandGen>().as_ptr();
+    let seed = cast_ptr!(seed, Integer);
+    unsafe {
+        (*r_ptr).seed(&*seed);
+    }
 }
 
 unsafe extern "C" fn custom_get(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong) {
-    let r_ptr = (*rstate).seed.d.cast::<&mut dyn RandGen>().as_ptr();
-    gen_bits(*r_ptr, dest, nbits);
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<&mut dyn RandGen>().as_ptr();
+    unsafe {
+        gen_bits(*r_ptr, dest, nbits);
+    }
 }
 
 unsafe extern "C" fn custom_clear(rstate: *mut randstate_t) {
-    let r_ptr = (*rstate).seed.d.cast::<&mut dyn RandGen>().as_ptr();
-    drop(Box::from_raw(r_ptr));
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<&mut dyn RandGen>().as_ptr();
+    drop(unsafe { Box::from_raw(r_ptr) });
 }
 
 unsafe extern "C" fn custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
-    let r_ptr = (*src).seed.d.cast::<&mut dyn RandGen>().as_ptr();
-    gen_copy(*r_ptr, dst);
+    let d = unsafe { (*src).seed.d };
+    let r_ptr = d.cast::<&mut dyn RandGen>().as_ptr();
+    unsafe {
+        gen_copy(*r_ptr, dst);
+    }
 }
 
 unsafe extern "C" fn custom_boxed_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-    let r_ptr = (*rstate).seed.d.cast::<Box<dyn RandGen>>().as_ptr();
-    (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<Box<dyn RandGen>>().as_ptr();
+    let seed = cast_ptr!(seed, Integer);
+    unsafe {
+        (*r_ptr).seed(&*seed);
+    }
 }
 
 unsafe extern "C" fn custom_boxed_get(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong) {
-    let r_ptr = (*rstate).seed.d.cast::<Box<dyn RandGen>>().as_ptr();
-    gen_bits(&mut **r_ptr, dest, nbits);
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<Box<dyn RandGen>>().as_ptr();
+    unsafe {
+        gen_bits(&mut **r_ptr, dest, nbits);
+    }
 }
 
 unsafe extern "C" fn custom_boxed_clear(rstate: *mut randstate_t) {
-    let r_ptr = (*rstate).seed.d.cast::<Box<dyn RandGen>>().as_ptr();
-    drop(Box::from_raw(r_ptr));
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<Box<dyn RandGen>>().as_ptr();
+    drop(unsafe { Box::from_raw(r_ptr) });
 }
 
 unsafe extern "C" fn custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
-    let r_ptr = (*src).seed.d.cast::<Box<dyn RandGen>>().as_ptr();
-    gen_copy(&**r_ptr, dst);
+    let d = unsafe { (*src).seed.d };
+    let r_ptr = d.cast::<Box<dyn RandGen>>().as_ptr();
+    unsafe {
+        gen_copy(&**r_ptr, dst);
+    }
 }
 
 unsafe extern "C" fn thread_custom_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-    let r_ptr = (*rstate).seed.d.cast::<&mut dyn ThreadRandGen>().as_ptr();
-    (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<&mut dyn ThreadRandGen>().as_ptr();
+    let seed = cast_ptr!(seed, Integer);
+    unsafe {
+        (*r_ptr).seed(&*seed);
+    }
 }
 
 unsafe extern "C" fn thread_custom_get(
@@ -1430,23 +1456,34 @@ unsafe extern "C" fn thread_custom_get(
     dest: *mut limb_t,
     nbits: c_ulong,
 ) {
-    let r_ptr = (*rstate).seed.d.cast::<&mut dyn ThreadRandGen>().as_ptr();
-    thread_gen_bits(*r_ptr, dest, nbits);
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<&mut dyn ThreadRandGen>().as_ptr();
+    unsafe {
+        thread_gen_bits(*r_ptr, dest, nbits);
+    }
 }
 
 unsafe extern "C" fn thread_custom_clear(rstate: *mut randstate_t) {
-    let r_ptr = (*rstate).seed.d.cast::<&mut dyn ThreadRandGen>().as_ptr();
-    drop(Box::from_raw(r_ptr));
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<&mut dyn ThreadRandGen>().as_ptr();
+    drop(unsafe { Box::from_raw(r_ptr) });
 }
 
 unsafe extern "C" fn thread_custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
-    let r_ptr = (*src).seed.d.cast::<&mut dyn ThreadRandGen>().as_ptr();
-    thread_gen_copy(*r_ptr, dst);
+    let d = unsafe { (*src).seed.d };
+    let r_ptr = d.cast::<&mut dyn ThreadRandGen>().as_ptr();
+    unsafe {
+        thread_gen_copy(*r_ptr, dst);
+    }
 }
 
 unsafe extern "C" fn thread_custom_boxed_seed(rstate: *mut randstate_t, seed: *const mpz_t) {
-    let r_ptr = (*rstate).seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
-    (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
+    let seed = cast_ptr!(seed, Integer);
+    unsafe {
+        (*r_ptr).seed(&*seed);
+    }
 }
 
 unsafe extern "C" fn thread_custom_boxed_get(
@@ -1454,18 +1491,25 @@ unsafe extern "C" fn thread_custom_boxed_get(
     dest: *mut limb_t,
     nbits: c_ulong,
 ) {
-    let r_ptr = (*rstate).seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
-    thread_gen_bits(&mut **r_ptr, dest, nbits);
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
+    unsafe {
+        thread_gen_bits(&mut **r_ptr, dest, nbits);
+    }
 }
 
 unsafe extern "C" fn thread_custom_boxed_clear(rstate: *mut randstate_t) {
-    let r_ptr = (*rstate).seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
-    drop(Box::from_raw(r_ptr));
+    let d = unsafe { (*rstate).seed.d };
+    let r_ptr = d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
+    drop(unsafe { Box::from_raw(r_ptr) });
 }
 
 unsafe extern "C" fn thread_custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
-    let r_ptr = (*src).seed.d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
-    thread_gen_copy(&**r_ptr, dst);
+    let d = unsafe { (*src).seed.d };
+    let r_ptr = d.cast::<Box<dyn ThreadRandGen>>().as_ptr();
+    unsafe {
+        thread_gen_copy(&**r_ptr, dst);
+    }
 }
 
 #[cfg(gmp_limb_bits_64)]
@@ -1474,7 +1518,10 @@ unsafe fn gen_bits(gen: &mut dyn RandGen, dest: *mut limb_t, nbits: c_ulong) {
     let limbs = limbs.unwrapped_as::<isize>();
     for i in 0..limbs {
         let n = u64::from(gen.gen()) | u64::from(gen.gen()) << 32;
-        *dest.offset(i) = n.unwrapped_cast();
+        let n = n.unwrapped_cast();
+        unsafe {
+            *dest.offset(i) = n;
+        }
     }
     if rest >= 32 {
         let mut n = u64::from(gen.gen());
@@ -1482,11 +1529,17 @@ unsafe fn gen_bits(gen: &mut dyn RandGen, dest: *mut limb_t, nbits: c_ulong) {
             let mask = !(!0 << (rest - 32));
             n |= u64::from(gen.gen_bits((rest - 32).unwrapped_cast()) & mask) << 32;
         }
-        *dest.offset(limbs) = n.unwrapped_cast();
+        let n = n.unwrapped_cast();
+        unsafe {
+            *dest.offset(limbs) = n;
+        }
     } else if rest > 0 {
         let mask = !(!0 << rest);
         let n = u64::from(gen.gen_bits(rest.unwrapped_cast()) & mask);
-        *dest.offset(limbs) = n.unwrapped_cast();
+        let n = n.unwrapped_cast();
+        unsafe {
+            *dest.offset(limbs) = n;
+        }
     }
 }
 
@@ -1495,11 +1548,17 @@ unsafe fn gen_bits(gen: &mut dyn RandGen, dest: *mut limb_t, nbits: c_ulong) {
     let (limbs, rest) = (nbits / 32, nbits % 32);
     let limbs = limbs.unwrapped_as::<isize>();
     for i in 0..limbs {
-        *dest.offset(i) = gen.gen().unwrapped_cast();
+        let val = gen.gen().unwrapped_cast();
+        unsafe {
+            *dest.offset(i) = val;
+        }
     }
     if rest > 0 {
         let mask = !(!0 << rest);
-        *dest.offset(limbs) = (gen.gen_bits(rest.unwrapped_cast()) & mask).unwrapped_cast();
+        let val = (gen.gen_bits(rest.unwrapped_cast()) & mask).unwrapped_cast();
+        unsafe {
+            *dest.offset(limbs) = val;
+        }
     }
 }
 
@@ -1513,6 +1572,7 @@ unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
     } else {
         (NonNull::dangling(), &ABORT_FUNCS)
     };
+    let dst = unsafe { &mut *dst };
     *dst = randstate_t {
         seed: randseed_t {
             alloc: MaybeUninit::uninit(),
@@ -1530,7 +1590,10 @@ unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, dest: *mut limb_t, nbits:
     let limbs = limbs.unwrapped_as::<isize>();
     for i in 0..limbs {
         let n = u64::from(gen.gen()) | u64::from(gen.gen()) << 32;
-        *dest.offset(i) = n.unwrapped_cast();
+        let n = n.unwrapped_cast();
+        unsafe {
+            *dest.offset(i) = n;
+        }
     }
     if rest >= 32 {
         let mut n = u64::from(gen.gen());
@@ -1538,11 +1601,17 @@ unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, dest: *mut limb_t, nbits:
             let mask = !(!0 << (rest - 32));
             n |= u64::from(gen.gen_bits((rest - 32).unwrapped_cast()) & mask) << 32;
         }
-        *dest.offset(limbs) = n.unwrapped_cast();
+        let n = n.unwrapped_cast();
+        unsafe {
+            *dest.offset(limbs) = n;
+        }
     } else if rest > 0 {
         let mask = !(!0 << rest);
         let n = u64::from(gen.gen_bits(rest.unwrapped_cast()) & mask);
-        *dest.offset(limbs) = n.unwrapped_cast();
+        let n = n.unwrapped_cast();
+        unsafe {
+            *dest.offset(limbs) = n;
+        }
     }
 }
 
@@ -1551,11 +1620,17 @@ unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, dest: *mut limb_t, nbits:
     let (limbs, rest) = (nbits / 32, nbits % 32);
     let limbs = limbs.unwrapped_as::<isize>();
     for i in 0..limbs {
-        *dest.offset(i) = gen.gen().unwrapped_cast();
+        let val = gen.gen().unwrapped_cast();
+        unsafe {
+            *dest.offset(i) = val;
+        }
     }
     if rest > 0 {
         let mask = !(!0 << rest);
-        *dest.offset(limbs) = (gen.gen_bits(rest.unwrapped_cast()) & mask).unwrapped_cast();
+        let val = (gen.gen_bits(rest.unwrapped_cast()) & mask).unwrapped_cast();
+        unsafe {
+            *dest.offset(limbs) = val;
+        }
     }
 }
 
@@ -1569,6 +1644,7 @@ unsafe fn thread_gen_copy(gen: &dyn ThreadRandGen, dst: *mut randstate_t) {
     } else {
         (NonNull::dangling(), &ABORT_FUNCS)
     };
+    let dst = unsafe { &mut *dst };
     *dst = randstate_t {
         seed: randseed_t {
             alloc: MaybeUninit::uninit(),

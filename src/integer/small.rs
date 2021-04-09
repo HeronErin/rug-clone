@@ -158,7 +158,7 @@ impl SmallInteger {
     pub unsafe fn as_nonreallocating_integer(&mut self) -> &mut Integer {
         self.update_d();
         let ptr = cast_ptr_mut!(&mut self.inner, Integer);
-        &mut *ptr
+        unsafe { &mut *ptr }
     }
 
     #[inline]

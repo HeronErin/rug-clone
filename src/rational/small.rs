@@ -168,7 +168,7 @@ impl SmallRational {
     pub unsafe fn as_nonreallocating_rational(&mut self) -> &mut Rational {
         self.update_d();
         let ptr = cast_ptr_mut!(&mut self.inner, Rational);
-        &mut *ptr
+        unsafe { &mut *ptr }
     }
 
     /// Creates a [`SmallRational`] from a numerator and denominator,

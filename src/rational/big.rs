@@ -674,8 +674,10 @@ impl Rational {
     {
         let (num, den) = (Integer::from(num), Integer::from(den));
         let mut dst = MaybeUninit::uninit();
-        xmpq::write_num_den_unchecked(&mut dst, num, den);
-        dst.assume_init()
+        unsafe {
+            xmpq::write_num_den_unchecked(&mut dst, num, den);
+            dst.assume_init()
+        }
     }
 
     /// Assigns to the numerator and denominator without
@@ -719,9 +721,11 @@ impl Rational {
     where
         Integer: Assign<Num> + Assign<Den>,
     {
-        let (dst_num, dst_den) = self.as_mut_numer_denom_no_canonicalization();
-        dst_num.assign(num);
-        dst_den.assign(den);
+        unsafe {
+            let (dst_num, dst_den) = self.as_mut_numer_denom_no_canonicalization();
+            dst_num.assign(num);
+            dst_den.assign(den);
+        }
     }
 
     /// Borrows the numerator as an [`Integer`].
@@ -876,7 +880,7 @@ impl Rational {
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
     ) -> (&mut Integer, &mut Integer) {
-        xmpq::numref_denref(self)
+        unsafe { xmpq::numref_denref(self) }
     }
 
     /// Converts into numerator and denominator [`Integer`] values.

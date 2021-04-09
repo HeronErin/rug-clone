@@ -71,47 +71,64 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
 #[inline]
 pub unsafe fn init_set_u128(rop: *mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
-        init_set_u64(rop, u.wrapping_cast());
+        let u = u.wrapping_cast();
+        unsafe {
+            init_set_u64(rop, u);
+        }
     } else if u <= !(!0u128 << 96) {
-        gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 96);
-        let rop = &mut *rop;
-        rop.inner_mut().size = 3;
-        *limb_mut(rop, 0) = u.wrapping_cast();
-        *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
-        *limb_mut(rop, 2) = (u >> 64).wrapping_cast();
+        unsafe {
+            gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 96);
+            let rop = &mut *rop;
+            rop.inner_mut().size = 3;
+            *limb_mut(rop, 0) = u.wrapping_cast();
+            *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
+            *limb_mut(rop, 2) = (u >> 64).wrapping_cast();
+        }
     } else {
-        gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 128);
-        let rop = &mut *rop;
-        rop.inner_mut().size = 4;
-        *limb_mut(rop, 0) = u.wrapping_cast();
-        *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
-        *limb_mut(rop, 2) = (u >> 64).wrapping_cast();
-        *limb_mut(rop, 3) = (u >> 96).wrapping_cast();
+        unsafe {
+            gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 128);
+            let rop = &mut *rop;
+            rop.inner_mut().size = 4;
+            *limb_mut(rop, 0) = u.wrapping_cast();
+            *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
+            *limb_mut(rop, 2) = (u >> 64).wrapping_cast();
+            *limb_mut(rop, 3) = (u >> 96).wrapping_cast();
+        }
     }
 }
 
 #[inline]
 pub unsafe fn init_set_u64(rop: *mut Integer, u: u64) {
     if u <= u64::from(u32::MAX) {
-        init_set_u32(rop, u.wrapping_cast());
+        let u = u.wrapping_cast();
+        unsafe {
+            init_set_u32(rop, u);
+        }
     } else {
-        gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 64);
-        let rop = &mut *rop;
-        rop.inner_mut().size = 2;
-        *limb_mut(rop, 0) = u.wrapping_cast();
-        *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
+        unsafe {
+            gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 64);
+            let rop = &mut *rop;
+            rop.inner_mut().size = 2;
+            *limb_mut(rop, 0) = u.wrapping_cast();
+            *limb_mut(rop, 1) = (u >> 32).wrapping_cast();
+        }
     }
 }
 
 #[inline]
 pub unsafe fn init_set_u32(rop: *mut Integer, u: u32) {
+    let rop = cast_ptr_mut!(rop, mpz_t);
     if u == 0 {
-        gmp::mpz_init(cast_ptr_mut!(rop, mpz_t));
+        unsafe {
+            gmp::mpz_init(rop);
+        }
     } else {
-        gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 32);
-        let rop = &mut *rop;
-        rop.inner_mut().size = 1;
-        *limb_mut(rop, 0) = u;
+        unsafe {
+            gmp::mpz_init2(rop, 32);
+            let rop = &mut *cast_ptr_mut!(rop, Integer);
+            rop.inner_mut().size = 1;
+            *limb_mut(rop, 0) = u;
+        }
     }
 }
 
