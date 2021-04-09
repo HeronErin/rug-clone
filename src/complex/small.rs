@@ -178,7 +178,7 @@ impl SmallComplex {
     pub unsafe fn as_nonreallocating_complex(&mut self) -> &mut Complex {
         self.update_d();
         let ptr = cast_ptr_mut!(&mut self.inner, Complex);
-        unsafe{&mut *ptr}
+        unsafe { &mut *ptr }
     }
 
     #[inline]
