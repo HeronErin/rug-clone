@@ -15,15 +15,15 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ext::xmpz::*, misc::NegAbs, Integer};
-use az::{WrappingAs, WrappingCast};
-use core::{cmp::Ordering, i32, i64, u32, u64};
+use az::{CheckedCast, WrappingAs, WrappingCast};
+use core::{cmp::Ordering, i32, u128};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {
-    if u <= u128::from(u64::MAX) {
-        set_u64(rop, u.wrapping_cast());
-    } else if u <= !(!0u128 << 96) {
+    if let Some(u) = u.checked_cast() {
+        set_u64(rop, u);
+    } else if u <= !(u128::MAX << 96) {
         if rop.inner().alloc < 3 {
             cold_realloc(rop, 3);
         }
@@ -49,8 +49,8 @@ pub fn set_u128(rop: &mut Integer, u: u128) {
 
 #[inline]
 pub fn set_u64(rop: &mut Integer, u: u64) {
-    if u <= u64::from(u32::MAX) {
-        set_u32(rop, u.wrapping_cast());
+    if let Some(u) = u.checked_cast() {
+        set_u32(rop, u);
     } else {
         if rop.inner().alloc < 2 {
             cold_realloc(rop, 2);
@@ -70,12 +70,11 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
 
 #[inline]
 pub unsafe fn init_set_u128(rop: *mut Integer, u: u128) {
-    if u <= u128::from(u64::MAX) {
-        let u = u.wrapping_cast();
+    if let Some(u) = u.checked_cast() {
         unsafe {
             init_set_u64(rop, u);
         }
-    } else if u <= !(!0u128 << 96) {
+    } else if u <= !(u128::MAX << 96) {
         unsafe {
             gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 96);
             let rop = &mut *rop;
@@ -99,8 +98,7 @@ pub unsafe fn init_set_u128(rop: *mut Integer, u: u128) {
 
 #[inline]
 pub unsafe fn init_set_u64(rop: *mut Integer, u: u64) {
-    if u <= u64::from(u32::MAX) {
-        let u = u.wrapping_cast();
+    if let Some(u) = u.checked_cast() {
         unsafe {
             init_set_u32(rop, u);
         }

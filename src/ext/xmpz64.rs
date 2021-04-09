@@ -15,14 +15,14 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ext::xmpz::*, misc::NegAbs, Integer};
-use az::{WrappingAs, WrappingCast};
-use core::{cmp::Ordering, i32, i64, u32, u64};
+use az::{CheckedCast, WrappingAs, WrappingCast};
+use core::{cmp::Ordering, i32, i64, u32};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {
-    if u <= u128::from(u64::MAX) {
-        set_u64(rop, u.wrapping_cast());
+    if let Some(u) = u.checked_cast() {
+        set_u64(rop, u);
     } else {
         if rop.inner().alloc < 2 {
             cold_realloc(rop, 2);
@@ -47,8 +47,7 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
 
 #[inline]
 pub unsafe fn init_set_u128(rop: *mut Integer, u: u128) {
-    if u <= u128::from(u64::MAX) {
-        let u = u.wrapping_cast();
+    if let Some(u) = u.checked_cast() {
         unsafe {
             init_set_u64(rop, u);
         }
