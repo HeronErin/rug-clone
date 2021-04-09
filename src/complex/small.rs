@@ -60,7 +60,7 @@ different precisions.
 
 The `SmallComplex` type can be coerced to a [`Complex`], as it
 implements
-<code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Complex][`Complex`]&gt;</code>.
+<code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
 
 # Examples
 

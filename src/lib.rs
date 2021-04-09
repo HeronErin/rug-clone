@@ -217,7 +217,7 @@ values:
     This is usually achieved using the [`Assign`] trait or a similar
     method, for example
     <code>int.[assign][`Assign::assign`]\(incomplete)</code> and
-    <code>float.[assign_round][`assign_round`](incomplete, [Round][`Round`]::[Up][`Up`])</code>.
+    <code>float.[assign_round][`assign_round`]\(incomplete, [Round][`Round`]::[Up][`Up`])</code>.
  2. Convert them to the final value using the [`Complete`] trait, the
     [`From`] trait or a similar method. For example incomplete
     integers can be completed using
@@ -272,11 +272,11 @@ Many operations can return incomplete-computation values, for example
   * binary operators applied to a primitive and a reference, for
     example `&int * 10`
   * methods that take a reference, for example
-    <code>int.[abs_ref][`abs_ref`]()</code>
+    <code>int.[abs_ref][`abs_ref`]\()</code>
   * methods that take two references, for example
-    <code>int1.[gcd_ref][`gcd_ref`](&amp;int2)</code>
+    <code>int1.[gcd_ref][`gcd_ref`]\(\&int2)</code>
   * string parsing, for example
-    <code>[Integer][`Integer`]::[parse][`parse`]("12")</code>
+    <code>[Integer][`Integer`]::[parse][`parse`]\("12")</code>
 
 These operations return objects that can be stored in temporary
 variables like `incomplete` in the last few code examples. However,

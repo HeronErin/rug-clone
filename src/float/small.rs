@@ -58,7 +58,7 @@ according to the type of the primitive used to set its value.
     [minimum possible precision][`prec_min`].
 
 The `SmallFloat` type can be coerced to a [`Float`], as it implements
-<code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Float][`Float`]&gt;</code>.
+<code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Float][`Float`]></code>.
 
 # Examples
 
@@ -207,8 +207,8 @@ impl Deref for SmallFloat {
 /// Types implementing this trait can be converted to [`SmallFloat`].
 ///
 /// The following are implemented when `T` implements `ToSmall`:
-///   * <code>[Assign][`Assign`]&lt;T&gt; for [SmallFloat][`SmallFloat`]</code>
-///   * <code>[From][`From`]&lt;T&gt; for [SmallFloat][`SmallFloat`]</code>
+///   * <code>[Assign][`Assign`]\<T> for [SmallFloat][`SmallFloat`]</code>
+///   * <code>[From][`From`]\<T> for [SmallFloat][`SmallFloat`]</code>
 ///
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for the integer types [`i8`], [`i16`], [`i32`],

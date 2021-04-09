@@ -63,7 +63,7 @@ impl OrdComplex {
     /// Extracts the underlying [`Complex`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsRef][`AsRef`]&lt;[Complex][`Complex`]&gt;</code>
+    /// <code>[AsRef][`AsRef`]\<[Complex][`Complex`]></code>
     /// which is provided for [`OrdComplex`].
     ///
     /// # Examples
@@ -84,7 +84,7 @@ impl OrdComplex {
     /// Extracts the underlying [`Complex`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsMut][`AsMut`]&lt;[Complex][`Complex`]&gt;</code>
+    /// <code>[AsMut][`AsMut`]\<[Complex][`Complex`]></code>
     /// which is provided for [`OrdComplex`].
     ///
     /// # Examples

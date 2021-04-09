@@ -41,7 +41,7 @@ of an [`Integer`] obtained using `SmallInteger`.
 
 The `SmallInteger` type can be coerced to an [`Integer`], as it
 implements
-<code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Integer][`Integer`]&gt;</code>.
+<code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Integer][`Integer`]></code>.
 
 # Examples
 
@@ -187,8 +187,8 @@ impl Deref for SmallInteger {
 /// Types implementing this trait can be converted to [`SmallInteger`].
 ///
 /// The following are implemented when `T` implements `ToSmall`:
-///   * <code>[Assign][`Assign`]&lt;T&gt; for [SmallInteger][`SmallInteger`]</code>
-///   * <code>[From][`From`]&lt;T&gt; for [SmallInteger][`SmallInteger`]</code>
+///   * <code>[Assign][`Assign`]\<T> for [SmallInteger][`SmallInteger`]</code>
+///   * <code>[From][`From`]\<T> for [SmallInteger][`SmallInteger`]</code>
 ///
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for [`bool`] and the unsigned integer types [`u8`],

@@ -45,7 +45,7 @@ denominator need to be canonicalized.
 
 The `SmallRational` type can be coerced to a [`Rational`], as it
 implements
-<code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Rational][`Rational`]&gt;</code>.
+<code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Rational][`Rational`]></code>.
 
 # Examples
 

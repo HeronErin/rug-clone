@@ -477,12 +477,12 @@ impl Complex {
         &mut self.inner
     }
 
-    /// Parses a decimal string slice (<code>&amp;[str]</code>) or
+    /// Parses a decimal string slice (<code>\&[str]</code>) or
     /// byte slice
-    /// (<code>[&amp;\[][prim@slice][u8][`u8`][\]][prim@slice]</code>) into a
+    /// (<code>[\&\[][prim@slice][u8][`u8`][\]][prim@slice]</code>) into a
     /// [`Complex`] number.
     ///
-    /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    /// <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     /// is implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`.
     ///
@@ -525,11 +525,11 @@ impl Complex {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string slice (<code>&amp;[str]</code>) or byte slice
-    /// (<code>[&amp;\[][prim@slice][u8][`u8`][\]][prim@slice]</code>) into a
+    /// Parses a string slice (<code>\&[str]</code>) or byte slice
+    /// (<code>[\&\[][prim@slice][u8][`u8`][\]][prim@slice]</code>) into a
     /// [`Complex`] number.
     ///
-    /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    /// <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     /// is implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`.
     ///
@@ -763,7 +763,7 @@ impl Complex {
     /// Borrows a negated copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Complex][`Complex`]&gt;</code>.
+    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -794,7 +794,7 @@ impl Complex {
     /// Borrows a conjugate copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Complex][`Complex`]&gt;</code>.
+    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
     ///
     /// This method performs a shallow copy and negates its imaginary
     /// part, and negation does not change the allocated data.
@@ -824,7 +824,7 @@ impl Complex {
     /// Borrows a rotated copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// <code>[Deref][`Deref`]&lt;[Target][`Deref::Target`] = [Complex][`Complex`]&gt;</code>.
+    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
     ///
     /// This method operates by performing some shallow copying;
     /// unlike the [`mul_i`] method and friends, this method swaps the
@@ -868,7 +868,7 @@ impl Complex {
     /// type [`OrdComplex`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsRef][`AsRef`]&lt;[OrdComplex][`OrdComplex`]&gt;</code>
+    /// <code>[AsRef][`AsRef`]\<[OrdComplex][`OrdComplex`]></code>
     /// which is provided for [`Complex`].
     ///
     /// # Examples
@@ -899,7 +899,7 @@ impl Complex {
     }
 
     /// Returns the same result as
-    /// <code>self.[eq][`eq`](&amp;0)</code>, but is faster.
+    /// <code>self.[eq][`eq`]\(\&0)</code>, but is faster.
     ///
     /// # Examples
     ///
@@ -951,11 +951,11 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AddAssignRound][`AddAssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AddAssign][`AddAssign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AddAssignRound][`AddAssignRound`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[Add][`Add`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1000,11 +1000,11 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AddAssignRound][`AddAssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AddAssign][`AddAssign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AddAssignRound][`AddAssignRound`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[Add][`Add`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// This method will produce a result with correct rounding,
     /// except for some cases where underflow and/or overflow occur in
@@ -1124,8 +1124,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -1223,8 +1223,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
     /// `&a * &b - &c`.
@@ -1314,8 +1314,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1394,8 +1394,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1475,8 +1475,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1534,8 +1534,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1621,10 +1621,10 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1714,10 +1714,10 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1811,8 +1811,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1889,8 +1889,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1977,10 +1977,10 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2055,8 +2055,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2132,8 +2132,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2159,8 +2159,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2236,8 +2236,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2312,8 +2312,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2388,8 +2388,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2493,18 +2493,18 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+    ///   * <code>[Assign][`Assign`]\<Src> for
     ///     [(][tuple][Complex][`Complex`],
     ///     [Complex][`Complex`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Complex][`Complex`],
-    ///     &amp;mut [Complex][`Complex`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+    ///   * <code>[Assign][`Assign`]\<Src> for
+    ///     [(][tuple]\&mut [Complex][`Complex`],
+    ///     \&mut [Complex][`Complex`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
     ///     [(][tuple][Complex][`Complex`],
     ///     [Complex][`Complex`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
-    ///     [(][tuple]&amp;mut [Complex][`Complex`],
-    ///     &amp;mut [Complex][`Complex`][)][tuple]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
+    ///     [(][tuple]\&mut [Complex][`Complex`],
+    ///     \&mut [Complex][`Complex`][)][tuple]</code>
     ///
     /// # Examples
     ///
@@ -2596,8 +2596,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2673,8 +2673,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2750,8 +2750,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2827,8 +2827,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2904,8 +2904,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2981,8 +2981,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -3058,8 +3058,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -3135,8 +3135,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -3214,8 +3214,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -3293,8 +3293,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -3334,7 +3334,7 @@ impl Complex {
     /// interface, or the random number generator has to be designed
     /// specifically to trigger this case.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    /// <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
     /// is implemented with the returned
     /// [incomplete-computation value][icv] as `Src`.
     ///
@@ -3379,8 +3379,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///

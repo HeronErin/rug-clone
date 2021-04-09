@@ -444,11 +444,11 @@ impl RandState<'_> {
     }
 
     /// Converts a random generator into
-    /// <code>[Box][`Box`]&lt;dyn [RandGen][`RandGen`]&gt;</code>
+    /// <code>[Box][`Box`]\<dyn [RandGen][`RandGen`]></code>
     /// if possible.
     ///
     /// If the conversion is not possible,
-    /// <code>[Err][`Err`](self)</code> is returned.
+    /// <code>[Err][`Err`]\(self)</code> is returned.
     ///
     /// This conversion is always possible when the random generator
     /// was created with [`new_custom_boxed`]. It is also possible if
@@ -887,11 +887,11 @@ impl ThreadRandState<'_> {
     }
 
     /// Converts a random generator into
-    /// <code>[Box][`Box`]&lt;dyn [ThreadRandGen][`ThreadRandGen`]&gt;</code>
+    /// <code>[Box][`Box`]\<dyn [ThreadRandGen][`ThreadRandGen`]></code>
     /// if possible.
     ///
     /// If the conversion is not possible,
-    /// <code>[Err][`Err`](self)</code> is returned.
+    /// <code>[Err][`Err`]\(self)</code> is returned.
     ///
     /// This conversion is always possible when the random generator
     /// was created with [`new_custom_boxed`]. It is also possible if
