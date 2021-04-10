@@ -72,8 +72,8 @@ impl OrdFloat {
     /// Extracts the underlying [`Float`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsRef][`AsRef`]\<[Float][`Float`]></code> which is
-    /// provided for [`OrdFloat`].
+    /// <code>[AsRef]\<[Float]></code> which is provided for
+    /// [`OrdFloat`].
     ///
     /// # Examples
     ///
@@ -92,8 +92,8 @@ impl OrdFloat {
     /// Extracts the underlying [`Float`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsMut][`AsMut`]\<[Float][`Float`]></code> which is
-    /// provided for [`OrdFloat`].
+    /// <code>[AsMut]\<[Float]></code> which is provided for
+    /// [`OrdFloat`].
     ///
     /// # Examples
     ///

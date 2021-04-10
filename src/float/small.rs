@@ -39,26 +39,24 @@ type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
 /**
 A small float that does not require any memory allocation.
 
-This can be useful when you have a primitive number type but need a
-reference to a [`Float`]. The `SmallFloat` will have a precision
-according to the type of the primitive used to set its value.
+This can be useful when you have a primitive number type but need a reference to
+a [`Float`]. The `SmallFloat` will have a precision according to the type of the
+primitive used to set its value.
 
-  * [`i8`], [`u8`]: the `SmallFloat` will have eight bits of
-    precision.
+  * [`i8`], [`u8`]: the `SmallFloat` will have eight bits of precision.
   * [`i16`], [`u16`]: the `SmallFloat` will have 16 bits of precision.
   * [`i32`], [`u32`]: the `SmallFloat` will have 32 bits of precision.
   * [`i64`], [`u64`]: the `SmallFloat` will have 64 bits of precision.
-  * [`i128`], [`u128`]: the `SmallFloat` will have 128 bits of
-    precision.
-  * [`isize`], [`usize`]: the `SmallFloat` will have 32 or 64 bits of
-    precision, depending on the platform.
+  * [`i128`], [`u128`]: the `SmallFloat` will have 128 bits of precision.
+  * [`isize`], [`usize`]: the `SmallFloat` will have 32 or 64 bits of precision,
+    depending on the platform.
   * [`f32`]: the `SmallFloat` will have 24 bits of precision.
   * [`f64`]: the `SmallFloat` will have 53 bits of precision.
-  * [`Special`]: the `SmallFloat` will have the
-    [minimum possible precision][`prec_min`].
+  * [`Special`]: the `SmallFloat` will have the [minimum possible
+    precision][crate::float::prec_min].
 
 The `SmallFloat` type can be coerced to a [`Float`], as it implements
-<code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Float][`Float`]></code>.
+<code>[Deref]\<[Target][Deref::Target] = [Float]></code>.
 
 # Examples
 
@@ -74,8 +72,6 @@ assert_eq!(a, 150);
 a *= &*b;
 assert_eq!(a, -15000);
 ```
-
-[`prec_min`]: `crate::float::prec_min`
 */
 #[derive(Clone)]
 pub struct SmallFloat {
@@ -123,8 +119,8 @@ impl Default for SmallFloat {
 }
 
 impl SmallFloat {
-    /// Creates a [`SmallFloat`] with value 0 and the
-    /// [minimum possible precision][`prec_min`].
+    /// Creates a [`SmallFloat`] with value 0 and the [minimum possible
+    /// precision][crate::float::prec_min].
     ///
     /// # Examples
     ///
@@ -134,8 +130,6 @@ impl SmallFloat {
     /// // Borrow f as if it were Float.
     /// assert_eq!(*f, 0);
     /// ```
-    ///
-    /// [`prec_min`]: `crate::float::prec_min`
     #[inline]
     pub const fn new() -> Self {
         SmallFloat {
@@ -149,15 +143,13 @@ impl SmallFloat {
         }
     }
 
-    /// Returns a mutable reference to a [`Float`] for simple
-    /// operations that do not need to change the precision of the
-    /// number.
+    /// Returns a mutable reference to a [`Float`] for simple operations that do
+    /// not need to change the precision of the number.
     ///
     /// # Safety
     ///
-    /// It is undefined behaviour to modify the precision of the
-    /// referenced [`Float`] or to swap it with
-    /// another number.
+    /// It is undefined behavior modify the precision of the referenced
+    /// [`Float`] or to swap it with another number.
     ///
     /// # Examples
     ///
@@ -207,14 +199,13 @@ impl Deref for SmallFloat {
 /// Types implementing this trait can be converted to [`SmallFloat`].
 ///
 /// The following are implemented when `T` implements `ToSmall`:
-///   * <code>[Assign][`Assign`]\<T> for [SmallFloat][`SmallFloat`]</code>
-///   * <code>[From][`From`]\<T> for [SmallFloat][`SmallFloat`]</code>
+///   * <code>[Assign]\<T> for [SmallFloat]</code>
+///   * <code>[From]\<T> for [SmallFloat]</code>
 ///
-/// This trait is sealed and cannot be implemented for more types; it
-/// is implemented for the integer types [`i8`], [`i16`], [`i32`],
-/// [`i64`], [`i128`], [`isize`], [`u8`], [`u16`], [`u32`], [`u64`],
-/// [`u128`] and [`usize`], and for the floating-point types [`f32`]
-/// and [`f64`].
+/// This trait is sealed and cannot be implemented for more types; it is
+/// implemented for the integer types [`i8`], [`i16`], [`i32`], [`i64`],
+/// [`i128`], [`isize`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`] and
+/// [`usize`], and for the floating-point types [`f32`] and [`f64`].
 pub trait ToSmall: SealedToSmall {}
 
 pub trait SealedToSmall: Copy {

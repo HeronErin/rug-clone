@@ -18,9 +18,7 @@
 Multi-precision floating-point numbers with correct rounding.
 
 This module provides support for floating-point numbers of type
-[`Float`].
-
-[`Float`]: `crate::Float`
+[`Float`][crate::Float].
 */
 
 pub(crate) mod arith;
@@ -129,9 +127,9 @@ pub const fn prec_max() -> u32 {
 /**
 The rounding methods for floating-point values.
 
-When rounding to the nearest, if the number to be rounded is exactly
-between two representable numbers, it is rounded to the even one, that
-is, the one with the least significant bit set to zero.
+When rounding to the nearest, if the number to be rounded is exactly between two
+representable numbers, it is rounded to the even one, that is, the one with the
+least significant bit set to zero.
 
 # Examples
 
@@ -148,8 +146,8 @@ f4.assign_round(10.3, Round::Up);
 assert_eq!(f4, 11);
 ```
 
-Rounding to the nearest will round numbers exactly between two
-representable numbers to the even one.
+Rounding to the nearest will round numbers exactly between two representable
+numbers to the even one.
 
 ```rust
 use rug::{float::Round, ops::AssignRound, Float};
@@ -211,18 +209,16 @@ assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
 // TODO: replace with exhaustive once rustc dependency >= 1.40
 #[allow(clippy::manual_non_exhaustive)]
 pub enum Constant {
-    /// The logarithm of two, 0.693...
+    /// The logarithm of two, 0.693147…
     Log2,
-    /// The value of pi, 3.141...
+    /// The value of pi, π = 3.14159…
     Pi,
-    /// Euler’s constant, 0.577...
+    /// Euler’s constant, also known as the Euler-Mascheroni constant, γ = 0.577215…
     ///
-    /// Note that this is *not* Euler’s number e, which can be
-    /// obtained using one of the [`exp`] functions.
-    ///
-    /// [`exp`]: `crate::Float::exp`
+    /// Note that this is *not* Euler’s number e, which can be obtained using
+    /// one of the [`exp`][crate::Float::exp] functions.
     Euler,
-    /// Catalan’s constant, 0.915...
+    /// Catalan’s constant, 0.915965…
     Catalan,
     #[doc(hidden)]
     __Nonexhaustive,
@@ -309,9 +305,9 @@ pub enum FreeCache {
 /**
 Frees various caches and memory pools that are used internally.
 
-To avoid memory leaks being reported when using tools like [Valgrind],
-it is advisable to free thread-local caches before terminating a
-thread and all caches before exiting.
+To avoid memory leaks being reported when using tools like [Valgrind], it is
+advisable to free thread-local caches before terminating a thread and all caches
+before exiting.
 
 # Examples
 

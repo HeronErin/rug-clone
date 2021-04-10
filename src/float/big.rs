@@ -57,12 +57,12 @@ use {
 };
 
 /**
-A multi-precision floating-point number with arbitrarily large
-precision and correct rounding
+A multi-precision floating-point number with arbitrarily large precision and
+correct rounding
 
-The precision has to be set during construction. The rounding method
-of the required operations can be specified, and the direction of the
-rounding is returned.
+The precision has to be set during construction. The rounding method of the
+required operations can be specified, and the direction of the rounding is
+returned.
 
 # Examples
 
@@ -85,9 +85,8 @@ let diff = two_thirds_up - two_thirds_down;
 assert_eq!(diff, diff_expected);
 ```
 
-Operations on two borrowed `Float` numbers result in an
-[incomplete-computation value][icv] that has to be assigned to a new
-`Float` value.
+Operations on two borrowed `Float` numbers result in an [incomplete-computation
+value][icv] that has to be assigned to a new `Float` value.
 
 ```rust
 use rug::Float;
@@ -98,11 +97,10 @@ let a_b = Float::with_val(53, a_b_ref);
 assert_eq!(a_b, 9.25);
 ```
 
-As a special case, when an [incomplete-computation value][icv] is
-obtained from multiplying two `Float` references, it can be added to
-or subtracted from another `Float` (or reference). This will result in
-a fused multiply-accumulate operation, with only one rounding
-operation taking place.
+As a special case, when an [incomplete-computation value][icv] is obtained from
+multiplying two `Float` references, it can be added to or subtracted from
+another `Float` (or reference). This will result in a fused multiply-accumulate
+operation, with only one rounding operation taking place.
 
 ```rust
 use rug::Float;
@@ -128,11 +126,10 @@ let separate_add = a + mul1 * mul2;
 assert_eq!(separate_add, 4);
 ```
 
-The [incomplete-computation value][icv] obtained from multiplying two
-`Float` references can also be added to or subtracted from another
-such [incomplete-computation value][icv], so that two muliplications
-and an addition are fused with only one rounding operation taking
-place.
+The [incomplete-computation value][icv] obtained from multiplying two `Float`
+references can also be added to or subtracted from another such
+[incomplete-computation value][icv], so that two muliplications and an addition
+are fused with only one rounding operation taking place.
 
 ```rust
 use rug::Float;
@@ -148,26 +145,23 @@ let sub = Float::with_val(53, &a * &b - &c * &d);
 assert_eq!(sub, 12);
 ```
 
-The `Float` type supports various functions. Most methods have four
-versions:
+The `Float` type supports various functions. Most methods have four versions:
 
- 1. The first method consumes the operand and rounds the returned
-    `Float` to the [nearest][`Nearest`] representable value.
- 2. The second method has a “`_mut`” suffix, mutates the operand and
-    rounds it the nearest representable value.
- 3. The third method has a “`_round`” suffix, mutates the operand,
-    applies the specified [rounding method][`Round`], and returns the
-    rounding direction:
-      * <code>[Ordering][`Ordering`]::[Less][`Less`]</code> if the
-        stored value is less than the exact result,
-      * <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code> if the
-        stored value is equal to the exact result,
-      * <code>[Ordering][`Ordering`]::[Greater][`Greater`]</code> if
-        the stored value is greater than the exact result.
- 4. The fourth method has a “`_ref`” suffix and borrows the operand.
-    The returned item is an [incomplete-computation value][icv] that
-    can be assigned to a `Float`; the rounding method is selected
-    during the assignment.
+ 1. The first method consumes the operand and rounds the returned `Float` to the
+    [nearest][Round::Nearest] representable value.
+ 2. The second method has a “`_mut`” suffix, mutates the operand and rounds it
+    the nearest representable value.
+ 3. The third method has a “`_round`” suffix, mutates the operand, applies the
+    specified [rounding method][Round], and returns the rounding direction:
+      * <code>[Ordering]::[Less][Ordering::Less]</code> if the stored value is
+        less than the exact result,
+      * <code>[Ordering]::[Equal][Ordering::Equal]</code> if the stored value is
+        equal to the exact result,
+      * <code>[Ordering]::[Greater][Ordering::Greater]</code> if the stored
+        value is greater than the exact result.
+ 4. The fourth method has a “`_ref`” suffix and borrows the operand. The
+    returned item is an [incomplete-computation value][icv] that can be assigned
+    to a `Float`; the rounding method is selected during the assignment.
 
 ```rust
 use core::cmp::Ordering;
@@ -200,9 +194,9 @@ assert!((sin_d - expected).abs() < 0.0001);
 assert_eq!(d, 1.25);
 ```
 
-The following example is a translation of the [MPFR sample] found on
-the MPFR website. The program computes a lower bound on 1 + 1/1! +
-1/2! + … + 1/100! using 200-bit precision. The program writes:
+The following example is a translation of the [MPFR sample] found on the MPFR
+website. The program computes a lower bound on 1 + 1/1! + 1/2! + … + 1/100!
+using 200-bit precision. The program writes:
 
 `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
 
@@ -234,12 +228,7 @@ float::free_cache(FreeCache::All);
 ```
 
 [MPFR sample]: https://www.mpfr.org/sample.html
-[`Equal`]: `Ordering::Equal`
-[`Greater`]: `Ordering::Greater`
-[`Less`]: `Ordering::Less`
-[`Nearest`]: `Round::Nearest`
-[`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
-[icv]: `crate`#incomplete-computation-values
+[icv]: crate#incomplete-computation-values
 */
 #[repr(transparent)]
 pub struct Float {
@@ -309,8 +298,7 @@ macro_rules! ref_math_op2_float {
 }
 
 impl Float {
-    /// Create a new [`Float`] with the specified precision and with
-    /// value 0.
+    /// Create a new [`Float`] with the specified precision and with value 0.
     ///
     /// # Panics
     ///
@@ -329,8 +317,8 @@ impl Float {
         Self::with_val(prec, Special::Zero)
     }
 
-    /// Create a new [`Float`] with the specified precision and with
-    /// the given value, rounding to the nearest.
+    /// Create a new [`Float`] with the specified precision and with the given
+    /// value, rounding to the nearest.
     ///
     /// # Panics
     ///
@@ -354,8 +342,8 @@ impl Float {
         ret
     }
 
-    /// Create a new [`Float`] with the specified precision and with
-    /// the given value, applying the specified rounding method.
+    /// Create a new [`Float`] with the specified precision and with the given
+    /// value, applying the specified rounding method.
     ///
     /// # Panics
     ///
@@ -461,8 +449,8 @@ impl Float {
         xmpfr::prec_round(self, prec.unwrapped_cast(), round)
     }
 
-    /// Creates a [`Float`] from an initialized
-    /// [MPFR floating-point number][`mpfr_t`].
+    /// Creates a [`Float`] from an initialized [MPFR floating-point
+    /// number][mpfr_t].
     ///
     /// # Safety
     ///
@@ -494,8 +482,7 @@ impl Float {
         Float { inner: raw }
     }
 
-    /// Converts a [`Float`] into an
-    /// [MPFR floating-point number][`mpfr_t`].
+    /// Converts a [`Float`] into an [MPFR floating-point number][mpfr_t].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -519,11 +506,9 @@ impl Float {
         m.inner
     }
 
-    /// Returns a pointer to the inner
-    /// [MPFR floating-point number][`mpfr_t`].
+    /// Returns a pointer to the inner [MPFR floating-point number][mpfr_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -544,11 +529,10 @@ impl Float {
         &self.inner
     }
 
-    /// Returns an unsafe mutable pointer to the inner
-    /// [MPFR floating-point number][`mpfr_t`].
+    /// Returns an unsafe mutable pointer to the inner [MPFR floating-point
+    /// number][mpfr_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -567,37 +551,31 @@ impl Float {
         &mut self.inner
     }
 
-    /// Parses a decimal string slice (<code>\&[str]</code>) or
-    /// byte slice
-    /// (<code>[\&\[][slice][u8][`u8`][\]][slice]</code>) into a
-    /// [`Float`].
+    /// Parses a decimal string slice (<code>\&[str]</code>) or byte slice
+    /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into a [`Float`].
     ///
-    /// <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
-    /// is implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// <code>[AssignRound]\<Src> for [Float]</code> is implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as `Src`.
     ///
-    /// The string can start with an optional minus or plus sign and
-    /// must then have one or more significant digits with an optional
-    /// decimal point. This can optionally be followed by an exponent;
-    /// the exponent can start with a separator “`e`”, “`E`” or “`@`”,
-    /// and is followed by an optional minus or plus sign and by one
-    /// or more decimal digits.
+    /// The string can start with an optional minus or plus sign and must then
+    /// have one or more significant digits with an optional decimal point. This
+    /// can optionally be followed by an exponent; the exponent can start with a
+    /// separator “`e`”, “`E`” or “`@`”, and is followed by an optional minus or
+    /// plus sign and by one or more decimal digits.
     ///
-    /// Alternatively, the string can indicate the special values
-    /// infinity or NaN. Infinity can be represented as `"inf"`,
-    /// `"infinity"`, `"@inf@"` or `"@infinity@"`,and NaN can be
-    /// represented as `"nan"` or `"@nan@"`. All of these special
-    /// representations are case insensitive. The NaN representation
-    /// may also include a possibly-empty string of ASCII letters,
-    /// digits and underscores enclosed in brackets, for example
+    /// Alternatively, the string can indicate the special values infinity or
+    /// NaN. Infinity can be represented as `"inf"`, `"infinity"`, `"@inf@"` or
+    /// `"@infinity@"`,and NaN can be represented as `"nan"` or `"@nan@"`. All
+    /// of these special representations are case insensitive. The NaN
+    /// representation may also include a possibly-empty string of ASCII
+    /// letters, digits and underscores enclosed in brackets, for example
     /// `"nan(char_sequence_1)"`.
     ///
-    /// ASCII whitespace is ignored everywhere in the string except in
-    /// the substrings specified above for special values; for example
-    /// `" @inf@ "` is accepted but `"@ inf @"` is not. Underscores
-    /// are ignored anywhere in digit strings except before the first
-    /// digit and between the exponent separator and the first digit
-    /// of the exponent.
+    /// ASCII whitespace is ignored everywhere in the string except in the
+    /// substrings specified above for special values; for example `" @inf@ "`
+    /// is accepted but `"@ inf @"` is not. Underscores are ignored anywhere in
+    /// digit strings except before the first digit and between the exponent
+    /// separator and the first digit of the exponent.
     ///
     /// # Examples
     ///
@@ -612,7 +590,7 @@ impl Float {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     /// [slice]: prim@slice
     /// [str]: prim@str
     #[inline]
@@ -621,37 +599,32 @@ impl Float {
     }
 
     /// Parses a string slice (<code>\&[str]</code>) or byte slice
-    /// (<code>[\&\[][slice][u8][`u8`][\]][slice]</code>) into a
-    /// [`Float`].
+    /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into a [`Float`].
     ///
-    /// <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
-    /// is implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// <code>[AssignRound]\<Src> for [Float]</code> is implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as `Src`.
     ///
-    /// The string can start with an optional minus or plus sign and
-    /// must then have one or more significant digits with an optional
-    /// point. This can optionally be followed by an exponent; the
-    /// exponent can start with a separator “`e`” or “`E`” if the
-    /// radix ≤ 10, or “`@`” for any radix, and is followed by an
-    /// optional minus or plus sign and by one or more decimal digits.
+    /// The string can start with an optional minus or plus sign and must then
+    /// have one or more significant digits with an optional point. This can
+    /// optionally be followed by an exponent; the exponent can start with a
+    /// separator “`e`” or “`E`” if the radix ≤ 10, or “`@`” for any radix, and
+    /// is followed by an optional minus or plus sign and by one or more decimal
+    /// digits.
     ///
-    /// Alternatively, the string can indicate the special values
-    /// infinity or NaN. If the radix ≤ 10, infinity can be
-    /// represented as `"inf"` or `"infinity"`, and NaN can be
-    /// represented as `"nan"`. For any radix, infinity can also be
-    /// represented as `"@inf@"` or `"@infinity@"`, and NaN can be
-    /// represented as `"@nan@"`. All of these special representations
-    /// are case insensitive. The NaN representation may also include
-    /// a possibly-empty string of ASCII letters, digits and
-    /// underscores enclosed in brackets, for example
-    /// `"nan(char_sequence_1)"`.
+    /// Alternatively, the string can indicate the special values infinity or
+    /// NaN. If the radix ≤ 10, infinity can be represented as `"inf"` or
+    /// `"infinity"`, and NaN can be represented as `"nan"`. For any radix,
+    /// infinity can also be represented as `"@inf@"` or `"@infinity@"`, and NaN
+    /// can be represented as `"@nan@"`. All of these special representations
+    /// are case insensitive. The NaN representation may also include a
+    /// possibly-empty string of ASCII letters, digits and underscores enclosed
+    /// in brackets, for example `"nan(char_sequence_1)"`.
     ///
-    /// ASCII whitespace is ignored everywhere in the string except in
-    /// the substrings specified above for special values; for example
-    /// `" @inf@ "` is accepted but `"@ inf @"` is not. Underscores
-    /// are ignored anywhere in digit strings except before the first
-    /// digit and between the exponent separator and the first digit
-    /// of the exponent.
+    /// ASCII whitespace is ignored everywhere in the string except in the
+    /// substrings specified above for special values; for example `" @inf@ "`
+    /// is accepted but `"@ inf @"` is not. Underscores are ignored anywhere in
+    /// digit strings except before the first digit and between the exponent
+    /// separator and the first digit of the exponent.
     ///
     /// # Panics
     ///
@@ -673,7 +646,7 @@ impl Float {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     /// [slice]: prim@slice
     /// [str]: prim@str
     #[inline]
@@ -685,12 +658,12 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// If the value is a [finite number][`is_finite`], converts it to
-    /// an [`Integer`] rounding to the nearest.
+    /// If the value is a [finite number][Float::is_finite], converts it to an
+    /// [`Integer`] rounding to the nearest.
     ///
     /// This conversion can also be performed using
-    ///   * <code>(\&float).[checked\_as][`checked_as`]::\<[Integer][`Integer`]>()</code>
-    ///   * <code>float.[borrow][`borrow`]\().[checked\_as][`checked_as`]::\<[Integer][`Integer`]>()</code>
+    ///   * <code>(\&float).[checked\_as]::\<[Integer]>()</code>
+    ///   * <code>float.[borrow]\().[checked\_as]::\<[Integer]>()</code>
     ///
     /// # Examples
     ///
@@ -704,17 +677,16 @@ impl Float {
     /// assert_eq!(i, 14);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`is_finite`]: `Float::is_finite`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
         self.checked_cast()
     }
 
     #[cfg(feature = "integer")]
-    /// If the value is a [finite number][`is_finite`], converts it to
-    /// an [`Integer`] applying the specified rounding method.
+    /// If the value is a [finite number][Float::is_finite], converts it to an
+    /// [`Integer`] applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -729,8 +701,6 @@ impl Float {
     /// assert_eq!(i, 13);
     /// assert_eq!(dir, Ordering::Less);
     /// ```
-    ///
-    /// [`is_finite`]: `Float::is_finite`
     #[inline]
     pub fn to_integer_round(&self, round: Round) -> Option<(Integer, Ordering)> {
         if !self.is_finite() {
@@ -742,9 +712,9 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// If the value is a [finite number][`is_finite`], returns an
-    /// [`Integer`] and exponent such that it is exactly equal to the
-    /// integer multiplied by two raised to the power of the exponent.
+    /// If the value is a [finite number][Float::is_finite], returns an
+    /// [`Integer`] and exponent such that it is exactly equal to the integer
+    /// multiplied by two raised to the power of the exponent.
     ///
     /// # Examples
     ///
@@ -765,8 +735,6 @@ impl Float {
     /// float.assign(Special::Infinity);
     /// assert!(float.to_integer_exp().is_none());
     /// ```
-    ///
-    /// [`is_finite`]: `Float::is_finite`
     #[inline]
     pub fn to_integer_exp(&self) -> Option<(Integer, i32)> {
         if !self.is_finite() {
@@ -778,14 +746,14 @@ impl Float {
     }
 
     #[cfg(feature = "rational")]
-    /// If the value is a [finite number][`is_finite`], returns a
+    /// If the value is a [finite number][Float::is_finite], returns a
     /// [`Rational`] number preserving all the precision of the value.
     ///
     /// This conversion can also be performed using
-    ///   * <code>[Rational][`Rational`]::[try_from][`try_from`]\(\&float)</code>
-    ///   * <code>[Rational][`Rational`]::[try_from][`try_from`]\(float)</code>
-    ///   * <code>(\&float).[checked\_as][`checked_as`]::\<[Rational][`Rational`]>()</code>
-    ///   * <code>float.[borrow][`borrow`]\().[checked\_as][`checked_as`]::\<[Rational][`Rational`]>()</code>
+    ///   * <code>[Rational]::[try\_from]\(\&float)</code>
+    ///   * <code>[Rational]::[try\_from]\(float)</code>
+    ///   * <code>(\&float).[checked\_as]::\<[Rational]>()</code>
+    ///   * <code>float.[borrow]\().[checked\_as]::\<[Rational]>()</code>
     ///
     ///
     /// # Examples
@@ -809,8 +777,8 @@ impl Float {
     /// assert_eq!(format!("{:.9}", frf), "1.23456789e-2");
     /// ```
     ///
-    /// In the following example, the [`Float`] values can be
-    /// represented exactly.
+    /// In the following example, the [`Float`] values can be represented
+    /// exactly.
     ///
     /// ```rust
     /// use rug::Float;
@@ -826,10 +794,9 @@ impl Float {
     /// assert_eq!(*small_r.denom(), 8);
     /// ```
     ///
-    /// [`borrow`]: `core::borrow::Borrow::borrow`
-    /// [`checked_as`]: `az::CheckedAs::checked_as`
-    /// [`is_finite`]: `Float::is_finite`
-    /// [`try_from`]: `core::convert::TryFrom::try_from`
+    /// [borrow]: core::borrow::Borrow::borrow
+    /// [checked\_as]: az::CheckedAs::checked_as
+    /// [try\_from]: core::convert::TryFrom::try_from
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {
         self.checked_cast()
@@ -837,9 +804,9 @@ impl Float {
 
     /// Converts to an [`i32`], rounding to the nearest.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, [`None`] is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned. If the value is a NaN, [`None`] is
+    /// returned.
     ///
     /// # Examples
     ///
@@ -860,9 +827,9 @@ impl Float {
 
     /// Converts to an [`i32`], applying the specified rounding method.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, [`None`] is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned. If the value is a NaN, [`None`] is
+    /// returned.
     ///
     /// # Examples
     ///
@@ -882,9 +849,9 @@ impl Float {
 
     /// Converts to a [`u32`], rounding to the nearest.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, [`None`] is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned. If the value is a NaN, [`None`] is
+    /// returned.
     ///
     /// # Examples
     ///
@@ -905,9 +872,9 @@ impl Float {
 
     /// Converts to a [`u32`], applying the specified rounding method.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, [`None`] is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned. If the value is a NaN, [`None`] is
+    /// returned.
     ///
     /// # Examples
     ///
@@ -927,8 +894,8 @@ impl Float {
 
     /// Converts to an [`f32`], rounding to the nearest.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned.
     ///
     /// # Examples
     ///
@@ -947,11 +914,10 @@ impl Float {
         self.to_f32_round(Round::Nearest)
     }
 
-    /// Converts to an [`f32`], applying the specified rounding
-    /// method.
+    /// Converts to an [`f32`], applying the specified rounding method.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned.
     ///
     /// # Examples
     ///
@@ -968,8 +934,8 @@ impl Float {
 
     /// Converts to an [`f64`], rounding to the nearest.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned.
     ///
     /// # Examples
     ///
@@ -987,11 +953,10 @@ impl Float {
         self.to_f64_round(Round::Nearest)
     }
 
-    /// Converts to an [`f64`], applying the specified rounding
-    /// method.
+    /// Converts to an [`f64`], applying the specified rounding method.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned.
     ///
     /// # Examples
     ///
@@ -1007,13 +972,12 @@ impl Float {
         xmpfr::get_f64(self, round)
     }
 
-    /// Converts to an [`f32`] and an exponent, rounding to the
-    /// nearest.
+    /// Converts to an [`f32`] and an exponent, rounding to the nearest.
     ///
     /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned.
     ///
     /// # Examples
     ///
@@ -1031,13 +995,13 @@ impl Float {
         self.to_f32_exp_round(Round::Nearest)
     }
 
-    /// Converts to an [`f32`] and an exponent, applying the specified
-    /// rounding method.
+    /// Converts to an [`f32`] and an exponent, applying the specified rounding
+    /// method.
     ///
     /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned.
     ///
     /// # Examples
     ///
@@ -1062,13 +1026,12 @@ impl Float {
         (f as f32, exp.unwrapped_cast())
     }
 
-    /// Converts to an [`f64`] and an exponent, rounding to the
-    /// nearest.
+    /// Converts to an [`f64`] and an exponent, rounding to the nearest.
     ///
     /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned.
     ///
     /// # Examples
     ///
@@ -1086,13 +1049,13 @@ impl Float {
         self.to_f64_exp_round(Round::Nearest)
     }
 
-    /// Converts to an [`f64`] and an exponent, applying the specified
-    /// rounding method.
+    /// Converts to an [`f64`] and an exponent, applying the specified rounding
+    /// method.
     ///
     /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1.
     ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
+    /// If the value is too small or too large for the target type, the minimum
+    /// or maximum value allowed is returned.
     ///
     /// # Examples
     ///
@@ -1110,12 +1073,12 @@ impl Float {
         (f, exp.unwrapped_cast())
     }
 
-    /// Returns a string representation of `self` for the specified
-    /// `radix` rounding to the nearest.
+    /// Returns a string representation of `self` for the specified `radix`
+    /// rounding to the nearest.
     ///
-    /// The exponent is encoded in decimal. If the number of digits is
-    /// not specified, the output string will have enough precision
-    /// such that reading it again will give the exact same number.
+    /// The exponent is encoded in decimal. If the number of digits is not
+    /// specified, the output string will have enough precision such that
+    /// reading it again will give the exact same number.
     ///
     /// # Panics
     ///
@@ -1143,12 +1106,12 @@ impl Float {
         self.to_string_radix_round(radix, num_digits, Round::Nearest)
     }
 
-    /// Returns a string representation of `self` for the specified
-    /// `radix` applying the specified rounding method.
+    /// Returns a string representation of `self` for the specified `radix`
+    /// applying the specified rounding method.
     ///
-    /// The exponent is encoded in decimal. If the number of digits is
-    /// not specified, the output string will have enough precision
-    /// such that reading it again will give the exact same number.
+    /// The exponent is encoded in decimal. If the number of digits is not
+    /// specified, the output string will have enough precision such that
+    /// reading it again will give the exact same number.
     ///
     /// # Panics
     ///
@@ -1182,12 +1145,11 @@ impl Float {
         s
     }
 
-    /// Returns a string representation of `self` together with a sign
-    /// and an exponent for the specified `radix`, rounding to the
-    /// nearest.
+    /// Returns a string representation of `self` together with a sign and an
+    /// exponent for the specified `radix`, rounding to the nearest.
     ///
-    /// The returned exponent is [`None`] if the [`Float`] is zero,
-    /// infinite or NaN, that is if the value is not [normal].
+    /// The returned exponent is [`None`] if the [`Float`] is zero, infinite or
+    /// NaN, that is if the value is not [normal].
     ///
     /// For [normal] values, the returned string has an implicit radix
     /// point before the first digit. If the number of digits is not
@@ -1229,17 +1191,17 @@ impl Float {
         self.to_sign_string_exp_round(radix, num_digits, Round::Nearest)
     }
 
-    /// Returns a string representation of `self` together with a sign
-    /// and an exponent for the specified `radix`, applying the
-    /// specified rounding method.
+    /// Returns a string representation of `self` together with a sign and an
+    /// exponent for the specified `radix`, applying the specified rounding
+    /// method.
     ///
-    /// The returned exponent is [`None`] if the [`Float`] is zero,
-    /// infinite or NaN, that is if the value is not [normal].
+    /// The returned exponent is [`None`] if the [`Float`] is zero, infinite or
+    /// NaN, that is if the value is not [normal].
     ///
-    /// For [normal] values, the returned string has an implicit radix
-    /// point before the first digit. If the number of digits is not
-    /// specified, the output string will have enough precision such
-    /// that reading it again will give the exact same number.
+    /// For [normal] values, the returned string has an implicit radix point
+    /// before the first digit. If the number of digits is not specified, the
+    /// output string will have enough precision such that reading it again will
+    /// give the exact same number.
     ///
     /// # Panics
     ///
@@ -1334,11 +1296,11 @@ impl Float {
 
     /// Borrows a negated copy of the [`Float`].
     ///
-    /// The returned object implements
-    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Float][`Float`]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Float]></code>.
     ///
-    /// This method performs a shallow copy and negates it, and
-    /// negation does not change the allocated data.
+    /// This method performs a shallow copy and negates it, and negation does
+    /// not change the allocated data.
     ///
     /// # Examples
     ///
@@ -1364,11 +1326,11 @@ impl Float {
 
     /// Borrows an absolute copy of the [`Float`].
     ///
-    /// The returned object implements
-    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Float][`Float`]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Float]></code>.
     ///
-    /// This method performs a shallow copy and possibly negates it,
-    /// and negation does not change the allocated data.
+    /// This method performs a shallow copy and possibly negates it, and
+    /// negation does not change the allocated data.
     ///
     /// # Examples
     ///
@@ -1392,12 +1354,11 @@ impl Float {
         unsafe { BorrowFloat::from_raw(raw) }
     }
 
-    /// Borrows the [`Float`] as an ordered floating-point number of
-    /// type [`OrdFloat`].
+    /// Borrows the [`Float`] as an ordered floating-point number of type
+    /// [`OrdFloat`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsRef][`AsRef`]\<[OrdFloat][`OrdFloat`]></code>
-    /// which is provided for [`Float`].
+    /// <code>[AsRef]\<[OrdFloat]></code> which is provided for [`Float`].
     ///
     /// # Examples
     ///
@@ -1426,15 +1387,14 @@ impl Float {
     }
 
     #[cfg(feature = "complex")]
-    /// Borrows a copy of the [`Float`] as a [`Complex`] number.
+    /// Borrows a copy of the [`Float`] as a [`Complex`][crate::Complex] number.
     ///
-    /// The returned object implements
-    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Complex][crate::Complex]></code>.
     ///
-    /// The imaginary part of the return value has the same precision
-    /// as the real part. While this has no effect for the zero value
-    /// of the returned complex number, it could have an effect if the
-    /// return value is cloned.
+    /// The imaginary part of the return value has the same precision as the
+    /// real part. While this has no effect for the zero value of the returned
+    /// complex number, it could have an effect if the return value is cloned.
     ///
     /// # Examples
     ///
@@ -1447,8 +1407,6 @@ impl Float {
     /// let c_mul_i = c.as_mul_i(false);
     /// assert_eq!(*c_mul_i, (0.0, 4.2));
     /// ```
-    ///
-    /// [`Complex`]: `crate::Complex`
     pub fn as_complex(&self) -> BorrowComplex<'_> {
         // im.d is set to be the same as re.d since the precision is equal;
         // though it will not be read as the imaginary part is 0 (which is singular).
@@ -1513,8 +1471,8 @@ impl Float {
         xmpfr::inf_p(self)
     }
 
-    /// Returns [`true`] if `self` is a finite number, that is neither
-    /// NaN nor infinity.
+    /// Returns [`true`] if `self` is a finite number, that is neither NaN nor
+    /// infinity.
     ///
     /// # Examples
     ///
@@ -1548,9 +1506,8 @@ impl Float {
         xmpfr::zero_p(self)
     }
 
-    /// Returns [`true`] if `self` is a normal number, that is neither
-    /// NaN, nor infinity, nor zero. Note that [`Float`] cannot be
-    /// subnormal.
+    /// Returns [`true`] if `self` is a normal number, that is neither NaN, nor
+    /// infinity, nor zero. Note that [`Float`] cannot be subnormal.
     ///
     /// # Examples
     ///
@@ -1570,8 +1527,8 @@ impl Float {
         xmpfr::regular_p(self)
     }
 
-    /// Returns the floating-point category of the number. Note that
-    /// [`Float`] cannot be subnormal.
+    /// Returns the floating-point category of the number. Note that [`Float`]
+    /// cannot be subnormal.
     ///
     /// # Examples
     ///
@@ -1601,7 +1558,7 @@ impl Float {
     }
 
     /// Returns the same result as
-    /// <code>self.[partial_cmp][`partial_cmp`]\(\&0)</code>, but is
+    /// <code>self.[partial\_cmp][PartialOrd::partial_cmp]\(\&0)</code>, but is
     /// faster.
     ///
     /// # Examples
@@ -1618,8 +1575,6 @@ impl Float {
     /// f.assign(Special::Nan);
     /// assert_eq!(f.cmp0(), None);
     /// ```
-    ///
-    /// [`partial_cmp`]: `PartialOrd::partial_cmp`
     #[inline]
     pub fn cmp0(&self) -> Option<Ordering> {
         if self.is_nan() {
@@ -1650,11 +1605,10 @@ impl Float {
         }
     }
 
-    /// If the value is a [normal number][`is_normal`], returns its
+    /// If the value is a [normal number][Float::is_normal], returns its
     /// exponent.
     ///
-    /// The significand is assumed to be in the range
-    /// 0.5 ≤ <i>x</i> < 1.
+    /// The significand is assumed to be in the range 0.5 ≤ <i>x</i> < 1.
     ///
     /// # Examples
     ///
@@ -1669,8 +1623,6 @@ impl Float {
     /// f.assign(0);
     /// assert_eq!(f.get_exp(), None);
     /// ```
-    ///
-    /// [`is_normal`]: `Float::is_normal`
     #[inline]
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
@@ -1680,24 +1632,22 @@ impl Float {
         }
     }
 
-    /// Clamps the exponent of a [`Float`] within a specified range if
-    /// the range is valid.
+    /// Clamps the exponent of a [`Float`] within a specified range if the range
+    /// is valid.
     ///
-    /// This method returns [`None`] if the specified exponent range
-    /// is outside the allowed exponent range obtained using
-    /// [`exp_min`] and [`exp_max`].
+    /// This method returns [`None`] if the specified exponent range is outside
+    /// the allowed exponent range obtained using [`exp_min`] and [`exp_max`].
     ///
-    /// This method assumes that `self` is the correctly rounded value
-    /// of some exact result <i>exact</i>, rounded according to
-    /// `round` in the direction `dir`. If necessary, this function
-    /// then modifies `self` to be within the specified exponent
-    /// range. If the exponent of `self` is outside the specified
-    /// range, an underflow or overflow occurs, and the value of the
+    /// This method assumes that `self` is the correctly rounded value of some
+    /// exact result <i>exact</i>, rounded according to `round` in the direction
+    /// `dir`. If necessary, this function then modifies `self` to be within the
+    /// specified exponent range. If the exponent of `self` is outside the
+    /// specified range, an underflow or overflow occurs, and the value of the
     /// input parameter `dir` is used to avoid double rounding.
     ///
-    /// Unlike most methods functions, the direction is obtained by
-    /// comparing the output `self` to the unknown result
-    /// <i>exact</i>, not to the input value of `self`.
+    /// Unlike most methods functions, the direction is obtained by comparing
+    /// the output `self` to the unknown result <i>exact</i>, not to the input
+    /// value of `self`.
     ///
     /// # Examples
     ///
@@ -1720,12 +1670,11 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
     ///
-    /// The `dir` parameter can be required to avoid double rounding.
-    /// In the following example, `f` is 1/16, which is a tie between
-    /// 0 and 1/8. With ties rounding to even, this would be double
-    /// rounded to 0, but the exact result was actually > 1/16 as
-    /// indicated by `dir` saying that `f` is less than its exact
-    /// value. `f` can thus be rounded correctly to 1/8.
+    /// The `dir` parameter can be required to avoid double rounding. In the
+    /// following example, `f` is 1/16, which is a tie between 0 and 1/8. With
+    /// ties rounding to even, this would be double rounded to 0, but the exact
+    /// result was actually > 1/16 as indicated by `dir` saying that `f` is less
+    /// than its exact value. `f` can thus be rounded correctly to 1/8.
     ///
     /// ```rust
     /// use core::cmp::Ordering;
@@ -1741,8 +1690,8 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
     ///
-    /// [`exp_max`]: `crate::float::exp_max`
-    /// [`exp_min`]: `crate::float::exp_min`
+    /// [`exp_max`]: crate::float::exp_max
+    /// [`exp_min`]: crate::float::exp_min
     pub fn clamp_exp(
         &mut self,
         dir: Ordering,
@@ -1772,26 +1721,23 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// If the value is a [normal number][`is_normal`], returns a
-    /// reference to its significand as an [`Integer`].
+    /// If the value is a [normal number][Float::is_normal], returns a reference
+    /// to its significand as an [`Integer`].
     ///
     /// The unwrapped returned object implements
-    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Integer][`Integer`]></code>.
+    /// <code>[Deref]\<[Target][Deref::Target] = [Integer]></code>.
     ///
-    /// The number of [significant bits][`significant_bits`] of a
-    /// returned significand is at least equal to the
-    /// [precision][`prec`], but can be larger. It is usually rounded
-    /// up to a multiple of 32 or 64 depending on the implementation;
-    /// in this case, the extra least significant bits will be zero.
-    /// The value of `self` is exactly equal to the returned
-    /// [`Integer`] divided by two raised to the power of the number
-    /// of [significant bits][`significant_bits`] and multiplied by
-    /// two raised to the power of the [exponent][`get_exp`] of
-    /// `self`.
+    /// The number of [significant bits] of a returned significand is at least
+    /// equal to the [precision][Float::prec], but can be larger. It is usually
+    /// rounded up to a multiple of 32 or 64 depending on the implementation; in
+    /// this case, the extra least significant bits will be zero. The value of
+    /// `self` is exactly equal to the returned [`Integer`] divided by two
+    /// raised to the power of the number of [significant bits] and multiplied
+    /// by two raised to the power of the [exponent][Float::get_exp] of `self`.
     ///
-    /// Unlike the [`to_integer_exp`] method which returns an owned
-    /// [`Integer`], this method only performs a shallow copy and does
-    /// not allocate any memory.
+    /// Unlike the [`to_integer_exp`][Float::to_integer_exp] method which
+    /// returns an owned [`Integer`], this method only performs a shallow copy
+    /// and does not allocate any memory.
     ///
     /// # Examples
     ///
@@ -1809,11 +1755,7 @@ impl Float {
     /// assert_eq!(check_int << sig_bits << (check_exp - exp), *significand);
     /// ```
     ///
-    /// [`get_exp`]: `Float::get_exp`
-    /// [`is_normal`]: `Float::is_normal`
-    /// [`prec`]: `Float::prec`
-    /// [`significant_bits`]: `Integer::significant_bits`
-    /// [`to_integer_exp`]: `Float::to_integer_exp`
+    /// [significant bits]: Integer::significant_bits
     #[inline]
     pub fn get_significand(&self) -> Option<BorrowInteger<'_>> {
         if self.is_normal() {
@@ -1831,8 +1773,8 @@ impl Float {
         }
     }
 
-    /// Returns [`true`] if the value is positive, +0 or NaN without a
-    /// negative sign.
+    /// Returns [`true`] if the value is positive, +0 or NaN without a negative
+    /// sign.
     ///
     /// # Examples
     ///
@@ -1848,8 +1790,8 @@ impl Float {
         !self.is_sign_negative()
     }
 
-    /// Returns [`true`] if the value is negative, −0 or NaN with a
-    /// negative sign.
+    /// Returns [`true`] if the value is negative, −0 or NaN with a negative
+    /// sign.
     ///
     /// # Examples
     ///
@@ -1917,23 +1859,21 @@ impl Float {
         xmpfr::nextbelow(self);
     }
 
-    /// Emulate subnormal numbers for precisions specified in IEEE
-    /// 754, rounding to the nearest.
+    /// Emulate subnormal numbers for precisions specified in IEEE 754, rounding
+    /// to the nearest.
     ///
-    /// Subnormalization is only performed for precisions specified in
-    /// IEEE 754:
+    /// Subnormalization is only performed for precisions specified in IEEE 754:
     ///
     ///   * binary16 with 16 storage bits and a precision of 11 bits,
-    ///   * binary32 (single precision) with 32 storage bits and a
-    ///     precision of 24 bits,
-    ///   * binary64 (double precision) with 64 storage bits and a
-    ///     precision of 53 bits,
-    ///   * binary{<i>k</i>} with <i>k</i> storage bits where <i>k</i>
-    ///     is a multiple of 32 and <i>k</i> ≥ 128, and a precision of
-    ///     <i>k</i> − round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
+    ///   * binary32 (single precision) with 32 storage bits and a precision of
+    ///     24 bits,
+    ///   * binary64 (double precision) with 64 storage bits and a precision of
+    ///     53 bits,
+    ///   * binary{<i>k</i>} with <i>k</i> storage bits where <i>k</i> is a
+    ///     multiple of 32 and <i>k</i> ≥ 128, and a precision of <i>k</i> −
+    ///     round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
     ///
-    /// This method has no effect if the value is not in the subnormal
-    /// range.
+    /// This method has no effect if the value is not in the subnormal range.
     ///
     /// # Examples
     ///
@@ -1956,23 +1896,22 @@ impl Float {
         self
     }
 
-    /// Emulate subnormal numbers for precisions specified in IEEE
-    /// 754, applying the specified rounding method.
+    /// Emulate subnormal numbers for precisions specified in IEEE 754, applying
+    /// the specified rounding method.
     ///
-    /// Subnormalization is only performed for precisions specified in
-    /// IEEE 754:
+    /// Subnormalization is only performed for precisions specified in IEEE 754:
     ///
     ///   * binary16 with 16 storage bits and a precision of 11 bits,
-    ///   * binary32 (single precision) with 32 storage bits and a
-    ///     precision of 24 bits,
-    ///   * binary64 (double precision) with 64 storage bits and a
-    ///     precision of 53 bits,
-    ///   * binary{<i>k</i>} with <i>k</i> storage bits where <i>k</i>
-    ///     is a multiple of 32 and <i>k</i> ≥ 128, and a precision of
-    ///     <i>k</i> − round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
+    ///   * binary32 (single precision) with 32 storage bits and a precision of
+    ///     24 bits,
+    ///   * binary64 (double precision) with 64 storage bits and a precision of
+    ///     53 bits,
+    ///   * binary{<i>k</i>} with <i>k</i> storage bits where <i>k</i> is a
+    ///     multiple of 32 and <i>k</i> ≥ 128, and a precision of <i>k</i> −
+    ///     round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
     ///
-    /// This method simply propagates `prev_rounding` if the value is
-    /// not in the subnormal range.
+    /// This method simply propagates `prev_rounding` if the value is not in the
+    /// subnormal range.
     ///
     /// # Examples
     ///
@@ -2002,17 +1941,17 @@ impl Float {
 
     /// Emulate subnormal numbers, rounding to the nearest.
     ///
-    /// Subnormalization is only performed when the exponent lies
-    /// within the subnormal range, that is when
+    /// Subnormalization is only performed when the exponent lies within the
+    /// subnormal range, that is when
     ///
-    /// `normal_exp_min` − <i>precision</i> + 1 ≤ <i>exponent</i> < `normal_exp_min`
+    /// `normal_exp_min` − <i>precision</i> + 1 ≤ <i>exponent</i> <
+    /// `normal_exp_min`
     ///
-    /// For example, for IEEE 754 single precision, the precision is
-    /// 24 and `normal_exp_min` is −125, so the subnormal range would
-    /// be −148 ≤ <i>exponent</i> < −125.
+    /// For example, for IEEE 754 single precision, the precision is 24 and
+    /// `normal_exp_min` is −125, so the subnormal range would be
+    /// −148 ≤ <i>exponent</i> < −125.
     ///
-    /// This method has no effect if the value is not in the subnormal
-    /// range.
+    /// This method has no effect if the value is not in the subnormal range.
     ///
     /// # Examples
     ///
@@ -2034,20 +1973,20 @@ impl Float {
         self
     }
 
-    /// Emulate subnormal numbers, applying the specified rounding
-    /// method.
+    /// Emulate subnormal numbers, applying the specified rounding method.
     ///
-    /// Subnormalization is only performed when the exponent lies
-    /// within the subnormal range, that is when
+    /// Subnormalization is only performed when the exponent lies within the
+    /// subnormal range, that is when
     ///
-    /// `normal_exp_min` − <i>precision</i> + 1 ≤ <i>exponent</i> < `normal_exp_min`
+    /// `normal_exp_min` − <i>precision</i> + 1 ≤ <i>exponent</i> <
+    /// `normal_exp_min`
     ///
-    /// For example, for IEEE 754 single precision, the precision is
-    /// 24 and `normal_exp_min` is −125, so the subnormal range would
-    /// be −148 ≤ <i>exponent</i> < −125.
+    /// For example, for IEEE 754 single precision, the precision is 24 and
+    /// `normal_exp_min` is −125, so the subnormal range would be
+    /// −148 ≤ <i>exponent</i> < −125.
     ///
-    /// This method simply propagates `prev_rounding` if the value is
-    /// not in the subnormal range.
+    /// This method simply propagates `prev_rounding` if the value is not in the
+    /// subnormal range.
     ///
     /// # Examples
     ///
@@ -2102,13 +2041,13 @@ impl Float {
 
     /// Adds a list of [`Float`] values with correct rounding.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AddAssignRound][`AddAssignRound`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[Add][`Add`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[AddAssign]\<Src> for [Float]</code>
+    ///   * <code>[AddAssignRound]\<Src> for [Float]</code>
+    ///   * <code>[Add]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -2137,7 +2076,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
@@ -2146,20 +2085,19 @@ impl Float {
         SumIncomplete { values }
     }
 
-    /// Finds the dot product of a list of [`Float`] value pairs with
-    /// correct rounding.
+    /// Finds the dot product of a list of [`Float`] value pairs with correct
+    /// rounding.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AddAssignRound][`AddAssignRound`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[Add][`Add`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[AddAssign]\<Src> for [Float]</code>
+    ///   * <code>[AddAssignRound]\<Src> for [Float]</code>
+    ///   * <code>[Add]\<Src> for [Float]</code>
     ///
-    /// This method will produce a result with correct rounding,
-    /// except for some cases where underflow or overflow occurs in
-    /// intermediate products.
+    /// This method will produce a result with correct rounding, except for some
+    /// cases where underflow or overflow occurs in intermediate products.
     ///
     /// # Examples
     ///
@@ -2178,7 +2116,7 @@ impl Float {
     /// assert_eq!(twice, expected * 2.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
     where
@@ -2189,12 +2127,11 @@ impl Float {
 
     /// Computes the remainder, rounding to the nearest.
     ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
-    /// where <i>n</i> is the integer quotient of `self` / `divisor`
-    /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the `%` operator
-    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
-    /// rounded to the nearest.
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`, where
+    /// <i>n</i> is the integer quotient of `self` / `divisor` rounded to the
+    /// nearest integer (ties rounded to even). This is different from the
+    /// remainder obtained using the `%` operator or the [`Rem`][core::ops::Rem]
+    /// trait, where <i>n</i> is truncated instead of rounded to the nearest.
     ///
     /// # Examples
     ///
@@ -2213,8 +2150,6 @@ impl Float {
     /// let expected = 89.4_f64;
     /// assert!((rem_op - expected).abs() < 0.0001);
     /// ```
-    ///
-    /// [`Rem`]: `core::ops::Rem`
     #[inline]
     pub fn remainder(mut self, divisor: &Self) -> Self {
         self.remainder_round(divisor, Round::Nearest);
@@ -2223,12 +2158,12 @@ impl Float {
 
     /// Computes the remainder, rounding to the nearest.
     ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
-    /// where <i>n</i> is the integer quotient of `self` / `divisor`
-    /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the `%=` operator
-    /// or the [`RemAssign`] trait, where <i>n</i> is truncated instead of
-    /// rounded to the nearest.
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`, where
+    /// <i>n</i> is the integer quotient of `self` / `divisor` rounded to the
+    /// nearest integer (ties rounded to even). This is different from the
+    /// remainder obtained using the `%=` operator or the
+    /// [`RemAssign`][core::ops::RemAssign] trait, where <i>n</i> is truncated
+    /// instead of rounded to the nearest.
     ///
     /// # Examples
     ///
@@ -2247,22 +2182,19 @@ impl Float {
     /// let expected = 89.4_f64;
     /// assert!((f - expected).abs() < 0.0001);
     /// ```
-    ///
-    /// [`RemAssign`]: `core::ops::RemAssign`
     #[inline]
     pub fn remainder_mut(&mut self, divisor: &Self) {
         self.remainder_round(divisor, Round::Nearest);
     }
 
-    /// Computes the remainder, applying the specified rounding
-    /// method.
+    /// Computes the remainder, applying the specified rounding method.
     ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
-    /// where <i>n</i> is the integer quotient of `self` / `divisor`
-    /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the
-    /// [`RemAssignRound`] trait, where <i>n</i> is truncated instead
-    /// of rounded to the nearest.
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`, where
+    /// <i>n</i> is the integer quotient of `self` / `divisor` rounded to the
+    /// nearest integer (ties rounded to even). This is different from the
+    /// remainder obtained using the
+    /// [`RemAssignRound`][crate::ops::RemAssignRound] trait, where <i>n</i> is
+    /// truncated instead of rounded to the nearest.
     ///
     /// # Examples
     ///
@@ -2287,8 +2219,6 @@ impl Float {
     /// assert_eq!(f, 30.0);
     /// assert_eq!(dir, Ordering::Equal);
     /// ```
-    ///
-    /// [`RemAssignRound`]: `crate::ops::RemAssignRound`
     #[inline]
     pub fn remainder_round(&mut self, divisor: &Self, round: Round) -> Ordering {
         xmpfr::remainder(self, (), divisor, round)
@@ -2296,12 +2226,11 @@ impl Float {
 
     /// Computes the remainder, rounding to the nearest.
     ///
-    /// The remainder is the value of `dividend` − <i>n</i> × `self`,
-    /// where <i>n</i> is the integer quotient of `dividend` / `self`
-    /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the [`RemFrom`]
-    /// trait, where <i>n</i> is truncated instead of rounded to the
-    /// nearest.
+    /// The remainder is the value of `dividend` − <i>n</i> × `self`, where
+    /// <i>n</i> is the integer quotient of `dividend` / `self` rounded to the
+    /// nearest integer (ties rounded to even). This is different from the
+    /// remainder obtained using the [`RemFrom`] trait, where <i>n</i> is
+    /// truncated instead of rounded to the nearest.
     ///
     /// # Examples
     ///
@@ -2327,15 +2256,13 @@ impl Float {
         self.remainder_from_round(dividend, Round::Nearest);
     }
 
-    /// Computes the remainder, applying the specified rounding
-    /// method.
+    /// Computes the remainder, applying the specified rounding method.
     ///
-    /// The remainder is the value of `dividend` − <i>n</i> × `self`,
-    /// where <i>n</i> is the integer quotient of `dividend` / `self`
-    /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the
-    /// [`RemFromRound`] trait, where <i>n</i> is truncated instead of
-    /// rounded to the nearest.
+    /// The remainder is the value of `dividend` − <i>n</i> × `self`, where
+    /// <i>n</i> is the integer quotient of `dividend` / `self` rounded to the
+    /// nearest integer (ties rounded to even). This is different from the
+    /// remainder obtained using the [`RemFromRound`][crate::ops::RemFromRound]
+    /// trait, where <i>n</i> is truncated instead of rounded to the nearest.
     ///
     /// # Examples
     ///
@@ -2360,8 +2287,6 @@ impl Float {
     /// assert_eq!(g, 44.0);
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
-    ///
-    /// [`RemFromRound`]: `crate::ops::RemFromRound`
     #[inline]
     pub fn remainder_from_round(&mut self, dividend: &Self, round: Round) -> Ordering {
         xmpfr::remainder(self, dividend, (), round)
@@ -2369,17 +2294,16 @@ impl Float {
 
     /// Computes the remainder.
     ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`,
-    /// where <i>n</i> is the integer quotient of `self` / `divisor`
-    /// rounded to the nearest integer (ties rounded to even). This is
-    /// different from the remainder obtained using the `%` operator
-    /// or the [`Rem`] trait, where <i>n</i> is truncated instead of
-    /// rounded to the nearest.
+    /// The remainder is the value of `self` − <i>n</i> × `divisor`, where
+    /// <i>n</i> is the integer quotient of `self` / `divisor` rounded to the
+    /// nearest integer (ties rounded to even). This is different from the
+    /// remainder obtained using the `%` operator or the [`Rem`][core::ops::Rem]
+    /// trait, where <i>n</i> is truncated instead of rounded to the nearest.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -2399,8 +2323,7 @@ impl Float {
     /// assert!((rem_op - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [`Rem`]: `core::ops::Rem`
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn remainder_ref<'a>(&'a self, divisor: &'a Self) -> RemainderIncomplete<'_> {
         RemainderIncomplete {
@@ -2409,11 +2332,11 @@ impl Float {
         }
     }
 
-    /// Multiplies and adds in one fused operation, rounding to the
-    /// nearest with only one rounding error.
+    /// Multiplies and adds in one fused operation, rounding to the nearest with
+    /// only one rounding error.
     ///
-    /// `a.mul_add(&b, &c)` produces a result like `&a * &b + &c`, but
-    /// `a` is consumed and the result produced uses its precision.
+    /// `a.mul_add(&b, &c)` produces a result like `&a * &b + &c`, but `a` is
+    /// consumed and the result produced uses its precision.
     ///
     /// # Examples
     ///
@@ -2437,11 +2360,11 @@ impl Float {
         self
     }
 
-    /// Multiplies and adds in one fused operation, rounding to the
-    /// nearest with only one rounding error.
+    /// Multiplies and adds in one fused operation, rounding to the nearest with
+    /// only one rounding error.
     ///
-    /// `a.mul_add_mut(&b, &c)` produces a result like `&a * &b + &c`,
-    /// but stores the result in `a` using its precision.
+    /// `a.mul_add_mut(&b, &c)` produces a result like `&a * &b + &c`, but
+    /// stores the result in `a` using its precision.
     ///
     /// # Examples
     ///
@@ -2464,13 +2387,12 @@ impl Float {
         self.mul_add_round(mul, add, Round::Nearest);
     }
 
-    /// Multiplies and adds in one fused operation, applying the
-    /// specified rounding method with only one rounding error.
+    /// Multiplies and adds in one fused operation, applying the specified
+    /// rounding method with only one rounding error.
     ///
     /// `a.mul_add_round(&b, &c, round)` produces a result like
-    /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another [`Float`]
-    /// like `ans`.
+    /// `ans.assign_round(&a * &b + &c, round)`, but stores the result in `a`
+    /// using its precision rather than in another [`Float`] like `ans`.
     ///
     /// # Examples
     ///
@@ -2497,13 +2419,13 @@ impl Float {
 
     /// Multiplies and adds in one fused operation.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
-    /// `a.mul_add_ref(&b, &c)` produces the exact same result as
-    /// `&a * &b + &c`.
+    /// `a.mul_add_ref(&b, &c)` produces the exact same result as `&a * &b +
+    /// &c`.
     ///
     /// # Examples
     ///
@@ -2522,17 +2444,17 @@ impl Float {
     /// assert_eq!(ans, 4.5);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
         self * mul + add
     }
 
-    /// Multiplies and subtracts in one fused operation, rounding to
-    /// the nearest with only one rounding error.
+    /// Multiplies and subtracts in one fused operation, rounding to the nearest
+    /// with only one rounding error.
     ///
-    /// `a.mul_sub(&b, &c)` produces a result like `&a * &b - &c`, but
-    /// `a` is consumed and the result produced uses its precision.
+    /// `a.mul_sub(&b, &c)` produces a result like `&a * &b - &c`, but `a` is
+    /// consumed and the result produced uses its precision.
     ///
     /// # Examples
     ///
@@ -2556,11 +2478,11 @@ impl Float {
         self
     }
 
-    /// Multiplies and subtracts in one fused operation, rounding to
-    /// the nearest with only one rounding error.
+    /// Multiplies and subtracts in one fused operation, rounding to the nearest
+    /// with only one rounding error.
     ///
-    /// `a.mul_sub_mut(&b, &c)` produces a result like `&a * &b - &c`,
-    /// but stores the result in `a` using its precision.
+    /// `a.mul_sub_mut(&b, &c)` produces a result like `&a * &b - &c`, but
+    /// stores the result in `a` using its precision.
     ///
     /// # Examples
     ///
@@ -2583,13 +2505,12 @@ impl Float {
         self.mul_sub_round(mul, sub, Round::Nearest);
     }
 
-    /// Multiplies and subtracts in one fused operation, applying the
-    /// specified rounding method with only one rounding error.
+    /// Multiplies and subtracts in one fused operation, applying the specified
+    /// rounding method with only one rounding error.
     ///
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
-    /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another [`Float`]
-    /// like `ans`.
+    /// `ans.assign_round(&a * &b - &c, round)`, but stores the result in `a`
+    /// using its precision rather than in another [`Float`] like `ans`.
     ///
     /// # Examples
     ///
@@ -2616,13 +2537,13 @@ impl Float {
 
     /// Multiplies and subtracts in one fused operation.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
-    /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
-    /// `&a * &b - &c`.
+    /// `a.mul_sub_ref(&b, &c)` produces the exact same result as `&a * &b -
+    /// &c`.
     ///
     /// # Examples
     ///
@@ -2641,18 +2562,17 @@ impl Float {
     /// assert_eq!(ans, -44);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
         self * mul - sub
     }
 
-    /// Multiplies two products and adds them in one fused operation,
-    /// rounding to the nearest with only one rounding error.
+    /// Multiplies two products and adds them in one fused operation, rounding
+    /// to the nearest with only one rounding error.
     ///
-    /// `a.mul_add_mul(&b, &c, &d)` produces a result like
-    /// `&a * &b + &c * &d`, but `a` is consumed and the result
-    /// produced uses its precision.
+    /// `a.mul_add_mul(&b, &c, &d)` produces a result like `&a * &b + &c * &d`,
+    /// but `a` is consumed and the result produced uses its precision.
     ///
     /// # Examples
     ///
@@ -2672,12 +2592,11 @@ impl Float {
         self
     }
 
-    /// Multiplies two products and adds them in one fused operation,
-    /// rounding to the nearest with only one rounding error.
+    /// Multiplies two products and adds them in one fused operation, rounding
+    /// to the nearest with only one rounding error.
     ///
-    /// `a.mul_add_mul_mut(&b, &c, &d)` produces a result like
-    /// `&a * &b + &c * &d`, but stores the result in `a` using its
-    /// precision.
+    /// `a.mul_add_mul_mut(&b, &c, &d)` produces a result like `&a * &b + &c *
+    /// &d`, but stores the result in `a` using its precision.
     ///
     /// # Examples
     ///
@@ -2696,14 +2615,13 @@ impl Float {
         self.mul_add_mul_round(mul, add_mul1, add_mul2, Round::Nearest);
     }
 
-    /// Multiplies two produces and adds them in one fused operation,
-    /// applying the specified rounding method with only one rounding
+    /// Multiplies two produces and adds them in one fused operation, applying
+    /// the specified rounding method with only one rounding
     /// error.
     ///
-    /// `a.mul_add_mul_round(&b, &c, &d, round)` produces a result
-    /// like `ans.assign_round(&a * &b + &c * &d, round)`, but stores
-    /// the result in `a` using its precision rather than in another
-    /// [`Float`] like `ans`.
+    /// `a.mul_add_mul_round(&b, &c, &d, round)` produces a result like
+    /// `ans.assign_round(&a * &b + &c * &d, round)`, but stores the result in
+    /// `a` using its precision rather than in another [`Float`] like `ans`.
     ///
     /// # Examples
     ///
@@ -2732,10 +2650,10 @@ impl Float {
 
     /// Multiplies two products and adds them in one fused operation.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// `a.mul_add_mul_ref(&b, &c, &d)` produces the exact same result
     /// as `&a * &b + &c * &d`.
@@ -2753,7 +2671,7 @@ impl Float {
     /// assert_eq!(ans, 60);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn mul_add_mul_ref<'a>(
         &'a self,
@@ -2764,13 +2682,11 @@ impl Float {
         self * mul + add_mul1 * add_mul2
     }
 
-    /// Multiplies two products and subtracts them in one fused
-    /// operation, rounding to the nearest with only one rounding
-    /// error.
+    /// Multiplies two products and subtracts them in one fused operation,
+    /// rounding to the nearest with only one rounding error.
     ///
-    /// `a.mul_sub_mul(&b, &c, &d)` produces a result like
-    /// `&a * &b - &c * &d`, but `a` is consumed and the result
-    /// produced uses its precision.
+    /// `a.mul_sub_mul(&b, &c, &d)` produces a result like `&a * &b - &c * &d`,
+    /// but `a` is consumed and the result produced uses its precision.
     ///
     /// # Examples
     ///
@@ -2790,13 +2706,11 @@ impl Float {
         self
     }
 
-    /// Multiplies two products and subtracts them in one fused
-    /// operation, rounding to the nearest with only one rounding
-    /// error.
+    /// Multiplies two products and subtracts them in one fused operation,
+    /// rounding to the nearest with only one rounding error.
     ///
-    /// `a.mul_sub_mul_mut(&b, &c, &d)` produces a result like
-    /// `&a * &b - &c * &d`, but stores the result in `a` using its
-    /// precision.
+    /// `a.mul_sub_mul_mut(&b, &c, &d)` produces a result like `&a * &b - &c *
+    /// &d`, but stores the result in `a` using its precision.
     ///
     /// # Examples
     ///
@@ -2815,14 +2729,12 @@ impl Float {
         self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Round::Nearest);
     }
 
-    /// Multiplies two produces and subtracts them in one fused
-    /// operation, applying the specified rounding method with only
-    /// one rounding error.
+    /// Multiplies two produces and subtracts them in one fused operation,
+    /// applying the specified rounding method with only one rounding error.
     ///
-    /// `a.mul_sub_mul_round(&b, &c, &d, round)` produces a result
-    /// like `ans.assign_round(&a * &b - &c * &d, round)`, but stores
-    /// the result in `a` using its precision rather than in another
-    /// [`Float`] like `ans`.
+    /// `a.mul_sub_mul_round(&b, &c, &d, round)` produces a result like
+    /// `ans.assign_round(&a * &b - &c * &d, round)`, but stores the result in
+    /// `a` using its precision rather than in another [`Float`] like `ans`.
     ///
     /// # Examples
     ///
@@ -2849,16 +2761,15 @@ impl Float {
         xmpfr::fmms(self, (), mul, sub_mul1, sub_mul2, round)
     }
 
-    /// Multiplies two products and subtracts them in one fused
-    /// operation.
+    /// Multiplies two products and subtracts them in one fused operation.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
-    /// `a.mul_sub_mul_ref(&b, &c, &d)` produces the exact same result
-    /// as `&a * &b - &c * &d`.
+    /// `a.mul_sub_mul_ref(&b, &c, &d)` produces the exact same result as `&a *
+    /// &b - &c * &d`.
     ///
     /// # Examples
     ///
@@ -2873,7 +2784,7 @@ impl Float {
     /// assert_eq!(ans, 12);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn mul_sub_mul_ref<'a>(
         &'a self,
@@ -2886,18 +2797,18 @@ impl Float {
 
     /// Multiplies `u` by 2<sup>`exp`</sup>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// You can also compare the returned value to a [`Float`];
     /// the following are also implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[PartialEq][`PartialEq`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[PartialEq][`PartialEq`]\<[Float][`Float`]> for Src</code>
-    ///   * <code>[PartialOrd][`PartialOrd`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[PartialOrd][`PartialOrd`]\<[Float][`Float`]> for Src</code>
+    ///   * <code>[PartialEq]\<Src> for [Float]</code>
+    ///   * <code>[PartialEq]\<[Float]> for Src</code>
+    ///   * <code>[PartialOrd]\<Src> for [Float]</code>
+    ///   * <code>[PartialOrd]\<[Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2910,7 +2821,7 @@ impl Float {
     /// assert_eq!(f, same);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn u_exp(u: u32, exp: i32) -> UExpIncomplete {
         UExpIncomplete { u, exp }
@@ -2918,18 +2829,18 @@ impl Float {
 
     /// Multiplies `i` by 2<sup>`exp`</sup>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
-    /// You can also compare the returned value to a [`Float`];
-    /// the following are also implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[PartialEq][`PartialEq`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[PartialEq][`PartialEq`]\<[Float][`Float`]> for Src</code>
-    ///   * <code>[PartialOrd][`PartialOrd`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[PartialOrd][`PartialOrd`]\<[Float][`Float`]> for Src</code>
+    /// You can also compare the returned value to a [`Float`]; the following
+    /// are also implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[PartialEq]\<Src> for [Float]</code>
+    ///   * <code>[PartialEq]\<[Float]> for Src</code>
+    ///   * <code>[PartialOrd]\<Src> for [Float]</code>
+    ///   * <code>[PartialOrd]\<[Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2942,7 +2853,7 @@ impl Float {
     /// assert_eq!(f, same);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn i_exp(i: i32, exp: i32) -> IExpIncomplete {
         IExpIncomplete { i, exp }
@@ -2950,10 +2861,10 @@ impl Float {
 
     /// Raises `base` to the power of `exponent`.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -2964,7 +2875,7 @@ impl Float {
     /// assert_eq!(f, 13u32.pow(6));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete {
         UPowUIncomplete { base, exponent }
@@ -2972,10 +2883,10 @@ impl Float {
 
     /// Raises `base` to the power of `exponent`.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -2986,7 +2897,7 @@ impl Float {
     /// assert_eq!(f, -13i32.pow(5));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete {
         IPowUIncomplete { base, exponent }
@@ -3045,10 +2956,10 @@ impl Float {
 
     /// Computes the square.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3060,7 +2971,7 @@ impl Float {
     /// assert_eq!(square, 25.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> SquareIncomplete<'_> {
         SquareIncomplete { ref_self: self }
@@ -3097,8 +3008,7 @@ impl Float {
         self.sqrt_round(Round::Nearest);
     }
 
-    /// Computes the square root, applying the specified rounding
-    /// method.
+    /// Computes the square root, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -3120,10 +3030,10 @@ impl Float {
 
     /// Computes the square root.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3135,7 +3045,7 @@ impl Float {
     /// assert_eq!(sqrt, 5.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
         SqrtIncomplete { ref_self: self }
@@ -3143,10 +3053,10 @@ impl Float {
 
     /// Computes the square root of `u`.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3157,7 +3067,7 @@ impl Float {
     /// assert_eq!(f, 5.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sqrt_u(u: u32) -> SqrtUIncomplete {
         SqrtUIncomplete { u }
@@ -3194,8 +3104,8 @@ impl Float {
         self.recip_sqrt_round(Round::Nearest);
     }
 
-    /// Computes the reciprocal square root, applying the specified
-    /// rounding method.
+    /// Computes the reciprocal square root, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -3217,10 +3127,10 @@ impl Float {
 
     /// Computes the reciprocal square root.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3232,7 +3142,7 @@ impl Float {
     /// assert_eq!(recip_sqrt, 0.25);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn recip_sqrt_ref(&self) -> RecipSqrtIncomplete<'_> {
         RecipSqrtIncomplete { ref_self: self }
@@ -3269,8 +3179,7 @@ impl Float {
         self.cbrt_round(Round::Nearest);
     }
 
-    /// Computes the cube root, applying the specified rounding
-    /// method.
+    /// Computes the cube root, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -3292,10 +3201,10 @@ impl Float {
 
     /// Computes the cube root.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3307,7 +3216,7 @@ impl Float {
     /// assert_eq!(cbrt, 5.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn cbrt_ref(&self) -> CbrtIncomplete<'_> {
         CbrtIncomplete { ref_self: self }
@@ -3344,8 +3253,7 @@ impl Float {
         self.root_round(k, Round::Nearest);
     }
 
-    /// Computes the <i>k</i>th root, applying the specified
-    /// rounding method.
+    /// Computes the <i>k</i>th root, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -3367,10 +3275,10 @@ impl Float {
 
     /// Computes the <i>k</i>th root.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3382,7 +3290,7 @@ impl Float {
     /// assert_eq!(root, 5.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn root_ref(&self, k: u32) -> RootIncomplete<'_> {
         RootIncomplete { ref_self: self, k }
@@ -3421,10 +3329,10 @@ impl Float {
 
     /// Computes the absolute value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3436,7 +3344,7 @@ impl Float {
     /// assert_eq!(abs, 23.5);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete<'_> {
         AbsIncomplete { ref_self: self }
@@ -3488,10 +3396,10 @@ impl Float {
     ///   * −1.0 if the value is negative, −0.0 or −∞
     ///   * NaN if the value is NaN
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3503,14 +3411,13 @@ impl Float {
     /// assert_eq!(signum, -1);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn signum_ref(&self) -> SignumIncomplete<'_> {
         SignumIncomplete { ref_self: self }
     }
 
-    /// Returns a number with the magnitude of `self` and the sign
-    /// of `y`.
+    /// Returns a number with the magnitude of `self` and the sign of `y`.
     ///
     /// # Examples
     ///
@@ -3527,8 +3434,7 @@ impl Float {
         self
     }
 
-    /// Retains the magnitude of `self` and copies the sign of
-    /// `y`.
+    /// Retains the magnitude of `self` and copies the sign of `y`.
     ///
     /// # Examples
     ///
@@ -3544,13 +3450,12 @@ impl Float {
         xmpfr::copysign(self, (), y, Round::Nearest);
     }
 
-    /// Computes a number with the magnitude of `self` and the
-    /// sign of `y`.
+    /// Computes a number with the magnitude of `self` and the sign of `y`.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3563,20 +3468,19 @@ impl Float {
     /// assert_eq!(copysign, -23.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn copysign_ref<'a>(&'a self, y: &'a Self) -> CopysignIncomplete<'_> {
         CopysignIncomplete { ref_self: self, y }
     }
 
-    /// Clamps the value within the specified bounds, rounding to the
-    /// nearest.
+    /// Clamps the value within the specified bounds, rounding to the nearest.
     ///
     /// # Panics
     ///
-    /// Panics if the maximum value is less than the minimum value,
-    /// unless assigning any of them to `self` produces the same value
-    /// with the same rounding direction.
+    /// Panics if the maximum value is less than the minimum value, unless
+    /// assigning any of them to `self` produces the same value with the same
+    /// rounding direction.
     ///
     /// # Examples
     ///
@@ -3603,14 +3507,13 @@ impl Float {
         self
     }
 
-    /// Clamps the value within the specified bounds, rounding to the
-    /// nearest.
+    /// Clamps the value within the specified bounds, rounding to the nearest.
     ///
     /// # Panics
     ///
-    /// Panics if the maximum value is less than the minimum value,
-    /// unless assigning any of them to `self` produces the same value
-    /// with the same rounding direction.
+    /// Panics if the maximum value is less than the minimum value, unless
+    /// assigning any of them to `self` produces the same value with the same
+    /// rounding direction.
     ///
     /// # Examples
     ///
@@ -3636,14 +3539,14 @@ impl Float {
         self.clamp_round(min, max, Round::Nearest);
     }
 
-    /// Clamps the value within the specified bounds, applying the
-    /// specified rounding method.
+    /// Clamps the value within the specified bounds, applying the specified
+    /// rounding method.
     ///
     /// # Panics
     ///
-    /// Panics if the maximum value is less than the minimum value,
-    /// unless assigning any of them to `self` produces the same value
-    /// with the same rounding direction.
+    /// Panics if the maximum value is less than the minimum value, unless
+    /// assigning any of them to `self` produces the same value with the same
+    /// rounding direction.
     ///
     /// # Examples
     ///
@@ -3702,16 +3605,16 @@ impl Float {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Panics
     ///
-    /// Panics if the maximum value is less than the minimum value,
-    /// unless assigning any of them to the target produces the same
-    /// value with the same rounding direction.
+    /// Panics if the maximum value is less than the minimum value, unless
+    /// assigning any of them to the target produces the same value with the
+    /// same rounding direction.
     ///
     /// # Examples
     ///
@@ -3729,7 +3632,7 @@ impl Float {
     /// assert_eq!(clamped2, 0.5);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'min, 'max, Min, Max>(
         &self,
@@ -3780,8 +3683,7 @@ impl Float {
         self.recip_round(Round::Nearest);
     }
 
-    /// Computes the reciprocal, applying the specified rounding
-    /// method.
+    /// Computes the reciprocal, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -3803,10 +3705,10 @@ impl Float {
 
     /// Computes the reciprocal.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3818,7 +3720,7 @@ impl Float {
     /// assert_eq!(recip, -4.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn recip_ref(&self) -> RecipIncomplete<'_> {
         RecipIncomplete { ref_self: self }
@@ -3877,10 +3779,10 @@ impl Float {
 
     /// Finds the minimum.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3893,7 +3795,7 @@ impl Float {
     /// assert_eq!(min, -2);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn min_ref<'a>(&'a self, other: &'a Self) -> MinIncomplete<'_> {
         MinIncomplete {
@@ -3955,10 +3857,10 @@ impl Float {
 
     /// Finds the maximum.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -3971,7 +3873,7 @@ impl Float {
     /// assert_eq!(max, 12.5);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn max_ref<'a>(&'a self, other: &'a Self) -> MaxIncomplete<'_> {
         MaxIncomplete {
@@ -3980,12 +3882,11 @@ impl Float {
         }
     }
 
-    /// Computes the positive difference between `self` and
-    /// `other`, rounding to the nearest.
+    /// Computes the positive difference between `self` and `other`, rounding to
+    /// the nearest.
     ///
-    /// The positive difference is `self` − `other` if `self` >
-    /// `other`, zero if `self` ≤ `other`, or NaN if any operand
-    /// is NaN.
+    /// The positive difference is `self` − `other` if `self` > `other`, zero if
+    /// `self` ≤ `other`, or NaN if any operand is NaN.
     ///
     /// # Examples
     ///
@@ -4004,12 +3905,11 @@ impl Float {
         self
     }
 
-    /// Computes the positive difference between `self` and
-    /// `other`, rounding to the nearest.
+    /// Computes the positive difference between `self` and `other`, rounding to
+    /// the nearest.
     ///
-    /// The positive difference is `self` − `other` if `self` >
-    /// `other`, zero if `self` ≤ `other`, or NaN if any operand
-    /// is NaN.
+    /// The positive difference is `self` − `other` if `self` > `other`, zero if
+    /// `self` ≤ `other`, or NaN if any operand is NaN.
     ///
     /// # Examples
     ///
@@ -4027,12 +3927,11 @@ impl Float {
         self.positive_diff_round(other, Round::Nearest);
     }
 
-    /// Computes the positive difference between `self` and
-    /// `other`, applying the specified rounding method.
+    /// Computes the positive difference between `self` and `other`, applying
+    /// the specified rounding method.
     ///
-    /// The positive difference is `self` − `other` if `self` >
-    /// `other`, zero if `self` ≤ `other`, or NaN if any operand
-    /// is NaN.
+    /// The positive difference is `self` − `other` if `self` > `other`, zero if
+    /// `self` ≤ `other`, or NaN if any operand is NaN.
     ///
     /// # Examples
     ///
@@ -4055,14 +3954,13 @@ impl Float {
 
     /// Computes the positive difference.
     ///
-    /// The positive difference is `self` − `other` if `self` >
-    /// `other`, zero if `self` ≤ `other`, or NaN if any operand
-    /// is NaN.
+    /// The positive difference is `self` − `other` if `self` > `other`, zero if
+    /// `self` ≤ `other`, or NaN if any operand is NaN.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4078,7 +3976,7 @@ impl Float {
     /// assert_eq!(ba, 0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn positive_diff_ref<'a>(&'a self, other: &'a Self) -> PositiveDiffIncomplete<'_> {
         PositiveDiffIncomplete {
@@ -4120,8 +4018,7 @@ impl Float {
         self.ln_round(Round::Nearest);
     }
 
-    /// Computes the natural logarithm, applying the specified
-    /// rounding method.
+    /// Computes the natural logarithm, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -4143,10 +4040,10 @@ impl Float {
 
     /// Computes the natural logarithm.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4158,7 +4055,7 @@ impl Float {
     /// assert!((ln - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn ln_ref(&self) -> LnIncomplete<'_> {
         LnIncomplete { ref_self: self }
@@ -4166,10 +4063,10 @@ impl Float {
 
     /// Computes the natural logarithm of `u`.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4181,7 +4078,7 @@ impl Float {
     /// assert!((f - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn ln_u(u: u32) -> LnUIncomplete {
         LnUIncomplete { u }
@@ -4220,8 +4117,8 @@ impl Float {
         self.log2_round(Round::Nearest);
     }
 
-    /// Computes the logarithm to base 2, applying the specified
-    /// rounding method.
+    /// Computes the logarithm to base 2, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -4243,10 +4140,10 @@ impl Float {
 
     /// Computes the logarithm to base 2.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4258,7 +4155,7 @@ impl Float {
     /// assert!((log2 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn log2_ref(&self) -> Log2Incomplete<'_> {
         Log2Incomplete { ref_self: self }
@@ -4297,8 +4194,8 @@ impl Float {
         self.log10_round(Round::Nearest);
     }
 
-    /// Computes the logarithm to base 10, applying the specified
-    /// rounding method.
+    /// Computes the logarithm to base 10, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -4320,10 +4217,10 @@ impl Float {
 
     /// Computes the logarithm to base 10.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4335,7 +4232,7 @@ impl Float {
     /// assert!((log10 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn log10_ref(&self) -> Log10Incomplete<'_> {
         Log10Incomplete { ref_self: self }
@@ -4374,8 +4271,7 @@ impl Float {
         self.exp_round(Round::Nearest);
     }
 
-    /// Computes the exponential, applying the specified rounding
-    /// method.
+    /// Computes the exponential, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -4397,10 +4293,10 @@ impl Float {
 
     /// Computes the exponential.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4412,7 +4308,7 @@ impl Float {
     /// assert!((exp - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn exp_ref(&self) -> ExpIncomplete<'_> {
         ExpIncomplete { ref_self: self }
@@ -4451,8 +4347,8 @@ impl Float {
         self.exp2_round(Round::Nearest);
     }
 
-    /// Computes 2 to the power of `self`, applying the specified
-    /// rounding method.
+    /// Computes 2 to the power of `self`, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -4474,10 +4370,10 @@ impl Float {
 
     /// Computes 2 to the power of the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4489,7 +4385,7 @@ impl Float {
     /// assert!((exp2 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn exp2_ref(&self) -> Exp2Incomplete<'_> {
         Exp2Incomplete { ref_self: self }
@@ -4528,8 +4424,8 @@ impl Float {
         self.exp10_round(Round::Nearest);
     }
 
-    /// Computes 10 to the power of `self`, applying the specified
-    /// rounding method.
+    /// Computes 10 to the power of `self`, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -4551,10 +4447,10 @@ impl Float {
 
     /// Computes 10 to the power of the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4566,7 +4462,7 @@ impl Float {
     /// assert!((exp10 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn exp10_ref(&self) -> Exp10Incomplete<'_> {
         Exp10Incomplete { ref_self: self }
@@ -4627,10 +4523,10 @@ impl Float {
 
     /// Computes the sine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4642,7 +4538,7 @@ impl Float {
     /// assert!((sin - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sin_ref(&self) -> SinIncomplete<'_> {
         SinIncomplete { ref_self: self }
@@ -4703,10 +4599,10 @@ impl Float {
 
     /// Computes the cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4718,7 +4614,7 @@ impl Float {
     /// assert!((cos - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn cos_ref(&self) -> CosIncomplete<'_> {
         CosIncomplete { ref_self: self }
@@ -4779,10 +4675,10 @@ impl Float {
 
     /// Computes the tangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -4794,17 +4690,16 @@ impl Float {
     /// assert!((tan - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn tan_ref(&self) -> TanIncomplete<'_> {
         TanIncomplete { ref_self: self }
     }
 
-    /// Computes the sine and cosine of `self`, rounding to the
-    /// nearest.
+    /// Computes the sine and cosine of `self`, rounding to the nearest.
     ///
-    /// The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
+    /// The sine is stored in `self` and keeps its precision, while the cosine
+    /// is stored in `cos` keeping its precision.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -4825,11 +4720,10 @@ impl Float {
         (self, cos)
     }
 
-    /// Computes the sine and cosine of `self`, rounding to the
-    /// nearest.
+    /// Computes the sine and cosine of `self`, rounding to the nearest.
     ///
-    /// The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
+    /// The sine is stored in `self` and keeps its precision, while the cosine
+    /// is stored in `cos` keeping its precision.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -4850,11 +4744,11 @@ impl Float {
         self.sin_cos_round(cos, Round::Nearest);
     }
 
-    /// Computes the sine and cosine of `self`, applying the specified
-    /// rounding method.
+    /// Computes the sine and cosine of `self`, applying the specified rounding
+    /// method.
     ///
-    /// The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
+    /// The sine is stored in `self` and keeps its precision, while the cosine
+    /// is stored in `cos` keeping its precision.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -4882,20 +4776,16 @@ impl Float {
 
     /// Computes the sine and cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple][Float][`Float`],
-    ///     [Float][`Float`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple]\&mut [Float][`Float`],
-    ///     \&mut [Float][`Float`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple][Float][`Float`],
-    ///     [Float][`Float`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple]\&mut [Float][`Float`],
-    ///     \&mut [Float][`Float`][)][tuple]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Float][],
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Float], \&mut
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple][Float][],
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Float], \&mut
+    ///     [Float][][)][tuple]</code>
     ///
     /// # Examples
     ///
@@ -4924,7 +4814,7 @@ impl Float {
     /// assert_eq!(dir_cos, Ordering::Less);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sin_cos_ref(&self) -> SinCosIncomplete<'_> {
         SinCosIncomplete { ref_self: self }
@@ -4985,10 +4875,10 @@ impl Float {
 
     /// Computes the secant.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5000,7 +4890,7 @@ impl Float {
     /// assert!((sec - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sec_ref(&self) -> SecIncomplete<'_> {
         SecIncomplete { ref_self: self }
@@ -5061,10 +4951,10 @@ impl Float {
 
     /// Computes the cosecant.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5076,7 +4966,7 @@ impl Float {
     /// assert!((csc - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn csc_ref(&self) -> CscIncomplete<'_> {
         CscIncomplete { ref_self: self }
@@ -5115,8 +5005,7 @@ impl Float {
         self.cot_round(Round::Nearest);
     }
 
-    /// Computes the cotangent, applying the specified rounding
-    /// method.
+    /// Computes the cotangent, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -5138,10 +5027,10 @@ impl Float {
 
     /// Computes the cotangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5153,7 +5042,7 @@ impl Float {
     /// assert!((cot - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn cot_ref(&self) -> CotIncomplete<'_> {
         CotIncomplete { ref_self: self }
@@ -5214,10 +5103,10 @@ impl Float {
 
     /// Computes the arc-sine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5229,7 +5118,7 @@ impl Float {
     /// assert!((asin - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn asin_ref(&self) -> AsinIncomplete<'_> {
         AsinIncomplete { ref_self: self }
@@ -5268,8 +5157,7 @@ impl Float {
         self.acos_round(Round::Nearest);
     }
 
-    /// Computes the arc-cosine, applying the specified rounding
-    /// method.
+    /// Computes the arc-cosine, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -5291,10 +5179,10 @@ impl Float {
 
     /// Computes the arc-cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5306,7 +5194,7 @@ impl Float {
     /// assert!((acos - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn acos_ref(&self) -> AcosIncomplete<'_> {
         AcosIncomplete { ref_self: self }
@@ -5345,8 +5233,7 @@ impl Float {
         self.atan_round(Round::Nearest);
     }
 
-    /// Computes the arc-tangent, applying the specified rounding
-    /// method.
+    /// Computes the arc-tangent, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -5368,10 +5255,10 @@ impl Float {
 
     /// Computes the arc-tangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5383,17 +5270,16 @@ impl Float {
     /// assert!((atan - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn atan_ref(&self) -> AtanIncomplete<'_> {
         AtanIncomplete { ref_self: self }
     }
 
-    /// Computes the arc-tangent2 of `self` and `x`, rounding to
-    /// the nearest.
+    /// Computes the arc-tangent2 of `self` and `x`, rounding to the nearest.
     ///
-    /// This is similar to the arc-tangent of `self / x`, but
-    /// has an output range of 2π rather than π.
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of 2π rather than π.
     ///
     /// # Examples
     ///
@@ -5411,11 +5297,10 @@ impl Float {
         self
     }
 
-    /// Computes the arc-tangent2 of `self` and `x`, rounding to
-    /// the nearest.
+    /// Computes the arc-tangent2 of `self` and `x`, rounding to the nearest.
     ///
-    /// This is similar to the arc-tangent of `self / x`, but
-    /// has an output range of 2π rather than π.
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of 2π rather than π.
     ///
     /// # Examples
     ///
@@ -5432,11 +5317,11 @@ impl Float {
         self.atan2_round(x, Round::Nearest);
     }
 
-    /// Computes the arc-tangent2 of `self` and `x`, applying the
-    /// specified rounding method.
+    /// Computes the arc-tangent2 of `self` and `x`, applying the specified
+    /// rounding method.
     ///
-    /// This is similar to the arc-tangent of `self / x`, but
-    /// has an output range of 2π rather than π.
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of 2π rather than π.
     ///
     /// # Examples
     ///
@@ -5459,13 +5344,13 @@ impl Float {
 
     /// Computes the arc-tangent.
     ///
-    /// This is similar to the arc-tangent of `self / x`, but
-    /// has an output range of 2π rather than π.
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of 2π rather than π.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5479,7 +5364,7 @@ impl Float {
     /// assert!((atan2 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn atan2_ref<'a>(&'a self, x: &'a Self) -> Atan2Incomplete<'_> {
         Atan2Incomplete { ref_self: self, x }
@@ -5518,8 +5403,7 @@ impl Float {
         self.sinh_round(Round::Nearest);
     }
 
-    /// Computes the hyperbolic sine, applying the specified rounding
-    /// method.
+    /// Computes the hyperbolic sine, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -5541,10 +5425,10 @@ impl Float {
 
     /// Computes the hyperbolic sine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5556,7 +5440,7 @@ impl Float {
     /// assert!((sinh - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sinh_ref(&self) -> SinhIncomplete<'_> {
         SinhIncomplete { ref_self: self }
@@ -5595,8 +5479,7 @@ impl Float {
         self.cosh_round(Round::Nearest);
     }
 
-    /// Computes the hyperbolic cosine, applying the specified
-    /// rounding method.
+    /// Computes the hyperbolic cosine, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -5618,10 +5501,10 @@ impl Float {
 
     /// Computes the hyperbolic cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5633,7 +5516,7 @@ impl Float {
     /// assert!((cosh - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn cosh_ref(&self) -> CoshIncomplete<'_> {
         CoshIncomplete { ref_self: self }
@@ -5672,8 +5555,7 @@ impl Float {
         self.tanh_round(Round::Nearest);
     }
 
-    /// Computes the hyperbolic tangent, applying the specified
-    /// rounding method.
+    /// Computes the hyperbolic tangent, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -5695,10 +5577,10 @@ impl Float {
 
     /// Computes the hyperbolic tangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5710,17 +5592,17 @@ impl Float {
     /// assert!((tanh - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn tanh_ref(&self) -> TanhIncomplete<'_> {
         TanhIncomplete { ref_self: self }
     }
 
-    /// Computes the hyperbolic sine and cosine of `self`,
-    /// rounding to the nearest.
+    /// Computes the hyperbolic sine and cosine of `self`, rounding to the
+    /// nearest.
     ///
-    /// The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
+    /// The sine is stored in `self` and keeps its precision, while the cosine
+    /// is stored in `cos` keeping its precision.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -5741,11 +5623,11 @@ impl Float {
         (self, cos)
     }
 
-    /// Computes the hyperbolic sine and cosine of `self`,
-    /// rounding to the nearest.
+    /// Computes the hyperbolic sine and cosine of `self`, rounding to the
+    /// nearest.
     ///
-    /// The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
+    /// The sine is stored in `self` and keeps its precision, while the cosine
+    /// is stored in `cos` keeping its precision.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -5766,11 +5648,11 @@ impl Float {
         self.sinh_cosh_round(cos, Round::Nearest);
     }
 
-    /// Computes the hyperbolic sine and cosine of `self`,
-    /// applying the specified rounding method.
+    /// Computes the hyperbolic sine and cosine of `self`, applying the
+    /// specified rounding method.
     ///
-    /// The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
+    /// The sine is stored in `self` and keeps its precision, while the cosine
+    /// is stored in `cos` keeping its precision.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -5798,20 +5680,16 @@ impl Float {
 
     /// Computes the hyperbolic sine and cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple][Float][`Float`],
-    ///     [Float][`Float`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple]\&mut [Float][`Float`],
-    ///     \&mut [Float][`Float`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple][Float][`Float`],
-    ///     [Float][`Float`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple]\&mut [Float][`Float`],
-    ///     \&mut [Float][`Float`][)][tuple]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Float][],
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Float], \&mut
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple][Float][],
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Float], \&mut
+    ///     [Float][][)][tuple]</code>
     ///
     /// # Examples
     ///
@@ -5840,7 +5718,7 @@ impl Float {
     /// assert_eq!(dir_cosh, Ordering::Less);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sinh_cosh_ref(&self) -> SinhCoshIncomplete<'_> {
         SinhCoshIncomplete { ref_self: self }
@@ -5879,8 +5757,7 @@ impl Float {
         self.sech_round(Round::Nearest);
     }
 
-    /// Computes the hyperbolic secant, applying the specified
-    /// rounding method.
+    /// Computes the hyperbolic secant, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -5902,10 +5779,10 @@ impl Float {
 
     /// Computes the hyperbolic secant.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5917,7 +5794,7 @@ impl Float {
     /// assert!((sech - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sech_ref(&self) -> SechIncomplete<'_> {
         SechIncomplete { ref_self: self }
@@ -5956,8 +5833,8 @@ impl Float {
         self.csch_round(Round::Nearest);
     }
 
-    /// Computes the hyperbolic cosecant, applying the specified
-    /// rounding method.
+    /// Computes the hyperbolic cosecant, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -5979,10 +5856,10 @@ impl Float {
 
     /// Computes the hyperbolic cosecant.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -5994,7 +5871,7 @@ impl Float {
     /// assert!((csch - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn csch_ref(&self) -> CschIncomplete<'_> {
         CschIncomplete { ref_self: self }
@@ -6033,8 +5910,8 @@ impl Float {
         self.coth_round(Round::Nearest);
     }
 
-    /// Computes the hyperbolic cotangent, applying the specified
-    /// rounding method.
+    /// Computes the hyperbolic cotangent, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -6056,10 +5933,10 @@ impl Float {
 
     /// Computes the hyperbolic cotangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6071,7 +5948,7 @@ impl Float {
     /// assert!((coth - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn coth_ref(&self) -> CothIncomplete<'_> {
         CothIncomplete { ref_self: self }
@@ -6110,8 +5987,8 @@ impl Float {
         self.asinh_round(Round::Nearest);
     }
 
-    /// Computes the inverse hyperbolic sine, applying the specified
-    /// rounding method.
+    /// Computes the inverse hyperbolic sine, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -6133,10 +6010,10 @@ impl Float {
 
     /// Computes the inverse hyperbolic sine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6148,14 +6025,13 @@ impl Float {
     /// assert!((asinh - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn asinh_ref(&self) -> AsinhIncomplete<'_> {
         AsinhIncomplete { ref_self: self }
     }
 
-    /// Computes the inverse hyperbolic cosine, rounding to the
-    /// nearest.
+    /// Computes the inverse hyperbolic cosine, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -6172,8 +6048,7 @@ impl Float {
         self
     }
 
-    /// Computes the inverse hyperbolic cosine, rounding to the
-    /// nearest.
+    /// Computes the inverse hyperbolic cosine, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -6189,8 +6064,8 @@ impl Float {
         self.acosh_round(Round::Nearest);
     }
 
-    /// Computes the inverse hyperbolic cosine, applying the specified
-    /// rounding method.
+    /// Computes the inverse hyperbolic cosine, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -6212,10 +6087,10 @@ impl Float {
 
     /// Computes the inverse hyperbolic cosine
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6227,14 +6102,13 @@ impl Float {
     /// assert!((acosh - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn acosh_ref(&self) -> AcoshIncomplete<'_> {
         AcoshIncomplete { ref_self: self }
     }
 
-    /// Computes the inverse hyperbolic tangent, rounding to the
-    /// nearest.
+    /// Computes the inverse hyperbolic tangent, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -6251,8 +6125,7 @@ impl Float {
         self
     }
 
-    /// Computes the inverse hyperbolic tangent, rounding to the
-    /// nearest.
+    /// Computes the inverse hyperbolic tangent, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -6268,8 +6141,8 @@ impl Float {
         self.atanh_round(Round::Nearest);
     }
 
-    /// Computes the inverse hyperbolic tangent, applying the
-    /// specified rounding method.
+    /// Computes the inverse hyperbolic tangent, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -6291,10 +6164,10 @@ impl Float {
 
     /// Computes the inverse hyperbolic tangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6306,7 +6179,7 @@ impl Float {
     /// assert!((atanh - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn atanh_ref(&self) -> AtanhIncomplete<'_> {
         AtanhIncomplete { ref_self: self }
@@ -6314,10 +6187,10 @@ impl Float {
 
     /// Computes the factorial of <i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6329,14 +6202,14 @@ impl Float {
     /// assert_eq!(f, 3628800.0);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn factorial(n: u32) -> FactorialIncomplete {
         FactorialIncomplete { n }
     }
 
-    /// Computes the natural logarithm of one plus `self`, rounding to
-    /// the nearest.
+    /// Computes the natural logarithm of one plus `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -6354,8 +6227,8 @@ impl Float {
         self
     }
 
-    /// Computes the natural logarithm of one plus `self`, rounding to
-    /// the nearest.
+    /// Computes the natural logarithm of one plus `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -6372,8 +6245,8 @@ impl Float {
         self.ln_1p_round(Round::Nearest);
     }
 
-    /// Computes the natural logarithm of one plus `self`, applying
-    /// the specified rounding method.
+    /// Computes the natural logarithm of one plus `self`, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -6396,10 +6269,10 @@ impl Float {
 
     /// Computes the natural logorithm of one plus the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6412,14 +6285,13 @@ impl Float {
     /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn ln_1p_ref(&self) -> Ln1pIncomplete<'_> {
         Ln1pIncomplete { ref_self: self }
     }
 
-    /// Subtracts one from the exponential of `self`, rounding to the
-    /// nearest.
+    /// Subtracts one from the exponential of `self`, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -6437,8 +6309,7 @@ impl Float {
         self
     }
 
-    /// Subtracts one from the exponential of `self`, rounding to the
-    /// nearest.
+    /// Subtracts one from the exponential of `self`, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -6455,8 +6326,8 @@ impl Float {
         self.exp_m1_round(Round::Nearest);
     }
 
-    /// Subtracts one from the exponential of `self`, applying the
-    /// specified rounding method.
+    /// Subtracts one from the exponential of `self`, applying the specified
+    /// rounding method.
     ///
     /// # Examples
     ///
@@ -6477,13 +6348,12 @@ impl Float {
         xmpfr::expm1(self, (), round)
     }
 
-    /// Computes one less than the exponential of the
-    /// value.
+    /// Computes one less than the exponential of the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6496,7 +6366,7 @@ impl Float {
     /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn exp_m1_ref(&self) -> ExpM1Incomplete<'_> {
         ExpM1Incomplete { ref_self: self }
@@ -6535,8 +6405,8 @@ impl Float {
         self.eint_round(Round::Nearest);
     }
 
-    /// Computes the exponential integral, applying the specified
-    /// rounding method.
+    /// Computes the exponential integral, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -6558,10 +6428,10 @@ impl Float {
 
     /// Computes the exponential integral.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6573,14 +6443,14 @@ impl Float {
     /// assert!((eint - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn eint_ref(&self) -> EintIncomplete<'_> {
         EintIncomplete { ref_self: self }
     }
 
-    /// Computes the real part of the dilogarithm of `self`, rounding
-    /// to the nearest.
+    /// Computes the real part of the dilogarithm of `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -6597,8 +6467,8 @@ impl Float {
         self
     }
 
-    /// Computes the real part of the dilogarithm of `self`, rounding
-    /// to the nearest.
+    /// Computes the real part of the dilogarithm of `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -6614,8 +6484,8 @@ impl Float {
         self.li2_round(Round::Nearest);
     }
 
-    /// Computes the real part of the dilogarithm of `self`, applying
-    /// the specified rounding method.
+    /// Computes the real part of the dilogarithm of `self`, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -6635,13 +6505,12 @@ impl Float {
         xmpfr::li2(self, (), round)
     }
 
-    /// Computes the real part of the dilogarithm of the
-    /// value.
+    /// Computes the real part of the dilogarithm of the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6653,14 +6522,14 @@ impl Float {
     /// assert!((li2 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn li2_ref(&self) -> Li2Incomplete<'_> {
         Li2Incomplete { ref_self: self }
     }
 
-    /// Computes the value of the gamma function on `self`, rounding
-    /// to the nearest.
+    /// Computes the value of the gamma function on `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -6677,8 +6546,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the gamma function on `self`, rounding
-    /// to the nearest.
+    /// Computes the value of the gamma function on `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -6694,8 +6563,8 @@ impl Float {
         self.gamma_round(Round::Nearest);
     }
 
-    /// Computes the value of the gamma function on `self`, applying
-    /// the specified rounding method.
+    /// Computes the value of the gamma function on `self`, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -6717,10 +6586,10 @@ impl Float {
 
     /// Computes the gamma function on the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6732,14 +6601,14 @@ impl Float {
     /// assert!((gamma - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn gamma_ref(&self) -> GammaIncomplete<'_> {
         GammaIncomplete { ref_self: self }
     }
 
-    /// Computes the value of the upper incomplete gamma function
-    /// on `self` and `x`, rounding to the nearest.
+    /// Computes the value of the upper incomplete gamma function on `self` and
+    /// `x`, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -6757,8 +6626,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the upper incomplete gamma function
-    /// on `self`, rounding to the nearest.
+    /// Computes the value of the upper incomplete gamma function on `self`,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -6775,8 +6644,8 @@ impl Float {
         self.gamma_inc_round(x, Round::Nearest);
     }
 
-    /// Computes the value of the upper incomplete gamma function
-    /// on `self`, applying the specified rounding method.
+    /// Computes the value of the upper incomplete gamma function on `self`,
+    /// applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -6799,10 +6668,10 @@ impl Float {
 
     /// Computes the upper incomplete gamma function on the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6815,14 +6684,14 @@ impl Float {
     /// assert!((gamma_inc - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn gamma_inc_ref<'a>(&'a self, x: &'a Self) -> GammaIncIncomplete<'_> {
         GammaIncIncomplete { ref_self: self, x }
     }
 
-    /// Computes the logarithm of the gamma function on `self`,
-    /// rounding to the nearest.
+    /// Computes the logarithm of the gamma function on `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -6839,8 +6708,8 @@ impl Float {
         self
     }
 
-    /// Computes the logarithm of the gamma function on `self`,
-    /// rounding to the nearest.
+    /// Computes the logarithm of the gamma function on `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -6856,8 +6725,8 @@ impl Float {
         self.ln_gamma_round(Round::Nearest);
     }
 
-    /// Computes the logarithm of the gamma function on `self`,
-    /// applying the specified rounding method.
+    /// Computes the logarithm of the gamma function on `self`, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -6877,13 +6746,12 @@ impl Float {
         xmpfr::lngamma(self, (), round)
     }
 
-    /// Computes the logarithm of the gamma function on
-    /// the value.
+    /// Computes the logarithm of the gamma function on the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -6895,19 +6763,19 @@ impl Float {
     /// assert!((ln_gamma - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn ln_gamma_ref(&self) -> LnGammaIncomplete<'_> {
         LnGammaIncomplete { ref_self: self }
     }
 
-    /// Computes the logarithm of the absolute value of the gamma
-    /// function on `self`, rounding to the nearest.
+    /// Computes the logarithm of the absolute value of the gamma function on
+    /// `self`, rounding to the nearest.
     ///
-    /// Returns <code>[Ordering][`Ordering`]::[Less][`Less`]</code> if
-    /// the gamma function is negative, or
-    /// <code>[Ordering][`Ordering`]::[Greater][`Greater`]</code> if
-    /// the gamma function is positive.
+    /// Returns <code>[Ordering]::[Less][Ordering::Less]</code> if the gamma
+    /// function is negative, or
+    /// <code>[Ordering]::[Greater][Ordering::Greater]</code> if the gamma
+    /// function is positive.
     ///
     /// # Examples
     ///
@@ -6927,7 +6795,7 @@ impl Float {
     /// ```
     ///
     /// If the gamma function is negative, the sign returned is
-    /// <code>[Ordering][`Ordering`]::[Less][`Less`]</code>.
+    /// <code>[Ordering]::[Less][Ordering::Less]</code>.
     ///
     /// ```rust
     /// use core::cmp::Ordering;
@@ -6944,22 +6812,19 @@ impl Float {
     /// // check to 53 significant bits
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
     /// ```
-    ///
-    /// [`Greater`]: `Ordering::Greater`
-    /// [`Less`]: `Ordering::Less`
     #[inline]
     pub fn ln_abs_gamma(mut self) -> (Self, Ordering) {
         let sign = self.ln_abs_gamma_round(Round::Nearest).0;
         (self, sign)
     }
 
-    /// Computes the logarithm of the absolute value of the gamma
-    /// function on `self`, rounding to the nearest.
+    /// Computes the logarithm of the absolute value of the gamma function on
+    /// `self`, rounding to the nearest.
     ///
-    /// Returns <code>[Ordering][`Ordering`]::[Less][`Less`]</code> if
-    /// the gamma function is negative, or
-    /// <code>[Ordering][`Ordering`]::[Greater][`Greater`]</code> if
-    /// the gamma function is positive.
+    /// Returns <code>[Ordering]::[Less][Ordering::Less]</code> if the gamma
+    /// function is negative, or
+    /// <code>[Ordering]::[Greater][Ordering::Greater]</code> if the gamma
+    /// function is positive.
     ///
     /// # Examples
     ///
@@ -6978,16 +6843,13 @@ impl Float {
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
-    ///
-    /// [`Greater`]: `Ordering::Greater`
-    /// [`Less`]: `Ordering::Less`
     #[inline]
     pub fn ln_abs_gamma_mut(&mut self) -> Ordering {
         self.ln_abs_gamma_round(Round::Nearest).0
     }
 
-    /// Computes the logarithm of the absolute value of the gamma
-    /// function on `self`, applying the specified rounding method.
+    /// Computes the logarithm of the absolute value of the gamma function on
+    /// `self`, applying the specified rounding method.
     ///
     /// The returned tuple contains:
     ///
@@ -7022,23 +6884,19 @@ impl Float {
         xmpfr::lgamma(self, (), round)
     }
 
-    /// Computes the logarithm of the absolute value of the gamma
-    /// function on `val`.
+    /// Computes the logarithm of the absolute value of the gamma function on
+    /// `val`.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple][Float][`Float`],
-    ///     [Ordering][`Ordering`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple]\&mut [Float][`Float`],
-    ///     \&mut [Ordering][`Ordering`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple][Float][`Float`],
-    ///     [Ordering][`Ordering`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple]\&mut [Float][`Float`],
-    ///     \&mut [Ordering][`Ordering`][)][tuple]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Float][],
+    ///     [Ordering][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Float], \&mut
+    ///     [Ordering][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple][Float][],
+    ///     [Ordering][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Float], \&mut
+    ///     [Ordering][][)][tuple]</code>
     ///
     /// # Examples
     ///
@@ -7061,14 +6919,14 @@ impl Float {
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaIncomplete<'_> {
         LnAbsGammaIncomplete { ref_self: self }
     }
 
-    /// Computes the value of the Digamma function on `self`, rounding
-    /// to the nearest.
+    /// Computes the value of the Digamma function on `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -7085,8 +6943,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the Digamma function on `self`, rounding
-    /// to the nearest.
+    /// Computes the value of the Digamma function on `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -7102,8 +6960,8 @@ impl Float {
         self.digamma_round(Round::Nearest);
     }
 
-    /// Computes the value of the Digamma function on `self`, applying
-    /// the specified rounding method.
+    /// Computes the value of the Digamma function on `self`, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -7125,10 +6983,10 @@ impl Float {
 
     /// Computes the Digamma function on the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7140,14 +6998,14 @@ impl Float {
     /// assert!((digamma - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn digamma_ref(&self) -> DigammaIncomplete<'_> {
         DigammaIncomplete { ref_self: self }
     }
 
-    /// Computes the value of the Riemann Zeta function on `self`,
-    /// rounding to the nearest.
+    /// Computes the value of the Riemann Zeta function on `self`, rounding to
+    /// the nearest.
     ///
     /// # Examples
     ///
@@ -7164,8 +7022,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the Riemann Zeta function on `self`,
-    /// rounding to the nearest.
+    /// Computes the value of the Riemann Zeta function on `self`, rounding to
+    /// the nearest.
     ///
     /// # Examples
     ///
@@ -7181,8 +7039,8 @@ impl Float {
         self.zeta_round(Round::Nearest);
     }
 
-    /// Computes the value of the Riemann Zeta function on `self`,
-    /// applying the specified rounding method.
+    /// Computes the value of the Riemann Zeta function on `self`, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -7204,10 +7062,10 @@ impl Float {
 
     /// Computes the Riemann Zeta function on the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7219,7 +7077,7 @@ impl Float {
     /// assert!((zeta - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn zeta_ref(&self) -> ZetaIncomplete<'_> {
         ZetaIncomplete { ref_self: self }
@@ -7227,10 +7085,10 @@ impl Float {
 
     /// Computes the Riemann Zeta function on <i>u</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7242,14 +7100,13 @@ impl Float {
     /// assert!((f - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn zeta_u(u: u32) -> ZetaUIncomplete {
         ZetaUIncomplete { u }
     }
 
-    /// Computes the value of the error function, rounding to the
-    /// nearest.
+    /// Computes the value of the error function, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7266,8 +7123,7 @@ impl Float {
         self
     }
 
-    /// Computes the value of the error function, rounding to the
-    /// nearest.
+    /// Computes the value of the error function, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7283,8 +7139,8 @@ impl Float {
         self.erf_round(Round::Nearest);
     }
 
-    /// Computes the value of the error function, applying the
-    /// specified rounding method.
+    /// Computes the value of the error function, applying the specified
+    /// rounding method.
     ///
     /// # Examples
     ///
@@ -7306,10 +7162,10 @@ impl Float {
 
     /// Computes the error function.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7321,14 +7177,14 @@ impl Float {
     /// assert!((erf - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn erf_ref(&self) -> ErfIncomplete<'_> {
         ErfIncomplete { ref_self: self }
     }
 
-    /// Computes the value of the complementary error function,
-    /// rounding to the nearest.
+    /// Computes the value of the complementary error function, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -7345,8 +7201,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the complementary error function,
-    /// rounding to the nearest.
+    /// Computes the value of the complementary error function, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -7362,8 +7218,8 @@ impl Float {
         self.erfc_round(Round::Nearest);
     }
 
-    /// Computes the value of the complementary error function,
-    /// applying the specified rounding method.
+    /// Computes the value of the complementary error function, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -7385,10 +7241,10 @@ impl Float {
 
     /// Computes the complementary error function.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7400,14 +7256,14 @@ impl Float {
     /// assert!((erfc - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn erfc_ref(&self) -> ErfcIncomplete<'_> {
         ErfcIncomplete { ref_self: self }
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order 0, rounding to the nearest.
+    /// Computes the value of the first kind Bessel function of order 0,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7424,8 +7280,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order 0, rounding to the nearest.
+    /// Computes the value of the first kind Bessel function of order 0,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7441,8 +7297,8 @@ impl Float {
         self.j0_round(Round::Nearest);
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order 0, applying the specified rounding method.
+    /// Computes the value of the first kind Bessel function of order 0,
+    /// applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -7464,10 +7320,10 @@ impl Float {
 
     /// Computes the first kind Bessel function of order 0.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7479,14 +7335,14 @@ impl Float {
     /// assert!((j0 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn j0_ref(&self) -> J0Incomplete<'_> {
         J0Incomplete { ref_self: self }
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order 1, rounding to the nearest.
+    /// Computes the value of the first kind Bessel function of order 1,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7503,8 +7359,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order 1, rounding to the nearest.
+    /// Computes the value of the first kind Bessel function of order 1,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7520,8 +7376,8 @@ impl Float {
         self.j1_round(Round::Nearest);
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order 1, applying the specified rounding method.
+    /// Computes the value of the first kind Bessel function of order 1,
+    /// applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -7543,10 +7399,10 @@ impl Float {
 
     /// Computes the first kind Bessel function of order 1.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7558,14 +7414,14 @@ impl Float {
     /// assert!((j1 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn j1_ref(&self) -> J1Incomplete<'_> {
         J1Incomplete { ref_self: self }
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order <i>n</i>, rounding to the nearest.
+    /// Computes the value of the first kind Bessel function of order <i>n</i>,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7582,8 +7438,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order <i>n</i>, rounding to the nearest.
+    /// Computes the value of the first kind Bessel function of order <i>n</i>,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7599,8 +7455,8 @@ impl Float {
         self.jn_round(n, Round::Nearest);
     }
 
-    /// Computes the value of the first kind Bessel function of
-    /// order <i>n</i>, applying the specified rounding method.
+    /// Computes the value of the first kind Bessel function of order <i>n</i>,
+    /// applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -7622,10 +7478,10 @@ impl Float {
 
     /// Computes the first kind Bessel function of order <i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7637,14 +7493,14 @@ impl Float {
     /// assert!((j2 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn jn_ref(&self, n: i32) -> JnIncomplete<'_> {
         JnIncomplete { ref_self: self, n }
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order 0, rounding to the nearest.
+    /// Computes the value of the second kind Bessel function of order 0,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7661,8 +7517,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order 0, rounding to the nearest.
+    /// Computes the value of the second kind Bessel function of order 0,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7678,8 +7534,8 @@ impl Float {
         self.y0_round(Round::Nearest);
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order 0, applying the specified rounding method.
+    /// Computes the value of the second kind Bessel function of order 0,
+    /// applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -7701,10 +7557,10 @@ impl Float {
 
     /// Computes the second kind Bessel function of order 0.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7716,14 +7572,14 @@ impl Float {
     /// assert!((y0 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn y0_ref(&self) -> Y0Incomplete<'_> {
         Y0Incomplete { ref_self: self }
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order 1, rounding to the nearest.
+    /// Computes the value of the second kind Bessel function of order 1,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7740,8 +7596,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order 1, rounding to the nearest.
+    /// Computes the value of the second kind Bessel function of order 1,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7757,8 +7613,8 @@ impl Float {
         self.y1_round(Round::Nearest);
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order 1, applying the specified rounding method.
+    /// Computes the value of the second kind Bessel function of order 1,
+    /// applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -7780,10 +7636,10 @@ impl Float {
 
     /// Computes the second kind Bessel function of order 1.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7795,14 +7651,14 @@ impl Float {
     /// assert!((y1 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn y1_ref(&self) -> Y1Incomplete<'_> {
         Y1Incomplete { ref_self: self }
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order <i>n</i>, rounding to the nearest.
+    /// Computes the value of the second kind Bessel function of order <i>n</i>,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7819,8 +7675,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order <i>n</i>, rounding to the nearest.
+    /// Computes the value of the second kind Bessel function of order <i>n</i>,
+    /// rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -7836,8 +7692,8 @@ impl Float {
         self.yn_round(n, Round::Nearest);
     }
 
-    /// Computes the value of the second kind Bessel function of
-    /// order <i>n</i>, applying the specified rounding method.
+    /// Computes the value of the second kind Bessel function of order <i>n</i>,
+    /// applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -7859,10 +7715,10 @@ impl Float {
 
     /// Computes the second kind Bessel function of order <i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7874,14 +7730,14 @@ impl Float {
     /// assert!((y2 - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn yn_ref(&self, n: i32) -> YnIncomplete<'_> {
         YnIncomplete { ref_self: self, n }
     }
 
-    /// Computes the arithmetic-geometric mean of `self` and `other`,
-    /// rounding to the nearest.
+    /// Computes the arithmetic-geometric mean of `self` and `other`, rounding
+    /// to the nearest.
     ///
     /// # Examples
     ///
@@ -7899,8 +7755,8 @@ impl Float {
         self
     }
 
-    /// Computes the arithmetic-geometric mean of `self` and `other`,
-    /// rounding to the nearest.
+    /// Computes the arithmetic-geometric mean of `self` and `other`, rounding
+    /// to the nearest.
     ///
     /// # Examples
     ///
@@ -7917,8 +7773,8 @@ impl Float {
         self.agm_round(other, Round::Nearest);
     }
 
-    /// Computes the arithmetic-geometric mean of `self` and `other`,
-    /// applying the specified rounding method.
+    /// Computes the arithmetic-geometric mean of `self` and `other`, applying
+    /// the specified rounding method.
     ///
     /// # Examples
     ///
@@ -7941,10 +7797,10 @@ impl Float {
 
     /// Computes the arithmetic-geometric mean.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -7957,7 +7813,7 @@ impl Float {
     /// assert!((agm - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn agm_ref<'a>(&'a self, other: &'a Self) -> AgmIncomplete<'_> {
         AgmIncomplete {
@@ -7966,8 +7822,8 @@ impl Float {
         }
     }
 
-    /// Computes the Euclidean norm of `self` and `other`, rounding to
-    /// the nearest.
+    /// Computes the Euclidean norm of `self` and `other`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -7985,8 +7841,8 @@ impl Float {
         self
     }
 
-    /// Computes the Euclidean norm of `self` and `other`, rounding to
-    /// the nearest.
+    /// Computes the Euclidean norm of `self` and `other`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -8003,8 +7859,8 @@ impl Float {
         self.hypot_round(other, Round::Nearest);
     }
 
-    /// Computes the Euclidean norm of `self` and `other`, applying
-    /// the specified rounding method.
+    /// Computes the Euclidean norm of `self` and `other`, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -8027,10 +7883,10 @@ impl Float {
 
     /// Computes the Euclidean norm.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8043,7 +7899,7 @@ impl Float {
     /// assert!((hypot - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn hypot_ref<'a>(&'a self, other: &'a Self) -> HypotIncomplete<'_> {
         HypotIncomplete {
@@ -8052,8 +7908,8 @@ impl Float {
         }
     }
 
-    /// Computes the value of the Airy function Ai on `self`, rounding
-    /// to the nearest.
+    /// Computes the value of the Airy function Ai on `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -8070,8 +7926,8 @@ impl Float {
         self
     }
 
-    /// Computes the value of the Airy function Ai on `self`, rounding
-    /// to the nearest.
+    /// Computes the value of the Airy function Ai on `self`, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -8087,8 +7943,8 @@ impl Float {
         self.ai_round(Round::Nearest);
     }
 
-    /// Computes the value of the Airy function Ai on `self`, applying
-    /// the specified rounding method.
+    /// Computes the value of the Airy function Ai on `self`, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -8110,10 +7966,10 @@ impl Float {
 
     /// Computes the Airy function Ai on the value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8125,7 +7981,7 @@ impl Float {
     /// assert!((ai - expected).abs() < 0.0001);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn ai_ref(&self) -> AiIncomplete<'_> {
         AiIncomplete { ref_self: self }
@@ -8168,13 +8024,13 @@ impl Float {
         xmpfr::rint_ceil(self, (), Round::Nearest);
     }
 
-    /// Rounds up to the next higher integer. The result may be
-    /// rounded again when assigned to the target.
+    /// Rounds up to the next higher integer. The result may be rounded again
+    /// when assigned to the target.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8188,7 +8044,7 @@ impl Float {
     /// assert_eq!(ceil2, 24);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn ceil_ref(&self) -> CeilIncomplete<'_> {
         CeilIncomplete { ref_self: self }
@@ -8231,13 +8087,13 @@ impl Float {
         xmpfr::rint_floor(self, (), Round::Nearest);
     }
 
-    /// Rounds down to the next lower integer. The result may be
-    /// rounded again when assigned to the target.
+    /// Rounds down to the next lower integer. The result may be rounded again
+    /// when assigned to the target.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8251,14 +8107,13 @@ impl Float {
     /// assert_eq!(floor2, 23);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn floor_ref(&self) -> FloorIncomplete<'_> {
         FloorIncomplete { ref_self: self }
     }
 
-    /// Rounds to the nearest integer, rounding half-way cases
-    /// away from zero.
+    /// Rounds to the nearest integer, rounding half-way cases away from zero.
     ///
     /// # Examples
     ///
@@ -8277,8 +8132,7 @@ impl Float {
         self
     }
 
-    /// Rounds to the nearest integer, rounding half-way cases
-    /// away from zero.
+    /// Rounds to the nearest integer, rounding half-way cases away from zero.
     ///
     /// # Examples
     ///
@@ -8296,14 +8150,13 @@ impl Float {
         xmpfr::rint_round(self, (), Round::Nearest);
     }
 
-    /// Rounds to the nearest integer, rounding half-way cases
-    /// away from zero. The result may be rounded again when
-    /// assigned to the target.
+    /// Rounds to the nearest integer, rounding half-way cases away from zero.
+    /// The result may be rounded again when assigned to the target.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8317,9 +8170,8 @@ impl Float {
     /// assert_eq!(round2, 24);
     /// ```
     ///
-    /// Double rounding may happen when assigning to a target with
-    /// a precision less than the number of significant bits for
-    /// the truncated integer.
+    /// Double rounding may happen when assigning to a target with a precision
+    /// less than the number of significant bits for the truncated integer.
     ///
     /// ```rust
     /// use rug::{float::Round, Float};
@@ -8336,14 +8188,13 @@ impl Float {
     /// assert_eq!(dst, 8);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn round_ref(&self) -> RoundIncomplete<'_> {
         RoundIncomplete { ref_self: self }
     }
 
-    /// Rounds to the nearest integer, rounding half-way cases to
-    /// even.
+    /// Rounds to the nearest integer, rounding half-way cases to even.
     ///
     /// # Examples
     ///
@@ -8362,8 +8213,7 @@ impl Float {
         self
     }
 
-    /// Rounds to the nearest integer, rounding half-way cases to
-    /// even.
+    /// Rounds to the nearest integer, rounding half-way cases to even.
     ///
     /// # Examples
     ///
@@ -8381,14 +8231,13 @@ impl Float {
         xmpfr::rint_roundeven(self, (), Round::Nearest);
     }
 
-    /// Rounds to the nearest integer, rounding half-way cases to
-    /// even. The result may be rounded again when assigned to the
-    /// target.
+    /// Rounds to the nearest integer, rounding half-way cases to even. The
+    /// result may be rounded again when assigned to the target.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8402,7 +8251,7 @@ impl Float {
     /// assert_eq!(round2, 24);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn round_even_ref(&self) -> RoundEvenIncomplete<'_> {
         RoundEvenIncomplete { ref_self: self }
@@ -8445,13 +8294,13 @@ impl Float {
         xmpfr::rint_trunc(self, (), Round::Nearest);
     }
 
-    /// Rounds to the next integer towards zero. The result may be
-    /// rounded again when assigned to the target.
+    /// Rounds to the next integer towards zero. The result may be rounded again
+    /// when assigned to the target.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8465,7 +8314,7 @@ impl Float {
     /// assert_eq!(trunc2, 23);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn trunc_ref(&self) -> TruncIncomplete<'_> {
         TruncIncomplete { ref_self: self }
@@ -8510,10 +8359,10 @@ impl Float {
 
     /// Gets the fractional part of the number.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8527,18 +8376,17 @@ impl Float {
     /// assert_eq!(fract2, 0.75);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn fract_ref(&self) -> FractIncomplete<'_> {
         FractIncomplete { ref_self: self }
     }
 
-    /// Gets the integer and fractional parts of the number,
-    /// rounding to the nearest.
+    /// Gets the integer and fractional parts of the number, rounding to the
+    /// nearest.
     ///
-    /// The integer part is stored in `self` and keeps its
-    /// precision, while the fractional part is stored in `fract`
-    /// keeping its precision.
+    /// The integer part is stored in `self` and keeps its precision, while the
+    /// fractional part is stored in `fract` keeping its precision.
     ///
     /// The initial value of `fract` is ignored.
     ///
@@ -8561,12 +8409,11 @@ impl Float {
         (self, fract)
     }
 
-    /// Gets the integer and fractional parts of the number,
-    /// rounding to the nearest.
+    /// Gets the integer and fractional parts of the number, rounding to the
+    /// nearest.
     ///
-    /// The integer part is stored in `self` and keeps its
-    /// precision, while the fractional part is stored in `fract`
-    /// keeping its precision.
+    /// The integer part is stored in `self` and keeps its precision, while the
+    /// fractional part is stored in `fract` keeping its precision.
     ///
     /// The initial value of `fract` is ignored.
     ///
@@ -8590,17 +8437,15 @@ impl Float {
         self.trunc_fract_round(fract, Round::Nearest);
     }
 
-    /// Gets the integer and fractional parts of the number,
-    /// applying the specified rounding method.
+    /// Gets the integer and fractional parts of the number, applying the
+    /// specified rounding method.
     ///
-    /// The first element of the returned tuple of rounding
-    /// directions is always
-    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as
-    /// truncating a value in place will always be exact.
+    /// The first element of the returned tuple of rounding directions is always
+    /// <code>[Ordering]::[Equal][Ordering::Equal]</code>, as truncating a value
+    /// in place will always be exact.
     ///
-    /// The integer part is stored in `self` and keeps its
-    /// precision, while the fractional part is stored in `fract`
-    /// keeping its precision.
+    /// The integer part is stored in `self` and keeps its precision, while the
+    /// fractional part is stored in `fract` keeping its precision.
     ///
     /// The initial value of `fract` is ignored.
     ///
@@ -8623,8 +8468,6 @@ impl Float {
     /// assert_eq!(fract2, 0.5);
     /// assert_eq!(dir2, (Ordering::Equal, Ordering::Less));
     /// ```
-    ///
-    /// [`Equal`]: `Ordering::Equal`
     #[inline]
     pub fn trunc_fract_round(&mut self, fract: &mut Self, round: Round) -> (Ordering, Ordering) {
         xmpfr::modf(self, fract, (), round)
@@ -8632,20 +8475,16 @@ impl Float {
 
     /// Gets the integer and fractional parts of the number.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple][Float][`Float`],
-    ///     [Float][`Float`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple]\&mut [Float][`Float`],
-    ///     \&mut [Float][`Float`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple][Float][`Float`],
-    ///     [Float][`Float`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple]\&mut [Float][`Float`],
-    ///     \&mut [Float][`Float`][)][tuple]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Float][],
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Float], \&mut
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple][Float][],
+    ///     [Float][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Float], \&mut
+    ///     [Float][][)][tuple]</code>
     ///
     /// # Examples
     ///
@@ -8665,7 +8504,7 @@ impl Float {
     /// assert_eq!(fract2, -0.75);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn trunc_fract_ref(&self) -> TruncFractIncomplete<'_> {
         TruncFractIncomplete { ref_self: self }
@@ -8675,25 +8514,22 @@ impl Float {
     /// Generates a random number in the range 0 ≤ <i>x</i> < 1.
     ///
     /// This is equivalent to generating a random integer in the range
-    /// 0 ≤ <i>x</i> < 2<sup><i>p</i></sup>, where
-    /// 2<sup><i>p</i></sup> is two raised to the power of the
-    /// precision, and then dividing the integer by
-    /// 2<sup><i>p</i></sup>. The smallest non-zero result will thus
-    /// be 2<sup>−<i>p</i></sup>, and will only have one bit set. In
-    /// the smaller possible results, many bits will be zero, and not
-    /// all the precision will be used.
+    /// 0 ≤ <i>x</i> < 2<sup><i>p</i></sup>, where 2<sup><i>p</i></sup> is two
+    /// raised to the power of the precision, and then dividing the integer by
+    /// 2<sup><i>p</i></sup>. The smallest non-zero result will thus be
+    /// 2<sup>−<i>p</i></sup>, and will only have one bit set. In the smaller
+    /// possible results, many bits will be zero, and not all the precision will
+    /// be used.
     ///
-    /// There is a corner case where the generated random number is
-    /// converted to NaN: if the precision is very large, the
-    /// generated random number could have an exponent less than the
-    /// allowed minimum exponent, and NaN is used to indicate this.
-    /// For this to occur in practice, the minimum exponent has to be
-    /// set to have a very small magnitude using the low-level MPFR
+    /// There is a corner case where the generated random number is converted to
+    /// NaN: if the precision is very large, the generated random number could
+    /// have an exponent less than the allowed minimum exponent, and NaN is used
+    /// to indicate this. For this to occur in practice, the minimum exponent
+    /// has to be set to have a very small magnitude using the low-level MPFR
     /// interface, or the random number generator has to be designed
     /// specifically to trigger this case.
     ///
-    /// <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    /// is implemented with the returned
+    /// <code>[Assign]\<Src> for [Float]</code> is implemented with the returned
     /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
@@ -8707,7 +8543,7 @@ impl Float {
     /// println!("0.0 ≤ {} < 1.0", f);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn random_bits(rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
         RandomBitsIncomplete { rng }
@@ -8717,23 +8553,21 @@ impl Float {
     /// Generates a random number in the continuous range 0 ≤ <i>x</i> < 1.
     ///
     /// The result can be rounded up to be equal to one. Unlike the
-    /// [`random_bits`] method which generates a discrete random
-    /// number at intervals depending on the precision, this method is
-    /// equivalent to generating a continuous random number with
-    /// infinite precision and then rounding the result. This means
-    /// that even the smaller numbers will be using all the available
-    /// precision bits, and rounding is performed in all cases, not in
-    /// some corner case.
+    /// [`random_bits`][Float::random_bits] method which generates a discrete
+    /// random number at intervals depending on the precision, this method is
+    /// equivalent to generating a continuous random number with infinite
+    /// precision and then rounding the result. This means that even the smaller
+    /// numbers will be using all the available precision bits, and rounding is
+    /// performed in all cases, not in some corner case.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as the
-    /// random numbers generated can be considered to have infinite
-    /// precision before rounding.
+    /// <code>[Ordering]::[Equal][Ordering::Equal]</code>, as the random numbers
+    /// generated can be considered to have infinite precision before rounding.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8752,27 +8586,24 @@ impl Float {
     /// );
     /// ```
     ///
-    /// [`Equal`]: `Ordering::Equal`
-    /// [`random_bits`]: `Float::random_bits`
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn random_cont(rng: &mut dyn MutRandState) -> RandomContIncomplete {
         RandomContIncomplete { rng }
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number according to a standard normal
-    /// Gaussian distribution, rounding to the nearest.
+    /// Generates a random number according to a standard normal Gaussian
+    /// distribution, rounding to the nearest.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as the
-    /// random numbers generated can be considered to have infinite
-    /// precision before rounding.
+    /// <code>[Ordering]::[Equal][Ordering::Equal]</code>, as the random numbers
+    /// generated can be considered to have infinite precision before rounding.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8783,26 +8614,24 @@ impl Float {
     /// println!("Normal random number: {}", f);
     /// ```
     ///
-    /// [`Equal`]: `Ordering::Equal`
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn random_normal(rng: &mut dyn MutRandState) -> RandomNormalIncomplete {
         RandomNormalIncomplete { rng }
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number according to an exponential
-    /// distribution with mean one, rounding to the nearest.
+    /// Generates a random number according to an exponential distribution with
+    /// mean one, rounding to the nearest.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as the
-    /// random numbers generated can be considered to have infinite
-    /// precision before rounding.
+    /// <code>[Ordering]::[Equal][Ordering::Equal]</code>, as the random numbers
+    /// generated can be considered to have infinite precision before rounding.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///
     /// # Examples
     ///
@@ -8813,8 +8642,7 @@ impl Float {
     /// println!("Exponential random number: {}", f);
     /// ```
     ///
-    /// [`Equal`]: `Ordering::Equal`
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn random_exp(rng: &mut dyn MutRandState) -> RandomExpIncomplete {
         RandomExpIncomplete { rng }
@@ -9566,8 +9394,8 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 /**
 An error which can be returned when parsing a [`Float`].
 
-See the <code>[Float][`Float`]::[parse_radix][`parse_radix`]</code>
-method for details on what strings are accepted.
+See the <code>[Float]::[parse\_radix][Float::parse_radix]</code> method for
+details on what strings are accepted.
 
 # Examples
 
@@ -9581,8 +9409,6 @@ let error: ParseFloatError = match Float::parse_radix(s, 4) {
 };
 println!("Parse error: {}", error);
 ```
-
-[`parse_radix`]: `Float::parse_radix`
 */
 pub struct ParseFloatError {
     kind: ParseErrorKind,
