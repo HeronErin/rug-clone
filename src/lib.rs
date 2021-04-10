@@ -258,7 +258,7 @@ Many operations can return incomplete-computation values, for example
   * methods that take two references, for example
     <code>int1.[gcd\_ref][Integer::gcd_ref]\(\&int2)</code>
   * string parsing, for example
-    <code>[Integer]::[parse][Integer::parse]\("12")</code>
+    <code>[Integer]::[parse][Integer::parse]\(\"12\")</code>
 
 These operations return objects that can be stored in temporary variables like
 `incomplete` in the last few code examples. However, the names of the types are
