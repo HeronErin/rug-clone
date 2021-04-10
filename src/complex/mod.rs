@@ -17,9 +17,8 @@
 /*!
 Multi-precision complex numbers with correct rounding.
 
-This module provides support for complex numbers of type [`Complex`].
-
-[`Complex`]: `crate::Complex`
+This module provides support for complex numbers of type
+[`Complex`][crate::Complex].
 */
 
 pub(crate) mod arith;
@@ -36,10 +35,11 @@ pub use crate::complex::ord::OrdComplex;
 pub use crate::complex::small::SmallComplex;
 
 /**
-The `Prec` trait is used to specify the precision of the real and
-imaginary parts of a [`Complex`] number.
+The `Prec` trait is used to specify the precision of the real and imaginary
+parts of a [`Complex`][crate::Complex] number.
 
-This trait is implememented for [`u32`] and for [`(u32, u32)`][tuple].
+This trait is implememented for [`u32`] and for <code>[(][tuple][u32][],
+[u32][][)][tuple]</code>.
 
 # Examples
 

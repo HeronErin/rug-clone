@@ -23,11 +23,10 @@ use core::{
 /**
 A complex number that supports total ordering and hashing.
 
-For ordering, the real part has precedence over the imaginary part.
-Negative zero is ordered as less than positive zero. Negative NaN is
-ordered as less than negative infinity, while positive NaN is ordered
-as greater than positive infinity. Comparing two negative NaNs or two
-positive NaNs produces equality.
+For ordering, the real part has precedence over the imaginary part. Negative
+zero is ordered as less than positive zero. Negative NaN is ordered as less than
+negative infinity, while positive NaN is ordered as greater than positive
+infinity. Comparing two negative NaNs or two positive NaNs produces equality.
 
 # Examples
 
@@ -63,8 +62,7 @@ impl OrdComplex {
     /// Extracts the underlying [`Complex`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsRef][`AsRef`]\<[Complex][`Complex`]></code>
-    /// which is provided for [`OrdComplex`].
+    /// <code>[AsRef]\<[Complex]></code> which is provided for [`OrdComplex`].
     ///
     /// # Examples
     ///
@@ -84,8 +82,7 @@ impl OrdComplex {
     /// Extracts the underlying [`Complex`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsMut][`AsMut`]\<[Complex][`Complex`]></code>
-    /// which is provided for [`OrdComplex`].
+    /// <code>[AsMut]\<[Complex]></code> which is provided for [`OrdComplex`].
     ///
     /// # Examples
     ///

@@ -50,12 +50,12 @@ use gmp_mpfr_sys::mpc::mpc_t;
 use std::error::Error;
 
 /**
-A multi-precision complex number with arbitrarily large precision and
-correct rounding.
+A multi-precision complex number with arbitrarily large precision and correct
+rounding.
 
-The precision has to be set during construction. The rounding method
-of the required operations can be specified, and the direction of the
-rounding is returned.
+The precision has to be set during construction. The rounding method of the
+required operations can be specified, and the direction of the rounding is
+returned.
 
 # Examples
 
@@ -70,8 +70,8 @@ assert_eq!(f, 0.75_f64.atan());
 ```
 
 Operations on two borrowed `Complex` numbers result in an
-[incomplete-computation value][icv] that has to be assigned to a new
-`Complex` number.
+[incomplete-computation value][icv] that has to be assigned to a new `Complex`
+number.
 
 ```rust
 use rug::Complex;
@@ -82,11 +82,10 @@ let a_b = Complex::with_val(53, a_b_ref);
 assert_eq!(a_b, (9.25, -12.5));
 ```
 
-As a special case, when an [incomplete-computation value][icv] is
-obtained from multiplying two `Complex` number references, it can be
-added to or subtracted from another `Complex` number (or reference).
-This will result in a fused multiply-accumulate operation, with only
-one rounding operation taking place.
+As a special case, when an [incomplete-computation value][icv] is obtained from
+multiplying two `Complex` number references, it can be added to or subtracted
+from another `Complex` number (or reference). This will result in a fused
+multiply-accumulate operation, with only one rounding operation taking place.
 
 ```rust
 use rug::Complex;
@@ -98,26 +97,26 @@ acc -= &m1 * &m2;
 assert_eq!(acc, (990, 1010));
 ```
 
-The `Complex` number type supports various functions. Most methods
-have four versions:
+The `Complex` number type supports various functions. Most methods have four
+versions:
 
- 1. The first method consumes the operand and rounds the returned
-    `Complex` number to the [nearest][`Nearest`] representable value.
- 2. The second method has a “`_mut`” suffix, mutates the operand and
-    rounds it the nearest representable value.
- 3. The third method has a “`_round`” suffix, mutates the operand,
-    applies the specified [rounding method][`Round`] to the real and
-    imaginary parts, and returns the rounding direction for both:
-      * <code>[Ordering][`Ordering`]::[Less][`Less`]</code> if the
-        stored part is less than the exact result,
-      * <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code> if the
-        stored part is equal to the exact result,
-      * <code>[Ordering][`Ordering`]::[Greater][`Greater`]</code> if
-        the stored part is greater than the exact result.
- 4. The fourth method has a “`_ref`” suffix and borrows the operand.
-    The returned item is an [incomplete-computation value][icv] that
-    can be assigned to a `Complex` number; the rounding method is
-    selected during the assignment.
+ 1. The first method consumes the operand and rounds the returned `Complex`
+    number to the [nearest][Round::Nearest] representable value.
+ 2. The second method has a “`_mut`” suffix, mutates the operand and rounds it
+    the nearest representable value.
+ 3. The third method has a “`_round`” suffix, mutates the operand, applies the
+    specified [rounding method][Round] to the real and imaginary parts, and
+    returns the rounding direction for both:
+      * <code>[Ordering]::[Less][Ordering::Less]</code> if the stored part is less than the
+        exact result,
+      * <code>[Ordering]::[Equal][Ordering::Equal]</code> if the stored part is
+        equal to the exact result,
+      * <code>[Ordering]::[Greater][Ordering::Greater]</code> if the stored part
+        is greater than the exact result.
+ 4. The fourth method has a “`_ref`” suffix and borrows the operand. The
+    returned item is an [incomplete-computation value][icv] that can be assigned
+    to a `Complex` number; the rounding method is selected during the
+    assignment.
 
 ```rust
 use core::cmp::Ordering;
@@ -151,11 +150,7 @@ assert!(*(sin_d - &expected).abs().real() < 0.0001);
 assert_eq!(d, (1, 1));
 ```
 
-[`Equal`]: `Ordering::Equal`
-[`Greater`]: `Ordering::Greater`
-[`Less`]: `Ordering::Less`
-[`Nearest`]: `Round::Nearest`
-[icv]: `crate`#incomplete-computation-values
+[icv]: crate#incomplete-computation-values
 */
 #[repr(transparent)]
 pub struct Complex {
@@ -211,8 +206,8 @@ impl Complex {
         unsafe { ret.assume_init() }
     }
 
-    /// Create a new [`Complex`] number with the specified precisions
-    /// for the real and imaginary parts and with value 0.
+    /// Create a new [`Complex`] number with the specified precisions for the
+    /// real and imaginary parts and with value 0.
     ///
     /// # Panics
     ///
@@ -234,8 +229,8 @@ impl Complex {
         Self::with_val(prec, (Special::Zero, Special::Zero))
     }
 
-    /// Create a new [`Complex`] number with the specified precision
-    /// and with the given value, rounding to the nearest.
+    /// Create a new [`Complex`] number with the specified precision and with
+    /// the given value, rounding to the nearest.
     ///
     /// # Panics
     ///
@@ -264,9 +259,8 @@ impl Complex {
         ret
     }
 
-    /// Create a new [`Complex`] number with the specified precision
-    /// and with the given value, applying the specified rounding
-    /// method.
+    /// Create a new [`Complex`] number with the specified precision and with
+    /// the given value, applying the specified rounding method.
     ///
     /// # Panics
     ///
@@ -309,8 +303,8 @@ impl Complex {
         (self.real().prec(), self.imag().prec())
     }
 
-    /// Sets the precision of the real and imaginary parts, rounding
-    /// to the nearest.
+    /// Sets the precision of the real and imaginary parts, rounding to the
+    /// nearest.
     ///
     /// # Panics
     ///
@@ -330,8 +324,8 @@ impl Complex {
         self.set_prec_round(prec, NEAREST2);
     }
 
-    /// Sets the precision of the real and imaginary parts, applying
-    /// the specified rounding method.
+    /// Sets the precision of the real and imaginary parts, applying the
+    /// specified rounding method.
     ///
     /// # Panics
     ///
@@ -358,16 +352,15 @@ impl Complex {
         )
     }
 
-    /// Creates a [`Complex`] number from an initialized
-    /// [MPC complex number][`mpc_t`].
+    /// Creates a [`Complex`] number from an initialized [MPC complex
+    /// number][mpc_t].
     ///
     /// # Safety
     ///
     ///   * The value must be initialized.
-    ///   * The [`mpc_t`] type can be considered as a kind of pointer,
-    ///     so there can be multiple copies of it. Since this function
-    ///     takes over ownership, no other copies of the passed value
-    ///     should exist.
+    ///   * The [`mpc_t`] type can be considered as a kind of pointer, so there
+    ///     can be multiple copies of it. Since this function takes over
+    ///     ownership, no other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -391,8 +384,7 @@ impl Complex {
         Complex { inner: raw }
     }
 
-    /// Converts a [`Complex`] number into an
-    /// [MPC complex number][`mpc_t`].
+    /// Converts a [`Complex`] number into an [MPC complex number][mpc_t].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -423,10 +415,9 @@ impl Complex {
         m.inner
     }
 
-    /// Returns a pointer to the inner [MPC complex number][`mpc_t`].
+    /// Returns a pointer to the inner [MPC complex number][mpc_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -454,11 +445,10 @@ impl Complex {
         &self.inner
     }
 
-    /// Returns an unsafe mutable pointer to the inner
-    /// [MPC complex number][`mpc_t`].
+    /// Returns an unsafe mutable pointer to the inner [MPC complex
+    /// number][mpc_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -477,29 +467,26 @@ impl Complex {
         &mut self.inner
     }
 
-    /// Parses a decimal string slice (<code>\&[str]</code>) or
-    /// byte slice
-    /// (<code>[\&\[][prim@slice][u8][`u8`][\]][prim@slice]</code>) into a
+    /// Parses a decimal string slice (<code>\&[str]</code>) or byte slice
+    /// (<code>[\&\[][prim@slice][u8][][\]][prim@slice]</code>) into a
     /// [`Complex`] number.
     ///
-    /// <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
-    /// is implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// <code>[AssignRound]\<Src> for [Complex]</code> is implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can contain either of the following three:
     ///
     ///  1. One floating-point number that can be parsed by
-    ///     <code>[Float][`Float`]::[parse][`parse`]</code>. ASCII
-    ///     whitespace is treated in the same way as well.
-    ///  2. Two floating-point numbers inside round brackets separated
-    ///     by one comma. ASCII whitespace is treated in the same way
-    ///     as 1 above, and is also allowed around the brackets and
-    ///     the comma.
-    ///  3. Two floating-point numbers inside round brackets separated
-    ///     by ASCII whitespace. Since the real and imaginary parts
-    ///     are separated by whitespace, they themselves cannot
-    ///     contain whitespace. ASCII whitespace is still allowed
-    ///     around the brackets and between the two parts.
+    ///     <code>[Float]::[parse][Float::parse]</code>. ASCII whitespace is
+    ///     treated in the same way as well.
+    ///  2. Two floating-point numbers inside round brackets separated by one
+    ///     comma. ASCII whitespace is treated in the same way as 1 above, and
+    ///     is also allowed around the brackets and the comma.
+    ///  3. Two floating-point numbers inside round brackets separated by ASCII
+    ///     whitespace. Since the real and imaginary parts are separated by
+    ///     whitespace, they themselves cannot contain whitespace. ASCII
+    ///     whitespace is still allowed around the brackets and between the two
+    ///     parts.
     ///
     /// # Examples
     ///
@@ -518,7 +505,6 @@ impl Complex {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [`parse`]: `Float::parse`
     /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(src: S) -> Result<ParseIncomplete, ParseComplexError> {
@@ -526,27 +512,25 @@ impl Complex {
     }
 
     /// Parses a string slice (<code>\&[str]</code>) or byte slice
-    /// (<code>[\&\[][prim@slice][u8][`u8`][\]][prim@slice]</code>) into a
+    /// (<code>[\&\[][prim@slice][u8][][\]][prim@slice]</code>) into a
     /// [`Complex`] number.
     ///
-    /// <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
-    /// is implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// <code>[AssignRound]\<Src> for [Complex]</code> is implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can contain either of the following three:
     ///
     ///  1. One floating-point number that can be parsed by
-    ///     <code>[Float][`Float`]::[parse_radix][`parse_radix`]</code>.
-    ///     ASCII whitespace is treated in the same way as well.
-    ///  2. Two floating-point numbers inside round brackets separated
-    ///     by one comma. ASCII whitespace is treated in the same way
-    ///     as 1 above, and is also allowed around the brackets and
-    ///     the comma.
-    ///  3. Two floating-point numbers inside round brackets separated
-    ///     by ASCII whitespace. Since the real and imaginary parts
-    ///     are separated by whitespace, they themselves cannot
-    ///     contain whitespace. ASCII whitespace is still allowed
-    ///     around the brackets and between the two parts.
+    ///     <code>[Float]::[parse\_radix][Float::parse_radix]</code>. ASCII
+    ///     whitespace is treated in the same way as well.
+    ///  2. Two floating-point numbers inside round brackets separated by one
+    ///     comma. ASCII whitespace is treated in the same way as 1 above, and
+    ///     is also allowed around the brackets and the comma.
+    ///  3. Two floating-point numbers inside round brackets separated by ASCII
+    ///     whitespace. Since the real and imaginary parts are separated by
+    ///     whitespace, they themselves cannot contain whitespace. ASCII
+    ///     whitespace is still allowed around the brackets and between the two
+    ///     parts.
     ///
     /// # Panics
     ///
@@ -569,7 +553,6 @@ impl Complex {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [`parse_radix`]: `Float::parse_radix`
     /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
@@ -579,12 +562,12 @@ impl Complex {
         parse(src.as_ref(), radix)
     }
 
-    /// Returns a string representation of the value for the specified
-    /// `radix` rounding to the nearest.
+    /// Returns a string representation of the value for the specified `radix`
+    /// rounding to the nearest.
     ///
-    /// The exponent is encoded in decimal. If the number of digits is
-    /// not specified, the output string will have enough precision
-    /// such that reading it again will give the exact same number.
+    /// The exponent is encoded in decimal. If the number of digits is not
+    /// specified, the output string will have enough precision such that
+    /// reading it again will give the exact same number.
     ///
     /// # Panics
     ///
@@ -611,12 +594,12 @@ impl Complex {
         self.to_string_radix_round(radix, num_digits, NEAREST2)
     }
 
-    /// Returns a string representation of the value for the specified
-    /// `radix` applying the specified rounding method.
+    /// Returns a string representation of the value for the specified `radix`
+    /// applying the specified rounding method.
     ///
-    /// The exponent is encoded in decimal. If the number of digits is
-    /// not specified, the output string will have enough precision
-    /// such that reading it again will give the exact same number.
+    /// The exponent is encoded in decimal. If the number of digits is not
+    /// specified, the output string will have enough precision such that
+    /// reading it again will give the exact same number.
     ///
     /// # Panics
     ///
@@ -742,8 +725,8 @@ impl Complex {
         xmpc::realref_imagref(self)
     }
 
-    /// Consumes and converts the value into real and imaginary
-    /// [`Float`] values.
+    /// Consumes and converts the value into real and imaginary [`Float`]
+    /// values.
     ///
     /// This function reuses the allocated memory and does not
     /// allocate any new memory.
@@ -762,11 +745,11 @@ impl Complex {
 
     /// Borrows a negated copy of the [`Complex`] number.
     ///
-    /// The returned object implements
-    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Complex]></code>.
     ///
-    /// This method performs a shallow copy and negates it, and
-    /// negation does not change the allocated data.
+    /// This method performs a shallow copy and negates it, and negation does
+    /// not change the allocated data.
     ///
     /// # Examples
     ///
@@ -793,11 +776,11 @@ impl Complex {
 
     /// Borrows a conjugate copy of the [`Complex`] number.
     ///
-    /// The returned object implements
-    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Complex]></code>.
     ///
-    /// This method performs a shallow copy and negates its imaginary
-    /// part, and negation does not change the allocated data.
+    /// This method performs a shallow copy and negates its imaginary part, and
+    /// negation does not change the allocated data.
     ///
     /// # Examples
     ///
@@ -823,11 +806,11 @@ impl Complex {
 
     /// Borrows a rotated copy of the [`Complex`] number.
     ///
-    /// The returned object implements
-    /// <code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Complex]></code>.
     ///
-    /// This method operates by performing some shallow copying;
-    /// unlike the [`mul_i`] method and friends, this method swaps the
+    /// This method operates by performing some shallow copying; unlike the
+    /// [`mul_i`][Complex::mul_i] method and friends, this method swaps the
     /// precision of the real and imaginary parts if they have unequal
     /// precisions.
     ///
@@ -845,8 +828,6 @@ impl Complex {
     /// assert_eq!(*mul_1_c, (4.2, -2.3));
     /// assert_eq!(*mul_1_c, c);
     /// ```
-    ///
-    /// [`mul_i`]: `Complex::mul_i`
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
         let mut raw = mpc_t {
             re: self.inner.im,
@@ -864,12 +845,11 @@ impl Complex {
         unsafe { BorrowComplex::from_raw(raw) }
     }
 
-    /// Borrows the [`Complex`] number as an ordered complex number of
-    /// type [`OrdComplex`].
+    /// Borrows the [`Complex`] number as an ordered complex number of type
+    /// [`OrdComplex`].
     ///
     /// The same result can be obtained using the implementation of
-    /// <code>[AsRef][`AsRef`]\<[OrdComplex][`OrdComplex`]></code>
-    /// which is provided for [`Complex`].
+    /// <code>[AsRef]\<[OrdComplex]></code> which is provided for [`Complex`].
     ///
     /// # Examples
     ///
@@ -898,8 +878,8 @@ impl Complex {
         unsafe { &*cast_ptr!(self, OrdComplex) }
     }
 
-    /// Returns the same result as
-    /// <code>self.[eq][`eq`]\(\&0)</code>, but is faster.
+    /// Returns the same result as <code>self.[eq][PartialEq::eq]\(\&0)</code>,
+    /// but is faster.
     ///
     /// # Examples
     ///
@@ -912,8 +892,6 @@ impl Complex {
     /// c.mut_real().assign(Special::Nan);
     /// assert!(!c.eq0());
     /// ```
-    ///
-    /// [`eq`]: `PartialEq::eq`
     #[inline]
     pub fn eq0(&self) -> bool {
         self.real().cmp0() == Some(Ordering::Equal) && self.imag().cmp0() == Some(Ordering::Equal)
@@ -949,13 +927,13 @@ impl Complex {
 
     /// Adds a list of [`Complex`] numbers with correct rounding.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AddAssignRound][`AddAssignRound`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[Add][`Add`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[AddAssign]\<Src> for [Complex]</code>
+    ///   * <code>[AddAssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[Add]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -995,20 +973,19 @@ impl Complex {
         SumIncomplete { values }
     }
 
-    /// Finds the dot product of a list of [`Complex`] numbers pairs
-    /// with correct rounding.
+    /// Finds the dot product of a list of [`Complex`] numbers pairs with
+    /// correct rounding.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AddAssign][`AddAssign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AddAssignRound][`AddAssignRound`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[Add][`Add`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[AddAssign]\<Src> for [Complex]</code>
+    ///   * <code>[AddAssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[Add]\<Src> for [Complex]</code>
     ///
-    /// This method will produce a result with correct rounding,
-    /// except for some cases where underflow and/or overflow occur in
-    /// intermediate products.
+    /// This method will produce a result with correct rounding, except for some
+    /// cases where underflow and/or overflow occur in intermediate products.
     ///
     /// # Examples
     ///
@@ -1049,11 +1026,11 @@ impl Complex {
         DotIncomplete { values }
     }
 
-    /// Multiplies and adds in one fused operation, rounding to the
-    /// nearest with only one rounding error.
+    /// Multiplies and adds in one fused operation, rounding to the nearest with
+    /// only one rounding error.
     ///
-    /// `a.mul_add(&b, &c)` produces a result like `&a * &b + &c`, but
-    /// `a` is consumed and the result produced uses its precision.
+    /// `a.mul_add(&b, &c)` produces a result like `&a * &b + &c`, but `a` is
+    /// consumed and the result produced uses its precision.
     ///
     /// # Examples
     ///
@@ -1072,11 +1049,11 @@ impl Complex {
         self
     }
 
-    /// Multiplies and adds in one fused operation, rounding to the
-    /// nearest with only one rounding error.
+    /// Multiplies and adds in one fused operation, rounding to the nearest with
+    /// only one rounding error.
     ///
-    /// `a.mul_add_mut(&b, &c)` produces a result like `&a * &b + &c`,
-    /// but stores the result in `a` using its precision.
+    /// `a.mul_add_mut(&b, &c)` produces a result like `&a * &b + &c`, but
+    /// stores the result in `a` using its precision.
     ///
     /// # Examples
     ///
@@ -1094,13 +1071,13 @@ impl Complex {
         self.mul_add_round(mul, add, NEAREST2);
     }
 
-    /// Multiplies and adds in one fused operation, applying the
-    /// specified rounding method with only one rounding error.
+    /// Multiplies and adds in one fused operation, applying the specified
+    /// rounding method with only one rounding error.
     ///
     /// `a.mul_add_round(&b, &c, round)` produces a result like
-    /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another [`Complex`]
-    /// number like `ans`.
+    /// `ans.assign_round(&a * &b + &c, round)`, but stores the result in `a`
+    /// using its precision rather than in another [`Complex`] number like
+    /// `ans`.
     ///
     /// # Examples
     ///
@@ -1122,10 +1099,10 @@ impl Complex {
 
     /// Multiplies and adds in one fused operation.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -1148,11 +1125,11 @@ impl Complex {
         self * mul + add
     }
 
-    /// Multiplies and subtracts in one fused operation, rounding to
-    /// the nearest with only one rounding error.
+    /// Multiplies and subtracts in one fused operation, rounding to the nearest
+    /// with only one rounding error.
     ///
-    /// `a.mul_sub(&b, &c)` produces a result like `&a * &b - &c`, but
-    /// `a` is consumed and the result produced uses its precision.
+    /// `a.mul_sub(&b, &c)` produces a result like `&a * &b - &c`, but `a` is
+    /// consumed and the result produced uses its precision.
     ///
     /// # Examples
     ///
@@ -1171,11 +1148,11 @@ impl Complex {
         self
     }
 
-    /// Multiplies and subtracts in one fused operation, rounding to
-    /// the nearest with only one rounding error.
+    /// Multiplies and subtracts in one fused operation, rounding to the nearest
+    /// with only one rounding error.
     ///
-    /// `a.mul_sub_mut(&b, &c)` produces a result like `&a * &b - &c`,
-    /// but stores the result in `a` using its precision.
+    /// `a.mul_sub_mut(&b, &c)` produces a result like `&a * &b - &c`, but
+    /// stores the result in `a` using its precision.
     ///
     /// # Examples
     ///
@@ -1193,13 +1170,13 @@ impl Complex {
         self.mul_sub_round(mul, sub, NEAREST2);
     }
 
-    /// Multiplies and subtracts in one fused operation, applying the
-    /// specified rounding method with only one rounding error.
+    /// Multiplies and subtracts in one fused operation, applying the specified
+    /// rounding method with only one rounding error.
     ///
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
-    /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another [`Complex`]
-    /// number like `ans`.
+    /// `ans.assign_round(&a * &b - &c, round)`, but stores the result in `a`
+    /// using its precision rather than in another [`Complex`] number like
+    /// `ans`.
     ///
     /// # Examples
     ///
@@ -1221,13 +1198,13 @@ impl Complex {
 
     /// Multiplies and subtracts in one fused operation.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
-    /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
-    /// `&a * &b - &c`.
+    /// `a.mul_sub_ref(&b, &c)` produces the exact same result as `&a * &b -
+    /// &c`.
     ///
     /// # Examples
     ///
@@ -1247,14 +1224,12 @@ impl Complex {
         self * mul - sub
     }
 
-    /// Computes a projection onto the Riemann sphere, rounding to
-    /// the nearest.
+    /// Computes a projection onto the Riemann sphere, rounding to the nearest.
     ///
-    /// If no parts of the number are infinite, the result is
-    /// unchanged. If any part is infinite, the real part of the
-    /// result is set to +∞ and the imaginary part of the result
-    /// is set to 0 with the same sign as the imaginary part of
-    /// the input.
+    /// If no parts of the number are infinite, the result is unchanged. If any
+    /// part is infinite, the real part of the result is set to +∞ and the
+    /// imaginary part of the result is set to 0 with the same sign as the
+    /// imaginary part of the input.
     ///
     /// # Examples
     ///
@@ -1276,14 +1251,12 @@ impl Complex {
         self
     }
 
-    /// Computes a projection onto the Riemann sphere, rounding to
-    /// the nearest.
+    /// Computes a projection onto the Riemann sphere, rounding to the nearest.
     ///
-    /// If no parts of the number are infinite, the result is
-    /// unchanged. If any part is infinite, the real part of the
-    /// result is set to +∞ and the imaginary part of the result
-    /// is set to 0 with the same sign as the imaginary part of
-    /// the input.
+    /// If no parts of the number are infinite, the result is unchanged. If any
+    /// part is infinite, the real part of the result is set to +∞ and the
+    /// imaginary part of the result is set to 0 with the same sign as the
+    /// imaginary part of the input.
     ///
     /// # Examples
     ///
@@ -1306,16 +1279,15 @@ impl Complex {
 
     /// Computes the projection onto the Riemann sphere.
     ///
-    /// If no parts of the number are infinite, the result is
-    /// unchanged. If any part is infinite, the real part of the
-    /// result is set to +∞ and the imaginary part of the result
-    /// is set to 0 with the same sign as the imaginary part of
-    /// the input.
+    /// If no parts of the number are infinite, the result is unchanged. If any
+    /// part is infinite, the real part of the result is set to +∞ and the
+    /// imaginary part of the result is set to 0 with the same sign as the
+    /// imaginary part of the input.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -1392,10 +1364,10 @@ impl Complex {
 
     /// Computes the square.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -1451,8 +1423,7 @@ impl Complex {
         self.sqrt_round(NEAREST2);
     }
 
-    /// Computes the square root, applying the specified rounding
-    /// method.
+    /// Computes the square root, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -1473,10 +1444,10 @@ impl Complex {
 
     /// Computes the square root.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -1532,10 +1503,10 @@ impl Complex {
 
     /// Computes the complex conjugate.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -1554,8 +1525,8 @@ impl Complex {
 
     /// Computes the absolute value, rounding to the nearest.
     ///
-    /// The real part is set to the absolute value and the imaginary
-    /// part is set to zero.
+    /// The real part is set to the absolute value and the imaginary part is set
+    /// to zero.
     ///
     /// # Examples
     ///
@@ -1573,8 +1544,8 @@ impl Complex {
 
     /// Computes the absolute value, rounding to the nearest.
     ///
-    /// The real part is set to the absolute value and the imaginary
-    /// part is set to zero.
+    /// The real part is set to the absolute value and the imaginary part is set
+    /// to zero.
     ///
     /// # Examples
     ///
@@ -1589,11 +1560,10 @@ impl Complex {
         self.abs_round(NEAREST2);
     }
 
-    /// Computes the absolute value, applying the specified rounding
-    /// method.
+    /// Computes the absolute value, applying the specified rounding method.
     ///
-    /// The real part is set to the absolute value and the imaginary
-    /// part is set to zero.
+    /// The real part is set to the absolute value and the imaginary part is set
+    /// to zero.
     ///
     /// # Examples
     ///
@@ -1619,12 +1589,12 @@ impl Complex {
 
     /// Computes the absolute value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -1668,8 +1638,8 @@ impl Complex {
 
     /// Computes the argument, rounding to the nearest.
     ///
-    /// The real part is set to the argument and the imaginary part is
-    /// set to zero.
+    /// The real part is set to the argument and the imaginary part is set to
+    /// zero.
     ///
     /// # Examples
     ///
@@ -1686,8 +1656,8 @@ impl Complex {
 
     /// Computes the argument, applying the specified rounding method.
     ///
-    /// The real part is set to the argument and the imaginary part is
-    /// set to zero.
+    /// The real part is set to the argument and the imaginary part is set to
+    /// zero.
     ///
     /// # Examples
     ///
@@ -1712,12 +1682,12 @@ impl Complex {
 
     /// Computes the argument.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -1743,8 +1713,7 @@ impl Complex {
         ArgIncomplete { ref_self: self }
     }
 
-    /// Multiplies the complex number by ±<i>i</i>, rounding to
-    /// the nearest.
+    /// Multiplies the complex number by ±<i>i</i>, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -1764,8 +1733,7 @@ impl Complex {
         self
     }
 
-    /// Multiplies the complex number by ±<i>i</i>, rounding to
-    /// the nearest.
+    /// Multiplies the complex number by ±<i>i</i>, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -1784,8 +1752,8 @@ impl Complex {
         self.mul_i_round(negative, NEAREST2);
     }
 
-    /// Multiplies the complex number by ±<i>i</i>, applying the
-    /// specified rounding method.
+    /// Multiplies the complex number by ±<i>i</i>, applying the specified
+    /// rounding method.
     ///
     /// # Examples
     ///
@@ -1809,10 +1777,10 @@ impl Complex {
 
     /// Multiplies the complex number by ±<i>i</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -1865,8 +1833,7 @@ impl Complex {
         self.recip_round(NEAREST2);
     }
 
-    /// Computes the reciprocal, applying the specified rounding
-    /// method.
+    /// Computes the reciprocal, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -1887,10 +1854,10 @@ impl Complex {
 
     /// Computes the reciprocal.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -1908,8 +1875,8 @@ impl Complex {
         RecipIncomplete { ref_self: self }
     }
 
-    /// Computes the norm, that is the square of the absolute value,
-    /// rounding it to the nearest.
+    /// Computes the norm, that is the square of the absolute value, rounding it
+    /// to the nearest.
     ///
     /// # Examples
     ///
@@ -1925,11 +1892,10 @@ impl Complex {
         self
     }
 
-    /// Computes the norm, that is the square of the absolute value,
-    /// rounding to the nearest.
+    /// Computes the norm, that is the square of the absolute value, rounding to
+    /// the nearest.
     ///
-    /// The real part is set to the norm and the imaginary part is set
-    /// to zero.
+    /// The real part is set to the norm and the imaginary part is set to zero.
     ///
     /// # Examples
     ///
@@ -1944,11 +1910,10 @@ impl Complex {
         self.norm_round(NEAREST2);
     }
 
-    /// Computes the norm, that is the square of the absolute value,
-    /// applying the specified rounding method.
+    /// Computes the norm, that is the square of the absolute value, applying
+    /// the specified rounding method.
     ///
-    /// The real part is set to the norm and the imaginary part is set
-    /// to zero.
+    /// The real part is set to the norm and the imaginary part is set to zero.
     ///
     /// # Examples
     ///
@@ -1975,12 +1940,12 @@ impl Complex {
 
     /// Computes the norm, that is the square of the absolute value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Float][`Float`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2030,8 +1995,7 @@ impl Complex {
         self.ln_round(NEAREST2);
     }
 
-    /// Computes the natural logarithm, applying the specified
-    /// rounding method.
+    /// Computes the natural logarithm, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -2051,12 +2015,12 @@ impl Complex {
         xmpc::log(self, (), round)
     }
 
-    /// Computes the natural logarithm;
+    /// Computes the natural logarithm.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2107,8 +2071,8 @@ impl Complex {
         self.log10_round(NEAREST2);
     }
 
-    /// Computes the logarithm to base 10, applying the specified
-    /// rounding method.
+    /// Computes the logarithm to base 10, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -2132,8 +2096,8 @@ impl Complex {
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2153,14 +2117,14 @@ impl Complex {
 
     /// Generates a root of unity, rounding to the nearest.
     ///
-    /// The generated number is the <i>n</i>th root of unity
-    /// raised to the power <i>k</i>, that is its magnitude is 1
-    /// and its argument is 2π<i>k</i>/<i>n</i>.
+    /// The generated number is the <i>n</i>th root of unity raised to the power
+    /// <i>k</i>, that is its magnitude is 1 and its argument is
+    /// 2π<i>k</i>/<i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2211,8 +2175,7 @@ impl Complex {
         self.exp_round(NEAREST2);
     }
 
-    /// Computes the exponential, applying the specified rounding
-    /// method.
+    /// Computes the exponential, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -2234,10 +2197,10 @@ impl Complex {
 
     /// Computes the exponential.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2310,10 +2273,10 @@ impl Complex {
 
     /// Computes the sine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2386,10 +2349,10 @@ impl Complex {
 
     /// Computes the cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2407,11 +2370,10 @@ impl Complex {
         CosIncomplete { ref_self: self }
     }
 
-    /// Computes the sine and cosine of `self`, rounding to the
-    /// nearest.
+    /// Computes the sine and cosine of `self`, rounding to the nearest.
     ///
-    /// The sine keeps the precision of `self` while the cosine
-    /// keeps the precision of `cos`.
+    /// The sine keeps the precision of `self` while the cosine keeps the
+    /// precision of `cos`.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -2432,11 +2394,10 @@ impl Complex {
         (self, cos)
     }
 
-    /// Computes the sine and cosine of `self`, rounding to the
-    /// nearest.
+    /// Computes the sine and cosine of `self`, rounding to the nearest.
     ///
-    /// The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
+    /// The sine is stored in `self` and keeps its precision, while the cosine
+    /// is stored in `cos` keeping its precision.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -2457,11 +2418,11 @@ impl Complex {
         self.sin_cos_round(cos, NEAREST2);
     }
 
-    /// Computes the sine and cosine of `self`, applying the
-    /// specified rounding methods.
+    /// Computes the sine and cosine of `self`, applying the specified rounding
+    /// methods.
     ///
-    /// The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
+    /// The sine is stored in `self` and keeps its precision, while the cosine
+    /// is stored in `cos` keeping its precision.
     ///
     /// The initial value of `cos` is ignored.
     ///
@@ -2491,20 +2452,16 @@ impl Complex {
 
     /// Computes the sine and cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple][Complex][`Complex`],
-    ///     [Complex][`Complex`][)][tuple]</code>
-    ///   * <code>[Assign][`Assign`]\<Src> for
-    ///     [(][tuple]\&mut [Complex][`Complex`],
-    ///     \&mut [Complex][`Complex`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple][Complex][`Complex`],
-    ///     [Complex][`Complex`][)][tuple]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for
-    ///     [(][tuple]\&mut [Complex][`Complex`],
-    ///     \&mut [Complex][`Complex`][)][tuple]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Complex][],
+    ///     [Complex][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Complex], \&mut
+    ///     [Complex][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple][Complex][],
+    ///     [Complex][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Complex], \&mut
+    ///     [Complex][][)][tuple]</code>
     ///
     /// # Examples
     ///
@@ -2594,10 +2551,10 @@ impl Complex {
 
     /// Computes the tangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2648,8 +2605,7 @@ impl Complex {
         self.sinh_round(NEAREST2);
     }
 
-    /// Computes the hyperbolic sine, applying the specified rounding
-    /// method.
+    /// Computes the hyperbolic sine, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -2671,10 +2627,10 @@ impl Complex {
 
     /// Computes the hyperbolic sine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2725,8 +2681,7 @@ impl Complex {
         self.cosh_round(NEAREST2);
     }
 
-    /// Computes the hyperbolic cosine, applying the specified rounding
-    /// method.
+    /// Computes the hyperbolic cosine, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -2748,10 +2703,10 @@ impl Complex {
 
     /// Computes the hyperbolic cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2802,8 +2757,7 @@ impl Complex {
         self.tanh_round(NEAREST2);
     }
 
-    /// Computes the hyperbolic tangent, applying the specified
-    /// rounding method.
+    /// Computes the hyperbolic tangent, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -2825,10 +2779,10 @@ impl Complex {
 
     /// Computes the hyperbolic tangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2879,8 +2833,7 @@ impl Complex {
         self.asin_round(NEAREST2);
     }
 
-    /// Computes the inverse sine, applying the specified rounding
-    /// method.
+    /// Computes the inverse sine, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -2902,10 +2855,10 @@ impl Complex {
 
     /// Computes the inverse sine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -2956,8 +2909,7 @@ impl Complex {
         self.acos_round(NEAREST2);
     }
 
-    /// Computes the inverse cosine, applying the specified rounding
-    /// method.
+    /// Computes the inverse cosine, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -2979,10 +2931,10 @@ impl Complex {
 
     /// Computes the inverse cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -3033,8 +2985,7 @@ impl Complex {
         self.atan_round(NEAREST2);
     }
 
-    /// Computes the inverse tangent, applying the specified rounding
-    /// method.
+    /// Computes the inverse tangent, applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -3056,10 +3007,10 @@ impl Complex {
 
     /// Computes the inverse tangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -3110,8 +3061,8 @@ impl Complex {
         self.asinh_round(NEAREST2);
     }
 
-    /// Computes the inverse hyperbolic sine, applying the specified
-    /// rounding method.
+    /// Computes the inverse hyperbolic sine, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -3133,10 +3084,10 @@ impl Complex {
 
     /// Computes the inverse hyperboic sine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -3154,8 +3105,7 @@ impl Complex {
         AsinhIncomplete { ref_self: self }
     }
 
-    /// Computes the inverse hyperbolic cosine, rounding to the
-    /// nearest.
+    /// Computes the inverse hyperbolic cosine, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -3172,8 +3122,7 @@ impl Complex {
         self
     }
 
-    /// Computes the inverse hyperbolic cosine, rounding to the
-    /// nearest.
+    /// Computes the inverse hyperbolic cosine, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -3189,8 +3138,8 @@ impl Complex {
         self.acosh_round(NEAREST2);
     }
 
-    /// Computes the inverse hyperbolic cosine, applying the specified
-    /// rounding method.
+    /// Computes the inverse hyperbolic cosine, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -3212,10 +3161,10 @@ impl Complex {
 
     /// Computes the inverse hyperbolic cosine.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -3233,8 +3182,7 @@ impl Complex {
         AcoshIncomplete { ref_self: self }
     }
 
-    /// Computes the inverse hyperbolic tangent, rounding to the
-    /// nearest.
+    /// Computes the inverse hyperbolic tangent, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -3251,8 +3199,7 @@ impl Complex {
         self
     }
 
-    /// Computes the inverse hyperbolic tangent, rounding to the
-    /// nearest.
+    /// Computes the inverse hyperbolic tangent, rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -3268,8 +3215,8 @@ impl Complex {
         self.atanh_round(NEAREST2);
     }
 
-    /// Computes the inverse hyperbolic tangent, applying the
-    /// specified rounding method.
+    /// Computes the inverse hyperbolic tangent, applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -3291,10 +3238,10 @@ impl Complex {
 
     /// Computes the inverse hyperbolic tangent.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -3313,30 +3260,27 @@ impl Complex {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random complex number with both the real and
-    /// imaginary parts in the range 0 ≤ <i>x</i> < 1.
+    /// Generates a random complex number with both the real and imaginary parts
+    /// in the range 0 ≤ <i>x</i> < 1.
     ///
     /// This is equivalent to generating a random integer in the range
     /// 0 ≤ <i>x</i> < 2<sup><i>p</i></sup> for each part, where
-    /// 2<sup><i>p</i></sup> is two raised to the power of the
-    /// precision, and then dividing the integer by
-    /// 2<sup><i>p</i></sup>. The smallest non-zero result will thus
-    /// be 2<sup>−<i>p</i></sup>, and will only have one bit set. In
-    /// the smaller possible results, many bits will be zero, and not
+    /// 2<sup><i>p</i></sup> is two raised to the power of the precision, and
+    /// then dividing the integer by 2<sup><i>p</i></sup>. The smallest non-zero
+    /// result will thus be 2<sup>−<i>p</i></sup>, and will only have one bit
+    /// set. In the smaller possible results, many bits will be zero, and not
     /// all the precision will be used.
     ///
-    /// There is a corner case where the generated random number part
-    /// is converted to NaN: if the precision is very large, the
-    /// generated random number could have an exponent less than the
-    /// allowed minimum exponent, and NaN is used to indicate this.
-    /// For this to occur in practice, the minimum exponent has to be
-    /// set to have a very small magnitude using the low-level MPFR
-    /// interface, or the random number generator has to be designed
-    /// specifically to trigger this case.
+    /// There is a corner case where the generated random number part is
+    /// converted to NaN: if the precision is very large, the generated random
+    /// number could have an exponent less than the allowed minimum exponent,
+    /// and NaN is used to indicate this. For this to occur in practice, the
+    /// minimum exponent has to be set to have a very small magnitude using the
+    /// low-level MPFR interface, or the random number generator has to be
+    /// designed specifically to trigger this case.
     ///
-    /// <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    /// is implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign]\<Src> for [Complex]</code> is implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -3359,28 +3303,25 @@ impl Complex {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random complex number with both the real and
-    /// imaginary parts in the continous range 0 ≤ <i>x</i> < 1, and
-    /// rounds to the nearest.
+    /// Generates a random complex number with both the real and imaginary parts
+    /// in the continous range 0 ≤ <i>x</i> < 1, and rounds to the nearest.
     ///
-    /// The result parts can be rounded up to be equal to one. Unlike
-    /// the [`random_bits`] method which generates a discrete random
-    /// number at intervals depending on the precision, this method is
-    /// equivalent to generating a continuous random number with
-    /// infinite precision and then rounding the result. This means
-    /// that even the smaller numbers will be using all the available
-    /// precision bits, and rounding is performed in all cases, not in
-    /// some corner case.
+    /// The result parts can be rounded up to be equal to one. Unlike the
+    /// [`random_bits`][Complex::random_bits] method which generates a discrete
+    /// random number at intervals depending on the precision, this method is
+    /// equivalent to generating a continuous random number with infinite
+    /// precision and then rounding the result. This means that even the smaller
+    /// numbers will be using all the available precision bits, and rounding is
+    /// performed in all cases, not in some corner case.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>,
-    /// as the random numbers generated can be considered to have
-    /// infinite precision before rounding.
+    /// <code>[Ordering]::[Equal][Ordering::Equal]</code>, as the random numbers
+    /// generated can be considered to have infinite precision before rounding.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign][`Assign`]\<Src> for [Complex][`Complex`]</code>
-    ///   * <code>[AssignRound][`AssignRound`]\<Src> for [Complex][`Complex`]</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///
     /// # Examples
     ///
@@ -3408,8 +3349,6 @@ impl Complex {
     /// );
     /// ```
     ///
-    /// [`Equal`]: `Ordering::Equal`
-    /// [`random_bits`]: `Complex::random_bits`
     /// [icv]: `crate`#incomplete-computation-values
     #[inline]
     pub fn random_cont(rng: &mut dyn MutRandState) -> RandomContIncomplete {
@@ -3835,9 +3774,8 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseComplexEr
 /**
 An error which can be returned when parsing a [`Complex`] number.
 
-See the
-<code>[Complex][`Complex`]::[parse_radix][`parse_radix`]</code>
-method for details on what strings are accepted.
+See the <code>[Complex]::[parse\_radix][Complex::parse_radix]</code> method for
+details on what strings are accepted.
 
 # Examples
 
@@ -3851,8 +3789,6 @@ let error: ParseComplexError = match Complex::parse_radix(s, 4) {
 };
 println!("Parse error: {}", error);
 ```
-
-[`parse_radix`]: `Complex::parse_radix`
 */
 pub struct ParseComplexError {
     kind: ParseErrorKind,

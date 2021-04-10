@@ -37,30 +37,27 @@ type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
 /**
 A small complex number that does not require any memory allocation.
 
-This can be useful when you have real and imaginary numbers that are
-primitive integers or floats and you need a reference to a
-[`Complex`].
+This can be useful when you have real and imaginary numbers that are primitive
+integers or floats and you need a reference to a [`Complex`].
 
 The `SmallComplex` will have a precision according to the types of the
-primitives used to set its real and imaginary parts. Note that if
-different types are used to set the parts, the parts can have
-different precisions.
+primitives used to set its real and imaginary parts. Note that if different
+types are used to set the parts, the parts can have different precisions.
 
   * [`i8`], [`u8`]: the part will have eight bits of precision.
   * [`i16`], [`u16`]: the part will have 16 bits of precision.
   * [`i32`], [`u32`]: the part will have 32 bits of precision.
   * [`i64`], [`u64`]: the part will have 64 bits of precision.
   * [`i128`], [`u128`]: the part will have 128 bits of precision.
-  * [`isize`], [`usize`]: the part will have 32 or 64 bits of
-    precision, depending on the platform.
+  * [`isize`], [`usize`]: the part will have 32 or 64 bits of precision,
+    depending on the platform.
   * [`f32`]: the part will have 24 bits of precision.
   * [`f64`]: the part will have 53 bits of precision.
-  * [`Special`]: the part will have the
-    [minimum possible precision][`prec_min`].
+  * [`Special`][crate::float::Special]: the part will have the [minimum possible
+    precision][crate::float::prec_min].
 
-The `SmallComplex` type can be coerced to a [`Complex`], as it
-implements
-<code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Complex][`Complex`]></code>.
+The `SmallComplex` type can be coerced to a [`Complex`], as it implements
+<code>[Deref]\<[Target][Deref::Target] = [Complex]></code>.
 
 # Examples
 
@@ -74,9 +71,6 @@ a += &*b;
 assert_eq!(*a.real(), -9);
 assert_eq!(*a.imag(), -18.5);
 ```
-
-[`Special`]: `crate::float::Special`
-[`prec_min`]: `crate::float::prec_min`
 */
 #[derive(Clone)]
 pub struct SmallComplex {
@@ -116,8 +110,8 @@ struct Mpc {
 static_assert_same_layout!(Mpc, mpc_t);
 
 impl SmallComplex {
-    /// Creates a [`SmallComplex`] with value 0 and the
-    /// [minimum possible precision][`prec_min`].
+    /// Creates a [`SmallComplex`] with value 0 and the [minimum possible
+    /// precision][crate::float::prec_min].
     ///
     /// # Examples
     ///
@@ -127,8 +121,6 @@ impl SmallComplex {
     /// // Borrow c as if it were Complex.
     /// assert_eq!(*c, 0);
     /// ```
-    ///
-    /// [`prec_min`]: `crate::float::prec_min`
     #[inline]
     pub const fn new() -> Self {
         SmallComplex {
@@ -152,14 +144,13 @@ impl SmallComplex {
     }
 
     /// Returns a mutable reference to a [`Complex`] number for simple
-    /// operations that do not need to change the precision of the
-    /// real or imaginary part.
+    /// operations that do not need to change the precision of the real or
+    /// imaginary part.
     ///
     /// # Safety
     ///
-    /// It is undefined behaviour to modify the precision of the
-    /// referenced [`Complex`] number or to swap it with another
-    /// number.
+    /// It is undefined behavior to modify the precision of the referenced
+    /// [`Complex`] number or to swap it with another number.
     ///
     /// # Examples
     ///
