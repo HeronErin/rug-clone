@@ -294,15 +294,6 @@ pub fn root<O: OptInteger>(rop: &mut Integer, op: O, n: u32) {
 }
 
 #[inline]
-pub fn square<O: OptInteger>(rop: &mut Integer, op: O) {
-    let rop = rop.as_raw_mut();
-    let op = op.mpz_or(rop);
-    unsafe {
-        gmp::mpz_mul(rop, op, op);
-    }
-}
-
-#[inline]
 pub fn sqrt<O: OptInteger>(rop: &mut Integer, op: O) {
     let square_root_of_neg = sgn_or(op, rop) == Ordering::Less;
     assert!(!square_root_of_neg, "square root of negative");

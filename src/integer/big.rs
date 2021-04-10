@@ -16,7 +16,13 @@
 
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
-use crate::{ext::xmpz, integer::Order, misc, ops::DivRounding, Assign, Complete};
+use crate::{
+    ext::xmpz,
+    integer::{arith::MulIncomplete, Order},
+    misc,
+    ops::DivRounding,
+    Assign, Complete,
+};
 use az::{Az, Cast, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingCast};
 use core::{
     cmp::Ordering,
@@ -4000,7 +4006,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn square_mut(&mut self) {
-        xmpz::square(self, ());
+        xmpz::mul(self, (), ());
     }
 
     /// Computes the square.
@@ -4011,6 +4017,13 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
     ///     Src</code>
+    ///   * <code>[AddAssign]\<Src> for [Integer]</code>
+    ///   * <code>[Add]\<Src> for [Integer]</code>, <code>[Add]\<[Integer]> for
+    ///     Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Integer]</code>, <code>[SubFrom]\<Src>
+    ///     for [Integer]</code>
+    ///   * <code>[Sub]\<Src> for [Integer]</code>, <code>[Sub]\<[Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4020,10 +4033,11 @@ impl Integer {
     /// assert_eq!(Integer::from(i.square_ref()), 169);
     /// ```
     ///
+    /// [SubFrom]: crate::ops::SubFrom
     /// [icv]: crate#incomplete-computation-values
     #[inline]
-    pub fn square_ref(&self) -> SquareIncomplete<'_> {
-        SquareIncomplete { ref_self: self }
+    pub fn square_ref(&self) -> MulIncomplete<'_> {
+        self * self
     }
 
     /// Computes the square root and truncates the result.
@@ -5695,7 +5709,6 @@ ref_math_op0! { Integer; xmpz::ui_pow_ui; struct UPowUIncomplete { base: u32, ex
 ref_math_op0! { Integer; xmpz::si_pow_ui; struct IPowUIncomplete { base: i32, exponent: u32 } }
 ref_math_op1! { Integer; xmpz::root; struct RootIncomplete { n: u32 } }
 ref_math_op1_2! { Integer; xmpz::rootrem; struct RootRemIncomplete { n: u32 } }
-ref_math_op1! { Integer; xmpz::square; struct SquareIncomplete {} }
 ref_math_op1! { Integer; xmpz::sqrt; struct SqrtIncomplete {} }
 ref_math_op1_2! { Integer; xmpz::sqrtrem; struct SqrtRemIncomplete {} }
 ref_math_op1! { Integer; xmpz::nextprime; struct NextPrimeIncomplete {} }
