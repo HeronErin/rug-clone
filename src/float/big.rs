@@ -26,7 +26,9 @@ use crate::{
         OrdFloat, Round, SmallFloat, Special,
     },
     misc,
-    ops::{AddAssignRound, AssignRound, DivRounding, NegAssign},
+    ops::{
+        AddAssignRound, AssignRound, DivRounding, NegAssign, SubAssignRound, SubFrom, SubFromRound,
+    },
     Assign,
 };
 use az::{Az, CheckedCast, SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs};
@@ -36,7 +38,7 @@ use core::{
     marker::PhantomData,
     mem::{ManuallyDrop, MaybeUninit},
     num::FpCategory,
-    ops::{Add, AddAssign, Deref},
+    ops::{Add, AddAssign, Deref, Sub, SubAssign},
     slice, str,
 };
 use gmp_mpfr_sys::{
@@ -2047,7 +2049,14 @@ impl Float {
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///   * <code>[AddAssign]\<Src> for [Float]</code>
     ///   * <code>[AddAssignRound]\<Src> for [Float]</code>
-    ///   * <code>[Add]\<Src> for [Float]</code>
+    ///   * <code>[Add]\<Src> for [Float]</code>, <code>[Add]\<[Float]> for
+    ///     Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Float]</code>, <code>[SubFrom]\<Src>
+    ///     for [Float]</code>
+    ///   * <code>[SubAssignRound]\<Src> for [Float]</code>,
+    ///     <code>[SubFromRound]\<Src> for [Float]</code>
+    ///   * <code>[Sub]\<Src> for [Float]</code>, <code>[Sub]\<[Float]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2094,7 +2103,14 @@ impl Float {
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///   * <code>[AddAssign]\<Src> for [Float]</code>
     ///   * <code>[AddAssignRound]\<Src> for [Float]</code>
-    ///   * <code>[Add]\<Src> for [Float]</code>
+    ///   * <code>[Add]\<Src> for [Float]</code>, <code>[Add]\<[Float]> for
+    ///     Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Float]</code>, <code>[SubFrom]\<Src>
+    ///     for [Float]</code>
+    ///   * <code>[SubAssignRound]\<Src> for [Float]</code>,
+    ///     <code>[SubFromRound]\<Src> for [Float]</code>
+    ///   * <code>[Sub]\<Src> for [Float]</code>, <code>[Sub]\<[Float]> for
+    ///     Src</code>
     ///
     /// This method will produce a result with correct rounding, except for some
     /// cases where underflow or overflow occurs in intermediate products.
@@ -8681,6 +8697,18 @@ where
     }
 }
 
+impl<'a, I> Add<Float> for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Float>,
+{
+    type Output = Float;
+    #[inline]
+    fn add(self, mut rhs: Float) -> Float {
+        rhs.add_assign_round(self, Round::Nearest);
+        rhs
+    }
+}
+
 impl<'a, I> AddAssign<SumIncomplete<'a, I>> for Float
 where
     I: Iterator<Item = &'a Self>,
@@ -8700,6 +8728,82 @@ where
     #[inline]
     fn add_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
         xmpfr::sum_including_old(self, src.values, round)
+    }
+}
+
+impl<'a, I> Sub<SumIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Output = Self;
+    #[inline]
+    fn sub(mut self, rhs: SumIncomplete<'a, I>) -> Self {
+        self.sub_assign_round(rhs, Round::Nearest);
+        self
+    }
+}
+
+impl<'a, I> Sub<Float> for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Float>,
+{
+    type Output = Float;
+    #[inline]
+    fn sub(self, mut rhs: Float) -> Float {
+        rhs.sub_from_round(self, Round::Nearest);
+        rhs
+    }
+}
+
+impl<'a, I> SubAssign<SumIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Self>,
+{
+    #[inline]
+    fn sub_assign(&mut self, rhs: SumIncomplete<'a, I>) {
+        self.sub_assign_round(rhs, Round::Nearest);
+    }
+}
+
+impl<'a, I> SubAssignRound<SumIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    fn sub_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
+        self.neg_assign();
+        let reverse_round = match round {
+            Round::Up => Round::Down,
+            Round::Down => Round::Up,
+            unchanged => unchanged,
+        };
+        let reverse_dir = self.add_assign_round(src, reverse_round);
+        self.neg_assign();
+        reverse_dir.reverse()
+    }
+}
+
+impl<'a, I> SubFrom<SumIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Self>,
+{
+    #[inline]
+    fn sub_from(&mut self, rhs: SumIncomplete<'a, I>) {
+        self.sub_from_round(rhs, Round::Nearest);
+    }
+}
+
+impl<'a, I> SubFromRound<SumIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn sub_from_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
+        self.neg_assign();
+        self.add_assign_round(src, round)
     }
 }
 
@@ -8735,6 +8839,18 @@ where
     }
 }
 
+impl<'a, I> Add<Float> for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Float, &'a Float)>,
+{
+    type Output = Float;
+    #[inline]
+    fn add(self, mut rhs: Float) -> Float {
+        rhs.add_assign_round(self, Round::Nearest);
+        rhs
+    }
+}
+
 impl<'a, I> AddAssign<DotIncomplete<'a, I>> for Float
 where
     I: Iterator<Item = (&'a Self, &'a Self)>,
@@ -8754,6 +8870,82 @@ where
     #[inline]
     fn add_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
         xmpfr::dot_including_old(self, src.values, round)
+    }
+}
+
+impl<'a, I> Sub<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Output = Self;
+    #[inline]
+    fn sub(mut self, rhs: DotIncomplete<'a, I>) -> Self {
+        self.sub_assign_round(rhs, Round::Nearest);
+        self
+    }
+}
+
+impl<'a, I> Sub<Float> for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Float, &'a Float)>,
+{
+    type Output = Float;
+    #[inline]
+    fn sub(self, mut rhs: Float) -> Float {
+        rhs.sub_from_round(self, Round::Nearest);
+        rhs
+    }
+}
+
+impl<'a, I> SubAssign<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    #[inline]
+    fn sub_assign(&mut self, rhs: DotIncomplete<'a, I>) {
+        self.sub_assign_round(rhs, Round::Nearest);
+    }
+}
+
+impl<'a, I> SubAssignRound<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    fn sub_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
+        self.neg_assign();
+        let reverse_round = match round {
+            Round::Up => Round::Down,
+            Round::Down => Round::Up,
+            unchanged => unchanged,
+        };
+        let reverse_dir = self.add_assign_round(src, reverse_round);
+        self.neg_assign();
+        reverse_dir.reverse()
+    }
+}
+
+impl<'a, I> SubFrom<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    #[inline]
+    fn sub_from(&mut self, rhs: DotIncomplete<'a, I>) {
+        self.sub_from_round(rhs, Round::Nearest);
+    }
+}
+
+impl<'a, I> SubFromRound<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn sub_from_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
+        self.neg_assign();
+        self.add_assign_round(src, round)
     }
 }
 

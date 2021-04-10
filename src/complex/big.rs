@@ -34,7 +34,7 @@ use crate::{
         ParseFloatError, Round, Special,
     },
     misc,
-    ops::{AddAssignRound, AssignRound},
+    ops::{AddAssignRound, AssignRound, NegAssign, SubAssignRound, SubFrom, SubFromRound},
     Assign, Float,
 };
 use az::UnwrappedCast;
@@ -43,7 +43,7 @@ use core::{
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
     mem::{ManuallyDrop, MaybeUninit},
-    ops::{Add, AddAssign, Deref},
+    ops::{Add, AddAssign, Deref, Sub, SubAssign},
     slice,
 };
 use gmp_mpfr_sys::mpc::mpc_t;
@@ -933,7 +933,14 @@ impl Complex {
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///   * <code>[AddAssign]\<Src> for [Complex]</code>
     ///   * <code>[AddAssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[Add]\<Src> for [Complex]</code>
+    ///   * <code>[Add]\<Src> for [Complex]</code>, <code>[Add]\<[Complex]> for
+    ///     Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Complex]</code>, <code>[SubFrom]\<Src>
+    ///     for [Complex]</code>
+    ///   * <code>[SubAssignRound]\<Src> for [Complex]</code>,
+    ///     <code>[SubFromRound]\<Src> for [Complex]</code>
+    ///   * <code>[Sub]\<Src> for [Complex]</code>, <code>[Sub]\<[Complex]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -982,7 +989,14 @@ impl Complex {
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///   * <code>[AddAssign]\<Src> for [Complex]</code>
     ///   * <code>[AddAssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[Add]\<Src> for [Complex]</code>
+    ///   * <code>[Add]\<Src> for [Complex]</code>, <code>[Add]\<[Complex]> for
+    ///     Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Complex]</code>, <code>[SubFrom]\<Src>
+    ///     for [Complex]</code>
+    ///   * <code>[SubAssignRound]\<Src> for [Complex]</code>,
+    ///     <code>[SubFromRound]\<Src> for [Complex]</code>
+    ///   * <code>[Sub]\<Src> for [Complex]</code>, <code>[Sub]\<[Complex]> for
+    ///     Src</code>
     ///
     /// This method will produce a result with correct rounding, except for some
     /// cases where underflow and/or overflow occur in intermediate products.
@@ -3388,6 +3402,18 @@ where
     }
 }
 
+impl<'a, I> Add<Complex> for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    type Output = Complex;
+    #[inline]
+    fn add(self, mut rhs: Complex) -> Complex {
+        rhs.add_assign_round(self, NEAREST2);
+        rhs
+    }
+}
+
 impl<'a, I> AddAssign<SumIncomplete<'a, I>> for Complex
 where
     I: Iterator<Item = &'a Self>,
@@ -3407,6 +3433,87 @@ where
     #[inline]
     fn add_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
         xmpc::sum_including_old(self, src.values, round)
+    }
+}
+
+impl<'a, I> Sub<SumIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Output = Self;
+    #[inline]
+    fn sub(mut self, rhs: SumIncomplete<'a, I>) -> Self {
+        self.sub_assign_round(rhs, NEAREST2);
+        self
+    }
+}
+
+impl<'a, I> Sub<Complex> for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    type Output = Complex;
+    #[inline]
+    fn sub(self, mut rhs: Complex) -> Complex {
+        rhs.sub_from_round(self, NEAREST2);
+        rhs
+    }
+}
+
+impl<'a, I> SubAssign<SumIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Self>,
+{
+    #[inline]
+    fn sub_assign(&mut self, rhs: SumIncomplete<'a, I>) {
+        self.sub_assign_round(rhs, NEAREST2);
+    }
+}
+
+impl<'a, I> SubAssignRound<SumIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn sub_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
+        self.neg_assign();
+        let reverse_round0 = match round.0 {
+            Round::Up => Round::Down,
+            Round::Down => Round::Up,
+            unchanged => unchanged,
+        };
+        let reverse_round1 = match round.1 {
+            Round::Up => Round::Down,
+            Round::Down => Round::Up,
+            unchanged => unchanged,
+        };
+        let reverse_dir = self.add_assign_round(src, (reverse_round0, reverse_round1));
+        self.neg_assign();
+        (reverse_dir.0.reverse(), reverse_dir.1.reverse())
+    }
+}
+
+impl<'a, I> SubFrom<SumIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Self>,
+{
+    #[inline]
+    fn sub_from(&mut self, rhs: SumIncomplete<'a, I>) {
+        self.sub_from_round(rhs, NEAREST2);
+    }
+}
+
+impl<'a, I> SubFromRound<SumIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn sub_from_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
+        self.neg_assign();
+        self.add_assign_round(src, round)
     }
 }
 
@@ -3441,6 +3548,18 @@ where
     }
 }
 
+impl<'a, I> Add<Complex> for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Complex, &'a Complex)>,
+{
+    type Output = Complex;
+    #[inline]
+    fn add(self, mut rhs: Complex) -> Complex {
+        rhs.add_assign_round(self, NEAREST2);
+        rhs
+    }
+}
+
 impl<'a, I> AddAssign<DotIncomplete<'a, I>> for Complex
 where
     I: Iterator<Item = (&'a Self, &'a Self)>,
@@ -3459,6 +3578,87 @@ where
     type Ordering = Ordering2;
     fn add_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round2) -> Ordering2 {
         xmpc::dot_including_old(self, src.values, round)
+    }
+}
+
+impl<'a, I> Sub<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Output = Self;
+    #[inline]
+    fn sub(mut self, rhs: DotIncomplete<'a, I>) -> Self {
+        self.sub_assign_round(rhs, NEAREST2);
+        self
+    }
+}
+
+impl<'a, I> Sub<Complex> for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Complex, &'a Complex)>,
+{
+    type Output = Complex;
+    #[inline]
+    fn sub(self, mut rhs: Complex) -> Complex {
+        rhs.sub_from_round(self, NEAREST2);
+        rhs
+    }
+}
+
+impl<'a, I> SubAssign<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    #[inline]
+    fn sub_assign(&mut self, rhs: DotIncomplete<'a, I>) {
+        self.sub_assign_round(rhs, NEAREST2);
+    }
+}
+
+impl<'a, I> SubAssignRound<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn sub_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round2) -> Ordering2 {
+        self.neg_assign();
+        let reverse_round0 = match round.0 {
+            Round::Up => Round::Down,
+            Round::Down => Round::Up,
+            unchanged => unchanged,
+        };
+        let reverse_round1 = match round.1 {
+            Round::Up => Round::Down,
+            Round::Down => Round::Up,
+            unchanged => unchanged,
+        };
+        let reverse_dir = self.add_assign_round(src, (reverse_round0, reverse_round1));
+        self.neg_assign();
+        (reverse_dir.0.reverse(), reverse_dir.1.reverse())
+    }
+}
+
+impl<'a, I> SubFrom<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    #[inline]
+    fn sub_from(&mut self, rhs: DotIncomplete<'a, I>) {
+        self.sub_from_round(rhs, NEAREST2);
+    }
+}
+
+impl<'a, I> SubFromRound<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn sub_from_round(&mut self, src: DotIncomplete<'a, I>, round: Round2) -> Ordering2 {
+        self.neg_assign();
+        self.add_assign_round(src, round)
     }
 }
 
