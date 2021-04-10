@@ -17,6 +17,7 @@
 use crate::{
     ext::{xmpq, xmpz},
     integer::big as big_integer,
+    ops::{NegAssign, SubFrom},
     Assign, Complete, Integer,
 };
 use az::{Cast, CheckedCast, UnwrappedAs, UnwrappedCast};
@@ -1026,9 +1027,12 @@ impl Rational {
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
     ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Rational]</code>
-    ///   * <code>[Add]\<Src> for [Rational]</code>
-    ///   * <code>[SubAssign]\<Src> for [Rational]</code>
-    ///   * <code>[Sub]\<Src> for [Rational]</code>
+    ///   * <code>[Add]\<Src> for [Rational]</code>, <code>[Add]\<[Rational]>
+    ///     for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Rational]</code>, <code>[SubFrom]\<Src>
+    ///     for [Rational]</code>
+    ///   * <code>[Sub]\<Src> for [Rational]</code>, <code>[Sub]\<[Rational]>
+    ///     for Src</code>
     ///
     /// # Examples
     ///
@@ -1064,9 +1068,12 @@ impl Rational {
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
     ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Rational]</code>
-    ///   * <code>[Add]\<Src> for [Rational]</code>
-    ///   * <code>[SubAssign]\<Src> for [Rational]</code>
-    ///   * <code>[Sub]\<Src> for [Rational]</code>
+    ///   * <code>[Add]\<Src> for [Rational]</code>, <code>[Add]\<[Rational]>
+    ///     for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Rational]</code>, <code>[SubFrom]\<Src>
+    ///     for [Rational]</code>
+    ///   * <code>[Sub]\<Src> for [Rational]</code>, <code>[Sub]\<[Rational]>
+    ///     for Src</code>
     ///
     /// # Examples
     ///
@@ -1099,7 +1106,8 @@ impl Rational {
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
     ///     Src</code>
     ///   * <code>[MulAssign]\<Src> for [Rational]</code>
-    ///   * <code>[Mul]\<Src> for [Rational]</code>
+    ///   * <code>[Mul]\<Src> for [Rational]</code>, <code>[Mul]\<[Rational]>
+    ///     for Src</code>
     ///
     /// # Examples
     ///
@@ -2409,6 +2417,18 @@ where
     }
 }
 
+impl<'a, I> Add<Rational> for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Rational>,
+{
+    type Output = Rational;
+    #[inline]
+    fn add(self, mut rhs: Rational) -> Rational {
+        rhs.add_assign(self);
+        rhs
+    }
+}
+
 impl<'a, I> AddAssign<SumIncomplete<'a, I>> for Rational
 where
     I: Iterator<Item = &'a Self>,
@@ -2432,6 +2452,19 @@ where
     }
 }
 
+impl<'a, I> Sub<Rational> for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Rational>,
+{
+    type Output = Rational;
+    #[inline]
+    fn sub(self, mut rhs: Rational) -> Rational {
+        rhs.neg_assign();
+        rhs.add_assign(self);
+        rhs
+    }
+}
+
 impl<'a, I> SubAssign<SumIncomplete<'a, I>> for Rational
 where
     I: Iterator<Item = &'a Self>,
@@ -2440,6 +2473,16 @@ where
         for i in src.values {
             self.sub_assign(i);
         }
+    }
+}
+
+impl<'a, I> SubFrom<SumIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn sub_from(&mut self, src: SumIncomplete<'a, I>) {
+        self.neg_assign();
+        self.add_assign(src);
     }
 }
 
@@ -2506,6 +2549,18 @@ where
     }
 }
 
+impl<'a, I> Add<Rational> for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    type Output = Rational;
+    #[inline]
+    fn add(self, mut rhs: Rational) -> Rational {
+        rhs.add_assign(self);
+        rhs
+    }
+}
+
 impl<'a, I> AddAssign<DotIncomplete<'a, I>> for Rational
 where
     I: Iterator<Item = (&'a Rational, &'a Rational)>,
@@ -2532,6 +2587,19 @@ where
     }
 }
 
+impl<'a, I> Sub<Rational> for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    type Output = Rational;
+    #[inline]
+    fn sub(self, mut rhs: Rational) -> Rational {
+        rhs.neg_assign();
+        rhs.add_assign(self);
+        rhs
+    }
+}
+
 impl<'a, I> SubAssign<DotIncomplete<'a, I>> for Rational
 where
     I: Iterator<Item = (&'a Rational, &'a Rational)>,
@@ -2543,6 +2611,16 @@ where
             mul.assign(i.0 * i.1);
             SubAssign::sub_assign(self, &mul);
         }
+    }
+}
+
+impl<'a, I> SubFrom<DotIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    fn sub_from(&mut self, src: DotIncomplete<'a, I>) {
+        self.neg_assign();
+        self.add_assign(src);
     }
 }
 
@@ -2606,6 +2684,18 @@ where
     fn mul(mut self, rhs: ProductIncomplete<'a, I>) -> Self {
         self.mul_assign(rhs);
         self
+    }
+}
+
+impl<'a, I> Mul<Rational> for ProductIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Rational>,
+{
+    type Output = Rational;
+    #[inline]
+    fn mul(self, mut rhs: Rational) -> Rational {
+        rhs.mul_assign(self);
+        rhs
     }
 }
 

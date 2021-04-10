@@ -20,7 +20,7 @@ use crate::{
     ext::xmpz,
     integer::{arith::MulIncomplete, Order},
     misc,
-    ops::DivRounding,
+    ops::{DivRounding, NegAssign, SubFrom},
     Assign, Complete,
 };
 use az::{Az, Cast, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingCast};
@@ -2254,9 +2254,12 @@ impl Integer {
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
     ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Integer]</code>
-    ///   * <code>[Add]\<Src> for [Integer]</code>
-    ///   * <code>[SubAssign]\<Src> for [Integer]</code>
-    ///   * <code>[Sub]\<Src> for [Integer]</code>
+    ///   * <code>[Add]\<Src> for [Integer]</code>, <code>[Add]\<[Integer]> for
+    ///     Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Integer]</code>, <code>[SubFrom]\<Src>
+    ///     for [Integer]</code>
+    ///   * <code>[Sub]\<Src> for [Integer]</code>, <code>[Sub]\<[Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2293,9 +2296,12 @@ impl Integer {
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
     ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Integer]</code>
-    ///   * <code>[Add]\<Src> for [Integer]</code>
-    ///   * <code>[SubAssign]\<Src> for [Integer]</code>
-    ///   * <code>[Sub]\<Src> for [Integer]</code>
+    ///   * <code>[Add]\<Src> for [Integer]</code>, <code>[Add]\<[Integer]> for
+    ///     Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Integer]</code>, <code>[SubFrom]\<Src>
+    ///     for [Integer]</code>
+    ///   * <code>[Sub]\<Src> for [Integer]</code>, <code>[Sub]\<[Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2327,8 +2333,9 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
     ///     Src</code>
-    ///   * <code>[MulAssign]\<Src>0 for [Integer]</code>
-    ///   * <code>[Mul]\<Src> for [Integer]</code>
+    ///   * <code>[MulAssign]\<Src> for [Integer]</code>
+    ///   * <code>[Mul]\<Src> for [Integer]</code>, <code>[Mul]\<[Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4033,7 +4040,6 @@ impl Integer {
     /// assert_eq!(Integer::from(i.square_ref()), 169);
     /// ```
     ///
-    /// [SubFrom]: crate::ops::SubFrom
     /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> MulIncomplete<'_> {
@@ -5360,6 +5366,18 @@ where
     }
 }
 
+impl<'a, I> Add<Integer> for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Integer>,
+{
+    type Output = Integer;
+    #[inline]
+    fn add(self, mut rhs: Integer) -> Integer {
+        rhs.add_assign(self);
+        rhs
+    }
+}
+
 impl<'a, I> AddAssign<SumIncomplete<'a, I>> for Integer
 where
     I: Iterator<Item = &'a Self>,
@@ -5383,6 +5401,19 @@ where
     }
 }
 
+impl<'a, I> Sub<Integer> for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Integer>,
+{
+    type Output = Integer;
+    #[inline]
+    fn sub(self, mut rhs: Integer) -> Integer {
+        rhs.neg_assign();
+        rhs.add_assign(self);
+        rhs
+    }
+}
+
 impl<'a, I> SubAssign<SumIncomplete<'a, I>> for Integer
 where
     I: Iterator<Item = &'a Self>,
@@ -5391,6 +5422,16 @@ where
         for i in src.values {
             self.sub_assign(i);
         }
+    }
+}
+
+impl<'a, I> SubFrom<SumIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn sub_from(&mut self, src: SumIncomplete<'a, I>) {
+        self.neg_assign();
+        self.add_assign(src);
     }
 }
 
@@ -5457,6 +5498,18 @@ where
     }
 }
 
+impl<'a, I> Add<Integer> for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    type Output = Integer;
+    #[inline]
+    fn add(self, mut rhs: Integer) -> Integer {
+        rhs.add_assign(self);
+        rhs
+    }
+}
+
 impl<'a, I> AddAssign<DotIncomplete<'a, I>> for Integer
 where
     I: Iterator<Item = (&'a Integer, &'a Integer)>,
@@ -5481,6 +5534,19 @@ where
     }
 }
 
+impl<'a, I> Sub<Integer> for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    type Output = Integer;
+    #[inline]
+    fn sub(self, mut rhs: Integer) -> Integer {
+        rhs.neg_assign();
+        rhs.add_assign(self);
+        rhs
+    }
+}
+
 impl<'a, I> SubAssign<DotIncomplete<'a, I>> for Integer
 where
     I: Iterator<Item = (&'a Integer, &'a Integer)>,
@@ -5490,6 +5556,16 @@ where
             #[allow(clippy::suspicious_op_assign_impl)]
             SubAssign::sub_assign(self, i.0 * i.1);
         }
+    }
+}
+
+impl<'a, I> SubFrom<DotIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    fn sub_from(&mut self, src: DotIncomplete<'a, I>) {
+        self.neg_assign();
+        self.add_assign(src);
     }
 }
 
@@ -5553,6 +5629,18 @@ where
     fn mul(mut self, rhs: ProductIncomplete<'a, I>) -> Self {
         self.mul_assign(rhs);
         self
+    }
+}
+
+impl<'a, I> Mul<Integer> for ProductIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Integer>,
+{
+    type Output = Integer;
+    #[inline]
+    fn mul(self, mut rhs: Integer) -> Integer {
+        rhs.mul_assign(self);
+        rhs
     }
 }
 
