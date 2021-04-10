@@ -17,10 +17,8 @@
 /*!
 Arbitrary-precision rational numbers.
 
-This module provides support for arbitrary-precision rational numbers
-of type [`Rational`].
-
-[`Rational`]: `crate::Rational`
+This module provides support for arbitrary-precision rational numbers of type
+[`Rational`][crate::Rational].
 */
 
 mod arith;
@@ -36,8 +34,8 @@ pub use crate::rational::big::ParseRationalError;
 pub use crate::rational::small::SmallRational;
 
 /**
-An error which can be returned when a checked conversion from a
-floating-point number to a [`Rational`] number fails.
+An error which can be returned when a checked conversion from a floating-point
+number to a [`Rational`][crate::Rational] number fails.
 
 # Examples
 
@@ -52,8 +50,6 @@ let error: TryFromFloatError = match Rational::try_from(inf) {
 };
 println!("Error: {}", error);
 ```
-
-[`Rational`]: `crate::Rational`
 */
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromFloatError {

@@ -33,10 +33,10 @@ use std::error::Error;
 /**
 An arbitrary-precision rational number.
 
-A `Rational` number is made up of a numerator [`Integer`] and
-denominator [`Integer`]. After `Rational` number functions, the number
-is always in canonical form, that is the denominator is always greater
-than zero, and there are no common factors. Zero is stored as 0/1.
+A `Rational` number is made up of a numerator [`Integer`] and denominator
+[`Integer`]. After `Rational` number functions, the number is always in
+canonical form, that is the denominator is always greater than zero, and there
+are no common factors. Zero is stored as 0/1.
 
 # Examples
 
@@ -52,14 +52,14 @@ assert_eq!(num, -4);
 assert_eq!(den, 5);
 ```
 
-The `Rational` number type supports various functions. Most methods
-have three versions:
+The `Rational` number type supports various functions. Most methods have three
+versions:
 
  1. The first method consumes the operand.
  2. The second method has a “`_mut`” suffix and mutates the operand.
- 3. The third method has a “`_ref`” suffix and borrows the operand.
-    The returned item is an [incomplete-computation value][icv] that
-    can be assigned to a `Rational` number.
+ 3. The third method has a “`_ref`” suffix and borrows the operand. The returned
+    item is an [incomplete-computation value][icv] that can be assigned to a
+    `Rational` number.
 
 ```rust
 use rug::Rational;
@@ -83,7 +83,7 @@ assert_eq!(abs_c, (19, 2));
 assert_eq!(c, (-19, 2));
 ```
 
-[icv]: `crate`#incomplete-computation-values
+[icv]: crate#incomplete-computation-values
 */
 #[repr(transparent)]
 pub struct Rational {
@@ -166,8 +166,7 @@ macro_rules! ref_rat_op_rat_int {
 }
 
 impl Rational {
-    /// Constructs a new arbitrary-precision [`Rational`] number with
-    /// value 0.
+    /// Constructs a new arbitrary-precision [`Rational`] number with value 0.
     ///
     /// # Examples
     ///
@@ -185,26 +184,23 @@ impl Rational {
         }
     }
 
-    /// Creates a [`Rational`] number from an initialized
-    /// [GMP rational number][mpq_t].
+    /// Creates a [`Rational`] number from an initialized [GMP rational
+    /// number][mpq_t].
     ///
     /// # Safety
     ///
-    ///   * The function must *not* be used to create a constant
-    ///     [`Rational`] number, though it can be used to create a
-    ///     static [`Rational`] number. This is because constant
-    ///     values are *copied* on use, leading to undefined behaviour
-    ///     when they are dropped.
+    ///   * The function must *not* be used to create a constant [`Rational`]
+    ///     number, though it can be used to create a static [`Rational`]
+    ///     number. This is because constant values are *copied* on use, leading
+    ///     to undefined behavior when they are dropped.
     ///   * The value must be initialized.
-    ///   * The [`mpq_t`] type can be considered as a kind of pointer,
-    ///     so there can be multiple copies of it. Since this function
-    ///     takes over ownership, no other copies of the passed value
-    ///     should exist.
-    ///   * The numerator and denominator must be in canonical form,
-    ///     as the rest of the library assumes that they are. Most GMP
-    ///     functions leave the rational number in canonical form, but
-    ///     assignment functions do not. Check the
-    ///     [GMP documentation][gmp mpq] for details.
+    ///   * The [`mpq_t`] type can be considered as a kind of pointer, so there
+    ///     can be multiple copies of it. Since this function takes over
+    ///     ownership, no other copies of the passed value should exist.
+    ///   * The numerator and denominator must be in canonical form, as the rest
+    ///     of the library assumes that they are. Most GMP functions leave the
+    ///     rational number in canonical form, but assignment functions do not.
+    ///     Check the [GMP documentation][gmp mpq] for details.
     ///
     /// # Examples
     ///
@@ -226,9 +222,8 @@ impl Rational {
     /// ```
     ///
     /// This can be used to create a static [`Rational`] number using
-    /// [`MPZ_ROINIT_N`] to initialize the raw numerator and
-    /// denominator values. See the [GMP documentation][gmp roinit]
-    /// for details.
+    /// [`MPZ_ROINIT_N`][gmp::MPZ_ROINIT_N] to initialize the raw numerator and
+    /// denominator values. See the [GMP documentation][gmp roinit] for details.
     ///
     /// ```rust
     /// use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
@@ -255,7 +250,6 @@ impl Rational {
     /// assert_eq!(*R.denom(), *check.denom());
     /// ```
     ///
-    /// [`MPZ_ROINIT_N`]: `gmp::MPZ_ROINIT_N`
     /// [gmp mpq]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Rational_Number_Functions.html#index-Rational-number-functions
     /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
@@ -263,8 +257,7 @@ impl Rational {
         Rational { inner: raw }
     }
 
-    /// Converts a [`Rational`] number into a
-    /// [GMP rational number][mpq_t].
+    /// Converts a [`Rational`] number into a [GMP rational number][mpq_t].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -290,8 +283,7 @@ impl Rational {
 
     /// Returns a pointer to the inner [GMP rational number][mpq_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -312,11 +304,10 @@ impl Rational {
         &self.inner
     }
 
-    /// Returns an unsafe mutable pointer to the inner
-    /// [GMP rational number][mpq_t].
+    /// Returns an unsafe mutable pointer to the inner [GMP rational
+    /// number][mpq_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -409,26 +400,24 @@ impl Rational {
         Ok(Rational::from(Rational::parse_radix(src, radix)?))
     }
 
-    /// Parses a decimal string slice (<code>\&[str]</code>) or
-    /// byte slice
-    /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into a
-    /// [`Rational`] number.
+    /// Parses a decimal string slice (<code>\&[str]</code>) or byte slice
+    /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into a [`Rational`]
+    /// number.
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
-    /// The string must contain a numerator, and may contain a
-    /// denominator; the numerator and denominator are separated with
-    /// a “`/`”. The numerator can start with an optional minus or
-    /// plus sign.
+    /// The string must contain a numerator, and may contain a denominator; the
+    /// numerator and denominator are separated with a “`/`”. The numerator can
+    /// start with an optional minus or plus sign.
     ///
-    /// ASCII whitespace is ignored everywhere in the string.
-    /// Underscores are ignored anywhere except before the first digit
-    /// of the numerator and between the “`/`” and the the first digit
-    /// of the denominator.
+    /// ASCII whitespace is ignored everywhere in the string. Underscores are
+    /// ignored anywhere except before the first digit of the numerator and
+    /// between the “`/`” and the the first digit of the denominator.
     ///
     /// # Examples
     ///
@@ -442,31 +431,30 @@ impl Rational {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(src: S) -> Result<ParseIncomplete, ParseRationalError> {
         parse(src.as_ref(), 10)
     }
 
     /// Parses a string slice (<code>\&[str]</code>) or byte slice
-    /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into a
-    /// [`Rational`] number.
+    /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into a [`Rational`]
+    /// number.
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
-    /// The string must contain a numerator, and may contain a
-    /// denominator; the numerator and denominator are separated with
-    /// a “`/`”. The numerator can start with an optional minus or
-    /// plus sign.
+    /// The string must contain a numerator, and may contain a denominator; the
+    /// numerator and denominator are separated with a “`/`”. The numerator can
+    /// start with an optional minus or plus sign.
     ///
-    /// ASCII whitespace is ignored everywhere in the string.
-    /// Underscores are ignored anywhere except before the first digit
-    /// of the numerator and between the “`/`” and the the first digit
-    /// of the denominator.
+    /// ASCII whitespace is ignored everywhere in the string. Underscores are
+    /// ignored anywhere except before the first digit of the numerator and
+    /// between the “`/`” and the the first digit of the denominator.
     ///
     /// # Panics
     ///
@@ -486,7 +474,7 @@ impl Rational {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
@@ -586,8 +574,8 @@ impl Rational {
         s
     }
 
-    /// Assigns from an [`f32`] if it is [finite][f32::is_finite], losing
-    /// no precision.
+    /// Assigns from an [`f32`] if it is [finite][f32::is_finite], losing no
+    /// precision.
     ///
     /// # Examples
     ///
@@ -608,8 +596,8 @@ impl Rational {
         self.assign_f64(val.into())
     }
 
-    /// Assigns from an [`f64`] if it is [finite][f64::is_finite], losing
-    /// no precision.
+    /// Assigns from an [`f64`] if it is [finite][f64::is_finite], losing no
+    /// precision.
     ///
     /// # Examples
     ///
@@ -634,26 +622,25 @@ impl Rational {
         }
     }
 
-    /// Creates a new [`Rational`] number from a numerator and
-    /// denominator without canonicalizing aftwerwards.
+    /// Creates a new [`Rational`] number from a numerator and denominator
+    /// without canonicalizing aftwerwards.
     ///
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// [`Rational`] number. The caller must ensure that the numerator
-    /// and denominator are in canonical form, as the rest of the
-    /// library assumes that they are.
+    /// [`Rational`] number. The caller must ensure that the numerator and
+    /// denominator are in canonical form, as the rest of the library assumes
+    /// that they are.
     ///
-    /// There are a few methods that can be called on [`Rational`]
-    /// numbers that are not in canonical form:
+    /// There are a few methods that can be called on [`Rational`] numbers that
+    /// are not in canonical form:
     ///
-    ///   * [`numer`] and [`denom`], which treat the numerator and
-    ///     denominator separately
-    ///   * assignment methods, which overwrite the previous value and
-    ///     leave the number in canonical form
-    ///   * [`mutate_numer_denom`], which treats the numerator and
-    ///     denominator seprarately, and leaves the number in
-    ///     canoncial form
+    ///   * [`numer`] and [`denom`], which treat the numerator and denominator
+    ///     separately
+    ///   * assignment methods, which overwrite the previous value and leave the
+    ///     number in canonical form
+    ///   * [`mutate_numer_denom`], which treats the numerator and denominator
+    ///     seprarately, and leaves the number in canoncial form
     ///
     /// # Examples
     ///
@@ -680,26 +667,25 @@ impl Rational {
         }
     }
 
-    /// Assigns to the numerator and denominator without
-    /// canonicalizing aftwerwards.
+    /// Assigns to the numerator and denominator without canonicalizing
+    /// aftwerwards.
     ///
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// [`Rational`] number after the assignment. The caller must
-    /// ensure that the numerator and denominator are in canonical
-    /// form, as the rest of the library assumes that they are.
+    /// [`Rational`] number after the assignment. The caller must ensure that
+    /// the numerator and denominator are in canonical form, as the rest of the
+    /// library assumes that they are.
     ///
-    /// There are a few methods that can be called on [`Rational`]
-    /// numbers that are not in canonical form:
+    /// There are a few methods that can be called on [`Rational`] numbers that
+    /// are not in canonical form:
     ///
-    ///   * [`numer`] and [`denom`], which treat the numerator and
-    ///     denominator separately
-    ///   * assignment methods, which overwrite the previous value and
-    ///     leave the number in canonical form
-    ///   * [`mutate_numer_denom`], which treats the numerator and
-    ///     denominator seprarately, and leaves the number in
-    ///     canoncial form
+    ///   * [`numer`] and [`denom`], which treat the numerator and denominator
+    ///     separately
+    ///   * assignment methods, which overwrite the previous value and leave the
+    ///     number in canonical form
+    ///   * [`mutate_numer_denom`], which treats the numerator and denominator
+    ///     seprarately, and leaves the number in canoncial form
     ///
     /// # Examples
     ///
@@ -781,10 +767,10 @@ impl Rational {
     /// assert_eq!(*r.denom(), 2);
     /// ```
     ///
-    /// This method does not check that the numerator and denominator
-    /// are in canonical form before calling `func`. This means that
-    /// this method can be used to canonicalize the number after some
-    /// unsafe methods that do not leave the number in cononical form.
+    /// This method does not check that the numerator and denominator are in
+    /// canonical form before calling `func`. This means that this method can be
+    /// used to canonicalize the number after some unsafe methods that do not
+    /// leave the number in cononical form.
     ///
     /// ```rust
     /// use rug::Rational;
@@ -813,26 +799,25 @@ impl Rational {
         xmpq::canonicalize(self);
     }
 
-    /// Borrows the numerator and denominator mutably without
-    /// canonicalizing aftwerwards.
+    /// Borrows the numerator and denominator mutably without canonicalizing
+    /// aftwerwards.
     ///
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// [`Rational`] number when the borrow ends. The caller must
-    /// ensure that the numerator and denominator are left in
-    /// canonical form, as the rest of the library assumes that they
-    /// are.
+    /// [`Rational`] number when the borrow ends. The caller must ensure that
+    /// the numerator and denominator are left in canonical form, as the rest of
+    /// the library assumes that they are.
     ///
-    /// There are a few methods that can be called on [`Rational`]
-    /// numbers that are not in canonical form:
+    /// There are a few methods that can be called on [`Rational`] numbers that
+    /// are not in canonical form:
     ///
-    ///   * [`numer`] and [`denom`], which treat the numerator and
-    ///     denominator separately
-    ///   * assignment methods, which overwrite the previous value and
-    ///     leave the number in canonical form
-    ///   * [`mutate_numer_denom`], which treats the numerator and
-    ///     denominator seprarately, and leaves the number in
+    ///   * [`numer`][Rational::numer] and [`denom`][Rational::denom], which
+    ///     treat the numerator and denominator separately
+    ///   * assignment methods, which overwrite the previous value and leave the
+    ///     number in canonical form
+    ///   * [`mutate_numer_denom`][Rational::mutate_numer_denom], which treats
+    ///     the numerator and denominator seprarately, and leaves the number in
     ///     canoncial form
     ///
     /// # Examples
@@ -852,8 +837,8 @@ impl Rational {
     ///
     /// This method can also be used to group some operations before
     /// canonicalization. This is usually not beneficial, as early
-    /// canonicalization usually means subsequent arithmetic
-    /// operations have less work to do.
+    /// canonicalization usually means subsequent arithmetic operations have
+    /// less work to do.
     ///
     /// ```rust
     /// use rug::Rational;
@@ -872,10 +857,6 @@ impl Rational {
     /// assert_eq!(*r.numer(), -1);
     /// assert_eq!(*r.denom(), 2);
     /// ```
-    ///
-    /// [`denom`]: `Rational::denom`
-    /// [`mutate_numer_denom`]: `Rational::mutate_numer_denom`
-    /// [`numer`]: `Rational::numer`
     #[inline]
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
@@ -885,8 +866,8 @@ impl Rational {
 
     /// Converts into numerator and denominator [`Integer`] values.
     ///
-    /// This function reuses the allocated memory and does not
-    /// allocate any new memory.
+    /// This function reuses the allocated memory and does not allocate any new
+    /// memory.
     ///
     /// # Examples
     ///
@@ -907,8 +888,8 @@ impl Rational {
 
     /// Borrows a negated copy of the [`Rational`] number.
     ///
-    /// The returned object implements
-    /// <code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Rational]></code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -935,11 +916,11 @@ impl Rational {
 
     /// Borrows an absolute copy of the [`Rational`] number.
     ///
-    /// The returned object implements
-    /// <code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Rational]></code>.
     ///
-    /// This method performs a shallow copy and possibly negates it,
-    /// and negation does not change the allocated data.
+    /// This method performs a shallow copy and possibly negates it, and
+    /// negation does not change the allocated data.
     ///
     /// # Examples
     ///
@@ -963,11 +944,11 @@ impl Rational {
 
     /// Borrows a reciprocal copy of the [`Rational`] number.
     ///
-    /// The returned object implements
-    /// <code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Rational]></code>.
     ///
-    /// This method performs some shallow copying, swapping numerator
-    /// and denominator and making sure the sign is in the numerator.
+    /// This method performs some shallow copying, swapping numerator and
+    /// denominator and making sure the sign is in the numerator.
     ///
     /// # Panics
     ///
@@ -1002,8 +983,8 @@ impl Rational {
     }
 
     /// Returns the same result as
-    /// <code>self.[cmp][Ord::cmp]\(\&0.[into][Into::into]\())</code>, but
-    /// is faster.
+    /// <code>self.[cmp][Ord::cmp]\(\&0.[into][Into::into]\())</code>, but is
+    /// faster.
     ///
     /// # Examples
     ///
@@ -1038,11 +1019,12 @@ impl Rational {
 
     /// Adds a list of [`Rational`] values.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Rational]</code>
     ///   * <code>[Add]\<Src> for [Rational]</code>
     ///
@@ -1062,7 +1044,7 @@ impl Rational {
     /// assert_eq!(sum, expected);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
@@ -1073,11 +1055,12 @@ impl Rational {
 
     /// Finds the dot product of a list of [`Rational`] value pairs.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Rational]</code>
     ///   * <code>[Add]\<Src> for [Rational]</code>
     ///
@@ -1094,7 +1077,7 @@ impl Rational {
     /// assert_eq!(dot, expected);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
     where
@@ -1105,11 +1088,12 @@ impl Rational {
 
     /// Multiplies a list of [`Rational`] values.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///   * <code>[MulAssign]\<Src> for [Rational]</code>
     ///   * <code>[Mul]\<Src> for [Rational]</code>
     ///
@@ -1129,7 +1113,7 @@ impl Rational {
     /// assert_eq!(product, expected);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn product<'a, I>(values: I) -> ProductIncomplete<'a, I>
     where
@@ -1171,11 +1155,12 @@ impl Rational {
 
     /// Computes the absolute value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1186,7 +1171,7 @@ impl Rational {
     /// assert_eq!(abs, (100, 17));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete<'_> {
         AbsIncomplete { ref_self: self }
@@ -1237,13 +1222,14 @@ impl Rational {
     ///   * 1 if the value is positive
     ///   * −1 if the value is negative
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1255,7 +1241,7 @@ impl Rational {
     /// assert_eq!(signum, -1);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn signum_ref(&self) -> SignumIncomplete<'_> {
         SignumIncomplete { ref_self: self }
@@ -1327,7 +1313,8 @@ impl Rational {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Panics
     ///
@@ -1347,7 +1334,7 @@ impl Rational {
     /// assert_eq!(clamped, (1, 2));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'min, 'max, Min, Max>(
         &self,
@@ -1386,10 +1373,9 @@ impl Rational {
 
     /// Computes the reciprocal.
     ///
-    /// This method never reallocates or copies the heap data. It
-    /// simply swaps the allocated data of the numerator and
-    /// denominator and makes sure the denominator is stored as
-    /// positive.
+    /// This method never reallocates or copies the heap data. It simply swaps
+    /// the allocated data of the numerator and denominator and makes sure the
+    /// denominator is stored as positive.
     ///
     /// # Panics
     ///
@@ -1410,11 +1396,12 @@ impl Rational {
 
     /// Computes the reciprocal.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1424,7 +1411,7 @@ impl Rational {
     /// assert_eq!(r.recip_ref().complete(), (-17, 100));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn recip_ref(&self) -> RecipIncomplete<'_> {
         RecipIncomplete { ref_self: self }
@@ -1473,13 +1460,14 @@ impl Rational {
 
     /// Rounds the number towards zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1496,7 +1484,7 @@ impl Rational {
     /// assert_eq!(trunc, 3);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn trunc_ref(&self) -> TruncIncomplete<'_> {
         TruncIncomplete { ref_self: self }
@@ -1537,11 +1525,12 @@ impl Rational {
 
     /// Computes the fractional part of the number.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1552,7 +1541,7 @@ impl Rational {
     /// assert_eq!(r.rem_trunc_ref().complete(), (-15, 17));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn rem_trunc_ref(&self) -> RemTruncIncomplete<'_> {
         RemTruncIncomplete { ref_self: self }
@@ -1600,12 +1589,16 @@ impl Rational {
 
     /// Computes the fractional and truncated parts of the number.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Rational][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1620,7 +1613,7 @@ impl Rational {
     /// assert_eq!(trunc, -5);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn fract_trunc_ref(&self) -> FractTruncIncomplete<'_> {
         FractTruncIncomplete { ref_self: self }
@@ -1669,13 +1662,14 @@ impl Rational {
 
     /// Rounds the number upwards (towards plus infinity).
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1692,7 +1686,7 @@ impl Rational {
     /// assert_eq!(ceil, 4);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn ceil_ref(&self) -> CeilIncomplete<'_> {
         CeilIncomplete { ref_self: self }
@@ -1733,11 +1727,12 @@ impl Rational {
 
     /// Computes the non-positive remainder after rounding up.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1748,7 +1743,7 @@ impl Rational {
     /// assert_eq!(r.rem_ceil_ref().complete(), (-2, 17));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn rem_ceil_ref(&self) -> RemCeilIncomplete<'_> {
         RemCeilIncomplete { ref_self: self }
@@ -1802,12 +1797,16 @@ impl Rational {
     ///
     /// The fractional part cannot be greater than zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Rational][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1822,7 +1821,7 @@ impl Rational {
     /// assert_eq!(ceil, 6);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn fract_ceil_ref(&self) -> FractCeilIncomplete<'_> {
         FractCeilIncomplete { ref_self: self }
@@ -1869,13 +1868,14 @@ impl Rational {
 
     /// Rounds the number downwards (towards minus infinity).
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1892,7 +1892,7 @@ impl Rational {
     /// assert_eq!(floor, 3);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn floor_ref(&self) -> FloorIncomplete<'_> {
         FloorIncomplete { ref_self: self }
@@ -1937,7 +1937,8 @@ impl Rational {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -1948,7 +1949,7 @@ impl Rational {
     /// assert_eq!(r.rem_floor_ref().complete(), (2, 17));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn rem_floor_ref(&self) -> RemFloorIncomplete<'_> {
         RemFloorIncomplete { ref_self: self }
@@ -2002,12 +2003,16 @@ impl Rational {
     ///
     /// The fractional part cannot be negative.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Rational][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2022,7 +2027,7 @@ impl Rational {
     /// assert_eq!(floor, -6);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn fract_floor_ref(&self) -> FractFloorIncomplete<'_> {
         FractFloorIncomplete { ref_self: self }
@@ -2030,8 +2035,8 @@ impl Rational {
 
     /// Rounds the number to the nearest integer.
     ///
-    /// When the number lies exactly between two integers, it is
-    /// rounded away from zero.
+    /// When the number lies exactly between two integers, it is rounded away
+    /// from zero.
     ///
     /// # Examples
     ///
@@ -2054,8 +2059,8 @@ impl Rational {
 
     /// Rounds the number to the nearest integer.
     ///
-    /// When the number lies exactly between two integers, it is
-    /// rounded away from zero.
+    /// When the number lies exactly between two integers, it is rounded away
+    /// from zero.
     ///
     /// # Examples
     ///
@@ -2077,16 +2082,17 @@ impl Rational {
 
     /// Rounds the number to the nearest integer.
     ///
-    /// When the number lies exactly between two integers, it is
-    /// rounded away from zero.
+    /// When the number lies exactly between two integers, it is rounded away
+    /// from zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer`]</code>
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2103,14 +2109,13 @@ impl Rational {
     /// assert_eq!(round, 4);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn round_ref(&self) -> RoundIncomplete<'_> {
         RoundIncomplete { ref_self: self }
     }
 
-    /// Computes the remainder after rounding to the nearest
-    /// integer.
+    /// Computes the remainder after rounding to the nearest integer.
     ///
     /// # Examples
     ///
@@ -2131,8 +2136,7 @@ impl Rational {
         self
     }
 
-    /// Computes the remainder after rounding to the nearest
-    /// integer.
+    /// Computes the remainder after rounding to the nearest integer.
     ///
     /// # Examples
     ///
@@ -2152,14 +2156,14 @@ impl Rational {
         xmpq::round_fract(self, ());
     }
 
-    /// Computes the remainder after rounding to the nearest
-    /// integer.
+    /// Computes the remainder after rounding to the nearest integer.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2175,7 +2179,7 @@ impl Rational {
     /// assert_eq!(rem, (-3, 10));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn rem_round_ref(&self) -> RemRoundIncomplete<'_> {
         RemRoundIncomplete { ref_self: self }
@@ -2183,10 +2187,9 @@ impl Rational {
 
     /// Computes the fractional and rounded parts of the number.
     ///
-    /// The fractional part is positive when the number is rounded
-    /// down and negative when the number is rounded up. When the
-    /// number lies exactly between two integers, it is rounded away
-    /// from zero.
+    /// The fractional part is positive when the number is rounded down and
+    /// negative when the number is rounded up. When the number lies exactly
+    /// between two integers, it is rounded away from zero.
     ///
     /// The initial value of `round` is ignored.
     ///
@@ -2213,10 +2216,9 @@ impl Rational {
 
     /// Computes the fractional and round parts of the number.
     ///
-    /// The fractional part is positive when the number is rounded
-    /// down and negative when the number is rounded up. When the
-    /// number lies exactly between two integers, it is rounded away
-    /// from zero.
+    /// The fractional part is positive when the number is rounded down and
+    /// negative when the number is rounded up. When the number lies exactly
+    /// between two integers, it is rounded away from zero.
     ///
     /// The initial value of `round` is ignored.
     ///
@@ -2244,17 +2246,20 @@ impl Rational {
 
     /// Computes the fractional and round parts of the number.
     ///
-    /// The fractional part is positive when the number is rounded
-    /// down and negative when the number is rounded up. When the
-    /// number lies exactly between two integers, it is rounded away
-    /// from zero.
+    /// The fractional part is positive when the number is rounded down and
+    /// negative when the number is rounded up. When the number lies exactly
+    /// between two integers, it is rounded away from zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Rational][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2276,7 +2281,7 @@ impl Rational {
     /// assert_eq!(round2, 4);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn fract_round_ref(&self) -> FractRoundIncomplete<'_> {
         FractRoundIncomplete { ref_self: self }
@@ -2315,11 +2320,12 @@ impl Rational {
 
     /// Computes the square.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2329,7 +2335,7 @@ impl Rational {
     /// assert_eq!(r.square_ref().complete(), (169, 4));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> SquareIncomplete<'_> {
         SquareIncomplete { ref_self: self }
@@ -2823,9 +2829,8 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError
 /**
 An error which can be returned when parsing a [`Rational`] number.
 
-See the
-<code>[Rational]::[parse_radix][Rational::parse_radix]</code>
-method for details on what strings are accepted.
+See the <code>[Rational]::[parse\_radix][Rational::parse_radix]</code> method
+for details on what strings are accepted.
 
 # Examples
 

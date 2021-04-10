@@ -35,17 +35,16 @@ type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
 /**
 A small rational number that does not require any memory allocation.
 
-This can be useful when you have a numerator and denominator that are
-primitive integer-types such as [`i64`] or [`u8`], and you need a
-reference to a [`Rational`].
+This can be useful when you have a numerator and denominator that are primitive
+integer-types such as [`i64`] or [`u8`], and you need a reference to a
+[`Rational`].
 
-Although no allocation is required, setting the value of a
-`SmallRational` does require some computation, as the numerator and
-denominator need to be canonicalized.
+Although no allocation is required, setting the value of a `SmallRational` does
+require some computation, as the numerator and denominator need to be
+canonicalized.
 
-The `SmallRational` type can be coerced to a [`Rational`], as it
-implements
-<code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Rational][`Rational`]></code>.
+The `SmallRational` type can be coerced to a [`Rational`], as it implements
+<code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
 
 # Examples
 
@@ -129,21 +128,21 @@ impl SmallRational {
         }
     }
 
-    /// Returns a mutable reference to a [`Rational`] number for
-    /// simple operations that do not need to allocate more space for
-    /// the numerator or denominator.
+    /// Returns a mutable reference to a [`Rational`] number for simple
+    /// operations that do not need to allocate more space for the numerator or
+    /// denominator.
     ///
     /// # Safety
     ///
-    /// It is undefined behaviour to perform operations that
-    /// reallocate the internal data of the referenced [`Rational`]
-    /// number or to swap it with another number, although it is
-    /// allowed to swap the numerator and denominator allocations,
-    /// such as in the reciprocal operation [`recip_mut`].
+    /// It is undefined behavior to perform operations that reallocate the
+    /// internal data of the referenced [`Rational`] number or to swap it with
+    /// another number, although it is allowed to swap the numerator and
+    /// denominator allocations, such as in the reciprocal operation
+    /// [`recip_mut`].
     ///
-    /// Some GMP functions swap the allocations of their target
-    /// operands; calling such functions with the mutable reference
-    /// returned by this method can lead to undefined behaviour.
+    /// Some GMP functions swap the allocations of their target operands;
+    /// calling such functions with the mutable reference returned by this
+    /// method can lead to undefined behavior.
     ///
     /// # Examples
     ///
@@ -171,13 +170,13 @@ impl SmallRational {
         unsafe { &mut *ptr }
     }
 
-    /// Creates a [`SmallRational`] from a numerator and denominator,
-    /// assuming they are in canonical form.
+    /// Creates a [`SmallRational`] from a numerator and denominator, assuming
+    /// they are in canonical form.
     ///
     /// # Safety
     ///
-    /// This method leads to undefined behaviour if `den` is zero or
-    /// if `num` and `den` have common factors.
+    /// This method leads to undefined behavior if `den` is zero or if `num` and
+    /// `den` have common factors.
     ///
     /// # Examples
     ///
@@ -215,13 +214,13 @@ impl SmallRational {
         }
     }
 
-    /// Assigns a numerator and denominator to a [`SmallRational`],
-    /// assuming they are in canonical form.
+    /// Assigns a numerator and denominator to a [`SmallRational`], assuming
+    /// they are in canonical form.
     ///
     /// # Safety
     ///
-    /// This method leads to undefined behaviour if `den` is zero or
-    /// negative, or if `num` and `den` have common factors.
+    /// This method leads to undefined behavior if `den` is zero or negative, or
+    /// if `num` and `den` have common factors.
     ///
     /// # Examples
     ///
