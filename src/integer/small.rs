@@ -31,17 +31,16 @@ pub type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
 /**
 A small integer that does not require any memory allocation.
 
-This can be useful when you have a primitive integer type such as
-[`u64`] or [`i8`], but need a reference to an [`Integer`].
+This can be useful when you have a primitive integer type such as [`u64`] or
+[`i8`], but need a reference to an [`Integer`].
 
-If there are functions that take a [`u32`] or [`i32`] directly instead
-of an [`Integer`] reference, using them can still be faster than using
-a `SmallInteger`; the functions would still need to check for the size
-of an [`Integer`] obtained using `SmallInteger`.
+If there are functions that take a [`u32`] or [`i32`] directly instead of an
+[`Integer`] reference, using them can still be faster than using a
+`SmallInteger`; the functions would still need to check for the size of an
+[`Integer`] obtained using `SmallInteger`.
 
-The `SmallInteger` type can be coerced to an [`Integer`], as it
-implements
-<code>[Deref][`Deref`]\<[Target][`Deref::Target`] = [Integer][`Integer`]></code>.
+The `SmallInteger` type can be coerced to an [`Integer`], as it implements
+<code>[Deref]\<[Target][Deref::Target] = [Integer]></code>.
 
 # Examples
 
@@ -125,19 +124,18 @@ impl SmallInteger {
         }
     }
 
-    /// Returns a mutable reference to an [`Integer`] for simple
-    /// operations that do not need to allocate more space for the
-    /// number.
+    /// Returns a mutable reference to an [`Integer`] for simple operations that
+    /// do not need to allocate more space for the number.
     ///
     /// # Safety
     ///
-    /// It is undefined behaviour to perform operations that
-    /// reallocate the internal data of the referenced [`Integer`] or
-    /// to swap it with another number.
+    /// It is undefined behavior to perform operations that reallocate the
+    /// internal data of the referenced [`Integer`] or to swap it with another
+    /// number.
     ///
-    /// Some GMP functions swap the allocations of their target
-    /// operands; calling such functions with the mutable reference
-    /// returned by this method can lead to undefined behaviour.
+    /// Some GMP functions swap the allocations of their target operands;
+    /// calling such functions with the mutable reference returned by this
+    /// method can lead to undefined behavior.
     ///
     /// # Examples
     ///
@@ -190,9 +188,9 @@ impl Deref for SmallInteger {
 ///   * <code>[Assign][`Assign`]\<T> for [SmallInteger][`SmallInteger`]</code>
 ///   * <code>[From][`From`]\<T> for [SmallInteger][`SmallInteger`]</code>
 ///
-/// This trait is sealed and cannot be implemented for more types; it
-/// is implemented for [`bool`] and the unsigned integer types [`u8`],
-/// [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
+/// This trait is sealed and cannot be implemented for more types; it is
+/// implemented for [`bool`] and the unsigned integer types [`u8`], [`u16`],
+/// [`u32`], [`u64`], [`u128`] and [`usize`].
 pub trait ToSmall: SealedToSmall {}
 
 pub trait SealedToSmall: Sized {

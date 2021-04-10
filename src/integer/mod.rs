@@ -18,9 +18,9 @@
 Aribtrary-precision integers.
 
 This module provides support for arbitrary-precision integers of type
-[`Integer`]. Instances of [`Integer`] always have a heap allocation
-for the bit data; if you want a temporary small integer without heap
-allocation, you can use the [`SmallInteger`] type.
+[`Integer`]. Instances of [`Integer`] always have a heap allocation for the bit
+data; if you want a temporary small integer without heap allocation, you can use
+the [`SmallInteger`] type.
 
 # Examples
 
@@ -34,7 +34,7 @@ int.assign(small.abs_ref());
 assert_eq!(int, 15);
 ```
 
-[`Integer`]: `crate::Integer`
+[`Integer`]: crate::Integer
 */
 
 pub(crate) mod arith;
@@ -55,8 +55,7 @@ pub use crate::integer::{
 use libc::c_int;
 
 /**
-An error which can be returned when a checked conversion from
-[`Integer`] fails.
+An error which can be returned when a checked conversion from [`Integer`] fails.
 
 # Examples
 
@@ -72,7 +71,7 @@ let error: TryFromIntegerError = match u32::try_from(&i) {
 println!("Error: {}", error);
 ```
 
-[`Integer`]: `crate::Integer`
+[`Integer`]: crate::Integer
 */
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromIntegerError {

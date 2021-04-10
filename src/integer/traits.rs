@@ -264,9 +264,8 @@ fn fmt_radix(
 }
 
 /// Provides a reference to the underlying digits as
-/// <code>\&[\[][slice][limb_t][`limb_t`][\]][slice]</code>. See [`as_limbs`].
-///
-/// [`as_limbs`]: `Integer::as_limbs`
+/// <code>\&[\[][slice][limb_t][`limb_t`][\]][slice]</code>. See
+/// [`as_limbs`][Integer::as_limbs].
 impl AsRef<[limb_t]> for Integer {
     #[inline]
     fn as_ref(&self) -> &[limb_t] {

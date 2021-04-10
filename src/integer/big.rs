@@ -36,14 +36,12 @@ use {crate::rational::big::BorrowRational, core::ptr::NonNull, gmp_mpfr_sys::gmp
 An arbitrary-precision integer.
 
 Standard arithmetic operations, bitwise operations and comparisons are
-supported. In standard arithmetic operations such as addition, you can
-mix `Integer` and primitive integer types; the result will be an
-`Integer`.
+supported. In standard arithmetic operations such as addition, you can mix
+`Integer` and primitive integer types; the result will be an `Integer`.
 
-Internally the integer is not stored using a two’s-complement
-representation, however, for bitwise operations and shifts, the
-functionality is the same as if the representation was using two’s
-complement.
+Internally the integer is not stored using a two’s-complement representation,
+however, for bitwise operations and shifts, the functionality is the same as if
+the representation was using two’s complement.
 
 # Examples
 
@@ -59,11 +57,11 @@ assert_eq!(int.to_u32(), None);
 assert_eq!(int.to_i32(), Some(-14));
 ```
 
-Arithmetic operations with mixed arbitrary and primitive types are
-allowed. Note that in the following example, there is only one
-allocation. The `Integer` instance is moved into the shift operation
-so that the result can be stored in the same instance, then that
-result is similarly consumed by the addition operation.
+Arithmetic operations with mixed arbitrary and primitive types are allowed. Note
+that in the following example, there is only one allocation. The `Integer`
+instance is moved into the shift operation so that the result can be stored in
+the same instance, then that result is similarly consumed by the addition
+operation.
 
 ```rust
 use rug::Integer;
@@ -101,8 +99,8 @@ assert_eq!(complement_a, -0xf00e);
 assert_eq!(format!("{:x}", complement_a), "-f00e");
 ```
 
-To initialize a large `Integer` that does not fit in a primitive type,
-you can parse a string.
+To initialize a large `Integer` that does not fit in a primitive type, you can
+parse a string.
 
 ```rust
 use rug::Integer;
@@ -115,9 +113,8 @@ assert_eq!(i2.significant_bits(), 160);
 assert_eq!(i2.count_ones(), Some(80));
 ```
 
-Operations on two borrowed `Integer` values result in an
-[incomplete-computation value][icv] that has to be assigned to a new
-`Integer` value.
+Operations on two borrowed `Integer` values result in an [incomplete-computation
+value][icv] that has to be assigned to a new `Integer` value.
 
 ```rust
 use rug::Integer;
@@ -128,10 +125,10 @@ let a_b = Integer::from(a_b_ref);
 assert_eq!(a_b, 13);
 ```
 
-As a special case, when an [incomplete-computation value][icv] is
-obtained from multiplying two `Integer` references, it can be added to
-or subtracted from another `Integer` (or reference). This can be
-useful for multiply-accumulate operations.
+As a special case, when an [incomplete-computation value][icv] is obtained from
+multiplying two `Integer` references, it can be added to or subtracted from
+another `Integer` (or reference). This can be useful for multiply-accumulate
+operations.
 
 ```rust
 use rug::Integer;
@@ -148,14 +145,13 @@ let sub = Integer::from(&other - &m1 * &m2);
 assert_eq!(sub, 1979);
 ```
 
-The `Integer` type supports various functions. Most methods have three
-versions:
+The `Integer` type supports various functions. Most methods have three versions:
 
  1. The first method consumes the operand.
  2. The second method has a “`_mut`” suffix and mutates the operand.
- 3. The third method has a “`_ref`” suffix and borrows the operand.
-    The returned item is an [incomplete-computation value][icv] that
-    can be assigned to an `Integer`.
+ 3. The third method has a “`_ref`” suffix and borrows the operand. The returned
+    item is an [incomplete-computation value][icv] that can be assigned to an
+    `Integer`.
 
 ```rust
 use rug::Integer;
@@ -179,7 +175,7 @@ assert_eq!(abs_c, 17);
 assert_eq!(c, -17);
 ```
 
-[icv]: `crate`#incomplete-computation-values
+[icv]: crate#incomplete-computation-values
 */
 #[repr(transparent)]
 pub struct Integer {
@@ -231,8 +227,8 @@ impl Integer {
         }
     }
 
-    /// Constructs a new arbitrary-precision [`Integer`] with at least
-    /// the specified capacity.
+    /// Constructs a new arbitrary-precision [`Integer`] with at least the
+    /// specified capacity.
     ///
     /// # Examples
     ///
@@ -250,8 +246,7 @@ impl Integer {
         }
     }
 
-    /// Returns the capacity in bits that can be stored without
-    /// reallocating.
+    /// Returns the capacity in bits that can be stored without reallocating.
     ///
     /// # Examples
     ///
@@ -272,8 +267,8 @@ impl Integer {
     /// Reserves capacity for at least `additional` more bits in the
     /// [`Integer`].
     ///
-    /// If the integer already has enough excess capacity, this
-    /// function does nothing.
+    /// If the integer already has enough excess capacity, this function does
+    /// nothing.
     ///
     /// # Examples
     ///
@@ -305,8 +300,7 @@ impl Integer {
 
     /// Shrinks the capacity of the [`Integer`] as much as possible.
     ///
-    /// The capacity can still be larger than the number of
-    /// significant bits.
+    /// The capacity can still be larger than the number of significant bits.
     ///
     /// # Examples
     ///
@@ -332,21 +326,18 @@ impl Integer {
         }
     }
 
-    /// Creates an [`Integer`] from an initialized
-    /// [GMP integer][mpz_t].
+    /// Creates an [`Integer`] from an initialized [GMP integer][mpz_t].
     ///
     /// # Safety
     ///
-    ///   * The function must *not* be used to create a constant
-    ///     [`Integer`], though it can be used to create a static
-    ///     [`Integer`]. This is because constant values are *copied*
-    ///     on use, leading to undefined behaviour when they are
-    ///     dropped.
+    ///   * The function must *not* be used to create a constant [`Integer`],
+    ///     though it can be used to create a static [`Integer`]. This is
+    ///     because constant values are *copied* on use, leading to undefined
+    ///     behavior when they are dropped.
     ///   * The value must be initialized.
-    ///   * The [`mpz_t`] type can be considered as a kind of pointer,
-    ///     so there can be multiple copies of it. Since this function
-    ///     takes over ownership, no other copies of the passed value
-    ///     should exist.
+    ///   * The [`mpz_t`] type can be considered as a kind of pointer, so there
+    ///     can be multiple copies of it. Since this function takes over
+    ///     ownership, no other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -366,7 +357,7 @@ impl Integer {
     /// ```
     ///
     /// This can be used to create a static [`Integer`] using
-    /// [`MPZ_ROINIT_N`] to initialize the raw value. See the
+    /// [`MPZ_ROINIT_N`][gmp::MPZ_ROINIT_N] to initialize the raw value. See the
     /// [GMP documentation][gmp roinit] for details.
     ///
     /// ```rust
@@ -382,7 +373,6 @@ impl Integer {
     /// assert_eq!(I, check);
     /// ```
     ///
-    /// [`MPZ_ROINIT_N`]: `gmp::MPZ_ROINIT_N`
     /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpz_t) -> Self {
@@ -416,8 +406,7 @@ impl Integer {
 
     /// Returns a pointer to the inner [GMP integer][mpz_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -438,11 +427,9 @@ impl Integer {
         &self.inner
     }
 
-    /// Returns an unsafe mutable pointer to the inner
-    /// [GMP integer][mpz_t].
+    /// Returns an unsafe mutable pointer to the inner [GMP integer][mpz_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -461,8 +448,8 @@ impl Integer {
         &mut self.inner
     }
 
-    /// Creates an [`Integer`] from a [slice] of digits of type `T`,
-    /// where `T` can be any [unsigned integer primitive type][UnsignedPrimitive].
+    /// Creates an [`Integer`] from a [slice] of digits of type `T`, where `T`
+    /// can be any [unsigned integer primitive type][UnsignedPrimitive].
     ///
     /// The resulting value cannot be negative.
     ///
@@ -483,8 +470,8 @@ impl Integer {
         i
     }
 
-    /// Assigns from a [slice] of digits of type `T`, where `T` can be
-    /// any [unsigned integer primitive type][UnsignedPrimitive].
+    /// Assigns from a [slice] of digits of type `T`, where `T` can be any
+    /// [unsigned integer primitive type][UnsignedPrimitive].
     ///
     /// The resulting value cannot be negative.
     ///
@@ -506,22 +493,21 @@ impl Integer {
         }
     }
 
-    /// Assigns from digits of type `T` in a memory area, where `T`
-    /// can be any [unsigned integer primitive type][UnsignedPrimitive].
+    /// Assigns from digits of type `T` in a memory area, where `T` can be any
+    /// [unsigned integer primitive type][UnsignedPrimitive].
     ///
-    /// The memory area is addressed using a pointer and a length. The
-    /// `len` parameter is the number of digits, *not* the number of
-    /// bytes.
+    /// The memory area is addressed using a pointer and a length. The `len`
+    /// parameter is the number of digits, *not* the number of bytes.
     ///
-    /// There are no data alignment restrictions on `src`, any address
-    /// is allowed.
+    /// There are no data alignment restrictions on `src`, any address is
+    /// allowed.
     ///
     /// The resulting value cannot be negative.
     ///
     /// # Safety
     ///
-    /// To avoid undefined behavior, `src` must be [valid] for reading
-    /// `len` digits, that is `len` × `size_of::<T>()` bytes.
+    /// To avoid undefined behavior, `src` must be [valid] for reading `len`
+    /// digits, that is `len` × `size_of::<T>()` bytes.
     ///
     /// # Examples
     ///
@@ -542,7 +528,7 @@ impl Integer {
     /// assert_eq!(i, 0xba98_8787_8787_7654u64);
     /// ```
     ///
-    /// [valid]: `core::ptr`#safety
+    /// [valid]: core::ptr#safety
     pub unsafe fn assign_digits_unaligned<T: UnsignedPrimitive>(
         &mut self,
         src: *const T,
@@ -559,8 +545,8 @@ impl Integer {
         }
     }
 
-    /// Returns the number of digits of type `T` required to represent
-    /// the absolute value.
+    /// Returns the number of digits of type `T` required to represent the
+    /// absolute value.
     ///
     /// `T` can be any [unsigned integer primitive type][UnsignedPrimitive].
     ///
@@ -581,21 +567,19 @@ impl Integer {
         xmpz::significant_bits(self).div_ceil(T::PRIVATE.bits)
     }
 
-    /// Converts the absolute value to a [`Vec`] of digits of type
-    /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][UnsignedPrimitive].
+    /// Converts the absolute value to a [`Vec`] of digits of type `T`, where
+    /// `T` can be any [unsigned integer primitive type][UnsignedPrimitive].
     ///
-    /// The [`Integer`] type also has the
-    /// [`as_limbs`][Integer::as_limbs] method, which can be used to
-    /// borrow the digits without copying them. This does come with
-    /// some more constraints compared to `to_digits`:
+    /// The [`Integer`] type also has the [`as_limbs`][Integer::as_limbs]
+    /// method, which can be used to borrow the digits without copying them.
+    /// This does come with some more constraints compared to `to_digits`:
     ///
-    ///  1. The digit width is not optional and depends on the
-    ///     implementation: [`limb_t`] is typically [`u64`] on 64-bit
-    ///     systems and [`u32`] on 32-bit systems.
-    ///  2. The order is not optional and is least significant digit
-    ///     first, with each digit in the target’s endianness,
-    ///     equivalent to <code>[Order]::[Lsf][Order::Lsf]</code>.
+    ///  1. The digit width is not optional and depends on the implementation:
+    ///     [`limb_t`] is typically [`u64`] on 64-bit systems and [`u32`] on
+    ///     32-bit systems.
+    ///  2. The order is not optional and is least significant digit first, with
+    ///     each digit in the target’s endianness, equivalent to
+    ///     <code>[Order]::[Lsf][Order::Lsf]</code>.
     ///
     /// # Examples
     ///
@@ -630,12 +614,11 @@ impl Integer {
         v
     }
 
-    /// Writes the absolute value into a [slice] of digits of type
-    /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][UnsignedPrimitive].
+    /// Writes the absolute value into a [slice] of digits of type `T`, where
+    /// `T` can be any [unsigned integer primitive type][UnsignedPrimitive].
     ///
-    /// The slice must be large enough to hold the digits; the minimum
-    /// size can be obtained using the [`significant_digits`] method.
+    /// The slice must be large enough to hold the digits; the minimum size can
+    /// be obtained using the [`significant_digits`] method.
     ///
     /// # Panics
     ///
@@ -662,29 +645,27 @@ impl Integer {
         }
     }
 
-    /// Writes the absolute value into a memory area of digits of type
-    /// `T`, where `T` can be any
-    /// [unsigned integer primitive type][UnsignedPrimitive].
+    /// Writes the absolute value into a memory area of digits of type `T`,
+    /// where `T` can be any [unsigned integer primitive
+    /// type][UnsignedPrimitive].
     ///
-    /// The memory area is addressed using a pointer and a length. The
-    /// `len` parameter is the number of digits, *not* the number of
-    /// bytes.
+    /// The memory area is addressed using a pointer and a length. The `len`
+    /// parameter is the number of digits, *not* the number of bytes.
     ///
-    /// The length must be large enough to hold the digits; the
-    /// minimum length can be obtained using the
-    /// [`significant_digits`] method.
+    /// The length must be large enough to hold the digits; the minimum length
+    /// can be obtained using the [`significant_digits`] method.
     ///
-    /// There are no data alignment restrictions on `dst`, any address
-    /// is allowed.
+    /// There are no data alignment restrictions on `dst`, any address is
+    /// allowed.
     ///
-    /// The memory locations can be uninitialized before this method
-    /// is called; this method sets all `len` elements, padding with
-    /// zeros if the length is larger than required.
+    /// The memory locations can be uninitialized before this method is called;
+    /// this method sets all `len` elements, padding with zeros if the length is
+    /// larger than required.
     ///
     /// # Safety
     ///
-    /// To avoid undefined behavior, `dst` must be [valid] for writing
-    /// `len` digits, that is `len` × `size_of::<T>()` bytes.
+    /// To avoid undefined behavior, `dst` must be [valid] for writing `len`
+    /// digits, that is `len` × `size_of::<T>()` bytes.
     ///
     /// # Panics
     ///
@@ -712,9 +693,9 @@ impl Integer {
     /// );
     /// ```
     ///
-    /// The following example shows how to write into uninitialized
-    /// memory. In practice, the following code could be replaced by a
-    /// call to the safe method [`to_digits`].
+    /// The following example shows how to write into uninitialized memory. In
+    /// practice, the following code could be replaced by a call to the safe
+    /// method [`to_digits`].
     ///
     /// ```rust
     /// use rug::{integer::Order, Integer};
@@ -778,12 +759,12 @@ impl Integer {
 
     /// Extracts a [slice] of [limbs][limb_t] used to store the value.
     ///
-    /// The [slice] contains the absolute value of `self`, with the
-    /// least significant limb first.
+    /// The [slice] contains the absolute value of `self`, with the least
+    /// significant limb first.
     ///
     /// The [`Integer`] type also implements
-    /// <code>[AsRef]\<[\[][slice][limb_t][][\]][slice]></code>,
-    /// which is equivalent to this method.
+    /// <code>[AsRef]\<[\[][slice][limb_t][][\]][slice]></code>, which is
+    /// equivalent to this method.
     ///
     /// # Examples
     ///
@@ -795,7 +776,7 @@ impl Integer {
     /// ```
     ///
     /// `int.as_limbs()` is like a borrowing non-copy version of
-    /// <code>int.[to_digits][Integer::to_digits]::\<[limb_t]>([Order]::[Lsf][Order::Lsf])</code>.
+    /// <code>int.[to\_digits][Integer::to_digits]::\<[limb\_t]>([Order]::[Lsf][Order::Lsf])</code>.
     ///
     /// ```rust
     /// use gmp_mpfr_sys::gmp::limb_t;
@@ -879,21 +860,19 @@ impl Integer {
         Ok(Integer::from(Integer::parse_radix(src, radix)?))
     }
 
-    /// Parses a decimal string slice (<code>\&[str]</code>) or
-    /// byte slice
-    /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into an
-    /// [`Integer`].
+    /// Parses a decimal string slice (<code>\&[str]</code>) or byte slice
+    /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into an [`Integer`].
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
-    /// The string can start with an optional minus or plus sign.
-    /// ASCII whitespace is ignored everywhere in the string.
-    /// Underscores anywhere except before the first digit are ignored
-    /// as well.
+    /// The string can start with an optional minus or plus sign. ASCII
+    /// whitespace is ignored everywhere in the string. Underscores anywhere
+    /// except before the first digit are ignored as well.
     ///
     /// # Examples
     ///
@@ -907,7 +886,7 @@ impl Integer {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     /// [slice]: prim@slice
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(src: S) -> Result<ParseIncomplete, ParseIntegerError> {
@@ -922,12 +901,12 @@ impl Integer {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
-    /// The string can start with an optional minus or plus sign.
-    /// ASCII whitespace is ignored everywhere in the string.
-    /// Underscores anywhere except before the first digit are ignored
-    /// as well.
+    /// The string can start with an optional minus or plus sign. ASCII
+    /// whitespace is ignored everywhere in the string. Underscores anywhere
+    /// except before the first digit are ignored as well.
     ///
     /// # Panics
     ///
@@ -947,7 +926,7 @@ impl Integer {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     /// [slice]: prim@slice
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
@@ -1635,8 +1614,8 @@ impl Integer {
 
     /// Converts to an [`f32`] and an exponent, rounding towards zero.
     ///
-    /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1. If
-    /// the value is zero, `(0.0, 0)` is returned.
+    /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1. If the value is
+    /// zero, `(0.0, 0)` is returned.
     ///
     /// # Examples
     ///
@@ -1658,8 +1637,8 @@ impl Integer {
 
     /// Converts to an [`f64`] and an exponent, rounding towards zero.
     ///
-    /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1. If
-    /// the value is zero, `(0.0, 0)` is returned.
+    /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1. If the value is
+    /// zero, `(0.0, 0)` is returned.
     ///
     /// # Examples
     ///
@@ -1678,8 +1657,7 @@ impl Integer {
         (f, exp.unwrapped_cast())
     }
 
-    /// Returns a string representation of the number for the
-    /// specified `radix`.
+    /// Returns a string representation of the number for the specified `radix`.
     ///
     /// # Panics
     ///
@@ -1705,8 +1683,8 @@ impl Integer {
         s
     }
 
-    /// Assigns from an [`f32`] if it is [finite][f32::is_finite],
-    /// rounding towards zero.
+    /// Assigns from an [`f32`] if it is [finite][f32::is_finite], rounding
+    /// towards zero.
     ///
     /// # Examples
     ///
@@ -1750,11 +1728,11 @@ impl Integer {
 
     /// Borrows a negated copy of the [`Integer`].
     ///
-    /// The returned object implements
-    /// <code>[Deref]\<[Target][Deref::Target] = [Integer]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Integer]></code>.
     ///
-    /// This method performs a shallow copy and negates it, and
-    /// negation does not change the allocated data.
+    /// This method performs a shallow copy and negates it, and negation does
+    /// not change the allocated data.
     ///
     /// # Examples
     ///
@@ -1777,11 +1755,11 @@ impl Integer {
 
     /// Borrows an absolute copy of the [`Integer`].
     ///
-    /// The returned object implements
-    /// <code>[Deref]\<[Target][Deref::Target] = [Integer]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
+    /// [Integer]></code>.
     ///
-    /// This method performs a shallow copy and possibly negates it,
-    /// and negation does not change the allocated data.
+    /// This method performs a shallow copy and possibly negates it, and
+    /// negation does not change the allocated data.
     ///
     /// # Examples
     ///
@@ -1865,8 +1843,8 @@ impl Integer {
         xmpz::odd_p(self)
     }
 
-    /// Returns [`true`] if the number is divisible by `divisor`. Unlike
-    /// other division functions, `divisor` can be zero.
+    /// Returns [`true`] if the number is divisible by `divisor`. Unlike other
+    /// division functions, `divisor` can be zero.
     ///
     /// # Examples
     ///
@@ -1882,8 +1860,8 @@ impl Integer {
         xmpz::divisible_p(self, divisor)
     }
 
-    /// Returns [`true`] if the number is divisible by `divisor`. Unlike
-    /// other division functions, `divisor` can be zero.
+    /// Returns [`true`] if the number is divisible by `divisor`. Unlike other
+    /// division functions, `divisor` can be zero.
     ///
     /// # Examples
     ///
@@ -1916,9 +1894,9 @@ impl Integer {
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
-    /// <i>divisor</i>, that is, if there exists a <i>q</i> such that
-    /// `self` = <i>c</i> + <i>q</i> × <i>divisor</i>. Unlike other
-    /// division functions, `divisor` can be zero.
+    /// <i>divisor</i>, that is, if there exists a <i>q</i> such that `self` =
+    /// <i>c</i> + <i>q</i> × <i>divisor</i>. Unlike other division functions,
+    /// `divisor` can be zero.
     ///
     /// # Examples
     ///
@@ -1938,9 +1916,9 @@ impl Integer {
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
-    /// <i>divisor</i>, that is, if there exists a <i>q</i> such that
-    /// `self` = <i>c</i> + <i>q</i> × <i>divisor</i>. Unlike other
-    /// division functions, `divisor` can be zero.
+    /// <i>divisor</i>, that is, if there exists a <i>q</i> such that `self` =
+    /// <i>c</i> + <i>q</i> × <i>divisor</i>. Unlike other division functions,
+    /// `divisor` can be zero.
     ///
     /// # Examples
     ///
@@ -1958,8 +1936,8 @@ impl Integer {
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
-    /// 2<sup><i>b</i></sup>, that is, if there exists a <i>q</i> such
-    /// that `self` = <i>c</i> + <i>q</i> × 2<sup><i>b</i></sup>.
+    /// 2<sup><i>b</i></sup>, that is, if there exists a <i>q</i> such that
+    /// `self` = <i>c</i> + <i>q</i> × 2<sup><i>b</i></sup>.
     ///
     /// # Examples
     ///
@@ -2034,7 +2012,8 @@ impl Integer {
     }
 
     /// Returns the same result as
-    /// <code>self.[cmp][Ord::cmp]\(\&0.[into][Into::into]\())</code>, but is faster.
+    /// <code>self.[cmp][Ord::cmp]\(\&0.[into][Into::into]\())</code>, but is
+    /// faster.
     ///
     /// # Examples
     ///
@@ -2067,8 +2046,7 @@ impl Integer {
         xmpz::cmpabs(self, other)
     }
 
-    /// Returns the number of bits required to represent the absolute
-    /// value.
+    /// Returns the number of bits required to represent the absolute value.
     ///
     /// # Examples
     ///
@@ -2088,8 +2066,8 @@ impl Integer {
         xmpz::significant_bits(self).unwrapped_cast()
     }
 
-    /// Returns the number of bits required to represent the value
-    /// using a two’s-complement representation.
+    /// Returns the number of bits required to represent the value using a
+    /// two’s-complement representation.
     ///
     /// For non-negative numbers, this method returns one more than
     /// the [`significant_bits`] method, since an extra zero is needed
@@ -2151,8 +2129,8 @@ impl Integer {
         xmpz::zerocount(self)
     }
 
-    /// Returns the location of the first zero, starting at `start`.
-    /// If the bit at location `start` is zero, returns `start`.
+    /// Returns the location of the first zero, starting at `start`. If the bit
+    /// at location `start` is zero, returns `start`.
     ///
     /// ```rust
     /// use rug::Integer;
@@ -2168,8 +2146,8 @@ impl Integer {
         xmpz::scan0(self, start)
     }
 
-    /// Returns the location of the first one, starting at `start`.
-    /// If the bit at location `start` is one, returns `start`.
+    /// Returns the location of the first one, starting at `start`. If the bit
+    /// at location `start` is one, returns `start`.
     ///
     /// ```rust
     /// use rug::Integer;
@@ -2185,8 +2163,8 @@ impl Integer {
         xmpz::scan1(self, start)
     }
 
-    /// Sets the bit at location `index` to 1 if `val` is [`true`] or
-    /// 0 if `val` is [`false`].
+    /// Sets the bit at location `index` to 1 if `val` is [`true`] or 0 if `val`
+    /// is [`false`].
     ///
     /// # Examples
     ///
@@ -2207,8 +2185,8 @@ impl Integer {
         self
     }
 
-    /// Returns [`true`] if the bit at location `index` is 1 or
-    /// [`false`] if the bit is 0.
+    /// Returns [`true`] if the bit at location `index` is 1 or [`false`] if the
+    /// bit is 0.
     ///
     /// # Examples
     ///
@@ -2242,8 +2220,7 @@ impl Integer {
         self
     }
 
-    /// Retuns the Hamming distance if the two numbers have the same
-    /// sign.
+    /// Retuns the Hamming distance if the two numbers have the same sign.
     ///
     /// The Hamming distance is the number of different bits.
     ///
@@ -2264,11 +2241,12 @@ impl Integer {
 
     /// Adds a list of [`Integer`] values.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Integer]</code>
     ///   * <code>[Add]\<Src> for [Integer]</code>
     ///
@@ -2289,7 +2267,7 @@ impl Integer {
     /// assert_eq!(sum, expected);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
@@ -2300,11 +2278,12 @@ impl Integer {
 
     /// Finds the dot product of a list of [`Integer`] value pairs.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Integer]</code>
     ///   * <code>[Add]\<Src> for [Integer]</code>
     ///
@@ -2321,7 +2300,7 @@ impl Integer {
     /// assert_eq!(dot, expected);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
     where
@@ -2332,11 +2311,12 @@ impl Integer {
 
     /// Multiplies a list of [`Integer`] values.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///   * <code>[MulAssign]\<Src>0 for [Integer]</code>
     ///   * <code>[Mul]\<Src> for [Integer]</code>
     ///
@@ -2357,7 +2337,7 @@ impl Integer {
     /// assert_eq!(product, expected);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn product<'a, I>(values: I) -> ProductIncomplete<'a, I>
     where
@@ -2399,11 +2379,12 @@ impl Integer {
 
     /// Computes the absolute value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2416,7 +2397,7 @@ impl Integer {
     /// assert_eq!(i, -100);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete {
         AbsIncomplete { ref_self: self }
@@ -2467,11 +2448,12 @@ impl Integer {
     ///   * 1 if the value is positive
     ///   * −1 if the value is negative
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2484,7 +2466,7 @@ impl Integer {
     /// assert_eq!(i, -100);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn signum_ref(&self) -> SignumIncomplete {
         SignumIncomplete { ref_self: self }
@@ -2552,11 +2534,12 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Panics
     ///
@@ -2578,7 +2561,7 @@ impl Integer {
     /// assert_eq!(clamped2, 3);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'min, 'max, Min, Max>(
         &self,
@@ -2595,8 +2578,8 @@ impl Integer {
         }
     }
 
-    /// Keeps the <i>n</i> least significant bits only, producing
-    /// a result that is greater or equal to 0.
+    /// Keeps the <i>n</i> least significant bits only, producing a result that
+    /// is greater or equal to 0.
     ///
     /// # Examples
     ///
@@ -2612,8 +2595,8 @@ impl Integer {
         self
     }
 
-    /// Keeps the <i>n</i> least significant bits only, producing
-    /// a result that is greater or equal to 0.
+    /// Keeps the <i>n</i> least significant bits only, producing a result that
+    /// is greater or equal to 0.
     ///
     /// # Examples
     ///
@@ -2628,14 +2611,15 @@ impl Integer {
         xmpz::fdiv_r_2exp(self, (), n)
     }
 
-    /// Keeps the <i>n</i> least significant bits only, producing
-    /// a result that is greater or equal to 0.
+    /// Keeps the <i>n</i> least significant bits only, producing a result that
+    /// is greater or equal to 0.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2647,14 +2631,13 @@ impl Integer {
     /// assert_eq!(eight_bits, 0xff);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     pub fn keep_bits_ref(&self, n: u32) -> KeepBitsIncomplete {
         KeepBitsIncomplete { ref_self: self, n }
     }
 
-    /// Keeps the <i>n</i> least significant bits only, producing
-    /// a negative result if the <i>n</i>th least significant bit
-    /// is one.
+    /// Keeps the <i>n</i> least significant bits only, producing a negative
+    /// result if the <i>n</i>th least significant bit is one.
     ///
     /// # Examples
     ///
@@ -2673,9 +2656,8 @@ impl Integer {
         self
     }
 
-    /// Keeps the <i>n</i> least significant bits only, producing
-    /// a negative result if the <i>n</i>th least significant bit
-    /// is one.
+    /// Keeps the <i>n</i> least significant bits only, producing a negative
+    /// result if the <i>n</i>th least significant bit is one.
     ///
     /// # Examples
     ///
@@ -2693,15 +2675,15 @@ impl Integer {
         xmpz::keep_signed_bits(self, (), n);
     }
 
-    /// Keeps the <i>n</i> least significant bits only, producing
-    /// a negative result if the <i>n</i>th least significant bit
-    /// is one.
+    /// Keeps the <i>n</i> least significant bits only, producing a negative
+    /// result if the <i>n</i>th least significant bit is one.
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2713,7 +2695,7 @@ impl Integer {
     /// assert_eq!(eight_bits, -1);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn keep_signed_bits_ref(&self, n: u32) -> KeepSignedBitsIncomplete<'_> {
         KeepSignedBitsIncomplete { ref_self: self, n }
@@ -2755,11 +2737,12 @@ impl Integer {
 
     /// Finds the next power of two, or 1 if the number ≤ 0.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -2771,14 +2754,13 @@ impl Integer {
     /// assert_eq!(next, 64);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn next_power_of_two_ref(&self) -> NextPowerOfTwoIncomplete<'_> {
         NextPowerOfTwoIncomplete { ref_self: self }
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder.
+    /// Performs a division producing both the quotient and remainder.
     ///
     /// The remainder has the same sign as the dividend.
     ///
@@ -2802,13 +2784,12 @@ impl Integer {
         (self, divisor)
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder.
+    /// Performs a division producing both the quotient and remainder.
     ///
     /// The remainder has the same sign as the dividend.
     ///
-    /// The quotient is stored in `self` and the remainder is
-    /// stored in `divisor`.
+    /// The quotient is stored in `self` and the remainder is stored in
+    /// `divisor`.
     ///
     /// # Panics
     ///
@@ -2829,15 +2810,18 @@ impl Integer {
         xmpz::tdiv_qr(self, divisor, (), ());
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder.
+    /// Performs a division producing both the quotient and remainder.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// The remainder has the same sign as the dividend.
     ///
@@ -2852,7 +2836,7 @@ impl Integer {
     /// assert_eq!(rem, -3);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn div_rem_ref<'a>(&'a self, divisor: &'a Self) -> DivRemIncomplete<'_> {
         DivRemIncomplete {
@@ -2861,11 +2845,10 @@ impl Integer {
         }
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded up.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded up.
     ///
-    /// The sign of the remainder is the opposite of the divisor’s
-    /// sign.
+    /// The sign of the remainder is the opposite of the divisor’s sign.
     ///
     /// # Panics
     ///
@@ -2887,14 +2870,13 @@ impl Integer {
         (self, divisor)
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded up.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded up.
     ///
-    /// The sign of the remainder is the opposite of the divisor’s
-    /// sign.
+    /// The sign of the remainder is the opposite of the divisor’s sign.
     ///
-    /// The quotient is stored in `self` and the remainder is
-    /// stored in `divisor`.
+    /// The quotient is stored in `self` and the remainder is stored in
+    /// `divisor`.
     ///
     /// # Panics
     ///
@@ -2915,18 +2897,21 @@ impl Integer {
         xmpz::cdiv_qr(self, divisor, (), ());
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded up.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded up.
     ///
-    /// The sign of the remainder is the opposite of the divisor’s
-    /// sign.
+    /// The sign of the remainder is the opposite of the divisor’s sign.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2939,7 +2924,7 @@ impl Integer {
     /// assert_eq!(rem, 7);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn div_rem_ceil_ref<'a>(&'a self, divisor: &'a Self) -> DivRemCeilIncomplete<'_> {
         DivRemCeilIncomplete {
@@ -2948,8 +2933,8 @@ impl Integer {
         }
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded down.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded down.
     ///
     /// The remainder has the same sign as the divisor.
     ///
@@ -2973,13 +2958,13 @@ impl Integer {
         (self, divisor)
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded down.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded down.
     ///
     /// The remainder has the same sign as the divisor.
     ///
-    /// The quotient is stored in `self` and the remainder is
-    /// stored in `divisor`.
+    /// The quotient is stored in `self` and the remainder is stored in
+    /// `divisor`.
     ///
     /// # Panics
     ///
@@ -3000,17 +2985,21 @@ impl Integer {
         xmpz::fdiv_qr(self, divisor, (), ());
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded down.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded down.
     ///
     /// The remainder has the same sign as the divisor.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3023,7 +3012,7 @@ impl Integer {
     /// assert_eq!(rem, -3);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn div_rem_floor_ref<'a>(&'a self, divisor: &'a Self) -> DivRemFloorIncomplete<'_> {
         DivRemFloorIncomplete {
@@ -3032,12 +3021,11 @@ impl Integer {
         }
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded to the nearest
-    /// integer.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded to the nearest integer.
     ///
-    /// When the quotient before rounding lies exactly between two
-    /// integers, it is rounded away from zero.
+    /// When the quotient before rounding lies exactly between two integers, it
+    /// is rounded away from zero.
     ///
     /// # Panics
     ///
@@ -3063,12 +3051,11 @@ impl Integer {
         (self, divisor)
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded to the nearest
-    /// integer.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded to the nearest integer.
     ///
-    /// When the quotient before rounding lies exactly between two
-    /// integers, it is rounded away from zero.
+    /// When the quotient before rounding lies exactly between two integers, it
+    /// is rounded away from zero.
     ///
     /// # Panics
     ///
@@ -3090,19 +3077,22 @@ impl Integer {
         xmpz::rdiv_qr(self, divisor, (), ());
     }
 
-    /// Performs a division producing both the quotient and
-    /// remainder, with the quotient rounded to the nearest
-    /// integer.
+    /// Performs a division producing both the quotient and remainder, with the
+    /// quotient rounded to the nearest integer.
     ///
-    /// When the quotient before rounding lies exactly between two
-    /// integers, it is rounded away from zero.
+    /// When the quotient before rounding lies exactly between two integers, it
+    /// is rounded away from zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3116,7 +3106,7 @@ impl Integer {
     /// assert_eq!(rem, 2);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn div_rem_round_ref<'a>(&'a self, divisor: &'a Self) -> DivRemRoundIncomplete<'_> {
         DivRemRoundIncomplete {
@@ -3125,8 +3115,8 @@ impl Integer {
         }
     }
 
-    /// Performs Euclidean division producing both the quotient
-    /// and remainder, with a positive remainder.
+    /// Performs Euclidean division producing both the quotient and remainder,
+    /// with a positive remainder.
     ///
     /// # Panics
     ///
@@ -3148,11 +3138,11 @@ impl Integer {
         (self, divisor)
     }
 
-    /// Performs Euclidean division producing both the quotient
-    /// and remainder, with a positive remainder.
+    /// Performs Euclidean division producing both the quotient and remainder,
+    /// with a positive remainder.
     ///
-    /// The quotient is stored in `self` and the remainder is
-    /// stored in `divisor`.
+    /// The quotient is stored in `self` and the remainder is stored in
+    /// `divisor`.
     ///
     /// # Panics
     ///
@@ -3173,15 +3163,19 @@ impl Integer {
         xmpz::ediv_qr(self, divisor, (), ());
     }
 
-    /// Performs Euclidan division producing both the quotient and
-    /// remainder, with a positive remainder.
+    /// Performs Euclidan division producing both the quotient and remainder,
+    /// with a positive remainder.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3194,7 +3188,7 @@ impl Integer {
     /// assert_eq!(rem, 7);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn div_rem_euc_ref<'a>(&'a self, divisor: &'a Self) -> DivRemEucIncomplete<'_> {
         DivRemEucIncomplete {
@@ -3203,8 +3197,7 @@ impl Integer {
         }
     }
 
-    /// Returns the modulo, or the remainder of Euclidean division by
-    /// a [`u32`].
+    /// Returns the modulo, or the remainder of Euclidean division by a [`u32`].
     ///
     /// The result is always zero or positive.
     ///
@@ -3232,8 +3225,8 @@ impl Integer {
 
     /// Performs an exact division.
     ///
-    /// This is much faster than normal division, but produces
-    /// correct results only when the division is exact.
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
     ///
     /// # Panics
     ///
@@ -3255,8 +3248,8 @@ impl Integer {
 
     /// Performs an exact division.
     ///
-    /// This is much faster than normal division, but produces
-    /// correct results only when the division is exact.
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
     ///
     /// # Panics
     ///
@@ -3277,8 +3270,8 @@ impl Integer {
 
     /// Performs an exact division `dividend` / `self`.
     ///
-    /// This is much faster than normal division, but produces
-    /// correct results only when the division is exact.
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
     ///
     /// # Panics
     ///
@@ -3298,14 +3291,15 @@ impl Integer {
 
     /// Performs an exact division.
     ///
-    /// This is much faster than normal division, but produces
-    /// correct results only when the division is exact.
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -3318,7 +3312,7 @@ impl Integer {
     /// assert_eq!(quotient, 54321);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn div_exact_ref<'a>(&'a self, divisor: &'a Self) -> DivExactIncomplete<'_> {
         DivExactIncomplete {
@@ -3329,8 +3323,8 @@ impl Integer {
 
     /// Performs an exact division.
     ///
-    /// This is much faster than normal division, but produces
-    /// correct results only when the division is exact.
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
     ///
     /// # Panics
     ///
@@ -3352,8 +3346,8 @@ impl Integer {
 
     /// Performs an exact division.
     ///
-    /// This is much faster than normal division, but produces
-    /// correct results only when the division is exact.
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
     ///
     /// # Panics
     ///
@@ -3374,14 +3368,15 @@ impl Integer {
 
     /// Performs an exact division.
     ///
-    /// This is much faster than normal division, but produces
-    /// correct results only when the division is exact.
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -3392,7 +3387,7 @@ impl Integer {
     /// assert_eq!(Integer::from(r), 54321);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn div_exact_u_ref(&self, divisor: u32) -> DivExactUIncomplete<'_> {
         DivExactUIncomplete {
@@ -3401,12 +3396,11 @@ impl Integer {
         }
     }
 
-    /// Finds the inverse modulo `modulo` and returns
-    /// [`Ok(inverse)`][Ok] if it exists, or
-    /// [`Err(unchanged)`][Err] if the inverse does not exist.
+    /// Finds the inverse modulo `modulo` and returns [`Ok(inverse)`][Ok] if it
+    /// exists, or [`Err(unchanged)`][Err] if the inverse does not exist.
     ///
-    /// The inverse exists if the modulo is not zero, and `self` and
-    /// the modulo are co-prime, that is their GCD is 1.
+    /// The inverse exists if the modulo is not zero, and `self` and the modulo
+    /// are co-prime, that is their GCD is 1.
     ///
     /// # Examples
     ///
@@ -3438,8 +3432,8 @@ impl Integer {
 
     /// Finds the inverse modulo `modulo` if an inverse exists.
     ///
-    /// The inverse exists if the modulo is not zero, and `self` and
-    /// the modulo are co-prime, that is their GCD is 1.
+    /// The inverse exists if the modulo is not zero, and `self` and the modulo
+    /// are co-prime, that is their GCD is 1.
     ///
     /// # Examples
     ///
@@ -3471,14 +3465,15 @@ impl Integer {
 
     /// Finds the inverse modulo `modulo` if an inverse exists.
     ///
-    /// The inverse exists if the modulo is not zero, and `self` and
-    /// the modulo are co-prime, that is their GCD is 1.
+    /// The inverse exists if the modulo is not zero, and `self` and the modulo
+    /// are co-prime, that is their GCD is 1.
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -3499,20 +3494,20 @@ impl Integer {
     /// assert_eq!(inverse, 3);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> Option<InvertIncomplete<'a>> {
         xmpz::start_invert(self, modulo).map(|sinverse| InvertIncomplete { sinverse, modulo })
     }
 
-    /// Raises a number to the power of `exponent` modulo `modulo` and
-    /// returns [`Ok(power)`][Ok] if an answer exists, or
-    /// [`Err(unchanged)`][Err] if it does not.
+    /// Raises a number to the power of `exponent` modulo `modulo` and returns
+    /// [`Ok(power)`][Ok] if an answer exists, or [`Err(unchanged)`][Err] if it
+    /// does not.
     ///
-    /// If the exponent is negative, then the number must have an
-    /// inverse for an answer to exist.
+    /// If the exponent is negative, then the number must have an inverse for an
+    /// answer to exist.
     ///
-    /// When the exponent is positive and the modulo is not zero, an
-    /// answer always exists.
+    /// When the exponent is positive and the modulo is not zero, an answer
+    /// always exists.
     ///
     /// # Examples
     ///
@@ -3529,8 +3524,7 @@ impl Integer {
     /// assert_eq!(power, 807);
     /// ```
     ///
-    /// When the exponent is negative, an answer exists if an inverse
-    /// exists.
+    /// When the exponent is negative, an answer exists if an inverse exists.
     ///
     /// ```rust
     /// use rug::Integer;
@@ -3553,11 +3547,11 @@ impl Integer {
         }
     }
 
-    /// Raises a number to the power of `exponent` modulo `modulo` if
-    /// an answer exists.
+    /// Raises a number to the power of `exponent` modulo `modulo` if an answer
+    /// exists.
     ///
-    /// If the exponent is negative, then the number must have an
-    /// inverse for an answer to exist.
+    /// If the exponent is negative, then the number must have an inverse for an
+    /// answer to exist.
     ///
     /// # Examples
     ///
@@ -3594,17 +3588,18 @@ impl Integer {
         Ok(())
     }
 
-    /// Raises a number to the power of `exponent` modulo `modulo` if
-    /// an answer exists.
+    /// Raises a number to the power of `exponent` modulo `modulo` if an answer
+    /// exists.
     ///
-    /// If the exponent is negative, then the number must have an
-    /// inverse for an answer to exist.
+    /// If the exponent is negative, then the number must have an inverse for an
+    /// answer to exist.
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -3625,7 +3620,7 @@ impl Integer {
     /// assert_eq!(power, 943);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     pub fn pow_mod_ref<'a>(
         &'a self,
         exponent: &'a Self,
@@ -3654,18 +3649,16 @@ impl Integer {
         }
     }
 
-    /// Raises a number to the power of `exponent` modulo `modulo`,
-    /// with resilience to side-channel attacks.
+    /// Raises a number to the power of `exponent` modulo `modulo`, with
+    /// resilience to side-channel attacks.
     ///
-    /// The exponent must be greater than zero, and the modulo must be
-    /// odd.
+    /// The exponent must be greater than zero, and the modulo must be odd.
     ///
-    /// This method is intended for cryptographic purposes where
-    /// resilience to side-channel attacks is desired. The function is
-    /// designed to take the same time and use the same cache access
-    /// patterns for same-sized arguments, assuming that the arguments
-    /// are placed at the same position and the machine state is
-    /// identical when starting.
+    /// This method is intended for cryptographic purposes where resilience to
+    /// side-channel attacks is desired. The function is designed to take the
+    /// same time and use the same cache access patterns for same-sized
+    /// arguments, assuming that the arguments are placed at the same position
+    /// and the machine state is identical when starting.
     ///
     /// # Panics
     ///
@@ -3688,18 +3681,16 @@ impl Integer {
         self
     }
 
-    /// Raises a number to the power of `exponent` modulo `modulo`,
-    /// with resilience to side-channel attacks.
+    /// Raises a number to the power of `exponent` modulo `modulo`, with
+    /// resilience to side-channel attacks.
     ///
-    /// The exponent must be greater than zero, and the modulo must be
-    /// odd.
+    /// The exponent must be greater than zero, and the modulo must be odd.
     ///
-    /// This method is intended for cryptographic purposes where
-    /// resilience to side-channel attacks is desired. The function is
-    /// designed to take the same time and use the same cache access
-    /// patterns for same-sized arguments, assuming that the arguments
-    /// are placed at the same position and the machine state is
-    /// identical when starting.
+    /// This method is intended for cryptographic purposes where resilience to
+    /// side-channel attacks is desired. The function is designed to take the
+    /// same time and use the same cache access patterns for same-sized
+    /// arguments, assuming that the arguments are placed at the same position
+    /// and the machine state is identical when starting.
     ///
     /// # Panics
     ///
@@ -3721,24 +3712,23 @@ impl Integer {
         xmpz::powm_sec(self, (), exponent, modulo);
     }
 
-    /// Raises a number to the power of `exponent` modulo `modulo`,
-    /// with resilience to side-channel attacks.
+    /// Raises a number to the power of `exponent` modulo `modulo`, with
+    /// resilience to side-channel attacks.
     ///
-    /// The exponent must be greater than zero, and the modulo must be
-    /// odd.
+    /// The exponent must be greater than zero, and the modulo must be odd.
     ///
-    /// This method is intended for cryptographic purposes where
-    /// resilience to side-channel attacks is desired. The function is
-    /// designed to take the same time and use the same cache access
-    /// patterns for same-sized arguments, assuming that the arguments
-    /// are placed at the same position and the machine state is
-    /// identical when starting.
+    /// This method is intended for cryptographic purposes where resilience to
+    /// side-channel attacks is desired. The function is designed to take the
+    /// same time and use the same cache access patterns for same-sized
+    /// arguments, assuming that the arguments are placed at the same position
+    /// and the machine state is identical when starting.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Panics
     ///
@@ -3756,7 +3746,7 @@ impl Integer {
     /// assert_eq!(power, 9);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn secure_pow_mod_ref<'a>(
         &'a self,
@@ -3772,11 +3762,12 @@ impl Integer {
 
     /// Raises `base` to the power of `exponent`.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -3785,7 +3776,7 @@ impl Integer {
     /// assert_eq!(Integer::u_pow_u(13, 12).complete(), 13_u64.pow(12));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete {
         UPowUIncomplete { base, exponent }
@@ -3793,11 +3784,12 @@ impl Integer {
 
     /// Raises `base` to the power of `exponent`.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -3810,7 +3802,7 @@ impl Integer {
     /// assert_eq!(ans, (13_i64).pow(13));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete {
         IPowUIncomplete { base, exponent }
@@ -3820,8 +3812,8 @@ impl Integer {
     ///
     /// # Panics
     ///
-    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
-    /// value is negative.
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the value is
+    /// negative.
     ///
     /// # Examples
     ///
@@ -3841,8 +3833,8 @@ impl Integer {
     ///
     /// # Panics
     ///
-    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
-    /// value is negative.
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the value is
+    /// negative.
     ///
     /// # Examples
     ///
@@ -3859,11 +3851,12 @@ impl Integer {
 
     /// Computes the <i>n</i>th root and truncates the result.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -3873,24 +3866,24 @@ impl Integer {
     /// assert_eq!(Integer::from(i.root_ref(3)), 10);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn root_ref(&self, n: u32) -> RootIncomplete<'_> {
         RootIncomplete { ref_self: self, n }
     }
 
-    /// Computes the <i>n</i>th root and returns the truncated
-    /// root and the remainder.
+    /// Computes the <i>n</i>th root and returns the truncated root and the
+    /// remainder.
     ///
-    /// The remainder is the original number minus the truncated
-    /// root raised to the power of <i>n</i>.
+    /// The remainder is the original number minus the truncated root raised to
+    /// the power of <i>n</i>.
     ///
     /// The initial value of `remainder` is ignored.
     ///
     /// # Panics
     ///
-    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
-    /// value is negative.
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the value is
+    /// negative.
     ///
     /// # Examples
     ///
@@ -3907,18 +3900,18 @@ impl Integer {
         (self, remainder)
     }
 
-    /// Computes the <i>n</i>th root and returns the truncated
-    /// root and the remainder.
+    /// Computes the <i>n</i>th root and returns the truncated root and the
+    /// remainder.
     ///
-    /// The remainder is the original number minus the truncated
-    /// root raised to the power of <i>n</i>.
+    /// The remainder is the original number minus the truncated root raised to
+    /// the power of <i>n</i>.
     ///
     /// The initial value of `remainder` is ignored.
     ///
     /// # Panics
     ///
-    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
-    /// value is negative.
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the value is
+    /// negative.
     ///
     /// # Examples
     ///
@@ -3935,18 +3928,22 @@ impl Integer {
         xmpz::rootrem(self, remainder, (), n);
     }
 
-    /// Computes the <i>n</i>th root and returns the truncated
-    /// root and the remainder.
+    /// Computes the <i>n</i>th root and returns the truncated root and the
+    /// remainder.
     ///
-    /// The remainder is the original number minus the truncated
-    /// root raised to the power of <i>n</i>.
+    /// The remainder is the original number minus the truncated root raised to
+    /// the power of <i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3965,7 +3962,7 @@ impl Integer {
     /// assert_eq!(other_rem, 275);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn root_rem_ref(&self, n: u32) -> RootRemIncomplete<'_> {
         RootRemIncomplete { ref_self: self, n }
@@ -4004,11 +4001,12 @@ impl Integer {
 
     /// Computes the square.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4018,7 +4016,7 @@ impl Integer {
     /// assert_eq!(Integer::from(i.square_ref()), 169);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn square_ref(&self) -> SquareIncomplete<'_> {
         SquareIncomplete { ref_self: self }
@@ -4065,11 +4063,12 @@ impl Integer {
 
     /// Computes the square root and truncates the result.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4079,7 +4078,7 @@ impl Integer {
     /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sqrt_ref(&self) -> SqrtIncomplete<'_> {
         SqrtIncomplete { ref_self: self }
@@ -4087,8 +4086,7 @@ impl Integer {
 
     /// Computes the square root and the remainder.
     ///
-    /// The remainder is the original number minus the truncated
-    /// root squared.
+    /// The remainder is the original number minus the truncated root squared.
     ///
     /// The initial value of `remainder` is ignored.
     ///
@@ -4113,8 +4111,7 @@ impl Integer {
 
     /// Computes the square root and the remainder.
     ///
-    /// The remainder is the original number minus the truncated
-    /// root squared.
+    /// The remainder is the original number minus the truncated root squared.
     ///
     /// The initial value of `remainder` is ignored.
     ///
@@ -4139,15 +4136,18 @@ impl Integer {
 
     /// Computes the square root and the remainder.
     ///
-    /// The remainder is the original number minus the truncated
-    /// root squared.
+    /// The remainder is the original number minus the truncated root squared.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4166,7 +4166,7 @@ impl Integer {
     /// assert_eq!(other_rem, 4);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn sqrt_rem_ref(&self) -> SqrtRemIncomplete<'_> {
         SqrtRemIncomplete { ref_self: self }
@@ -4174,9 +4174,8 @@ impl Integer {
 
     /// Determines wheter a number is prime.
     ///
-    /// This function uses some trial divisions, a Baille-PSW probable
-    /// prime test, then `reps` − 24 Miller-Rabin probabilistic
-    /// primality tests.
+    /// This function uses some trial divisions, a Baille-PSW probable prime
+    /// test, then `reps` − 24 Miller-Rabin probabilistic primality tests.
     ///
     /// # Examples
     ///
@@ -4200,8 +4199,8 @@ impl Integer {
         }
     }
 
-    /// Identifies primes using a probabilistic algorithm; the
-    /// chance of a composite passing will be extremely small.
+    /// Identifies primes using a probabilistic algorithm; the chance of a
+    /// composite passing will be extremely small.
     ///
     /// # Examples
     ///
@@ -4217,8 +4216,8 @@ impl Integer {
         self
     }
 
-    /// Identifies primes using a probabilistic algorithm; the
-    /// chance of a composite passing will be extremely small.
+    /// Identifies primes using a probabilistic algorithm; the chance of a
+    /// composite passing will be extremely small.
     ///
     /// # Examples
     ///
@@ -4233,14 +4232,15 @@ impl Integer {
         xmpz::nextprime(self, ());
     }
 
-    /// Identifies primes using a probabilistic algorithm; the
-    /// chance of a composite passing will be extremely small.
+    /// Identifies primes using a probabilistic algorithm; the chance of a
+    /// composite passing will be extremely small.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4252,7 +4252,7 @@ impl Integer {
     /// assert_eq!(prime, 800_000_011);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn next_prime_ref(&self) -> NextPrimeIncomplete<'_> {
         NextPrimeIncomplete { ref_self: self }
@@ -4260,8 +4260,7 @@ impl Integer {
 
     /// Finds the greatest common divisor.
     ///
-    /// The result is always positive except when both inputs are
-    /// zero.
+    /// The result is always positive except when both inputs are zero.
     ///
     /// # Examples
     ///
@@ -4289,8 +4288,7 @@ impl Integer {
 
     /// Finds the greatest common divisor.
     ///
-    /// The result is always positive except when both inputs are
-    /// zero.
+    /// The result is always positive except when both inputs are zero.
     ///
     /// # Examples
     ///
@@ -4317,14 +4315,14 @@ impl Integer {
 
     /// Finds the greatest common divisor.
     ///
-    /// The result is always positive except when both inputs are
-    /// zero.
+    /// The result is always positive except when both inputs are zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4337,7 +4335,7 @@ impl Integer {
     /// assert_eq!(Integer::from(r), 25);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn gcd_ref<'a>(&'a self, other: &'a Self) -> GcdIncomplete<'_> {
         GcdIncomplete {
@@ -4348,8 +4346,7 @@ impl Integer {
 
     /// Finds the greatest common divisor.
     ///
-    /// The result is always positive except when both inputs are
-    /// zero.
+    /// The result is always positive except when both inputs are zero.
     ///
     /// # Examples
     ///
@@ -4374,8 +4371,7 @@ impl Integer {
 
     /// Finds the greatest common divisor.
     ///
-    /// The result is always positive except when both inputs are
-    /// zero.
+    /// The result is always positive except when both inputs are zero.
     ///
     /// # Examples
     ///
@@ -4399,20 +4395,19 @@ impl Integer {
 
     /// Finds the greatest common divisor.
     ///
-    /// The result is always positive except when both inputs are
-    /// zero.
+    /// The result is always positive except when both inputs are zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Option]\<[u32]></code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
-    /// The last item above is useful to obtain the result as a
-    /// [`u32`] if it fits. If `other` > 0 , the result always
-    /// fits. If the result does not fit, it is equal to the
-    /// absolute value of `self`.
+    /// The last item above is useful to obtain the result as a [`u32`] if it
+    /// fits. If `other` > 0 , the result always fits. If the result does not
+    /// fit, it is equal to the absolute value of `self`.
     ///
     /// # Examples
     ///
@@ -4426,7 +4421,7 @@ impl Integer {
     /// assert_eq!(Option::<u32>::from(r), Some(25));
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn gcd_u_ref(&self, other: u32) -> GcdUIncomplete<'_> {
         GcdUIncomplete {
@@ -4435,27 +4430,24 @@ impl Integer {
         }
     }
 
-    /// Finds the greatest common divisor (GCD) of the two inputs
-    /// (`self` and `other`), and two cofactors to obtain the GCD
-    /// from the two inputs.
+    /// Finds the greatest common divisor (GCD) of the two inputs (`self` and
+    /// `other`), and two cofactors to obtain the GCD from the two inputs.
     ///
-    /// The GCD is always positive except when both inputs are
-    /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
-    /// GCD is <i>g</i> and the cofactors are <i>s</i> and
-    /// <i>t</i> such that
+    /// The GCD is always positive except when both inputs are zero. If the
+    /// inputs are <i>a</i> and <i>b</i>, then the GCD is <i>g</i> and the
+    /// cofactors are <i>s</i> and <i>t</i> such that
     ///
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
-    /// The values <i>s</i> and <i>t</i> are chosen such that
-    /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
-    /// define <i>s</i> and <i>t</i> uniquely. There are a few
-    /// exceptional cases:
+    /// The values <i>s</i> and <i>t</i> are chosen such that normally,
+    /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations define
+    /// <i>s</i> and <i>t</i> uniquely. There are a few exceptional cases:
     ///
     ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
     ///     <i>t</i> = sgn(<i>b</i>).
-    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
-    ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>, then
+    ///     <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
     ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
     ///
     /// The initial value of `rop` is ignored.
@@ -4477,30 +4469,27 @@ impl Integer {
         (self, other, rop)
     }
 
-    /// Finds the greatest common divisor (GCD) of the two inputs
-    /// (`self` and `other`), and two cofactors to obtain the GCD
-    /// from the two inputs.
+    /// Finds the greatest common divisor (GCD) of the two inputs (`self` and
+    /// `other`), and two cofactors to obtain the GCD from the two inputs.
     ///
-    /// The GCD is stored in `self`, and the two cofactors are
-    /// stored in `other` and `rop`.
+    /// The GCD is stored in `self`, and the two cofactors are stored in `other`
+    /// and `rop`.
     ///
-    /// The GCD is always positive except when both inputs are
-    /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
-    /// GCD is <i>g</i> and the cofactors are <i>s</i> and
-    /// <i>t</i> such that
+    /// The GCD is always positive except when both inputs are zero. If the
+    /// inputs are <i>a</i> and <i>b</i>, then the GCD is <i>g</i> and the
+    /// cofactors are <i>s</i> and <i>t</i> such that
     ///
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
-    /// The values <i>s</i> and <i>t</i> are chosen such that
-    /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
-    /// define <i>s</i> and <i>t</i> uniquely. There are a few
-    /// exceptional cases:
+    /// The values <i>s</i> and <i>t</i> are chosen such that normally,
+    /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations define
+    /// <i>s</i> and <i>t</i> uniquely. There are a few exceptional cases:
     ///
     ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
     ///     <i>t</i> = sgn(<i>b</i>).
-    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
-    ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>, then
+    ///     <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
     ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
     ///
     /// The initial value of `rop` is ignored.
@@ -4522,40 +4511,45 @@ impl Integer {
         xmpz::gcdext(self, other, Some(rop), (), ());
     }
 
-    /// Finds the greatest common divisor (GCD) of the two inputs
-    /// (`self` and `other`), and two cofactors to obtain the GCD
-    /// from the two inputs.
+    /// Finds the greatest common divisor (GCD) of the two inputs (`self` and
+    /// `other`), and two cofactors to obtain the GCD from the two inputs.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer],
+    ///     \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer], [Integer][][)][tuple]> for
+    ///     Src</code>
     ///
-    /// In the case that only one of the two cofactors is
-    /// required, the following are also implemented:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    /// In the case that only one of the two cofactors is required, the
+    /// following are also implemented:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
     ///
-    /// The GCD is always positive except when both inputs are
-    /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
-    /// GCD is <i>g</i> and the cofactors are <i>s</i> and
-    /// <i>t</i> such that
+    /// The GCD is always positive except when both inputs are zero. If the
+    /// inputs are <i>a</i> and <i>b</i>, then the GCD is <i>g</i> and the
+    /// cofactors are <i>s</i> and <i>t</i> such that
     ///
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
-    /// The values <i>s</i> and <i>t</i> are chosen such that
-    /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
-    /// define <i>s</i> and <i>t</i> uniquely. There are a few
-    /// exceptional cases:
+    /// The values <i>s</i> and <i>t</i> are chosen such that normally,
+    /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations define
+    /// <i>s</i> and <i>t</i> uniquely. There are a few exceptional cases:
     ///
     ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
     ///     <i>t</i> = sgn(<i>b</i>).
-    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
-    ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>, then
+    ///     <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
     ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
     ///
     /// # Examples
@@ -4576,8 +4570,8 @@ impl Integer {
     /// assert_eq!(t, 1);
     /// ```
     ///
-    /// In the case that only one of the two cofactors is
-    /// required, this can be achieved as follows:
+    /// In the case that only one of the two cofactors is required, this can be
+    /// achieved as follows:
     ///
     /// ```rust
     /// use rug::{Assign, Integer};
@@ -4597,7 +4591,7 @@ impl Integer {
     /// assert_eq!(t2, 1);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdCofactorsIncomplete<'_> {
         GcdCofactorsIncomplete {
@@ -4608,8 +4602,7 @@ impl Integer {
 
     /// Finds the least common multiple.
     ///
-    /// The result is always positive except when one or both
-    /// inputs are zero.
+    /// The result is always positive except when one or both inputs are zero.
     ///
     /// # Examples
     ///
@@ -4633,8 +4626,7 @@ impl Integer {
 
     /// Finds the least common multiple.
     ///
-    /// The result is always positive except when one or both
-    /// inputs are zero.
+    /// The result is always positive except when one or both inputs are zero.
     ///
     /// # Examples
     ///
@@ -4657,14 +4649,14 @@ impl Integer {
 
     /// Finds the least common multiple.
     ///
-    /// The result is always positive except when one or both
-    /// inputs are zero.
+    /// The result is always positive except when one or both inputs are zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4677,7 +4669,7 @@ impl Integer {
     /// assert_eq!(Integer::from(r), 500);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn lcm_ref<'a>(&'a self, other: &'a Self) -> LcmIncomplete<'_> {
         LcmIncomplete {
@@ -4688,8 +4680,7 @@ impl Integer {
 
     /// Finds the least common multiple.
     ///
-    /// The result is always positive except when one or both
-    /// inputs are zero.
+    /// The result is always positive except when one or both inputs are zero.
     ///
     /// # Examples
     ///
@@ -4711,8 +4702,7 @@ impl Integer {
 
     /// Finds the least common multiple.
     ///
-    /// The result is always positive except when one or both
-    /// inputs are zero.
+    /// The result is always positive except when one or both inputs are zero.
     ///
     /// # Examples
     ///
@@ -4733,14 +4723,14 @@ impl Integer {
 
     /// Finds the least common multiple.
     ///
-    /// The result is always positive except when one or both
-    /// inputs are zero.
+    /// The result is always positive except when one or both inputs are zero.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4752,7 +4742,7 @@ impl Integer {
     /// assert_eq!(Integer::from(r), 500);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn lcm_u_ref(&self, other: u32) -> LcmUIncomplete<'_> {
         LcmUIncomplete {
@@ -4797,8 +4787,8 @@ impl Integer {
         xmpz::legendre(self, p).cast()
     }
 
-    /// Calculates the Jacobi symbol (`self`/<i>n</i>) with the
-    /// Kronecker extension.
+    /// Calculates the Jacobi symbol (`self`/<i>n</i>) with the Kronecker
+    /// extension.
     ///
     /// # Examples
     ///
@@ -4880,11 +4870,12 @@ impl Integer {
 
     /// Computes the factorial of <i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4894,7 +4885,7 @@ impl Integer {
     /// assert_eq!(Integer::factorial(10).complete(), 3628800);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn factorial(n: u32) -> FactorialIncomplete {
         FactorialIncomplete { n }
@@ -4902,11 +4893,12 @@ impl Integer {
 
     /// Computes the double factorial of <i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4916,7 +4908,7 @@ impl Integer {
     /// assert_eq!(Integer::factorial_2(10).complete(), 3840);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn factorial_2(n: u32) -> Factorial2Incomplete {
         Factorial2Incomplete { n }
@@ -4924,11 +4916,12 @@ impl Integer {
 
     /// Computes the <i>m</i>-multi factorial of <i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4938,7 +4931,7 @@ impl Integer {
     /// assert_eq!(Integer::factorial_m(10, 3).complete(), 280);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete {
         FactorialMIncomplete { n, m }
@@ -4946,11 +4939,12 @@ impl Integer {
 
     /// Computes the primorial of <i>n</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -4960,7 +4954,7 @@ impl Integer {
     /// assert_eq!(Integer::primorial(10).complete(), 210);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn primorial(n: u32) -> PrimorialIncomplete {
         PrimorialIncomplete { n }
@@ -5001,11 +4995,12 @@ impl Integer {
 
     /// Computes the binomial coefficient over <i>k</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -5016,7 +5011,7 @@ impl Integer {
     /// assert_eq!(i.binomial_ref(2).complete(), 21);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn binomial_ref(&self, k: u32) -> BinomialIncomplete<'_> {
         BinomialIncomplete { ref_self: self, k }
@@ -5024,11 +5019,12 @@ impl Integer {
 
     /// Computes the binomial coefficient <i>n</i> over <i>k</i>.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -5040,7 +5036,7 @@ impl Integer {
     /// assert_eq!(i, 21);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete {
         BinomialUIncomplete { n, k }
@@ -5048,16 +5044,17 @@ impl Integer {
 
     /// Computes the Fibonacci number.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
-    /// This function is meant for an isolated number. If a
-    /// sequence of Fibonacci numbers is required, the first two
-    /// values of the sequence should be computed with the
-    /// [`fibonacci_2`] method, then iterations should be used.
+    /// This function is meant for an isolated number. If a sequence of
+    /// Fibonacci numbers is required, the first two values of the sequence
+    /// should be computed with the [`fibonacci_2`][Integer::fibonacci_2]
+    /// method, then iterations should be used.
     ///
     /// # Examples
     ///
@@ -5066,27 +5063,28 @@ impl Integer {
     /// assert_eq!(Integer::fibonacci(12).complete(), 144);
     /// ```
     ///
-    /// [`fibonacci_2`]: `Integer::fibonacci_2`
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn fibonacci(n: u32) -> FibonacciIncomplete {
         FibonacciIncomplete { n }
     }
 
-    /// Computes a Fibonacci number, and the previous Fibonacci
-    /// number.
+    /// Computes a Fibonacci number, and the previous Fibonacci number.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
-    /// This function is meant to calculate isolated numbers. If a
-    /// sequence of Fibonacci numbers is required, the first two
-    /// values of the sequence should be computed with this function,
-    /// then iterations should be used.
+    /// This function is meant to calculate isolated numbers. If a sequence of
+    /// Fibonacci numbers is required, the first two values of the sequence
+    /// should be computed with this function, then iterations should be used.
     ///
     /// # Examples
     ///
@@ -5102,7 +5100,7 @@ impl Integer {
     /// assert_eq!(pair.1, 1);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn fibonacci_2(n: u32) -> Fibonacci2Incomplete {
         Fibonacci2Incomplete { n }
@@ -5110,16 +5108,17 @@ impl Integer {
 
     /// Computes the Lucas number.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
-    /// This function is meant for an isolated number. If a
-    /// sequence of Lucas numbers is required, the first two
-    /// values of the sequence should be computed with the
-    /// [`lucas_2`] method, then iterations should be used.
+    /// This function is meant for an isolated number. If a sequence of Lucas
+    /// numbers is required, the first two values of the sequence should be
+    /// computed with the [`lucas_2`][Integer::lucas_2] method, then iterations
+    /// should be used.
     ///
     /// # Examples
     ///
@@ -5128,8 +5127,7 @@ impl Integer {
     /// assert_eq!(Integer::lucas(12).complete(), 322);
     /// ```
     ///
-    /// [`lucas_2`]: `Integer::lucas_2`
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn lucas(n: u32) -> LucasIncomplete {
         LucasIncomplete { n }
@@ -5137,17 +5135,20 @@ impl Integer {
 
     /// Computes a Lucas number, and the previous Lucas number.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
+    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
+    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
-    /// This function is meant to calculate isolated numbers. If a
-    /// sequence of Lucas numbers is required, the first two values of
-    /// the sequence should be computed with this function, then
-    /// iterations should be used.
+    /// This function is meant to calculate isolated numbers. If a sequence of
+    /// Lucas numbers is required, the first two values of the sequence should
+    /// be computed with this function, then iterations should be used.
     ///
     /// # Examples
     ///
@@ -5162,21 +5163,21 @@ impl Integer {
     /// assert_eq!(pair.1, -1);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn lucas_2(n: u32) -> Lucas2Incomplete {
         Lucas2Incomplete { n }
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number with a specified maximum number of
-    /// bits.
+    /// Generates a random number with a specified maximum number of bits.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Examples
     ///
@@ -5189,15 +5190,14 @@ impl Integer {
     /// assert!(i.significant_bits() <= 80);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn random_bits(bits: u32, rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
         RandomBitsIncomplete { bits, rng }
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a non-negative random number below the given
-    /// boundary value.
+    /// Generates a non-negative random number below the given boundary value.
     ///
     /// # Panics
     ///
@@ -5220,8 +5220,7 @@ impl Integer {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a non-negative random number below the given
-    /// boundary value.
+    /// Generates a non-negative random number below the given boundary value.
     ///
     /// # Panics
     ///
@@ -5243,14 +5242,14 @@ impl Integer {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a non-negative random number below the given
-    /// boundary value.
+    /// Generates a non-negative random number below the given boundary value.
     ///
-    /// The following are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`:
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
+    ///     Src</code>
     ///
     /// # Panics
     ///
@@ -5267,7 +5266,7 @@ impl Integer {
     /// assert!(i < bound);
     /// ```
     ///
-    /// [icv]: `crate`#incomplete-computation-values
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn random_below_ref<'a>(
         &'a self,
@@ -5965,8 +5964,8 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
 /**
 An error which can be returned when parsing an [`Integer`].
 
-See the <code>[Integer]::[parse\_radix][Integer::parse_radix]</code> method for details on
-what strings are accepted.
+See the <code>[Integer]::[parse\_radix][Integer::parse_radix]</code> method for
+details on what strings are accepted.
 
 # Examples
 
