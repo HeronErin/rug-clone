@@ -33,12 +33,19 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.13.0 news (unreleased)
 
+  * The values returned from
+    <code>[Integer][int-1-13]::[sum][int-s-1-13]</code> and
+    <code>[Integer][int-1-13]::[dot][int-d-1-13]</code> can now be
+    subtracted from an [`Integer`][int-1-13].
   * The [`Complete`][comp-1-13] trait was added to make it easier to
     convert [incomplete-computation values][icv-1-13] to their final
     value.
 
 [comp-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html
 [icv-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#incomplete-computation-values
+[int-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[int-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.dot
+[int-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.sum
 
 ### Version 1.12.0 news (2021-03-25)
 
