@@ -33,13 +33,17 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.13.0 news (unreleased)
 
-  * The values returned from
+  * The [incomplete-computation values][icv-1-13] returned from
     <code>[Integer][int-1-13]::[sum][int-s-1-13]</code> and
     <code>[Integer][int-1-13]::[dot][int-d-1-13]</code> can now be
     subtracted from an [`Integer`][int-1-13].
-  * The value returned from
+  * The [incomplete-computation value][icv-1-13] returned from
     <code>[Integer][int-1-13]::[square\_ref][int-sr-1-13]</code> can
     now be added/subtracted to/from an [`Integer`][int-1-13].
+  * The [incomplete-computation values][icv-1-13] returned from
+    <code>[Rational][rat-1-13]::[sum][rat-s-1-13]</code> and
+    <code>[Rational][rat-1-13]::[dot][rat-d-1-13]</code> can now be
+    subtracted from a [`Rational`][rat-1-13] number.
   * The [`Complete`][comp-1-13] trait was added to make it easier to
     convert [incomplete-computation values][icv-1-13] to their final
     value.
@@ -50,6 +54,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 [int-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.dot
 [int-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.sum
 [int-sr-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.square_ref
+[rat-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
+[rat-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.dot
+[rat-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.sum
 
 ### Version 1.12.0 news (2021-03-25)
 

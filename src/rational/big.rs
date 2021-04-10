@@ -25,7 +25,7 @@ use core::{
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
     mem::{ManuallyDrop, MaybeUninit},
-    ops::{Add, AddAssign, Deref, Mul, MulAssign},
+    ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign},
 };
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::error::Error;
@@ -1027,6 +1027,8 @@ impl Rational {
     ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Rational]</code>
     ///   * <code>[Add]\<Src> for [Rational]</code>
+    ///   * <code>[SubAssign]\<Src> for [Rational]</code>
+    ///   * <code>[Sub]\<Src> for [Rational]</code>
     ///
     /// # Examples
     ///
@@ -1063,6 +1065,8 @@ impl Rational {
     ///     Src</code>
     ///   * <code>[AddAssign]\<Src> for [Rational]</code>
     ///   * <code>[Add]\<Src> for [Rational]</code>
+    ///   * <code>[SubAssign]\<Src> for [Rational]</code>
+    ///   * <code>[Sub]\<Src> for [Rational]</code>
     ///
     /// # Examples
     ///
@@ -2416,6 +2420,29 @@ where
     }
 }
 
+impl<'a, I> Sub<SumIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Output = Self;
+    #[inline]
+    fn sub(mut self, rhs: SumIncomplete<'a, I>) -> Self {
+        self.sub_assign(rhs);
+        self
+    }
+}
+
+impl<'a, I> SubAssign<SumIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn sub_assign(&mut self, src: SumIncomplete<'a, I>) {
+        for i in src.values {
+            self.sub_assign(i);
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct DotIncomplete<'a, I>
 where
@@ -2489,6 +2516,32 @@ where
             #[allow(clippy::suspicious_op_assign_impl)]
             mul.assign(i.0 * i.1);
             AddAssign::add_assign(self, &mul);
+        }
+    }
+}
+
+impl<'a, I> Sub<DotIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    type Output = Self;
+    #[inline]
+    fn sub(mut self, rhs: DotIncomplete<'a, I>) -> Self {
+        self.sub_assign(rhs);
+        self
+    }
+}
+
+impl<'a, I> SubAssign<DotIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    fn sub_assign(&mut self, src: DotIncomplete<'a, I>) {
+        let mut mul = Rational::new();
+        for i in src.values {
+            #[allow(clippy::suspicious_op_assign_impl)]
+            mul.assign(i.0 * i.1);
+            SubAssign::sub_assign(self, &mul);
         }
     }
 }
