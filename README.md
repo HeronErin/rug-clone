@@ -6,15 +6,14 @@ notice are preserved. This file is offered as-is, without any warranty. -->
 
 # Arbitrary-precision numbers
 
-Rug provides integers and floating-point numbers with arbitrary
-precision and correct rounding:
+Rug provides integers and floating-point numbers with arbitrary precision and
+correct rounding:
 
   * [`Integer`] is a bignum integer with arbitrary precision,
   * [`Rational`] is a bignum rational number with arbitrary precision,
-  * [`Float`] is a multi-precision floating-point number with correct
-    rounding, and
-  * [`Complex`] is a multi-precision complex number with correct
-    rounding.
+  * [`Float`] is a multi-precision floating-point number with correct rounding,
+    and
+  * [`Complex`] is a multi-precision complex number with correct rounding.
 
 Rug is a high-level interface to the following [GNU] libraries:
 
@@ -22,11 +21,10 @@ Rug is a high-level interface to the following [GNU] libraries:
   * [MPFR] for floating-point numbers, and
   * [MPC] for complex numbers.
 
-Rug is free software: you can redistribute it and/or modify it under
-the terms of the GNU Lesser General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version. See the full text of the [GNU LGPL] and
-[GNU GPL] for details.
+Rug is free software: you can redistribute it and/or modify it under the terms
+of the GNU Lesser General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
@@ -34,26 +32,25 @@ option) any later version. See the full text of the [GNU LGPL] and
 
   * The [incomplete-computation values][icv-1-13] returned by
     <code>[Integer][int-1-13]::[sum][int-s-1-13]</code> and
-    <code>[Integer][int-1-13]::[dot][int-d-1-13]</code> can now be
-    subtracted from an [`Integer`][int-1-13].
+    <code>[Integer][int-1-13]::[dot][int-d-1-13]</code> can now be subtracted
+    from an [`Integer`][int-1-13].
   * The [incomplete-computation value][icv-1-13] returned by
-    <code>[Integer][int-1-13]::[square\_ref][int-sr-1-13]</code> can
-    now be added/subtracted to/from an [`Integer`][int-1-13].
+    <code>[Integer][int-1-13]::[square\_ref][int-sr-1-13]</code> can now be
+    added/subtracted to/from an [`Integer`][int-1-13].
   * The [incomplete-computation values][icv-1-13] returned by
     <code>[Rational][rat-1-13]::[sum][rat-s-1-13]</code> and
-    <code>[Rational][rat-1-13]::[dot][rat-d-1-13]</code> can now be
-    subtracted from a [`Rational`][rat-1-13] number.
+    <code>[Rational][rat-1-13]::[dot][rat-d-1-13]</code> can now be subtracted
+    from a [`Rational`][rat-1-13] number.
   * The [incomplete-computation values][icv-1-13] returned by
     <code>[Float][flo-1-13]::[sum][flo-s-1-13]</code> and
-    <code>[Float][flo-1-13]::[dot][flo-d-1-13]</code> can now be
-    subtracted from a [`Float`][flo-1-13].
+    <code>[Float][flo-1-13]::[dot][flo-d-1-13]</code> can now be subtracted from
+    a [`Float`][flo-1-13].
   * The [incomplete-computation values][icv-1-13] returned by
     <code>[Complex][com-1-13]::[sum][com-s-1-13]</code> and
-    <code>[Complex][com-1-13]::[dot][com-d-1-13]</code> can now be
-    subtracted from a [`Complex`][com-1-13] number.
-  * The [`Complete`][comp-1-13] trait was added to make it easier to
-    convert [incomplete-computation values][icv-1-13] to their final
-    value.
+    <code>[Complex][com-1-13]::[dot][com-d-1-13]</code> can now be subtracted
+    from a [`Complex`][com-1-13] number.
+  * The [`Complete`][comp-1-13] trait was added to make it easier to convert
+    [incomplete-computation values][icv-1-13] to their final value.
 
 [com-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [com-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.dot
@@ -73,8 +70,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.12.0 news (2021-03-25)
 
-  * A new method
-    <code>[Integer][int-1-12]::[as\_limbs][int-al-1-12]</code> was
+  * A new method <code>[Integer][int-1-12]::[as\_limbs][int-al-1-12]</code> was
     added.
   * The [*az* crate] dependency was updated to [version 1.1][az-1-1].
 
@@ -107,41 +103,36 @@ int = (int >> 128) - 1;
 assert_eq!(int, 0xfffe_ffff_u32);
 ```
 
-  * <code>[Integer][`Integer`]::[new][`new`]</code> creates a new
-    [`Integer`] intialized to zero.
-  * To assign values to Rug types, we use the [`Assign`] trait and its
-    method [`Assign::assign`]. We do not use the
-    [assignment operator `=`][assignment] as that would drop the
-    left-hand-side operand and replace it with a right-hand-side
-    operand of the same type, which is not what we want here.
-  * Arbitrary precision numbers can hold numbers that are too large to
-    fit in a primitive type. To assign such a number to the large
-    types, we use strings rather than primitives; in the example this
-    is done using <code>[Integer][`Integer`]::[parse][`parse`]</code>
-    and
+  * <code>[Integer][`Integer`]::[new][`new`]</code> creates a new [`Integer`]
+    intialized to zero.
+  * To assign values to Rug types, we use the [`Assign`] trait and its method
+    [`Assign::assign`]. We do not use the [assignment operator `=`][assignment]
+    as that would drop the left-hand-side operand and replace it with a
+    right-hand-side operand of the same type, which is not what we want here.
+  * Arbitrary precision numbers can hold numbers that are too large to fit in a
+    primitive type. To assign such a number to the large types, we use strings
+    rather than primitives; in the example this is done using
+    <code>[Integer][`Integer`]::[parse][`parse`]</code> and
     <code>[Integer][`Integer`]::[parse_radix][`parse_radix`]</code>.
-  * We can compare Rug types to primitive types or to other Rug types
-    using the normal comparison operators, for example
-    `int > 100_000_000`.
-  * Most arithmetic operations are supported with Rug types and
-    primitive types on either side of the operator, for example
-    `int >> 128`.
+  * We can compare Rug types to primitive types or to other Rug types using the
+    normal comparison operators, for example `int > 100_000_000`.
+  * Most arithmetic operations are supported with Rug types and primitive types
+    on either side of the operator, for example `int >> 128`.
 
 ## Using with primitive types
 
-With Rust primitive types, arithmetic operators usually operate on two
-values of the same type, for example `12i32 + 5i32`. Unlike primitive
-types, conversion to and from Rug types can be expensive, so the
-arithmetic operators are overloaded to work on many combinations of
-Rug types and primitives. More details are available in the
-[documentation][primitive types].
+With Rust primitive types, arithmetic operators usually operate on two values of
+the same type, for example `12i32 + 5i32`. Unlike primitive types, conversion to
+and from Rug types can be expensive, so the arithmetic operators are overloaded
+to work on many combinations of Rug types and primitives. More details are
+available in the [documentation][primitive types].
 
 ## Operators
 
-Operators are overloaded to work on Rug types alone or on a
-combination of Rug types and Rust primitives. When at least one
-operand is an owned value of a Rug type, the operation will consume
-that value and return a value of the Rug type. For example
+Operators are overloaded to work on Rug types alone or on a combination of Rug
+types and Rust primitives. When at least one operand is an owned value of a Rug
+type, the operation will consume that value and return a value of the Rug type.
+For example
 
 ```rust
 use rug::Integer;
@@ -150,11 +141,10 @@ let b = 5 - a;
 assert_eq!(b, 5 - 10);
 ```
 
-Here `a` is consumed by the subtraction, and `b` is an owned
-[`Integer`].
+Here `a` is consumed by the subtraction, and `b` is an owned [`Integer`].
 
-If on the other hand there are no owned Rug types and there are
-references instead, the returned value is not the final value, but an
+If on the other hand there are no owned Rug types and there are references
+instead, the returned value is not the final value, but an
 incomplete-computation value. For example
 
 ```rust
@@ -166,18 +156,16 @@ let sub = Integer::from(incomplete);
 assert_eq!(sub, -10);
 ```
 
-Here `a` and `b` are not consumed, and `incomplete` is not the final
-value. It still needs to be converted or assigned into an [`Integer`].
-This is covered in more detail in the documentation’s
-[*Incomplete-computation values*] section.
+Here `a` and `b` are not consumed, and `incomplete` is not the final value. It
+still needs to be converted or assigned into an [`Integer`]. This is covered in
+more detail in the documentation’s [*Incomplete-computation values*] section.
 
-More details on operators are available in the
-[documentation][operators].
+More details on operators are available in the [documentation][operators].
 
 ## Using Rug
 
-Rug is available on [crates.io][rug crate]. To use Rug in your crate,
-add it as a dependency inside [*Cargo.toml*]:
+Rug is available on [crates.io][rug crate]. To use Rug in your crate, add it as
+a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
@@ -186,37 +174,31 @@ rug = "1.12"
 
 Rug requires rustc version 1.37.0 or later.
 
-Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the
-low-level FFI bindings in the [gmp-mpfr-sys crate][sys crate], which
-needs some setup to build; the [gmp-mpfr-sys documentation][sys] has
-some details on usage under [GNU/Linux][sys gnu], [macOS][sys mac] and
-[Windows][sys win].
+Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the low-level
+FFI bindings in the [gmp-mpfr-sys crate][sys crate], which needs some setup to
+build; the [gmp-mpfr-sys documentation][sys] has some details on usage under
+[GNU/Linux][sys gnu], [macOS][sys mac] and [Windows][sys win].
 
 ## Optional features
 
 The Rug crate has six optional features:
 
- 1. `integer`, enabled by default. Required for the [`Integer`] type
-    and its supporting features.
- 2. `rational`, enabled by default. Required for the [`Rational`]
-    number type and its supporting features. This feature requires the
-    `integer` feature.
- 3. `float`, enabled by default. Required for the [`Float`] type and
-    its supporting features.
- 4. `complex`, enabled by default. Required for the [`Complex`] number
-    type and its supporting features. This feature requires the
-    `float` feature.
- 5. `rand`, enabled by default. Required for the [`RandState`] type
-    and its supporting features. This feature requires the `integer`
-    feature.
- 6. `serde`, disabled by default. This provides serialization support
-    for the [`Integer`], [`Rational`], [`Float`] and [`Complex`]
-    number types, providing that they are enabled. This feature
-    requires the [serde crate].
+ 1. `integer`, enabled by default. Required for the [`Integer`] type and its
+    supporting features.
+ 2. `rational`, enabled by default. Required for the [`Rational`] number type
+    and its supporting features. This feature requires the `integer` feature.
+ 3. `float`, enabled by default. Required for the [`Float`] type and its
+    supporting features.
+ 4. `complex`, enabled by default. Required for the [`Complex`] number type and
+    its supporting features. This feature requires the `float` feature.
+ 5. `rand`, enabled by default. Required for the [`RandState`] type and its
+    supporting features. This feature requires the `integer` feature.
+ 6. `serde`, disabled by default. This provides serialization support for the
+    [`Integer`], [`Rational`], [`Float`] and [`Complex`] number types, providing
+    that they are enabled. This feature requires the [serde crate].
 
-The first five optional features are enabled by default; to use
-features selectively, you can add the dependency like this to
-[*Cargo.toml*]:
+The first five optional features are enabled by default; to use features
+selectively, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.rug]
@@ -225,11 +207,10 @@ default-features = false
 features = ["integer", "float", "rand"]
 ```
 
-Here only the `integer`, `float` and `rand` features are enabled. If
-none of the features are selected, the [gmp-mpfr-sys crate][sys crate]
-is not required and thus not enabled. In that case, only the
-[`Assign`] trait and the traits that are in the [`ops`] module are
-provided by the crate.
+Here only the `integer`, `float` and `rand` features are enabled. If none of the
+features are selected, the [gmp-mpfr-sys crate][sys crate] is not required and
+thus not enabled. In that case, only the [`Assign`] trait and the traits that
+are in the [`ops`] module are provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: https://docs.rs/rug/~1.12/rug/index.html#incomplete-computation-values
