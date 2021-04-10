@@ -689,8 +689,8 @@ pub trait AddAssignRound<Rhs = Self> {
 }
 
 /**
-Compound addition and assignment to the rhs operand with a
-specified rounding method.
+Compound addition and assignment to the rhs operand with a specified rounding
+method.
 
 # Examples
 
@@ -746,8 +746,7 @@ pub trait AddFromRound<Lhs = Self> {
 }
 
 /**
-Compound subtraction and assignment with a specified rounding
-method.
+Compound subtraction and assignment with a specified rounding method.
 
 # Examples
 
@@ -799,8 +798,8 @@ pub trait SubAssignRound<Rhs = Self> {
 }
 
 /**
-Compound subtraction and assignment to the rhs operand with a
-specified rounding method.
+Compound subtraction and assignment to the rhs operand with a specified rounding
+method.
 
 # Examples
 
@@ -856,8 +855,7 @@ pub trait SubFromRound<Lhs = Self> {
 }
 
 /**
-Compound multiplication and assignment with a specified rounding
-method.
+Compound multiplication and assignment with a specified rounding method.
 
 # Examples
 
@@ -909,8 +907,8 @@ pub trait MulAssignRound<Rhs = Self> {
 }
 
 /**
-Compound multiplication and assignment to the rhs operand with a
-specified rounding method.
+Compound multiplication and assignment to the rhs operand with a specified
+rounding method.
 
 # Examples
 
@@ -1018,8 +1016,8 @@ pub trait DivAssignRound<Rhs = Self> {
 }
 
 /**
-Compound division and assignment to the rhs operand with a specified
-rounding method.
+Compound division and assignment to the rhs operand with a specified rounding
+method.
 
 # Examples
 
@@ -1075,8 +1073,7 @@ pub trait DivFromRound<Lhs = Self> {
 }
 
 /**
-Compound remainder operation and assignment with a specified rounding
-method.
+Compound remainder operation and assignment with a specified rounding method.
 
 # Examples
 
@@ -1128,8 +1125,8 @@ pub trait RemAssignRound<Rhs = Self> {
 }
 
 /**
-Compound remainder operation and assignment to the rhs operand with a
-specified rounding method.
+Compound remainder operation and assignment to the rhs operand with a specified
+rounding method.
 
 # Examples
 
@@ -1185,8 +1182,7 @@ pub trait RemFromRound<Lhs = Self> {
 }
 
 /**
-Compound power operation and assignment with a specified rounding
-method.
+Compound power operation and assignment with a specified rounding method.
 
 # Examples
 
@@ -1238,8 +1234,8 @@ pub trait PowAssignRound<Rhs = Self> {
 }
 
 /**
-Compound power operation and assignment to the rhs operand with a
-specified rounding method.
+Compound power operation and assignment to the rhs operand with a specified
+rounding method.
 
 # Examples
 
@@ -1411,8 +1407,7 @@ pub trait DivRoundingAssign<Rhs = Self> {
 }
 
 /**
-Compound assignment to the rhs operand and rounding variants of
-division.
+Compound assignment to the rhs operand and rounding variants of division.
 
 # Examples
 
@@ -1578,8 +1573,8 @@ pub trait RemRoundingAssign<Rhs = Self> {
 }
 
 /**
-Compound assignment to the rhs operand and rounding variants of the
-remainder operation.
+Compound assignment to the rhs operand and rounding variants of the remainder
+operation.
 
 # Examples
 

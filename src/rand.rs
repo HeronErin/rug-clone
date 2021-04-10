@@ -22,20 +22,20 @@ This module provides two main structs.
  1. [`RandState`] is thread safe and can be shared and sent across threads.
  2. [`ThreadRandState`] is suitable for use in a single thread.
 
-[`RandState`] has constructors for Mersenne Twister and for linear
-congruential random number generators. It can also be constructed
-using a custom random number generator implementing the [`RandGen`]
-trait, which has to implement [`Send`] and [`Sync`] too.
+[`RandState`] has constructors for Mersenne Twister and for linear congruential
+random number generators. It can also be constructed using a custom random
+number generator implementing the [`RandGen`] trait, which has to implement
+[`Send`] and [`Sync`] too.
 
-If you need a custom random number generator that cannot be shared or
-sent across threads, you can use [`ThreadRandState`] instead.
-[`ThreadRandState`] can be constructed using a custom random number
-generator implementing the [`ThreadRandGen`] trait, which does *not*
-have to implement [`Send`] or [`Sync`].
+If you need a custom random number generator that cannot be shared or sent
+across threads, you can use [`ThreadRandState`] instead. [`ThreadRandState`] can
+be constructed using a custom random number generator implementing the
+[`ThreadRandGen`] trait, which does *not* have to implement [`Send`] or
+[`Sync`].
 
-Both [`RandState`] and [`ThreadRandState`] implement the
-[`MutRandState`] trait so that they can be used with methods like
-<code>[Integer][`Integer`]::[random_below][`Integer::random_below`]</code>.
+Both [`RandState`] and [`ThreadRandState`] implement the [`MutRandState`] trait
+so that they can be used with methods like
+<code>[Integer]::[random\_below][Integer::random_below]</code>.
 */
 
 use crate::Integer;
@@ -107,8 +107,8 @@ unsafe impl Send for RandState<'_> {}
 unsafe impl Sync for RandState<'_> {}
 
 impl RandState<'_> {
-    /// Creates a new random generator with a compromise between speed
-    /// and randomness.
+    /// Creates a new random generator with a compromise between speed and
+    /// randomness.
     ///
     /// Currently this is equivalent to [`new_mersenne_twister`].
     ///
@@ -121,7 +121,7 @@ impl RandState<'_> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [`new_mersenne_twister`]: `RandState::new_mersenne_twister`
+    /// [`new_mersenne_twister`]: RandState::new_mersenne_twister
     #[inline]
     pub fn new() -> RandState<'static> {
         RandState::new_mersenne_twister()
@@ -150,12 +150,12 @@ impl RandState<'_> {
         }
     }
 
-    /// Creates a new random generator with a linear congruential
-    /// algorithm <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>) mod 2<sup><i>m</i></sup>.
+    /// Creates a new random generator with a linear congruential algorithm
+    /// <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>) mod 2<sup><i>m</i></sup>.
     ///
-    /// The low bits of <i>X</i> in this algorithm are not very
-    /// random, so only the high half of each <i>X</i> is actually
-    /// used, that is the higher <i>m</i>/2 bits.
+    /// The low bits of <i>X</i> in this algorithm are not very random, so only
+    /// the high half of each <i>X</i> is actually used, that is the higher
+    /// <i>m</i>/2 bits.
     ///
     /// # Examples
     ///
@@ -182,15 +182,14 @@ impl RandState<'_> {
         }
     }
 
-    /// Creates a new random generator with a linear congruential
-    /// algorithm like the [`new_linear_congruential`] method.
+    /// Creates a new random generator with a linear congruential algorithm like
+    /// the [`new_linear_congruential`] method.
     ///
-    /// For the linear congruential algorithm
-    /// <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>) mod 2<sup><i>m</i></sup>,
-    /// <i>a</i>, <i>c</i> and <i>m</i> are selected from a table
-    /// such that at least <i>size</i> bits of each <i>X</i> will be
-    /// used, that is <i>m</i>/2 ≥ <i>size</i>. The table only has
-    /// values for <i>size</i> ≤ 128; [`None`] will be returned if the
+    /// For the linear congruential algorithm <i>X</i> = (<i>a</i> × <i>X</i> +
+    /// <i>c</i>) mod 2<sup><i>m</i></sup>, <i>a</i>, <i>c</i> and <i>m</i> are
+    /// selected from a table such that at least <i>size</i> bits of each
+    /// <i>X</i> will be used, that is <i>m</i>/2 ≥ <i>size</i>. The table only
+    /// has values for <i>size</i> ≤ 128; [`None`] will be returned if the
     /// requested size is larger.
     ///
     /// # Examples
@@ -205,7 +204,7 @@ impl RandState<'_> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [`new_linear_congruential`]: `RandState::new_linear_congruential`
+    /// [`new_linear_congruential`]: RandState::new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'static>> {
         unsafe {
             let mut inner = MaybeUninit::uninit();
@@ -222,10 +221,9 @@ impl RandState<'_> {
 
     /// Creates a new custom random generator.
     ///
-    /// If the custom random generator is cloned, the implemented
-    /// trait method
-    /// <code>[RandGen][`RandGen`]::[boxed_clone][`boxed_clone`]</code>
-    /// is called; this leads to panic if the method returns [`None`].
+    /// If the custom random generator is cloned, the implemented trait method
+    /// <code>[RandGen]::[boxed\_clone]</code> is called; this leads to panic if
+    /// the method returns [`None`].
     ///
     /// # Examples
     ///
@@ -249,7 +247,7 @@ impl RandState<'_> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [`boxed_clone`]: `RandGen::boxed_clone`
+    /// [boxed\_clone]: RandGen::boxed_clone
     pub fn new_custom(custom: &mut dyn RandGen) -> RandState<'_> {
         let b = Box::<&mut dyn RandGen>::new(custom);
         let r_ptr = NonNull::<&mut dyn RandGen>::from(Box::leak(b));
@@ -270,10 +268,9 @@ impl RandState<'_> {
 
     /// Creates a new custom random generator.
     ///
-    /// If the custom random generator is cloned, the implemented
-    /// trait method
-    /// <code>[RandGen][`RandGen`]::[boxed_clone][`boxed_clone`]</code>
-    /// is called; this leads to panic if the method returns [`None`].
+    /// If the custom random generator is cloned, the implemented trait method
+    /// <code>[RandGen]::[boxed\_clone]</code> is called; this leads to panic if
+    /// the method returns [`None`].
     ///
     /// # Examples
     ///
@@ -297,7 +294,7 @@ impl RandState<'_> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [`boxed_clone`]: `RandGen::boxed_clone`
+    /// [boxed\_clone]: RandGen::boxed_clone
     pub fn new_custom_boxed(custom: Box<dyn RandGen>) -> RandState<'static> {
         let b = Box::<Box<dyn RandGen>>::new(custom);
         let r_ptr = NonNull::<Box<dyn RandGen>>::from(Box::leak(b));
@@ -316,16 +313,15 @@ impl RandState<'_> {
         }
     }
 
-    /// Creates a random generator from an initialized
-    /// [GMP random generator][`randstate_t`].
+    /// Creates a random generator from an initialized [GMP random
+    /// generator][randstate_t].
     ///
     /// # Safety
     ///
     ///   * The value must be initialized.
-    ///   * The [`randstate_t`] type can be considered as a kind of
-    ///     pointer, so there can be multiple copies of it. Since this
-    ///     function takes over ownership, no other copies of the
-    ///     passed value should exist.
+    ///   * The [`randstate_t`] type can be considered as a kind of pointer, so
+    ///     there can be multiple copies of it. Since this function takes over
+    ///     ownership, no other copies of the passed value should exist.
     ///   * The object must be thread safe.
     ///
     /// # Examples
@@ -353,19 +349,17 @@ impl RandState<'_> {
         }
     }
 
-    /// Converts a random generator into a
-    /// [GMP random generator][`randstate_t`].
+    /// Converts a random generator into a [GMP random generator][randstate_t].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
     /// # Panics
     ///
-    /// This method panics if the [`RandState`] object was created
-    /// using [`new_custom`], as the borrow into the custom generator
-    /// would be terminated once `self` is consumed. This would lead
-    /// to undefined behavior if the returned object is used. This
-    /// method does work with objects created using
-    /// [`new_custom_boxed`].
+    /// This method panics if the [`RandState`] object was created using
+    /// [`new_custom`], as the borrow into the custom generator would be
+    /// terminated once `self` is consumed. This would lead to undefined
+    /// behavior if the returned object is used. This method does work with
+    /// objects created using [`new_custom_boxed`].
     ///
     /// # Examples
     ///
@@ -382,8 +376,8 @@ impl RandState<'_> {
     /// }
     /// ```
     ///
-    /// [`new_custom_boxed`]: `RandState::new_custom_boxed`
-    /// [`new_custom`]: `RandState::new_custom`
+    /// [`new_custom_boxed`]: RandState::new_custom_boxed
+    /// [`new_custom`]: RandState::new_custom
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         assert!(
@@ -396,11 +390,9 @@ impl RandState<'_> {
         m.inner
     }
 
-    /// Returns a pointer to the inner
-    /// [GMP random generator][`randstate_t`].
+    /// Returns a pointer to the inner [GMP random generator][randstate_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -418,11 +410,10 @@ impl RandState<'_> {
         &self.inner
     }
 
-    /// Returns an unsafe mutable pointer to the inner
-    /// [GMP random generator][`randstate_t`].
+    /// Returns an unsafe mutable pointer to the inner [GMP random
+    /// generator][randstate_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// # Examples
     ///
@@ -443,18 +434,16 @@ impl RandState<'_> {
         &mut self.inner
     }
 
-    /// Converts a random generator into
-    /// <code>[Box][`Box`]\<dyn [RandGen][`RandGen`]></code>
-    /// if possible.
+    /// Converts a random generator into <code>[Box]\<dyn [RandGen]></code> if
+    /// possible.
     ///
-    /// If the conversion is not possible,
-    /// <code>[Err][`Err`]\(self)</code> is returned.
+    /// If the conversion is not possible, <code>[Err]\(self)</code> is
+    /// returned.
     ///
-    /// This conversion is always possible when the random generator
-    /// was created with [`new_custom_boxed`]. It is also possible if
-    /// the generator was cloned, directly or indirectly, from another
-    /// generator that was created with [`new_custom`] or
-    /// [`new_custom_boxed`].
+    /// This conversion is always possible when the random generator was created
+    /// with [`new_custom_boxed`]. It is also possible if the generator was
+    /// cloned, directly or indirectly, from another generator that was created
+    /// with [`new_custom`] or [`new_custom_boxed`].
     ///
     /// # Examples
     ///
@@ -473,8 +462,8 @@ impl RandState<'_> {
     /// assert_eq!(back_to_seed.gen(), 0x8CEF_7310);
     /// ```
     ///
-    /// [`new_custom_boxed`]: `RandState::new_custom_boxed`
-    /// [`new_custom`]: `RandState::new_custom`
+    /// [`new_custom_boxed`]: RandState::new_custom_boxed
+    /// [`new_custom`]: RandState::new_custom
     #[inline]
     pub fn into_custom_boxed(self) -> Result<Box<dyn RandGen>, Self> {
         if !ptr::eq(self.inner.algdata, &CUSTOM_BOXED_FUNCS) {
@@ -534,9 +523,9 @@ impl RandState<'_> {
 
     /// Generates a random number below the given boundary value.
     ///
-    /// This function can never return the maximum 32-bit value; in
-    /// order to generate a 32-bit random value that covers the whole
-    /// range, use the [`bits`] method with `bits` set to 32.
+    /// This function can never return the maximum 32-bit value; in order to
+    /// generate a 32-bit random value that covers the whole range, use the
+    /// [`bits`] method with `bits` set to 32.
     ///
     /// # Panics
     ///
@@ -552,7 +541,7 @@ impl RandState<'_> {
     /// println!("0 ≤ {} < 10000", u);
     /// ```
     ///
-    /// [`bits`]: `RandState::bits`
+    /// [`bits`]: RandState::bits
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
@@ -561,7 +550,8 @@ impl RandState<'_> {
 }
 
 /**
-The state of a random number generator that is suitable for a single thread only.
+The state of a random number generator that is suitable for a single thread
+only.
 
 This is similar to [`RandState`] but can only be used in a single thread.
 
@@ -622,9 +612,9 @@ impl ThreadRandState<'_> {
     /// Creates a new custom random generator.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[new_custom][`RandState::new_custom`]</code>.
-    /// The difference is that this method takes a [`ThreadRandGen`]
-    /// that does not have to implement [`Send`] or [`Sync`].
+    /// <code>[RandState]::[new\_custom][RandState::new_custom]</code>. The
+    /// difference is that this method takes a [`ThreadRandGen`] that does not
+    /// have to implement [`Send`] or [`Sync`].
     ///
     /// # Examples
     ///
@@ -669,9 +659,9 @@ impl ThreadRandState<'_> {
     /// Creates a new custom random generator.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[new_custom_boxed][`RandState::new_custom_boxed`]</code>.
-    /// The difference is that this method takes a [`ThreadRandGen`]
-    /// that does not have to implement [`Send`] or [`Sync`].
+    /// <code>[RandState][`RandState`]::[new\_custom\_boxed][RandState::new_custom_boxed]</code>.
+    /// The difference is that this method takes a [`ThreadRandGen`] that does
+    /// not have to implement [`Send`] or [`Sync`].
     ///
     /// # Examples
     ///
@@ -713,24 +703,23 @@ impl ThreadRandState<'_> {
         }
     }
 
-    /// Creates a random generator from an initialized
-    /// [GMP random generator][`randstate_t`].
+    /// Creates a random generator from an initialized [GMP random
+    /// generator][randstate_t].
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[from_raw][`RandState::from_raw`]</code>,
-    /// but the object does not need to be thread safe. You *can* use
-    /// this method if the object is thread safe, but in that case
-    /// <code>[RandState][`RandState`]::[from_raw][`RandState::from_raw`]</code>
-    /// is probably better as it allows the returned object to be
-    /// shared and transferred across threads.
+    /// <code>[RandState]::[from\_raw][RandState::from_raw]</code>, but the
+    /// object does not need to be thread safe. You *can* use this method if the
+    /// object is thread safe, but in that case
+    /// <code>[RandState]::[from\_raw][RandState::from_raw]</code> is probably
+    /// better as it allows the returned object to be shared and transferred
+    /// across threads.
     ///
     /// # Safety
     ///
     ///   * The value must be initialized.
-    ///   * The [`randstate_t`] type can be considered as a kind of
-    ///     pointer, so there can be multiple copies of it. Since this
-    ///     function takes over ownership, no other copies of the
-    ///     passed value should exist.
+    ///   * The [`randstate_t`] type can be considered as a kind of pointer, so
+    ///     there can be multiple copies of it. Since this function takes over
+    ///     ownership, no other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -757,25 +746,22 @@ impl ThreadRandState<'_> {
         }
     }
 
-    /// Converts a random generator into a
-    /// [GMP random generator][`randstate_t`].
+    /// Converts a random generator into a [GMP random generator][randstate_t].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[into_raw][`RandState::into_raw`]</code>,
-    /// but the returned object is not thread safe. Notably, it should
-    /// *not* be used in
-    /// <code>[RandState][`RandState`]::[from_raw][`RandState::from_raw`]</code>.
+    /// <code>[RandState]::[into\_raw][RandState::into_raw]</code>, but the
+    /// returned object is not thread safe. Notably, it should *not* be used in
+    /// <code>[RandState]::[from\_raw][RandState::from_raw]</code>.
     ///
     /// # Panics
     ///
-    /// This method panics if the [`ThreadRandState`] object was
-    /// created using [`new_custom`], as the borrow into the custom
-    /// generator would be terminated once `self` is consumed. This
-    /// would lead to undefined behavior if the returned object is
-    /// used. This method does work with objects created using
-    /// [`new_custom_boxed`].
+    /// This method panics if the [`ThreadRandState`] object was created using
+    /// [`new_custom`], as the borrow into the custom generator would be
+    /// terminated once `self` is consumed. This would lead to undefined
+    /// behavior if the returned object is used. This method does work with
+    /// objects created using [`new_custom_boxed`].
     ///
     /// # Examples
     ///
@@ -801,8 +787,8 @@ impl ThreadRandState<'_> {
     /// }
     /// ```
     ///
-    /// [`new_custom_boxed`]: `ThreadRandState::new_custom_boxed`
-    /// [`new_custom`]: `ThreadRandState::new_custom`
+    /// [`new_custom_boxed`]: ThreadRandState::new_custom_boxed
+    /// [`new_custom`]: ThreadRandState::new_custom
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         assert!(
@@ -815,14 +801,12 @@ impl ThreadRandState<'_> {
         m.inner
     }
 
-    /// Returns a pointer to the inner
-    /// [GMP random generator][`randstate_t`].
+    /// Returns a pointer to the inner [GMP random generator][randstate_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[as_raw][`RandState::as_raw`]</code>.
+    /// <code>[RandState]::[as\_raw][RandState::as_raw]</code>.
     ///
     /// # Examples
     ///
@@ -849,14 +833,13 @@ impl ThreadRandState<'_> {
         &self.inner
     }
 
-    /// Returns an unsafe mutable pointer to the inner
-    /// [GMP random generator][`randstate_t`].
+    /// Returns an unsafe mutable pointer to the inner [GMP random
+    /// generator][randstate_t].
     ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
+    /// The returned pointer will be valid for as long as `self` is valid.
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[as_raw_mut][`RandState::as_raw_mut`]</code>.
+    /// <code>[RandState]::[as\_raw\_mut][RandState::as_raw_mut]</code>.
     ///
     /// # Examples
     ///
@@ -886,21 +869,19 @@ impl ThreadRandState<'_> {
         &mut self.inner
     }
 
-    /// Converts a random generator into
-    /// <code>[Box][`Box`]\<dyn [ThreadRandGen][`ThreadRandGen`]></code>
-    /// if possible.
+    /// Converts a random generator into <code>[Box]\<dyn
+    /// [ThreadRandGen]></code> if possible.
     ///
-    /// If the conversion is not possible,
-    /// <code>[Err][`Err`]\(self)</code> is returned.
+    /// If the conversion is not possible, <code>[Err]\(self)</code> is
+    /// returned.
     ///
-    /// This conversion is always possible when the random generator
-    /// was created with [`new_custom_boxed`]. It is also possible if
-    /// the generator was cloned, directly or indirectly, from another
-    /// generator that was created with [`new_custom`] or
-    /// [`new_custom_boxed`].
+    /// This conversion is always possible when the random generator was created
+    /// with [`new_custom_boxed`]. It is also possible if the generator was
+    /// cloned, directly or indirectly, from another generator that was created
+    /// with [`new_custom`] or [`new_custom_boxed`].
     ///
     /// This is similar to
-    /// <code>[RandState][`RandState`]::[into_custom_boxed][`RandState::into_custom_boxed`]</code>.
+    /// <code>[RandState]::[into\_custom\_boxed][RandState::into_custom_boxed]</code>.
     ///
     /// # Examples
     ///
@@ -919,8 +900,8 @@ impl ThreadRandState<'_> {
     /// assert_eq!(back_to_seed.gen(), 0x8CEF_7310);
     /// ```
     ///
-    /// [`new_custom_boxed`]: `ThreadRandState::new_custom_boxed`
-    /// [`new_custom`]: `ThreadRandState::new_custom`
+    /// [`new_custom_boxed`]: ThreadRandState::new_custom_boxed
+    /// [`new_custom`]: ThreadRandState::new_custom
     #[inline]
     pub fn into_custom_boxed(self) -> Result<Box<dyn ThreadRandGen>, Self> {
         if !ptr::eq(self.inner.algdata, &THREAD_CUSTOM_BOXED_FUNCS) {
@@ -934,8 +915,7 @@ impl ThreadRandState<'_> {
 
     /// Seeds the random generator.
     ///
-    /// This is similar to
-    /// <code>[RandState][`RandState`]::[seed][`RandState::seed`]</code>.
+    /// This is similar to <code>[RandState]::[seed][RandState::seed]</code>.
     ///
     /// # Examples
     ///
@@ -973,8 +953,7 @@ impl ThreadRandState<'_> {
 
     /// Generates a random number with the specified number of bits.
     ///
-    /// This is similar to
-    /// <code>[RandState][`RandState`]::[bits][`RandState::bits`]</code>.
+    /// This is similar to <code>[RandState]::[bits][RandState::bits]</code>.
     ///
     /// # Panics
     ///
@@ -1006,8 +985,7 @@ impl ThreadRandState<'_> {
 
     /// Generates a random number below the given boundary value.
     ///
-    /// This is similar to
-    /// <code>[RandState][`RandState`]::[below][`RandState::below`]</code>.
+    /// This is similar to <code>[RandState]::[below][RandState::below]</code>.
     ///
     /// # Panics
     ///
@@ -1041,9 +1019,9 @@ impl ThreadRandState<'_> {
 /**
 Custom random number generator to be used with [`RandState`].
 
-The methods implemented for this trait, as well as possible
-destructors, can be used by FFI callback functions. If these methods
-panic, they can cause the program to abort.
+The methods implemented for this trait, as well as possible destructors, can be
+used by FFI callback functions. If these methods panic, they can cause the
+program to abort.
 
 # Examples
 
@@ -1102,12 +1080,12 @@ pub trait RandGen: Send + Sync {
 
     /// Gets up to 32 random bits.
     ///
-    /// The default implementation simply calls the [`gen`] method
-    /// once and returns the most significant required bits.
+    /// The default implementation simply calls the [`gen`] method once and
+    /// returns the most significant required bits.
     ///
-    /// This method can be overridden to store any unused bits for
-    /// later use. This can be useful for example if the random number
-    /// generation process is computationally expensive.
+    /// This method can be overridden to store any unused bits for later use.
+    /// This can be useful for example if the random number generation process
+    /// is computationally expensive.
     ///
     /// # Examples
     ///
@@ -1156,7 +1134,7 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(rand.gen_bits(16), second_32 & 0xFFFF);
     /// ```
     ///
-    /// [`gen`]: `RandGen::gen`
+    /// [`gen`]: RandGen::gen
     fn gen_bits(&mut self, bits: u32) -> u32 {
         let gen = self.gen();
         match bits {
@@ -1170,10 +1148,9 @@ pub trait RandGen: Send + Sync {
     ///
     /// The default implementation of this function does nothing.
     ///
-    /// Note that the
-    /// <code>[RandState][`RandState`]::[seed][`RandState::seed`]</code>
-    /// method will pass its seed parameter exactly to this function
-    /// without using it otherwise.
+    /// Note that the <code>[RandState]::[seed][RandState::seed]</code> method
+    /// will pass its seed parameter exactly to this function without using it
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -1250,9 +1227,9 @@ pub trait RandGen: Send + Sync {
 /**
 Custom random number generator to be used with [`ThreadRandState`].
 
-The methods implemented for this trait, as well as possible
-destructors, can be used by FFI callback functions. If these methods
-panic, they can cause the program to abort.
+The methods implemented for this trait, as well as possible destructors, can be
+used by FFI callback functions. If these methods panic, they can cause the
+program to abort.
 
 This is similar to [`RandGen`] but can only be used in a single thread.
 
@@ -1280,8 +1257,7 @@ assert!(u < 10000);
 println!("0 ≤ {} < 10000", u);
 ```
 
-This would not compile, since `ThreadRng` is not [`Send`] and not
-[`Sync`].
+This would not compile, since `ThreadRng` is not [`Send`] and not [`Sync`].
 
 ```compile_fail
 # #[cfg(skip_this)]
@@ -1303,23 +1279,22 @@ impl RandGen for Generator {
 pub trait ThreadRandGen {
     /// Gets a random 32-bit unsigned integer.
     ///
-    /// This is similar to
-    /// <code>[RandGen][`RandGen`]::[gen][`RandGen::gen`]</code>.
+    /// This is similar to <code>[RandGen]::[gen][RandGen::gen]</code>.
     fn gen(&mut self) -> u32;
 
     /// Gets up to 32 random bits.
     ///
-    /// The default implementation simply calls the [`gen`] method
-    /// once and returns the most significant required bits.
+    /// The default implementation simply calls the [`gen`] method once and
+    /// returns the most significant required bits.
     ///
-    /// This method can be overridden to store any unused bits for
-    /// later use. This can be useful for example if the random number
-    /// generation process is computationally expensive.
+    /// This method can be overridden to store any unused bits for later use.
+    /// This can be useful for example if the random number generation process
+    /// is computationally expensive.
     ///
     /// This method is similar to
-    /// <code>[RandGen][`RandGen`]::[gen_bits][`RandGen::gen_bits`]</code>.
+    /// <code>[RandGen]::[gen\_bits][RandGen::gen_bits]</code>.
     ///
-    /// [`gen`]: `ThreadRandGen::gen`
+    /// [`gen`]: ThreadRandGen::gen
     fn gen_bits(&mut self, bits: u32) -> u32 {
         let gen = self.gen();
         match bits {
@@ -1334,12 +1309,11 @@ pub trait ThreadRandGen {
     /// The default implementation of this function does nothing.
     ///
     /// Note that the
-    /// <code>[ThreadRandState][`ThreadRandState`]::[seed][`ThreadRandState::seed`]</code>
-    /// method will pass its seed parameter exactly to this function
-    /// without using it otherwise.
+    /// <code>[ThreadRandState]::[seed][ThreadRandState::seed]</code> method
+    /// will pass its seed parameter exactly to this function without using it
+    /// otherwise.
     ///
-    /// This method is similar to
-    /// <code>[RandGen][`RandGen`]::[seed][`RandGen::seed`]</code>.
+    /// This method is similar to <code>[RandGen]::[seed][RandGen::seed]</code>.
     #[inline]
     fn seed(&mut self, seed: &Integer) {
         let _ = seed;
@@ -1350,7 +1324,7 @@ pub trait ThreadRandGen {
     /// The default implementation returns [`None`].
     ///
     /// This method is similar to
-    /// <code>[RandGen][`RandGen`]::[boxed_clone][`RandGen::boxed_clone`]</code>.
+    /// <code>[RandGen]::[boxed\_clone][RandGen::boxed_clone]</code>.
     #[inline]
     fn boxed_clone(&self) -> Option<Box<dyn ThreadRandGen>> {
         None
@@ -1691,17 +1665,14 @@ static THREAD_CUSTOM_BOXED_FUNCS: randfnptr_t = randfnptr_t {
     iset: thread_custom_boxed_iset,
 };
 
-/// Used to pass the state of random number generators by mutable
-/// reference.
+/// Used to pass the state of random number generators by mutable reference.
 ///
 /// This trait is implemented by
-///   1. [`RandState`], which is thread safe and implements [`Send`]
-///      and [`Sync`].
-///   2. [`ThreadRandState`], which can only be used in a single
-///      thread.
+///   1. [`RandState`], which is thread safe and implements [`Send`] and
+///      [`Sync`].
+///   2. [`ThreadRandState`], which can only be used in a single thread.
 ///
 /// This trait is sealed and cannot be implemented for more types.
-///
 pub trait MutRandState: SealedMutRandState {}
 
 mod hide {

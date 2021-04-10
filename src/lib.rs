@@ -17,15 +17,14 @@
 /*!
 # Arbitrary-precision numbers
 
-Rug provides integers and floating-point numbers with arbitrary
-precision and correct rounding:
+Rug provides integers and floating-point numbers with arbitrary precision and
+correct rounding:
 
   * [`Integer`] is a bignum integer with arbitrary precision,
   * [`Rational`] is a bignum rational number with arbitrary precision,
-  * [`Float`] is a multi-precision floating-point number with correct
-    rounding, and
-  * [`Complex`] is a multi-precision complex number with correct
-    rounding.
+  * [`Float`] is a multi-precision floating-point number with correct rounding,
+    and
+  * [`Complex`] is a multi-precision complex number with correct rounding.
 
 Rug is a high-level interface to the following [GNU] libraries:
 
@@ -33,14 +32,13 @@ Rug is a high-level interface to the following [GNU] libraries:
   * [MPFR] for floating-point numbers, and
   * [MPC] for complex numbers.
 
-Rug is free software: you can redistribute it and/or modify it under
-the terms of the GNU Lesser General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version. See the full text of the [GNU LGPL] and
-[GNU GPL] for details.
+Rug is free software: you can redistribute it and/or modify it under the terms
+of the GNU Lesser General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
-You are also free to use the examples in this documentation without
-any restrictions; the examples are in the public domain.
+You are also free to use the examples in this documentation without any
+restrictions; the examples are in the public domain.
 
 ## Quick example
 
@@ -64,59 +62,53 @@ assert_eq!(int, 0xfffe_ffff_u32);
 # }
 ```
 
-  * <code>[Integer][`Integer`]::[new][`new`]</code> creates a new
-    [`Integer`] intialized to zero.
-  * To assign values to Rug types, we use the [`Assign`] trait and its
-    method [`Assign::assign`]. We do not use the
-    [assignment operator `=`][assignment] as that would drop the
-    left-hand-side operand and replace it with a right-hand-side
-    operand of the same type, which is not what we want here.
-  * Arbitrary precision numbers can hold numbers that are too large to
-    fit in a primitive type. To assign such a number to the large
-    types, we use strings rather than primitives; in the example this
-    is done using <code>[Integer][`Integer`]::[parse][`parse`]</code>
-    and
-    <code>[Integer][`Integer`]::[parse_radix][`parse_radix`]</code>.
-  * We can compare Rug types to primitive types or to other Rug types
-    using the normal comparison operators, for example
-    `int > 100_000_000`.
-  * Most arithmetic operations are supported with Rug types and
-    primitive types on either side of the operator, for example
-    `int >> 128`.
+  * <code>[Integer]::[new][Integer::new]</code> creates a new [`Integer`]
+    intialized to zero.
+  * To assign values to Rug types, we use the [`Assign`] trait and its method
+    [`Assign::assign`]. We do not use the [assignment operator `=`][assignment]
+    as that would drop the left-hand-side operand and replace it with a
+    right-hand-side operand of the same type, which is not what we want here.
+  * Arbitrary precision numbers can hold numbers that are too large to fit in a
+    primitive type. To assign such a number to the large types, we use strings
+    rather than primitives; in the example this is done using
+    <code>[Integer]::[parse][Integer::parse]</code> and
+    <code>[Integer]::[parse\_radix][Integer::parse_radix]</code>.
+  * We can compare Rug types to primitive types or to other Rug types using the
+    normal comparison operators, for example `int > 100_000_000`.
+  * Most arithmetic operations are supported with Rug types and primitive types
+    on either side of the operator, for example `int >> 128`.
 
 ## Using with primitive types
 
-With Rust primitive types, arithmetic operators usually operate on two
-values of the same type, for example `12i32 + 5i32`. Unlike primitive
-types, conversion to and from Rug types can be expensive, so the
-arithmetic operators are overloaded to work on many combinations of
-Rug types and primitives. The following are provided:
+With Rust primitive types, arithmetic operators usually operate on two values of
+the same type, for example `12i32 + 5i32`. Unlike primitive types, conversion to
+and from Rug types can be expensive, so the arithmetic operators are overloaded
+to work on many combinations of Rug types and primitives. The following are
+provided:
 
- 1. Where they make sense, all arithmetic operators are overloaded to
-    work with Rug types and the primitives [`i8`], [`i16`], [`i32`],
-    [`i64`], [`i128`], [`u8`], [`u16`], [`u32`], [`u64`], [`u128`],
-    [`f32`] and [`f64`].
- 2. Where they make sense, conversions using the [`From`] trait and
-    assignments using the [`Assign`] trait are supported for all the
-    primitives in 1 above as well as [`bool`], [`isize`] and
-    [`usize`].
- 3. Comparisons between Rug types and all the numeric primitives
-    listed in 1 and 2 above are supported.
- 4. For [`Rational`] numbers, conversions and comparisons are also
-    supported for tuples containing two integer primitives: the first
-    is the numerator and the second is the denominator which must not
-    be zero. The two primitives do not need to be of the same type.
- 5. For [`Complex`] numbers, conversions and comparisons are also
-    supported for tuples containing two primitives: the first is the
-    real part and the second is the imaginary part. The two primitives
-    do not need to be of the same type.
+ 1. Where they make sense, all arithmetic operators are overloaded to work with
+    Rug types and the primitives [`i8`], [`i16`], [`i32`], [`i64`], [`i128`],
+    [`u8`], [`u16`], [`u32`], [`u64`], [`u128`], [`f32`] and [`f64`].
+ 2. Where they make sense, conversions using the [`From`] trait and assignments
+    using the [`Assign`] trait are supported for all the primitives in 1 above
+    as well as [`bool`], [`isize`] and [`usize`].
+ 3. Comparisons between Rug types and all the numeric primitives listed in 1 and
+    2 above are supported.
+ 4. For [`Rational`] numbers, conversions and comparisons are also supported for
+    tuples containing two integer primitives: the first is the numerator and the
+    second is the denominator which must not be zero. The two primitives do not
+    need to be of the same type.
+ 5. For [`Complex`] numbers, conversions and comparisons are also supported for
+    tuples containing two primitives: the first is the real part and the second
+    is the imaginary part. The two primitives do not need to be of the same
+    type.
 
 ## Operators
 
-Operators are overloaded to work on Rug types alone or on a
-combination of Rug types and Rust primitives. When at least one
-operand is an owned value of a Rug type, the operation will consume
-that value and return a value of the Rug type. For example
+Operators are overloaded to work on Rug types alone or on a combination of Rug
+types and Rust primitives. When at least one operand is an owned value of a Rug
+type, the operation will consume that value and return a value of the Rug type.
+For example
 
 ```rust
 # #[cfg(feature = "integer")] {
@@ -127,11 +119,10 @@ assert_eq!(b, 5 - 10);
 # }
 ```
 
-Here `a` is consumed by the subtraction, and `b` is an owned
-[`Integer`].
+Here `a` is consumed by the subtraction, and `b` is an owned [`Integer`].
 
-If on the other hand there are no owned Rug types and there are
-references instead, the returned value is not the final value, but an
+If on the other hand there are no owned Rug types and there are references
+instead, the returned value is not the final value, but an
 incomplete-computation value. For example
 
 ```rust
@@ -145,26 +136,24 @@ assert_eq!(sub, -10);
 # }
 ```
 
-Here `a` and `b` are not consumed, and `incomplete` is not the final
-value. It still needs to be converted or assigned into an [`Integer`].
-This is covered in more detail in the
-[*Incomplete-computation values*] section.
+Here `a` and `b` are not consumed, and `incomplete` is not the final value. It
+still needs to be converted or assigned into an [`Integer`]. This is covered in
+more detail in the [*Incomplete-computation values*] section.
 
 ### Shifting operations
 
-The left shift `<<` and right shift `>>` operators support shifting by
-negative values, for example `a << 5` is equivalent to `a >> -5`.
+The left shift `<<` and right shift `>>` operators support shifting by negative
+values, for example `a << 5` is equivalent to `a >> -5`.
 
-The shifting operators are also supported for the [`Float`] and
-[`Complex`] number types, where they are equivalent to multiplication
-or division by a power of two. Only the exponent of the value is
-affected; the mantissa is unchanged.
+The shifting operators are also supported for the [`Float`] and [`Complex`]
+number types, where they are equivalent to multiplication or division by a power
+of two. Only the exponent of the value is affected; the mantissa is unchanged.
 
 ### Exponentiation
 
-Exponentiation (raising to a power) does not have a dedicated operator
-in Rust. In order to perform exponentiation of Rug types, the [`Pow`]
-trait has to be brought into scope, for example
+Exponentiation (raising to a power) does not have a dedicated operator in Rust.
+In order to perform exponentiation of Rug types, the [`Pow`][ops::Pow] trait has
+to be brought into scope, for example
 
 ```rust
 # #[cfg(feature = "integer")] {
@@ -177,12 +166,11 @@ assert_eq!(power, 100_000);
 
 ### Compound assignments to right-hand-side operands
 
-Traits are provided for compound assignment to right-hand-side
-operands. This can be useful for non-commutative operations like
-subtraction. The names of the traits and their methods are similar to
-Rust compound assignment traits, with the suffix “`Assign`” replaced
-with “`From`”. For example the counterpart to [`SubAssign`] is
-[`SubFrom`]:
+Traits are provided for compound assignment to right-hand-side operands. This
+can be useful for non-commutative operations like subtraction. The names of the
+traits and their methods are similar to Rust compound assignment traits, with
+the suffix “`Assign`” replaced with “`From`”. For example the counterpart to
+[`SubAssign`][core::ops::SubAssign] is [`SubFrom`][ops::SubFrom]:
 
 ```rust
 # #[cfg(feature = "integer")] {
@@ -196,36 +184,32 @@ assert_eq!(rhs, 90);
 
 ## Incomplete-computation values
 
-There are two main reasons why operations like `&a - &b` do not
-perform a complete computation and return a Rug type:
+There are two main reasons why operations like `&a - &b` do not perform a
+complete computation and return a Rug type:
 
- 1. Sometimes we need to assign the result to an object that already
-    exists. Since Rug types require memory allocations, this can help
-    reduce the number of allocations. (While the allocations might not
-    affect performance noticeably for computationally intensive
-    functions, they can have a much more significant effect on faster
-    functions like addition.)
- 2. For the [`Float`] and [`Complex`] number types, we need to know
-    the precision when we create a value, and the operation itself
-    does not convey information about what precision is desired for
-    the result.
+ 1. Sometimes we need to assign the result to an object that already exists.
+    Since Rug types require memory allocations, this can help reduce the number
+    of allocations. (While the allocations might not affect performance
+    noticeably for computationally intensive functions, they can have a much
+    more significant effect on faster functions like addition.)
+ 2. For the [`Float`] and [`Complex`] number types, we need to know the
+    precision when we create a value, and the operation itself does not convey
+    information about what precision is desired for the result.
 
-There are two things that can be done with incomplete-computation
-values:
+There are two things that can be done with incomplete-computation values:
 
- 1. Assign them to an existing object without unnecessary allocations.
-    This is usually achieved using the [`Assign`] trait or a similar
-    method, for example
-    <code>int.[assign][`Assign::assign`]\(incomplete)</code> and
-    <code>float.[assign_round][`assign_round`]\(incomplete, [Round][`Round`]::[Up][`Up`])</code>.
- 2. Convert them to the final value using the [`Complete`] trait, the
-    [`From`] trait or a similar method. For example incomplete
-    integers can be completed using
-    <code>incomplete.[complete][Complete::complete]\()</code> or
-    <code>[Integer]::[from][From::from]\(incomplete)</code>.
-    Incomplete floating-point numbers can be completed using
-    <code>[Float]::[with_val][Float::with_val]\(53, incomplete)</code>
-    since the precision has to be specified.
+ 1. Assign them to an existing object without unnecessary allocations. This is
+    usually achieved using the [`Assign`] trait or a similar method, for example
+    <code>int.[assign][Assign::assign]\(incomplete)</code> and
+    <code>float.[assign\_round][ops::AssignRound::assign_round]\(incomplete,
+    [Round][float::Round]::[Up][float::Round::Up])</code>.
+ 2. Convert them to the final value using the [`Complete`] trait, the [`From`]
+    trait or a similar method. For example incomplete integers can be completed
+    using <code>incomplete.[complete][Complete::complete]\()</code> or
+    <code>[Integer]::[from][From::from]\(incomplete)</code>. Incomplete
+    floating-point numbers can be completed using
+    <code>[Float]::[with_val][Float::with_val]\(53, incomplete)</code> since the
+    precision has to be specified.
 
 Let us consider a couple of examples.
 
@@ -241,10 +225,10 @@ assert_eq!(buffer, -10);
 # }
 ```
 
-Here the assignment from `incomplete` into `buffer` does not require
-an allocation unless the result does not fit in the current capacity
-of `buffer`. If `&a - &b` returned an [`Integer`] instead, then an
-allocation would take place even if it is not necessary.
+Here the assignment from `incomplete` into `buffer` does not require an
+allocation unless the result does not fit in the current capacity of `buffer`.
+If `&a - &b` returned an [`Integer`] instead, then an allocation would take
+place even if it is not necessary.
 
 ```rust
 # #[cfg(feature = "float")] {
@@ -260,35 +244,32 @@ assert!(57.295 < z && z < 57.296);
 # }
 ```
 
-The precision to use for the result depends on the requirements of the
-algorithm being implemented. Here `z` is created with a precision
-of 45.
+The precision to use for the result depends on the requirements of the algorithm
+being implemented. Here `z` is created with a precision of 45.
 
 Many operations can return incomplete-computation values, for example
 
   * unary operators applied to references, for example `-&int`
-  * binary operators applied to two references, for example
-    `&int1 + &int2`
-  * binary operators applied to a primitive and a reference, for
-    example `&int * 10`
+  * binary operators applied to two references, for example `&int1 + &int2`
+  * binary operators applied to a primitive and a reference, for example `&int *
+    10`
   * methods that take a reference, for example
-    <code>int.[abs_ref][`abs_ref`]\()</code>
+    <code>int.[abs\_ref][Integer::abs_ref]\()</code>
   * methods that take two references, for example
-    <code>int1.[gcd_ref][`gcd_ref`]\(\&int2)</code>
+    <code>int1.[gcd\_ref][Integer::gcd_ref]\(\&int2)</code>
   * string parsing, for example
-    <code>[Integer][`Integer`]::[parse][`parse`]\("12")</code>
+    <code>[Integer]::[parse][Integer::parse]\("12")</code>
 
-These operations return objects that can be stored in temporary
-variables like `incomplete` in the last few code examples. However,
-the names of the types are not public, and consequently, the
-incomplete-computation values cannot be for example stored in a
-struct. If you need to store the value in a struct, complete it to its
-final type and value.
+These operations return objects that can be stored in temporary variables like
+`incomplete` in the last few code examples. However, the names of the types are
+not public, and consequently, the incomplete-computation values cannot be for
+example stored in a struct. If you need to store the value in a struct, complete
+it to its final type and value.
 
 ## Using Rug
 
-Rug is available on [crates.io][rug crate]. To use Rug in your crate,
-add it as a dependency inside [*Cargo.toml*]:
+Rug is available on [crates.io][rug crate]. To use Rug in your crate, add it as
+a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
@@ -297,37 +278,32 @@ rug = "1.12"
 
 Rug requires rustc version 1.37.0 or later.
 
-Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the
-low-level FFI bindings in the [gmp-mpfr-sys crate][sys crate], which
-needs some setup to build; the [gmp-mpfr-sys documentation][sys] has
-some details on usage under [GNU/Linux][sys gnu], [macOS][sys mac] and
-[Windows][sys win].
+Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the low-level
+FFI bindings in the [gmp-mpfr-sys crate][sys crate], which needs some setup to
+build; the [gmp-mpfr-sys documentation][sys] has some details on usage under
+[GNU/Linux][sys gnu], [macOS][sys mac] and [Windows][sys win].
 
 ## Optional features
 
 The Rug crate has six optional features:
 
- 1. `integer`, enabled by default. Required for the [`Integer`] type
-    and its supporting features.
- 2. `rational`, enabled by default. Required for the [`Rational`]
-    number type and its supporting features. This feature requires the
-    `integer` feature.
- 3. `float`, enabled by default. Required for the [`Float`] type and
-    its supporting features.
- 4. `complex`, enabled by default. Required for the [`Complex`] number
-    type and its supporting features. This feature requires the
-    `float` feature.
- 5. `rand`, enabled by default. Required for the [`RandState`] type
-    and its supporting features. This feature requires the `integer`
+ 1. `integer`, enabled by default. Required for the [`Integer`] type and its
+    supporting features.
+ 2. `rational`, enabled by default. Required for the [`Rational`] number type
+    and its supporting features. This feature requires the `integer` feature.
+ 3. `float`, enabled by default. Required for the [`Float`] type and its
+    supporting features.
+ 4. `complex`, enabled by default. Required for the [`Complex`] number type and
+    its supporting features. This feature requires the `float` feature.
+ 5. `rand`, enabled by default. Required for the [`RandState`][rand::RandState]
+    type and its supporting features. This feature requires the `integer`
     feature.
- 6. `serde`, disabled by default. This provides serialization support
-    for the [`Integer`], [`Rational`], [`Float`] and [`Complex`]
-    number types, providing that they are enabled. This feature
-    requires the [serde crate].
+ 6. `serde`, disabled by default. This provides serialization support for the
+    [`Integer`], [`Rational`], [`Float`] and [`Complex`] number types, providing
+    that they are enabled. This feature requires the [serde crate].
 
-The first five optional features are enabled by default; to use
-features selectively, you can add the dependency like this to
-[*Cargo.toml*]:
+The first five optional features are enabled by default; to use features
+selectively, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.rug]
@@ -336,11 +312,10 @@ default-features = false
 features = ["integer", "float", "rand"]
 ```
 
-Here only the `integer`, `float` and `rand` features are enabled. If
-none of the features are selected, the [gmp-mpfr-sys crate][sys crate]
-is not required and thus not enabled. In that case, only the
-[`Assign`] trait and the traits that are in the [`ops`] module are
-provided by the crate.
+Here only the `integer`, `float` and `rand` features are enabled. If none of the
+features are selected, the [gmp-mpfr-sys crate][sys crate] is not required and
+thus not enabled. In that case, only the [`Assign`] trait and the traits that
+are in the [`ops`] module are provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: #incomplete-computation-values
@@ -350,18 +325,6 @@ provided by the crate.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Pow`]: `ops::Pow`
-[`RandState`]: `rand::RandState`
-[`Round`]: `float::Round`
-[`SubAssign`]: `core::ops::SubAssign`
-[`SubFrom`]: `ops::SubFrom`
-[`Up`]: `float::Round::Up`
-[`abs_ref`]: `Integer::abs_ref`
-[`assign_round`]: `ops::AssignRound::assign_round`
-[`gcd_ref`]: `Integer::gcd_ref`
-[`new`]: `Integer::new`
-[`parse_radix`]: `Integer::parse_radix`
-[`parse`]: `Integer::parse`
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
@@ -430,6 +393,7 @@ pub trait Assign<Src = Self> {
     fn assign(&mut self, src: Src);
 }
 
+#[cfg(feature = "integer")]
 /**
 Completes an [incomplete-computation value][icv].
 
@@ -438,7 +402,6 @@ Completes an [incomplete-computation value][icv].
 Implementing the trait:
 
 ```rust
-# #[cfg(feature = "integer")] {
 use rug::{Complete, Integer};
 struct LazyPow4<'a>(&'a Integer);
 impl Complete for LazyPow4<'_> {
@@ -449,18 +412,15 @@ impl Complete for LazyPow4<'_> {
 }
 
 assert_eq!(LazyPow4(&Integer::from(3)).complete(), 3i32.pow(4));
-# }
 ```
 
 Completing an [incomplete-computation value][icv]:
 
 ```rust
-# #[cfg(feature = "integer")] {
 use rug::{Complete, Integer};
 let incomplete = Integer::fibonacci(12);
 let complete = incomplete.complete();
 assert_eq!(complete, 144);
-# }
 ```
 
 [icv]: crate#incomplete-computation-values
