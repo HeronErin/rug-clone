@@ -169,7 +169,7 @@ assert_eq!(f4, 28);
 // TODO: replace with exhaustive once rustc dependency >= 1.40
 #[allow(clippy::manual_non_exhaustive)]
 pub enum Round {
-    /// Round towards the nearest.
+    /// Round towards the nearest, with ties rounding to even.
     Nearest,
     /// Round towards zero.
     Zero,
@@ -179,6 +179,35 @@ pub enum Round {
     Down,
     #[doc(hidden)]
     __Nonexhaustive,
+}
+
+impl Round {
+    #[inline]
+    /// Reverses the rounding direction.
+    ///
+    ///   * [`Up`] becomes [`Down`].
+    ///   * [`Down`] becomes [`Up`].
+    ///   * Other variants are not affected.
+    ///
+    /// [`Up`]: Round::Up
+    /// [`Down`]: Round::Down
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::float::Round;
+    ///
+    /// assert_eq!(Round::Up.reverse(), Round::Down);
+    /// assert_eq!(Round::Down.reverse(), Round::Up);
+    /// assert_eq!(Round::Nearest.reverse(), Round::Nearest);
+    /// ```
+    pub fn reverse(self) -> Round {
+        match self {
+            Round::Up => Round::Down,
+            Round::Down => Round::Up,
+            _ => self,
+        }
+    }
 }
 
 impl Default for Round {

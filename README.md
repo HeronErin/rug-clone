@@ -51,6 +51,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     from a [`Complex`][com-1-13] number.
   * The [`Complete`][comp-1-13] trait was added to make it easier to convert
     [incomplete-computation values][icv-1-13] to their final value.
+  * The <code>[Round][rnd-1-13]::[reverse][rnd-r-1-13]</code> method was added.
 
 [com-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [com-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.dot
@@ -67,6 +68,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [rat-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
 [rat-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.dot
 [rat-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.sum
+[rnd-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/float/enum.Round.html
+[rnd-r-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/float/enum.Round.html#method.reverse
 
 ### Version 1.12.0 news (2021-03-25)
 
