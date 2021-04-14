@@ -2302,9 +2302,8 @@ impl Rational {
 
     /// Computes the square.
     ///
-    /// This method cannot be replaced by a multiplication operation using the
-    /// `*` operator. `r * &r` is an error: `r` cannot be both moved and
-    /// borrowed.
+    /// This method cannot be replaced by a multiplication using the `*`
+    /// operator: `r * r` and `r * &r` are both errors.
     ///
     /// # Examples
     ///
@@ -2323,8 +2322,8 @@ impl Rational {
     /// Computes the square.
     ///
     /// This method cannot be replaced by a compound multiplication and
-    /// assignment using the `*=` operataor. `r *= &r;` is an error: `r` cannot
-    /// be borrowed as mutable because it is also borrowed as immutable.
+    /// assignment using the `*=` operataor: `r *= r;` and `r *= &r;` are both
+    /// errors.
     ///
     /// # Examples
     ///

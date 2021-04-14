@@ -3987,6 +3987,9 @@ impl Integer {
 
     /// Computes the square.
     ///
+    /// This method cannot be replaced by a multiplication using the `*`
+    /// operator: `i * i` and `i * &i` are both errors.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -4002,6 +4005,10 @@ impl Integer {
     }
 
     /// Computes the square.
+    ///
+    /// This method cannot be replaced by a compound multiplication and
+    /// assignment using the `*=` operataor: `i *= i;` and `i *= &i;` are both
+    /// errors.
     ///
     /// # Examples
     ///
@@ -4031,6 +4038,8 @@ impl Integer {
     ///     for [Integer]</code>
     ///   * <code>[Sub]\<Src> for [Integer]</code>, <code>[Sub]\<[Integer]> for
     ///     Src</code>
+    ///
+    /// `i.square_ref()` produces the exact same result as `&i * &i`.
     ///
     /// # Examples
     ///
