@@ -153,17 +153,13 @@ pub fn si_pow_ui(rop: &mut Float, base: i32, exponent: u32, rnd: Round) -> Order
             )
         })
     } else {
-        let reverse_rnd = match rnd {
-            Round::Up => Round::Down,
-            Round::Down => Round::Up,
-            unchanged => unchanged,
-        };
+        let reverse_rnd = raw_round(rnd.reverse());
         let reverse_ord = ordering1(unsafe {
             mpfr::ui_pow_ui(
                 rop.as_raw_mut(),
                 base_abs.into(),
                 exponent.into(),
-                raw_round(reverse_rnd),
+                reverse_rnd,
             )
         });
         neg(rop, (), Round::Nearest);
@@ -796,12 +792,7 @@ pub fn submul<O: OptFloat>(
     mul2: &Float,
     rnd: Round,
 ) -> Ordering {
-    let reverse_rnd = match rnd {
-        Round::Up => Round::Down,
-        Round::Down => Round::Up,
-        unchanged => unchanged,
-    };
-    let reverse_ord = fms(rop, mul1, mul2, add, reverse_rnd);
+    let reverse_ord = fms(rop, mul1, mul2, add, rnd.reverse());
     if !zero_p(rop) {
         // the negation here is exact
         neg(rop, (), Round::Zero);
@@ -997,12 +988,7 @@ pub fn sub_q<O: OptFloat>(rop: &mut Float, op1: O, op2: &Rational, rnd: Round) -
 
 #[cfg(feature = "rational")]
 pub fn q_sub<O: OptFloat>(rop: &mut Float, op1: &Rational, op2: O, rnd: Round) -> Ordering {
-    let reverse_rnd = match rnd {
-        Round::Up => Round::Down,
-        Round::Down => Round::Up,
-        unchanged => unchanged,
-    };
-    let reverse_ord = sub_q(rop, op2, op1, reverse_rnd);
+    let reverse_ord = sub_q(rop, op2, op1, rnd.reverse());
     if !zero_p(rop) {
         // the negation here is exact
         neg(rop, (), Round::Zero);

@@ -3478,17 +3478,7 @@ where
     type Ordering = Ordering2;
     fn sub_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
         self.neg_assign();
-        let reverse_round0 = match round.0 {
-            Round::Up => Round::Down,
-            Round::Down => Round::Up,
-            unchanged => unchanged,
-        };
-        let reverse_round1 = match round.1 {
-            Round::Up => Round::Down,
-            Round::Down => Round::Up,
-            unchanged => unchanged,
-        };
-        let reverse_dir = self.add_assign_round(src, (reverse_round0, reverse_round1));
+        let reverse_dir = self.add_assign_round(src, (round.0.reverse(), round.1.reverse()));
         self.neg_assign();
         (reverse_dir.0.reverse(), reverse_dir.1.reverse())
     }
@@ -3623,17 +3613,7 @@ where
     type Ordering = Ordering2;
     fn sub_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round2) -> Ordering2 {
         self.neg_assign();
-        let reverse_round0 = match round.0 {
-            Round::Up => Round::Down,
-            Round::Down => Round::Up,
-            unchanged => unchanged,
-        };
-        let reverse_round1 = match round.1 {
-            Round::Up => Round::Down,
-            Round::Down => Round::Up,
-            unchanged => unchanged,
-        };
-        let reverse_dir = self.add_assign_round(src, (reverse_round0, reverse_round1));
+        let reverse_dir = self.add_assign_round(src, (round.0.reverse(), round.1.reverse()));
         self.neg_assign();
         (reverse_dir.0.reverse(), reverse_dir.1.reverse())
     }

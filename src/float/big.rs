@@ -1253,12 +1253,7 @@ impl Float {
         let neg_self;
         let (f, round) = if sign {
             neg_self = self.as_neg();
-            let reverse_round = match round {
-                Round::Up => Round::Down,
-                Round::Down => Round::Up,
-                unchanged => unchanged,
-            };
-            (&*neg_self, reverse_round)
+            (&*neg_self, round.reverse())
         } else {
             (self, round)
         };
@@ -8773,12 +8768,7 @@ where
     type Ordering = Ordering;
     fn sub_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
         self.neg_assign();
-        let reverse_round = match round {
-            Round::Up => Round::Down,
-            Round::Down => Round::Up,
-            unchanged => unchanged,
-        };
-        let reverse_dir = self.add_assign_round(src, reverse_round);
+        let reverse_dir = self.add_assign_round(src, round.reverse());
         self.neg_assign();
         reverse_dir.reverse()
     }
@@ -8915,12 +8905,7 @@ where
     type Ordering = Ordering;
     fn sub_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
         self.neg_assign();
-        let reverse_round = match round {
-            Round::Up => Round::Down,
-            Round::Down => Round::Up,
-            unchanged => unchanged,
-        };
-        let reverse_dir = self.add_assign_round(src, reverse_round);
+        let reverse_dir = self.add_assign_round(src, round.reverse());
         self.neg_assign();
         reverse_dir.reverse()
     }
