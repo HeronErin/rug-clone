@@ -317,13 +317,6 @@ pub fn round_fract_whole<O: OptRational>(fract: &mut Rational, round: &mut Integ
     }
 }
 
-pub fn square<O: OptRational>(rop: &mut Rational, op: O) {
-    let (rop_num, rop_den) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
-    let (op_num, op_den) = op.parts();
-    xmpz::mul(rop_num, op_num, op_num);
-    xmpz::mul(rop_den, op_den, op_den);
-}
-
 unsafe_wrap! { fn neg(op: O) -> gmp::mpq_neg }
 unsafe_wrap! { fn abs(op: O) -> gmp::mpq_abs }
 unsafe_wrap! { fn add(op1: O, op2: P) -> gmp::mpq_add }

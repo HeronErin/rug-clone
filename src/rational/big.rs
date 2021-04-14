@@ -18,6 +18,7 @@ use crate::{
     ext::{xmpq, xmpz},
     integer::big as big_integer,
     ops::{NegAssign, SubFrom},
+    rational::arith::MulIncomplete,
     Assign, Complete, Integer,
 };
 use az::{Cast, CheckedCast, UnwrappedAs, UnwrappedCast};
@@ -2301,6 +2302,10 @@ impl Rational {
 
     /// Computes the square.
     ///
+    /// This method cannot be replaced by a multiplication operation using the
+    /// `*` operator. `r * &r` is an error: `r` cannot be both moved and
+    /// borrowed.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2317,6 +2322,10 @@ impl Rational {
 
     /// Computes the square.
     ///
+    /// This method cannot be replaced by a compound multiplication and
+    /// assignment using the `*=` operataor. `r *= &r;` is an error: `r` cannot
+    /// be borrowed as mutable because it is also borrowed as immutable.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2327,7 +2336,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn square_mut(&mut self) {
-        xmpq::square(self, ());
+        xmpq::mul(self, (), ());
     }
 
     /// Computes the square.
@@ -2339,6 +2348,8 @@ impl Rational {
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
     ///     Src</code>
     ///
+    /// `r.square_ref()` produces the exact same result as `&r * &r`.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2349,8 +2360,8 @@ impl Rational {
     ///
     /// [icv]: crate#incomplete-computation-values
     #[inline]
-    pub fn square_ref(&self) -> SquareIncomplete<'_> {
-        SquareIncomplete { ref_self: self }
+    pub fn square_ref(&self) -> MulIncomplete<'_> {
+        self * self
     }
 }
 
@@ -2800,7 +2811,6 @@ ref_rat_op_rat_int! { xmpq::floor_fract_whole; struct FractFloorIncomplete {} }
 ref_rat_op_int! { xmpq::round_int; struct RoundIncomplete {} }
 ref_math_op1! { Rational; xmpq::round_fract; struct RemRoundIncomplete {} }
 ref_rat_op_rat_int! { xmpq::round_fract_whole; struct FractRoundIncomplete {} }
-ref_math_op1! { Rational; xmpq::square; struct SquareIncomplete {} }
 
 #[derive(Debug)]
 #[repr(transparent)]
