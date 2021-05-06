@@ -14,7 +14,6 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-#![allow(clippy::cognitive_complexity)]
 use crate::{ops::SubFrom, rational::SmallRational, Assign, Complete, Integer, Rational};
 
 #[test]

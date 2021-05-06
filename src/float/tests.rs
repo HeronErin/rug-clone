@@ -14,7 +14,7 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-#![allow(clippy::cognitive_complexity, clippy::float_cmp)]
+#![allow(clippy::float_cmp)]
 
 #[cfg(feature = "rand")]
 use crate::rand::{RandGen, RandState};

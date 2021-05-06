@@ -621,7 +621,6 @@ fn mul_sub<O: OptFloat>(rop: &mut Float, mul: MulIncomplete<'_>, sub: O, rnd: Ro
 }
 
 #[cfg(test)]
-#[allow(clippy::cognitive_complexity)]
 pub(crate) mod tests {
     #[cfg(feature = "rational")]
     use crate::Rational;

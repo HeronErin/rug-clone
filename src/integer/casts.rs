@@ -393,7 +393,7 @@ impl UnwrappedCast<Integer> for Round<f64> {
 }
 
 #[cfg(test)]
-#[allow(clippy::cognitive_complexity, clippy::float_cmp)]
+#[allow(clippy::float_cmp)]
 mod tests {
     use crate::Integer;
     use az::{

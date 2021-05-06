@@ -3590,10 +3590,8 @@ impl Float {
                     dir == dir2 && !(*self).lt(min),
                     "minimum larger than maximum"
                 );
-                dir
-            } else {
-                dir
             }
+            dir
         } else if (*self).gt(max) {
             let dir = self.assign_round(max, round);
             if (*self).lt(min) {
@@ -3602,10 +3600,8 @@ impl Float {
                     dir == dir2 && !(*self).gt(max),
                     "minimum larger than maximum"
                 );
-                dir
-            } else {
-                dir
             }
+            dir
         } else {
             if self.is_nan() {
                 xmpfr::set_nanflag();
@@ -8981,10 +8977,8 @@ where
                     dir == dir2 && !(*self).lt(src.min),
                     "minimum larger than maximum"
                 );
-                dir
-            } else {
-                dir
             }
+            dir
         } else if src.ref_self.gt(src.max) {
             let dir = self.assign_round(src.max, round);
             if (*self).lt(src.min) {
@@ -8993,10 +8987,8 @@ where
                     dir == dir2 && !(*self).gt(src.max),
                     "minimum larger than maximum"
                 );
-                dir
-            } else {
-                dir
             }
+            dir
         } else {
             self.assign_round(src.ref_self, round)
         }
@@ -9234,6 +9226,7 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
     } else {
         let digits = req_digits(f, format);
         let log2_radix = f64::from(format.radix).log2();
+        // LOG10_2 requires rustc 1.43
         #[allow(clippy::approx_constant)]
         const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
         let exp = (xmpfr::get_exp(f).az::<f64>() / log2_radix - 1.0).abs();

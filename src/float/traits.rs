@@ -329,6 +329,7 @@ impl TryFrom<&Float> for Rational {
     }
 }
 
+// strip_prefix requires rustc 1.45
 #[allow(clippy::manual_strip)]
 // overwrites format.precision
 fn fmt_radix(flt: &Float, fmt: &mut Formatter<'_>, format: Format, prefix: &str) -> FmtResult {

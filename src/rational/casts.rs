@@ -143,7 +143,7 @@ impl Cast<Rational> for &'_ Integer {
 }
 
 #[cfg(test)]
-#[allow(clippy::cognitive_complexity, clippy::float_cmp)]
+#[allow(clippy::float_cmp)]
 mod tests {
     use crate::{Integer, Rational};
     use az::{

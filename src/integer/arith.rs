@@ -536,7 +536,6 @@ fn rhs_has_more_alloc(lhs: &Integer, rhs: &Integer) -> bool {
 }
 
 #[cfg(test)]
-#[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::{
         ops::{AddFrom, Pow, SubFrom},

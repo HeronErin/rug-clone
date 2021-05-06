@@ -2032,12 +2032,11 @@ pub fn ior_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
                         }
                     }
                 }
-                com(rop, ());
             } else {
                 let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
                 set_limb(rop, cur_limb.wrapping_sub(1) & !lop2);
-                com(rop, ());
             }
+            com(rop, ());
         }
     }
 }
@@ -2049,8 +2048,8 @@ pub fn xor_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
             gmp::mpz_set_si(rop.as_raw_mut(), op2);
         },
         Ordering::Greater => {
+            set(rop, op1);
             if op2 >= 0 {
-                set(rop, op1);
                 unsafe {
                     *limb_mut(rop, 0) ^= lop2;
                     if rop.inner().size == 1 && limb(rop, 0) == 0 {
@@ -2058,7 +2057,6 @@ pub fn xor_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
                     }
                 }
             } else {
-                set(rop, op1);
                 unsafe {
                     *limb_mut(rop, 0) ^= !lop2;
                     if rop.inner().size == 1 && limb(rop, 0) == 0 {
@@ -2069,8 +2067,8 @@ pub fn xor_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
             }
         }
         Ordering::Less => {
+            com(rop, op1);
             if op2 >= 0 {
-                com(rop, op1);
                 if rop.cmp0() == Ordering::Equal {
                     if lop2 != 0 {
                         set_nonzero(rop, lop2);
@@ -2084,18 +2082,15 @@ pub fn xor_si<O: OptInteger>(rop: &mut Integer, op1: O, op2: c_long) {
                     }
                 }
                 com(rop, ());
+            } else if rop.cmp0() == Ordering::Equal {
+                if !lop2 != 0 {
+                    set_nonzero(rop, !lop2);
+                }
             } else {
-                com(rop, op1);
-                if rop.cmp0() == Ordering::Equal {
-                    if !lop2 != 0 {
-                        set_nonzero(rop, !lop2);
-                    }
-                } else {
-                    unsafe {
-                        *limb_mut(rop, 0) ^= !lop2;
-                        if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                            set_0(rop);
-                        }
+                unsafe {
+                    *limb_mut(rop, 0) ^= !lop2;
+                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                        set_0(rop);
                     }
                 }
             }

@@ -601,7 +601,6 @@ fn mul_sub<O: OptComplex>(
 }
 
 #[cfg(test)]
-#[allow(clippy::cognitive_complexity)]
 mod tests {
     #[cfg(feature = "rational")]
     use crate::Rational;
