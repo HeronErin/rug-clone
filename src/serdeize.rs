@@ -281,7 +281,7 @@ pub mod test {
         T: for<'de> Deserialize<'de>,
         F: Fn(&T, &T),
     {
-        let dec: T = bincode::deserialize(&val).unwrap();
+        let dec: T = bincode::deserialize(val).unwrap();
         test(t, &dec);
     }
 
