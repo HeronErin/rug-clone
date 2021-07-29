@@ -329,10 +329,10 @@ are in the [`ops`] module are provided by the crate.
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
-[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html#building-on-gnulinux
-[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html#building-on-macos
-[sys win]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html#building-on-windows
-[sys]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html
+[sys gnu]: gmp_mpfr_sys#building-on-gnulinux
+[sys mac]: gmp_mpfr_sys#building-on-macos
+[sys win]: gmp_mpfr_sys#building-on-windows
+[sys]: gmp_mpfr_sys
 */
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/~1.12")]
