@@ -30,25 +30,21 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.13.0 news (unreleased)
 
-  * The [incomplete-computation values][icv-1-13] returned by
-    <code>[Integer][int-1-13]::[sum][int-s-1-13]</code> and
-    <code>[Integer][int-1-13]::[dot][int-d-1-13]</code> can now be subtracted
-    from an [`Integer`][int-1-13].
+  * The [incomplete-computation value][icv-1-13] returned by
+    <code>[Integer][int-1-13]::{[sum][int-s-1-13],[dot][int-d-1-13]}</code> can
+    now be subtracted from an [`Integer`][int-1-13].
+  * The [incomplete-computation value][icv-1-13] returned by
+    <code>[Rational][rat-1-13]::{[sum][rat-s-1-13],[dot][rat-d-1-13]}</code> can
+    now be subtracted from a [`Rational`][rat-1-13] number.
+  * The [incomplete-computation value][icv-1-13] returned by
+    <code>[Float][flo-1-13]::{[sum][flo-s-1-13],[dot][flo-d-1-13]}</code> can
+    now be subtracted from a [`Float`][flo-1-13].
+  * The [incomplete-computation value][icv-1-13] returned by
+    <code>[Complex][com-1-13]::{[sum][com-s-1-13],[dot][com-d-1-13]}</code> can
+    now be subtracted from a [`Complex`][com-1-13] number.
   * The [incomplete-computation value][icv-1-13] returned by
     <code>[Integer][int-1-13]::[square\_ref][int-sr-1-13]</code> can now be
-    added/subtracted to/from an [`Integer`][int-1-13].
-  * The [incomplete-computation values][icv-1-13] returned by
-    <code>[Rational][rat-1-13]::[sum][rat-s-1-13]</code> and
-    <code>[Rational][rat-1-13]::[dot][rat-d-1-13]</code> can now be subtracted
-    from a [`Rational`][rat-1-13] number.
-  * The [incomplete-computation values][icv-1-13] returned by
-    <code>[Float][flo-1-13]::[sum][flo-s-1-13]</code> and
-    <code>[Float][flo-1-13]::[dot][flo-d-1-13]</code> can now be subtracted from
-    a [`Float`][flo-1-13].
-  * The [incomplete-computation values][icv-1-13] returned by
-    <code>[Complex][com-1-13]::[sum][com-s-1-13]</code> and
-    <code>[Complex][com-1-13]::[dot][com-d-1-13]</code> can now be subtracted
-    from a [`Complex`][com-1-13] number.
+    added to/subtracted from an [`Integer`][int-1-13].
   * The [`Complete`][comp-1-13] trait was added to make it easier to convert
     [incomplete-computation values][icv-1-13] to their final value.
   * The <code>[Round][rnd-1-13]::[reverse][rnd-r-1-13]</code> method was added.
