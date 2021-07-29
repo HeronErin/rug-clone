@@ -4,7 +4,7 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
-Version 1.13.0 (unreleased)
+Version 1.13.0 (2021-07-29)
 ===========================
 
   * The [incomplete-computation value][icv-1-13] returned by
@@ -26,23 +26,23 @@ Version 1.13.0 (unreleased)
     [incomplete-computation values][icv-1-13] to their final value.
   * The <code>[Round][rnd-1-13]::[reverse][rnd-r-1-13]</code> method was added.
 
-[com-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[com-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.dot
-[com-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.sum
-[comp-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html
-[flo-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[flo-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.dot
-[flo-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.sum
-[icv-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#incomplete-computation-values
-[int-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
-[int-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.dot
-[int-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.sum
-[int-sr-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.square_ref
-[rat-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
-[rat-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.dot
-[rat-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.sum
-[rnd-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/float/enum.Round.html
-[rnd-r-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/float/enum.Round.html#method.reverse
+[com-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html
+[com-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html#method.dot
+[com-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html#method.sum
+[comp-1-13]: https://docs.rs/rug/~1.13/rug/trait.Complete.html
+[flo-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html
+[flo-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html#method.dot
+[flo-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html#method.sum
+[icv-1-13]: https://docs.rs/rug/~1.13/rug/index.html#incomplete-computation-values
+[int-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html
+[int-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.dot
+[int-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.sum
+[int-sr-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.square_ref
+[rat-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html
+[rat-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html#method.dot
+[rat-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html#method.sum
+[rnd-1-13]: https://docs.rs/rug/~1.13/rug/float/enum.Round.html
+[rnd-r-1-13]: https://docs.rs/rug/~1.13/rug/float/enum.Round.html#method.reverse
 
 Version 1.12.0 (2021-03-25)
 ===========================

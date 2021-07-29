@@ -28,7 +28,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
-### Version 1.13.0 news (unreleased)
+### Version 1.13.0 news (2021-07-29)
 
   * The [incomplete-computation value][icv-1-13] returned by
     <code>[Integer][int-1-13]::{[sum][int-s-1-13],[dot][int-d-1-13]}</code> can
@@ -49,34 +49,23 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     [incomplete-computation values][icv-1-13] to their final value.
   * The <code>[Round][rnd-1-13]::[reverse][rnd-r-1-13]</code> method was added.
 
-[com-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[com-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.dot
-[com-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.sum
-[comp-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html
-[flo-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[flo-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.dot
-[flo-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.sum
-[icv-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#incomplete-computation-values
-[int-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
-[int-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.dot
-[int-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.sum
-[int-sr-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.square_ref
-[rat-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
-[rat-d-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.dot
-[rat-s-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.sum
-[rnd-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/float/enum.Round.html
-[rnd-r-1-13]: https://tspiteri.gitlab.io/rug/dev/rug/float/enum.Round.html#method.reverse
-
-### Version 1.12.0 news (2021-03-25)
-
-  * A new method <code>[Integer][int-1-12]::[as\_limbs][int-al-1-12]</code> was
-    added.
-  * The [*az* crate] dependency was updated to [version 1.1][az-1-1].
-
-[*az* crate]: https://crates.io/crates/az
-[az-1-1]: https://docs.rs/az/~1.1/az/index.html
-[int-1-12]: https://docs.rs/rug/~1.12/rug/struct.Integer.html
-[int-al-1-12]: https://docs.rs/rug/~1.12/rug/struct.Integer.html#method.as_limbs
+[com-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html
+[com-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html#method.dot
+[com-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html#method.sum
+[comp-1-13]: https://docs.rs/rug/~1.13/rug/trait.Complete.html
+[flo-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html
+[flo-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html#method.dot
+[flo-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html#method.sum
+[icv-1-13]: https://docs.rs/rug/~1.13/rug/index.html#incomplete-computation-values
+[int-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html
+[int-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.dot
+[int-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.sum
+[int-sr-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.square_ref
+[rat-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html
+[rat-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html#method.dot
+[rat-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html#method.sum
+[rnd-1-13]: https://docs.rs/rug/~1.13/rug/float/enum.Round.html
+[rnd-r-1-13]: https://docs.rs/rug/~1.13/rug/float/enum.Round.html#method.reverse
 
 ### Other releases
 
@@ -168,7 +157,7 @@ a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.12"
+rug = "1.13"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -201,7 +190,7 @@ selectively, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.rug]
-version = "1.12"
+version = "1.13"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -212,7 +201,7 @@ thus not enabled. In that case, only the [`Assign`] trait and the traits that
 are in the [`ops`] module are provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.12/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.13/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -220,20 +209,20 @@ are in the [`ops`] module are provided by the crate.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.12/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.12/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.12/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.12/rug/struct.Float.html
-[`Integer`]: https://docs.rs/rug/~1.12/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.12/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.12/rug/struct.Rational.html
-[`new`]: https://docs.rs/rug/~1.12/rug/struct.Integer.html#method.new
-[`ops`]: https://docs.rs/rug/~1.12/rug/ops/index.html
-[`parse_radix`]: https://docs.rs/rug/~1.12/rug/struct.Integer.html#method.parse_radix
-[`parse`]: https://docs.rs/rug/~1.12/rug/struct.Integer.html#method.parse
+[`Assign::assign`]: https://docs.rs/rug/~1.13/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.13/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.13/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.13/rug/struct.Float.html
+[`Integer`]: https://docs.rs/rug/~1.13/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.13/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.13/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.new
+[`ops`]: https://docs.rs/rug/~1.13/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.12/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.12/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.13/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.13/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
