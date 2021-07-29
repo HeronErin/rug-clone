@@ -379,7 +379,7 @@ impl Integer {
     /// assert_eq!(I, check);
     /// ```
     ///
-    /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
+    /// [gmp roinit]: gmp_mpfr_sys::C::GMP::Integer_Functions#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }

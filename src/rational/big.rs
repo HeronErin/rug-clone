@@ -252,8 +252,8 @@ impl Rational {
     /// assert_eq!(*R.denom(), *check.denom());
     /// ```
     ///
-    /// [gmp mpq]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Rational_Number_Functions.html#index-Rational-number-functions
-    /// [gmp roinit]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/C/GMP/constant.Integer_Functions.html#index-MPZ_005fROINIT_005fN
+    /// [gmp mpq]: gmp_mpfr_sys::C::GMP::Rational_Number_Functions#index-Rational-number-functions
+    /// [gmp roinit]: gmp_mpfr_sys::C::GMP::Integer_Functions#index-MPZ_005fROINIT_005fN
     #[inline]
     pub const unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
