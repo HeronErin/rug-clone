@@ -4,6 +4,15 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
+Version 1.14.0 (unreleased)
+===========================
+
+  * The <code>[Integer][int-1-14]::[ZERO][int-z-1-14]</code> associated constant
+    was added.
+
+[int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO
+
 Version 1.13.0 (2021-07-29)
 ===========================
 

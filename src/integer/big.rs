@@ -215,6 +215,16 @@ static_assert_same_layout!(BorrowInteger<'_>, mpz_t);
 static_assert_same_size!(Integer, Option<Integer>);
 
 impl Integer {
+    /// Zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// assert_eq!(Integer::ZERO, 0);
+    /// ```
+    pub const ZERO: Integer = Integer::new();
+
     /// Constructs a new arbitrary-precision [`Integer`] with value 0.
     ///
     /// The created [`Integer`] will have no allocated memory yet.

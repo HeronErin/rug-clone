@@ -28,6 +28,14 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
+### Version 1.14.0 news (unreleased)
+
+  * The <code>[Integer][int-1-14]::[ZERO][int-z-1-14]</code> associated constant
+    was added.
+
+[int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO
+
 ### Version 1.13.0 news (2021-07-29)
 
   * The [incomplete-computation value][icv-1-13] returned by
