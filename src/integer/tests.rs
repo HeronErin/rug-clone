@@ -548,3 +548,26 @@ fn check_sum_dot_product() {
     assert_eq!(n.clone() * product(), 30_250_000);
     assert_eq!(product() * n, 30_250_000);
 }
+
+#[test]
+fn check_shrink() {
+    let mut i = Integer::from(1) << 999u32;
+    let cap_new = i.capacity();
+    assert!(cap_new >= 1000);
+    i.shrink_to(10_000);
+    assert_eq!(i.capacity(), cap_new);
+    i >>= 800;
+    i.shrink_to(1000);
+    let cap_1000 = i.capacity();
+    assert!(1000 <= cap_1000 && cap_1000 <= cap_new);
+    i.shrink_to(500);
+    let cap_500 = i.capacity();
+    assert!(500 <= cap_500 && cap_500 < cap_1000);
+    i.shrink_to_fit();
+    let cap_200 = i.capacity();
+    assert!(200 <= cap_200 && cap_200 < cap_500);
+    i *= 0;
+    assert_eq!(i.capacity(), cap_200);
+    i.shrink_to_fit();
+    assert_eq!(i.capacity(), 0);
+}

@@ -330,14 +330,53 @@ impl Integer {
     /// i >>= 80;
     /// i.shrink_to_fit();
     /// assert!(i.capacity() >= 20);
-    /// # assert!(i.capacity() < 100);
     /// ```
     pub fn shrink_to_fit(&mut self) {
+        self.shrink_to(0);
+    }
+
+    /// Shrinks the capacity of the [`Integer`] with a lower bound in bits.
+    ///
+    /// The capacity will remain at least as large as both the current number of
+    /// siginificant bits and the supplied value.
+    ///
+    /// If the current capacity is less than the lower limit, this method has no
+    /// effect.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // let i be 100 bits wide
+    /// let mut i = Integer::from_str_radix("fffff12345678901234567890", 16)
+    ///     .unwrap();
+    /// assert_eq!(i.significant_bits(), 100);
+    /// assert!(i.capacity() >= 100);
+    /// i >>= 80;
+    /// i.shrink_to(50);
+    /// assert!(i.capacity() >= 50);
+    /// i.shrink_to(0);
+    /// assert!(i.capacity() >= 20);
+    /// ```
+    pub fn shrink_to(&mut self, min_capacity: usize) {
+        let min_limbs = min_capacity.div_ceil(gmp::LIMB_BITS.az::<usize>());
+        if min_limbs >= self.inner.alloc.unwrapped_as::<usize>() {
+            return;
+        }
         let used_limbs = self.inner.size.checked_abs().expect("overflow");
-        let req_limbs = if used_limbs == 0 { 1 } else { used_limbs };
-        if self.inner.alloc > req_limbs {
+        if min_limbs > used_limbs.unwrapped_as::<usize>() {
+            // we already know that self.inner.alloc > min_limbs
+            // and that min_limbs > 0
             unsafe {
-                gmp::_mpz_realloc(self.as_raw_mut(), req_limbs.unwrapped_cast());
+                gmp::_mpz_realloc(self.as_raw_mut(), min_limbs.unwrapped_cast());
+            }
+        } else if self.inner.alloc > used_limbs {
+            if used_limbs == 0 {
+                *self = Integer::ZERO;
+            } else {
+                unsafe {
+                    gmp::_mpz_realloc(self.as_raw_mut(), used_limbs.unwrapped_cast());
+                }
             }
         }
     }

@@ -9,8 +9,11 @@ Version 1.14.0 (unreleased)
 
   * The <code>[Integer][int-1-14]::[ZERO][int-z-1-14]</code> associated constant
     was added.
+  * The <code>[Integer][int-1-14]::[shrink_to][int-st-1-14]</code> method was
+    added.
 
 [int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[int-st-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.shrink_to
 [int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO
 
 Version 1.13.0 (2021-07-29)
