@@ -11,7 +11,11 @@ Version 1.14.0 (unreleased)
     was added.
   * The <code>[Integer][int-1-14]::[shrink_to][int-st-1-14]</code> method was
     added.
+  * The <code>[Complete][comp-1-14]::[complete_into][comp-ci-1-14]</code>
+    provided method was added to the [`Complete`][comp-1-14] trait.
 
+[comp-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html
+[comp-ci-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html#method.complete_into
 [int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [int-st-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.shrink_to
 [int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO

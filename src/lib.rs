@@ -526,6 +526,25 @@ pub trait Complete {
 
     /// Completes the operation.
     fn complete(self) -> Self::Completed;
+
+    /// Completes the operation and stores the result in a target.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Complete, Integer};
+    /// let mut complete = Integer::new();
+    /// Integer::fibonacci(12).complete_into(&mut complete);
+    /// assert_eq!(complete, 144);
+    /// ```
+    #[inline]
+    fn complete_into<T>(self, target: &mut T)
+    where
+        Self: Sized,
+        T: Assign<Self>,
+    {
+        target.assign(self);
+    }
 }
 
 #[cfg(feature = "integer")]
