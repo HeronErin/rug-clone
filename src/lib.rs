@@ -488,7 +488,6 @@ pub trait Assign<Src = Self> {
     fn assign(&mut self, src: Src);
 }
 
-#[cfg(feature = "integer")]
 /**
 Completes an [incomplete-computation value][icv].
 
@@ -497,6 +496,7 @@ Completes an [incomplete-computation value][icv].
 Implementing the trait:
 
 ```rust
+# #[cfg(feature = "integer")] {
 use rug::{Complete, Integer};
 struct LazyPow4<'a>(&'a Integer);
 impl Complete for LazyPow4<'_> {
@@ -507,15 +507,18 @@ impl Complete for LazyPow4<'_> {
 }
 
 assert_eq!(LazyPow4(&Integer::from(3)).complete(), 3i32.pow(4));
+# }
 ```
 
 Completing an [incomplete-computation value][icv]:
 
 ```rust
+# #[cfg(feature = "integer")] {
 use rug::{Complete, Integer};
 let incomplete = Integer::fibonacci(12);
 let complete = incomplete.complete();
 assert_eq!(complete, 144);
+# }
 ```
 
 [icv]: crate#incomplete-computation-values
@@ -532,10 +535,12 @@ pub trait Complete {
     /// # Examples
     ///
     /// ```rust
+    /// # #[cfg(feature = "integer")] {
     /// use rug::{Complete, Integer};
     /// let mut complete = Integer::new();
     /// Integer::fibonacci(12).complete_into(&mut complete);
     /// assert_eq!(complete, 144);
+    /// # }
     /// ```
     #[inline]
     fn complete_into<T>(self, target: &mut T)
