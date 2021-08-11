@@ -34,7 +34,10 @@ use crate::{
         ParseFloatError, Round, Special,
     },
     misc,
-    ops::{AddAssignRound, AssignRound, NegAssign, SubAssignRound, SubFrom, SubFromRound},
+    ops::{
+        AddAssignRound, AssignRound, CompleteRound, NegAssign, SubAssignRound, SubFrom,
+        SubFromRound,
+    },
     Assign, Float,
 };
 use az::UnwrappedCast;
@@ -165,7 +168,7 @@ static_assert_same_size!(Complex, Option<Complex>);
 macro_rules! ref_math_op0_complex {
     ($($rest:tt)*) => {
         ref_math_op0_round! {
-            Complex, Round2, NEAREST2, Ordering2;
+            Complex, (u32, u32), Round2, NEAREST2, Ordering2;
             $($rest)*
         }
     };
@@ -174,7 +177,7 @@ macro_rules! ref_math_op0_complex {
 macro_rules! ref_math_op1_complex {
     ($($rest:tt)*) => {
         ref_math_op1_round! {
-            Complex, Round2, NEAREST2, Ordering2;
+            Complex, (u32, u32), Round2, NEAREST2, Ordering2;
             $($rest)*
         }
     };
@@ -183,7 +186,7 @@ macro_rules! ref_math_op1_complex {
 macro_rules! ref_math_op1_2_complex {
     ($($rest:tt)*) => {
         ref_math_op1_2_round! {
-            Complex, Round2, NEAREST2, (Ordering2, Ordering2);
+            Complex, (u32, u32), Round2, NEAREST2, (Ordering2, Ordering2);
             $($rest)*
         }
     };
@@ -471,8 +474,12 @@ impl Complex {
     /// (<code>[\&\[][prim@slice][u8][][\]][prim@slice]</code>) into a
     /// [`Complex`] number.
     ///
-    /// <code>[AssignRound]\<Src> for [Complex]</code> is implemented with the
-    /// unwrapped returned [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// The string can contain either of the following three:
     ///
@@ -515,8 +522,12 @@ impl Complex {
     /// (<code>[\&\[][prim@slice][u8][][\]][prim@slice]</code>) into a
     /// [`Complex`] number.
     ///
-    /// <code>[AssignRound]\<Src> for [Complex]</code> is implemented with the
-    /// unwrapped returned [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// The string can contain either of the following three:
     ///
@@ -941,6 +952,8 @@ impl Complex {
     ///     <code>[SubFromRound]\<Src> for [Complex]</code>
     ///   * <code>[Sub]\<Src> for [Complex]</code>, <code>[Sub]\<[Complex]> for
     ///     Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -997,6 +1010,8 @@ impl Complex {
     ///     <code>[SubFromRound]\<Src> for [Complex]</code>
     ///   * <code>[Sub]\<Src> for [Complex]</code>, <code>[Sub]\<[Complex]> for
     ///     Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// This method will produce a result with correct rounding, except for some
     /// cases where underflow and/or overflow occur in intermediate products.
@@ -1117,6 +1132,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -1216,6 +1233,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as `&a * &b -
     /// &c`.
@@ -1302,6 +1321,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1382,6 +1403,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1462,6 +1485,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1521,6 +1546,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1609,6 +1636,8 @@ impl Complex {
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1702,6 +1731,8 @@ impl Complex {
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1795,6 +1826,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1872,6 +1905,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1960,6 +1995,8 @@ impl Complex {
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2035,6 +2072,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2112,6 +2151,8 @@ impl Complex {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2139,6 +2180,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2215,6 +2258,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2291,6 +2336,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2367,6 +2414,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2476,6 +2525,8 @@ impl Complex {
     ///     [Complex][][)][tuple]</code>
     ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Complex], \&mut
     ///     [Complex][][)][tuple]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [(][tuple][Complex][], [Complex][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2569,6 +2620,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2645,6 +2698,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2721,6 +2776,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2797,6 +2854,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2873,6 +2932,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2949,6 +3010,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3025,6 +3088,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3102,6 +3167,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3179,6 +3246,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3256,6 +3325,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3293,8 +3364,12 @@ impl Complex {
     /// low-level MPFR interface, or the random number generator has to be
     /// designed specifically to trigger this case.
     ///
-    /// <code>[Assign]\<Src> for [Complex]</code> is implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3336,6 +3411,8 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3387,6 +3464,20 @@ where
     #[inline]
     fn assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
         xmpc::sum(self, src.values, round)
+    }
+}
+
+impl<'a, I> CompleteRound for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
     }
 }
 
@@ -3526,6 +3617,20 @@ where
     }
 }
 
+impl<'a, I> CompleteRound for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Complex, &'a Complex)>,
+{
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
+    }
+}
+
 impl<'a, I> Add<DotIncomplete<'a, I>> for Complex
 where
     I: Iterator<Item = (&'a Self, &'a Self)>,
@@ -3661,6 +3766,17 @@ impl AssignRound<AbsIncomplete<'_>> for Float {
     }
 }
 
+impl CompleteRound for AbsIncomplete<'_> {
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
+    }
+}
+
 #[derive(Debug)]
 pub struct ArgIncomplete<'a> {
     ref_self: &'a Complex,
@@ -3672,6 +3788,17 @@ impl AssignRound<ArgIncomplete<'_>> for Float {
     #[inline]
     fn assign_round(&mut self, src: ArgIncomplete<'_>, round: Round) -> Ordering {
         xmpc::arg(self, src.ref_self, round)
+    }
+}
+
+impl CompleteRound for ArgIncomplete<'_> {
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
     }
 }
 
@@ -3689,6 +3816,17 @@ impl AssignRound<NormIncomplete<'_>> for Float {
     #[inline]
     fn assign_round(&mut self, src: NormIncomplete<'_>, round: Round) -> Ordering {
         xmpc::norm(self, src.ref_self, round)
+    }
+}
+
+impl CompleteRound for NormIncomplete<'_> {
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
     }
 }
 
@@ -3716,11 +3854,27 @@ pub struct RandomBitsIncomplete<'a> {
 }
 
 #[cfg(feature = "rand")]
-impl Assign<RandomBitsIncomplete<'_>> for Complex {
+impl AssignRound<RandomBitsIncomplete<'_>> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete) {
+    fn assign_round(&mut self, src: RandomBitsIncomplete, round: Round2) -> Ordering2 {
+        let _ = round;
         self.mut_real().assign(Float::random_bits(src.rng));
         self.mut_imag().assign(Float::random_bits(src.rng));
+        (Ordering::Equal, Ordering::Equal)
+    }
+}
+
+#[cfg(feature = "rand")]
+impl CompleteRound for RandomBitsIncomplete<'_> {
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
     }
 }
 
@@ -3742,6 +3896,18 @@ impl AssignRound<RandomContIncomplete<'_>> for Complex {
             .mut_imag()
             .assign_round(Float::random_cont(src.rng), round.1);
         (real_dir, imag_dir)
+    }
+}
+
+#[cfg(feature = "rand")]
+impl CompleteRound for RandomContIncomplete<'_> {
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
     }
 }
 
@@ -3887,6 +4053,17 @@ impl AssignRound<ParseIncomplete> for Complex {
                 (real_ord, imag_ord)
             }
         }
+    }
+}
+
+impl CompleteRound for ParseIncomplete {
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
     }
 }
 

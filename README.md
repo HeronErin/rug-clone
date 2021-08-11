@@ -36,9 +36,16 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     added.
   * The <code>[Complete][comp-1-14]::[complete_into][comp-ci-1-14]</code>
     provided method was added to the [`Complete`][comp-1-14] trait.
+  * The [`CompleteRound`][compr-1-14] trait was added to make it easier to
+    convert [`Float`][flo-1-14] and [`Complex`][com-1-14] numbers
+    [incomplete-computation values][icv-1-14] to their final value.
 
+[com-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [comp-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html
 [comp-ci-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html#method.complete_into
+[compr-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/ops/trait.CompleteRound.html
+[flo-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
+[icv-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#incomplete-computation-values
 [int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [int-st-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.shrink_to
 [int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO

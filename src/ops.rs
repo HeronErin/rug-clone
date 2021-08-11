@@ -637,6 +637,145 @@ pub trait AssignRound<Src = Self> {
 }
 
 /**
+Completes an [incomplete-computation value][icv] with a specified precision and
+rounding method.
+
+# Examples
+
+Implementing the trait:
+
+```rust
+# #[cfg(feature = "float")] {
+use core::cmp::Ordering;
+use rug::{
+    float::Round,
+    ops::{CompleteRound, Pow},
+    Float,
+};
+struct LazyPow4<'a>(&'a Float);
+impl CompleteRound for LazyPow4<'_> {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    fn complete_round(self, prec: Self::Prec, round: Self::Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self.0.pow(4), round)
+    }
+}
+
+let (val, dir) = LazyPow4(&Float::with_val(53, 3.5)).complete_round(53, Round::Nearest);
+assert_eq!(val, 3.5f32.pow(4));
+assert_eq!(dir, Ordering::Equal);
+# }
+```
+
+Completing an [incomplete-computation value][icv]:
+
+```rust
+# #[cfg(feature = "float")] {
+use core::cmp::Ordering;
+use rug::{float::Round, ops::CompleteRound, Float};
+let incomplete = Float::u_pow_u(3, 4);
+let (complete, dir) = incomplete.complete_round(53, Round::Nearest);
+assert_eq!(complete, 81);
+assert_eq!(dir, Ordering::Equal);
+# }
+```
+
+[icv]: crate#incomplete-computation-values
+*/
+pub trait CompleteRound {
+    /// The type of the completed operation.
+    type Completed;
+
+    /// The precision.
+    type Prec;
+
+    /// The rounding method.
+    type Round;
+
+    /// The direction from rounding.
+    type Ordering;
+
+    /// Completes the operation with the specified precision and rounding
+    /// method.
+    fn complete_round(
+        self,
+        prec: Self::Prec,
+        round: Self::Round,
+    ) -> (Self::Completed, Self::Ordering);
+
+    /// Completes the operation with the specified precision and with default
+    /// rounding.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::{ops::CompleteRound, Float};
+    /// let incomplete = Float::u_pow_u(3, 4);
+    /// let complete = incomplete.complete(53);
+    /// assert_eq!(complete, 81);
+    /// # }
+    /// ```
+    #[inline]
+    fn complete(self, prec: Self::Prec) -> Self::Completed
+    where
+        Self: Sized,
+        Self::Round: Default,
+    {
+        self.complete_round(prec, Self::Round::default()).0
+    }
+
+    /// Completes the operation and stores the result in a target with the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, ops::CompleteRound, Float};
+    /// let mut complete = Float::new(53);
+    /// let dir = Float::u_pow_u(3, 4).complete_round_into(&mut complete, Round::Nearest);
+    /// assert_eq!(complete, 81);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// # }
+    /// ```
+    #[inline]
+    fn complete_round_into<T>(self, target: &mut T, round: Self::Round) -> Self::Ordering
+    where
+        Self: Sized,
+        T: AssignRound<Self, Round = Self::Round, Ordering = Self::Ordering>,
+    {
+        target.assign_round(self, round)
+    }
+
+    /// Completes the operation and stores the result in a target with default
+    /// rounding.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::{ops::CompleteRound, Float};
+    /// let mut complete = Float::new(53);
+    /// Float::u_pow_u(3, 4).complete_into(&mut complete);
+    /// assert_eq!(complete, 81);
+    /// # }
+    /// ```
+    #[inline]
+    fn complete_into<T>(self, target: &mut T)
+    where
+        Self: Sized,
+        Self::Round: Default,
+        T: AssignRound<Self, Round = Self::Round, Ordering = Self::Ordering>,
+    {
+        self.complete_round_into(target, Self::Round::default());
+    }
+}
+
+/**
 Compound addition and assignment with a specified rounding method.
 
 # Examples

@@ -1175,7 +1175,7 @@ macro_rules! assign_round_deref {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op0_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
@@ -1190,12 +1190,19 @@ macro_rules! ref_math_op0_round {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $Incomplete,
-                round: $Round,
-            ) -> $Ordering {
+            fn assign_round(&mut self, src: $Incomplete, round: $Round) -> $Ordering {
                 $func(self, $(src.$param,)* round)
+            }
+        }
+
+        impl CompleteRound for $Incomplete {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
             }
         }
     };
@@ -1206,7 +1213,7 @@ macro_rules! ref_math_op0_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
@@ -1230,6 +1237,17 @@ macro_rules! ref_math_op1_round {
                 $func(self, src.ref_self, $(src.$param,)* round)
             }
         }
+
+        impl CompleteRound for $Incomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
     };
 }
 
@@ -1238,7 +1256,7 @@ macro_rules! ref_math_op1_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_2_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
@@ -1289,6 +1307,19 @@ macro_rules! ref_math_op1_2_round {
                 AssignRound::assign_round(&mut (&mut self.0, &mut self.1), src, $Nearest);
             }
         }
+
+        impl CompleteRound for $Incomplete<'_> {
+            type Completed = ($Big, $Big);
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> (($Big, $Big), $Ordering) {
+                let mut val = (<$Big>::new(prec), <$Big>::new(prec));
+                let dir = val.assign_round(self, round);
+                (val, dir)
+            }
+        }
     };
 }
 
@@ -1297,7 +1328,7 @@ macro_rules! ref_math_op1_2_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op2_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $op:ident $(, $param:ident: $T:ty),* }
@@ -1322,6 +1353,17 @@ macro_rules! ref_math_op2_round {
                 $func(self, src.ref_self, src.$op, $(src.$param,)* round)
             }
         }
+
+        impl CompleteRound for $Incomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
     };
 }
 
@@ -1337,7 +1379,7 @@ macro_rules! ref_math_op2_round {
 #[cfg(feature = "float")]
 macro_rules! arith_binary_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1417,6 +1459,17 @@ macro_rules! arith_binary_round {
                 $func(self, src.lhs, src.rhs, round)
             }
         }
+
+        impl CompleteRound for $Incomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
     };
 }
 
@@ -1429,7 +1482,7 @@ macro_rules! arith_binary_round {
 #[cfg(feature = "float")]
 macro_rules! arith_binary_self_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1439,7 +1492,7 @@ macro_rules! arith_binary_self_round {
         $Incomplete:ident
     ) => {
         arith_binary_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1498,7 +1551,7 @@ macro_rules! arith_binary_self_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_forward_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1508,7 +1561,7 @@ macro_rules! arith_forward_round {
         $OwnedIncomplete:ident
     ) => {
         arith_binary_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1548,6 +1601,28 @@ macro_rules! arith_forward_round {
                 $func(self, src.lhs, &src.rhs, round)
             }
         }
+
+        impl CompleteRound for $OwnedIncomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
+
+        impl CompleteRound for &$OwnedIncomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
     };
 }
 
@@ -1563,7 +1638,7 @@ macro_rules! arith_forward_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_commut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1575,7 +1650,7 @@ macro_rules! arith_commut_round {
         $OwnedIncomplete:ident
     ) => {
         arith_forward_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1668,7 +1743,7 @@ macro_rules! arith_commut_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_noncommut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1680,7 +1755,7 @@ macro_rules! arith_noncommut_round {
         $FromIncomplete:ident, $FromOwnedIncomplete:ident
     ) => {
         arith_forward_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1770,6 +1845,17 @@ macro_rules! arith_noncommut_round {
             }
         }
 
+        impl CompleteRound for $FromIncomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
+
         #[derive(Debug)]
         pub struct $FromOwnedIncomplete<'a> {
             lhs: $T,
@@ -1793,6 +1879,28 @@ macro_rules! arith_noncommut_round {
                 $func_from(self, &src.lhs, src.rhs, round)
             }
         }
+
+        impl CompleteRound for $FromOwnedIncomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
+
+        impl CompleteRound for &$FromOwnedIncomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
     };
 }
 
@@ -1807,7 +1915,7 @@ macro_rules! arith_noncommut_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_exact_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1875,6 +1983,17 @@ macro_rules! arith_prim_exact_round {
                 $func(self, src.lhs, src.rhs,round)
             }
         }
+
+        impl CompleteRound for $Incomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
     )* };
 }
 
@@ -1884,7 +2003,7 @@ macro_rules! arith_prim_exact_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1892,7 +2011,7 @@ macro_rules! arith_prim_round {
         $($T:ty, $Incomplete:ident;)*
     ) => { $(
         arith_prim_exact_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -1931,7 +2050,7 @@ macro_rules! arith_prim_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_commut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -1941,7 +2060,7 @@ macro_rules! arith_prim_commut_round {
         $($T:ty, $Incomplete:ident;)*
     ) => { $(
         arith_prim_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -2031,7 +2150,7 @@ macro_rules! arith_prim_commut_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_noncommut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -2041,7 +2160,7 @@ macro_rules! arith_prim_noncommut_round {
         $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
     ) => { $(
         arith_prim_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -2129,6 +2248,17 @@ macro_rules! arith_prim_noncommut_round {
                 $func_from(self, src.lhs, src.rhs, round)
             }
         }
+
+        impl CompleteRound for $FromIncomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
     )* };
 }
 
@@ -2141,7 +2271,7 @@ macro_rules! arith_prim_noncommut_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -2196,6 +2326,17 @@ macro_rules! mul_op_round {
                 $func(self, src.lhs, src.rhs, round)
             }
         }
+
+        impl CompleteRound for $Incomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
+            }
+        }
     };
 }
 
@@ -2207,7 +2348,7 @@ macro_rules! mul_op_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_commut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -2218,7 +2359,7 @@ macro_rules! mul_op_commut_round {
         $Incomplete:ident
     ) => {
         mul_op_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -2272,7 +2413,7 @@ macro_rules! mul_op_commut_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_noncommut_round {
     (
-        $Big:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
+        $Big:ty, $Prec:ty, $Round:ty, $Nearest:expr, $Ordering:ty;
         $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
@@ -2284,7 +2425,7 @@ macro_rules! mul_op_noncommut_round {
         $FromIncomplete:ident
     ) => {
         mul_op_round! {
-            $Big, $Round, $Nearest, $Ordering;
+            $Big, $Prec, $Round, $Nearest, $Ordering;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
@@ -2338,6 +2479,17 @@ macro_rules! mul_op_noncommut_round {
             #[inline]
             fn assign_round(&mut self, src: $FromIncomplete<'_>, round: $Round) -> $Ordering {
                 $func_from(self, src.lhs, src.rhs, round)
+            }
+        }
+
+        impl CompleteRound for $FromIncomplete<'_> {
+            type Completed = $Big;
+            type Prec = $Prec;
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn complete_round(self, prec: $Prec, round: $Round) -> ($Big, $Ordering) {
+                <$Big>::with_val_round(prec, self, round)
             }
         }
     };

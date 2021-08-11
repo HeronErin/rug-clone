@@ -27,7 +27,8 @@ use crate::{
     },
     misc,
     ops::{
-        AddAssignRound, AssignRound, DivRounding, NegAssign, SubAssignRound, SubFrom, SubFromRound,
+        AddAssignRound, AssignRound, CompleteRound, DivRounding, NegAssign, SubAssignRound,
+        SubFrom, SubFromRound,
     },
     Assign,
 };
@@ -266,7 +267,7 @@ static_assert_same_size!(Float, Option<Float>);
 macro_rules! ref_math_op0_float {
     ($($rest:tt)*) => {
         ref_math_op0_round! {
-            Float, Round, Round::Nearest, Ordering;
+            Float, u32, Round, Round::Nearest, Ordering;
             $($rest)*
         }
     };
@@ -275,7 +276,7 @@ macro_rules! ref_math_op0_float {
 macro_rules! ref_math_op1_float {
     ($($rest:tt)*) => {
         ref_math_op1_round! {
-            Float, Round, Round::Nearest, Ordering;
+            Float, u32, Round, Round::Nearest, Ordering;
             $($rest)*
         }
     };
@@ -284,7 +285,7 @@ macro_rules! ref_math_op1_float {
 macro_rules! ref_math_op1_2_float {
     ($($rest:tt)*) => {
         ref_math_op1_2_round! {
-            Float, Round, Round::Nearest, (Ordering, Ordering);
+            Float, u32, Round, Round::Nearest, (Ordering, Ordering);
             $($rest)*
         }
     };
@@ -293,7 +294,7 @@ macro_rules! ref_math_op1_2_float {
 macro_rules! ref_math_op2_float {
     ($($rest:tt)*) => {
         ref_math_op2_round! {
-            Float, Round, Round::Nearest, Ordering;
+            Float, u32, Round, Round::Nearest, Ordering;
             $($rest)*
         }
     };
@@ -556,8 +557,12 @@ impl Float {
     /// Parses a decimal string slice (<code>\&[str]</code>) or byte slice
     /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into a [`Float`].
     ///
-    /// <code>[AssignRound]\<Src> for [Float]</code> is implemented with the
-    /// unwrapped returned [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// The string can start with an optional minus or plus sign and must then
     /// have one or more significant digits with an optional decimal point. This
@@ -603,8 +608,12 @@ impl Float {
     /// Parses a string slice (<code>\&[str]</code>) or byte slice
     /// (<code>[\&\[][slice][u8][][\]][slice]</code>) into a [`Float`].
     ///
-    /// <code>[AssignRound]\<Src> for [Float]</code> is implemented with the
-    /// unwrapped returned [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// The string can start with an optional minus or plus sign and must then
     /// have one or more significant digits with an optional point. This can
@@ -2052,6 +2061,8 @@ impl Float {
     ///     <code>[SubFromRound]\<Src> for [Float]</code>
     ///   * <code>[Sub]\<Src> for [Float]</code>, <code>[Sub]\<[Float]> for
     ///     Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2106,6 +2117,8 @@ impl Float {
     ///     <code>[SubFromRound]\<Src> for [Float]</code>
     ///   * <code>[Sub]\<Src> for [Float]</code>, <code>[Sub]\<[Float]> for
     ///     Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// This method will produce a result with correct rounding, except for some
     /// cases where underflow or overflow occurs in intermediate products.
@@ -2315,6 +2328,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2434,6 +2449,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as `&a * &b +
     /// &c`.
@@ -2552,6 +2569,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as `&a * &b -
     /// &c`.
@@ -2665,6 +2684,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// `a.mul_add_mul_ref(&b, &c, &d)` produces the exact same result
     /// as `&a * &b + &c * &d`.
@@ -2778,6 +2799,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// `a.mul_sub_mul_ref(&b, &c, &d)` produces the exact same result as `&a *
     /// &b - &c * &d`.
@@ -2812,6 +2835,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// You can also compare the returned value to a [`Float`];
     /// the following are also implemented with the returned
@@ -2844,6 +2869,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// You can also compare the returned value to a [`Float`]; the following
     /// are also implemented with the returned [incomplete-computation
@@ -2876,6 +2903,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2898,6 +2927,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2971,6 +3002,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3045,6 +3078,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3068,6 +3103,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3142,6 +3179,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3216,6 +3255,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3290,6 +3331,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3344,6 +3387,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3411,6 +3456,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3467,6 +3514,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3616,6 +3665,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Panics
     ///
@@ -3716,6 +3767,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3790,6 +3843,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3868,6 +3923,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3968,6 +4025,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4051,6 +4110,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4074,6 +4135,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4151,6 +4214,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4228,6 +4293,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4304,6 +4371,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4381,6 +4450,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4458,6 +4529,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4534,6 +4607,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4610,6 +4685,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4686,6 +4763,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4793,6 +4872,8 @@ impl Float {
     ///     [Float][][)][tuple]</code>
     ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Float], \&mut
     ///     [Float][][)][tuple]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [(][tuple][Float][], [Float][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4886,6 +4967,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4962,6 +5045,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5038,6 +5123,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5114,6 +5201,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5190,6 +5279,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5266,6 +5357,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5358,6 +5451,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5436,6 +5531,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5512,6 +5609,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5588,6 +5687,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5697,6 +5798,8 @@ impl Float {
     ///     [Float][][)][tuple]</code>
     ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Float], \&mut
     ///     [Float][][)][tuple]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [(][tuple][Float][], [Float][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5790,6 +5893,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5867,6 +5972,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5944,6 +6051,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6021,6 +6130,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6098,6 +6209,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6175,6 +6288,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6198,6 +6313,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6280,6 +6397,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6361,6 +6480,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6439,6 +6560,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6518,6 +6641,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6597,6 +6722,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6679,6 +6806,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6759,6 +6888,8 @@ impl Float {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -6904,6 +7035,8 @@ impl Float {
     ///     [Ordering][][)][tuple]</code>
     ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Float], \&mut
     ///     [Ordering][][)][tuple]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [(][tuple][Float][], [Float][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -8536,8 +8669,12 @@ impl Float {
     /// interface, or the random number generator has to be designed
     /// specifically to trigger this case.
     ///
-    /// <code>[Assign]\<Src> for [Float]</code> is implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
+    ///     [Float]> for Src</code>
     ///
     /// # Examples
     ///
@@ -8676,6 +8813,20 @@ where
     }
 }
 
+impl<'a, I> CompleteRound for SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Float>,
+{
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
+    }
+}
+
 impl<'a, I> Add<SumIncomplete<'a, I>> for Float
 where
     I: Iterator<Item = &'a Self>,
@@ -8810,6 +8961,20 @@ where
     #[inline]
     fn assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
         xmpfr::dot(self, src.values, round)
+    }
+}
+
+impl<'a, I> CompleteRound for DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Float, &'a Float)>,
+{
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
     }
 }
 
@@ -8995,6 +9160,23 @@ where
     }
 }
 
+impl<Min, Max> CompleteRound for ClampIncomplete<'_, '_, '_, Min, Max>
+where
+    Float: PartialOrd<Min>
+        + PartialOrd<Max>
+        + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+        + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+{
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
+    }
+}
+
 ref_math_op1_float! { xmpfr::recip; struct RecipIncomplete {} }
 ref_math_op2_float! { xmpfr::min; struct MinIncomplete { other } }
 ref_math_op2_float! { xmpfr::max; struct MaxIncomplete { other } }
@@ -9074,6 +9256,19 @@ impl Assign<LnAbsGammaIncomplete<'_>> for (Float, Ordering) {
     }
 }
 
+impl CompleteRound for LnAbsGammaIncomplete<'_> {
+    type Completed = (Float, Ordering);
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> ((Float, Ordering), Ordering) {
+        let mut val = (Float::new(prec), Ordering::Equal);
+        let dir = val.assign_round(self, round);
+        (val, dir)
+    }
+}
+
 ref_math_op1_float! { xmpfr::digamma; struct DigammaIncomplete {} }
 ref_math_op1_float! { xmpfr::zeta; struct ZetaIncomplete {} }
 ref_math_op0_float! { xmpfr::zeta_ui; struct ZetaUIncomplete { u: u32 } }
@@ -9102,10 +9297,26 @@ pub struct RandomBitsIncomplete<'a> {
 }
 
 #[cfg(feature = "rand")]
-impl Assign<RandomBitsIncomplete<'_>> for Float {
+impl AssignRound<RandomBitsIncomplete<'_>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete) {
+    fn assign_round(&mut self, src: RandomBitsIncomplete, round: Round) -> Ordering {
+        let _ = round;
         xmpfr::urandomb(self, src.rng);
+        Ordering::Equal
+    }
+}
+
+#[cfg(feature = "rand")]
+impl CompleteRound for RandomBitsIncomplete<'_> {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
     }
 }
 
@@ -9125,6 +9336,18 @@ impl AssignRound<RandomContIncomplete<'_>> for Float {
 }
 
 #[cfg(feature = "rand")]
+impl CompleteRound for RandomContIncomplete<'_> {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
+    }
+}
+
+#[cfg(feature = "rand")]
 pub struct RandomNormalIncomplete<'a> {
     rng: &'a mut dyn MutRandState,
 }
@@ -9140,6 +9363,18 @@ impl AssignRound<RandomNormalIncomplete<'_>> for Float {
 }
 
 #[cfg(feature = "rand")]
+impl CompleteRound for RandomNormalIncomplete<'_> {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
+    }
+}
+
+#[cfg(feature = "rand")]
 pub struct RandomExpIncomplete<'a> {
     rng: &'a mut dyn MutRandState,
 }
@@ -9151,6 +9386,18 @@ impl AssignRound<RandomExpIncomplete<'_>> for Float {
     #[inline]
     fn assign_round(&mut self, src: RandomExpIncomplete, round: Round) -> Ordering {
         xmpfr::erandom(self, src.rng, round)
+    }
+}
+
+#[cfg(feature = "rand")]
+impl CompleteRound for RandomExpIncomplete<'_> {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
     }
 }
 
@@ -9381,6 +9628,17 @@ impl AssignRound<ParseIncomplete> for Float {
         let nul = cast_ptr!(c_string.as_bytes_with_nul().last().unwrap(), c_char);
         assert_eq!(unsafe { c_str_end.assume_init() } as *const c_char, nul);
         ordering1(ret)
+    }
+}
+
+impl CompleteRound for ParseIncomplete {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
     }
 }
 
