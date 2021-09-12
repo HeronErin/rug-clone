@@ -15,7 +15,7 @@
 // <https://www.gnu.org/licenses/>.
 
 /*!
-Aribtrary-precision integers.
+Arbitrary-precision integers.
 
 This module provides support for arbitrary-precision integers of type
 [`Integer`]. Instances of [`Integer`] always have a heap allocation for the bit
