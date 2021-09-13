@@ -359,7 +359,7 @@ impl Integer {
     /// assert!(i.capacity() >= 20);
     /// ```
     pub fn shrink_to(&mut self, min_capacity: usize) {
-        let min_limbs = min_capacity.div_ceil(gmp::LIMB_BITS.az::<usize>());
+        let min_limbs = DivRounding::div_ceil(min_capacity, gmp::LIMB_BITS.az::<usize>());
         if min_limbs >= self.inner.alloc.unwrapped_as::<usize>() {
             return;
         }
@@ -619,7 +619,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn significant_digits<T: UnsignedPrimitive>(&self) -> usize {
-        xmpz::significant_bits(self).div_ceil(T::PRIVATE.bits)
+        DivRounding::div_ceil(xmpz::significant_bits(self), T::PRIVATE.bits)
     }
 
     /// Converts the absolute value to a [`Vec`] of digits of type `T`, where
