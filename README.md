@@ -34,6 +34,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     was added.
   * The <code>[Integer][int-1-14]::[shrink_to][int-st-1-14]</code> method was
     added.
+  * The <code>[Rational][rat-1-14]::[is_integer][rat-ii-1-14]</code> method was
+    added.
   * The <code>[Complete][comp-1-14]::[complete_into][comp-ci-1-14]</code>
     provided method was added to the [`Complete`][comp-1-14] trait.
   * The [`CompleteRound`][compr-1-14] trait was added to make it easier to
@@ -49,6 +51,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [int-st-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.shrink_to
 [int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO
+[rat-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
+[rat-ii-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.is_integer
 
 ### Version 1.13.0 news (2021-07-29)
 

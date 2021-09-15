@@ -1019,6 +1019,20 @@ impl Rational {
         self.as_abs().cmp(&*other.as_abs())
     }
 
+    /// Returns [`true`] if the number is an integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// assert!(!(Rational::from((5, 2)).is_integer()));
+    /// assert!(Rational::from(3).is_integer());
+    /// ```
+    #[inline]
+    pub fn is_integer(&self) -> bool {
+        xmpq::is_integer(self)
+    }
+
     /// Adds a list of [`Rational`] values.
     ///
     /// The following are implemented with the returned [incomplete-computation

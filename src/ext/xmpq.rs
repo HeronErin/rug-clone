@@ -846,6 +846,12 @@ pub fn si_div<O: OptRational>(rop: &mut Rational, lhs: c_long, rhs: O) {
     }
 }
 
+#[inline]
+pub fn is_integer(op: &Rational) -> bool {
+    let denom = op.denom();
+    denom.inner().size == 1 && unsafe { xmpz::limb(denom, 0) } == 1
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{ext::xmpq, Assign, Integer, Rational};
