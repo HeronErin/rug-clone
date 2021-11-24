@@ -114,18 +114,16 @@ impl Eq for OrdComplex {}
 impl Ord for OrdComplex {
     #[inline]
     fn cmp(&self, other: &OrdComplex) -> Ordering {
-        let real = self.inner.real().as_ord().cmp(other.inner.real().as_ord());
-        let imag = self.inner.imag().as_ord().cmp(other.inner.imag().as_ord());
-        real.then(imag)
+        (self.inner.real().as_ord().cmp(other.inner.real().as_ord()))
+            .then_with(|| self.inner.imag().as_ord().cmp(other.inner.imag().as_ord()))
     }
 }
 
 impl PartialEq for OrdComplex {
     #[inline]
     fn eq(&self, other: &OrdComplex) -> bool {
-        let real = self.inner.real().as_ord().eq(other.inner.real().as_ord());
-        let imag = self.inner.imag().as_ord().eq(other.inner.imag().as_ord());
-        real && imag
+        self.inner.real().as_ord().eq(other.inner.real().as_ord())
+            && self.inner.imag().as_ord().eq(other.inner.imag().as_ord())
     }
 }
 
