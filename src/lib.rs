@@ -272,7 +272,7 @@ a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.13"
+rug = "1.14"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -306,7 +306,7 @@ selectively, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.rug]
-version = "1.13"
+version = "1.14"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -334,7 +334,7 @@ are in the [`ops`] module are provided by the crate.
 [sys]: gmp_mpfr_sys
 */
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/~1.13")]
+#![doc(html_root_url = "https://docs.rs/rug/~1.14")]
 #![doc(html_logo_url = "data:image/svg+xml;base64,
 PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCEtLSBDcmVhdGVkIHdpdGggSW5rc2NhcGUgKGh0dHA6Ly93
 d3cuaW5rc2NhcGUub3JnLykgLS0+Cjxzdmcgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHZlcnNpb249IjEuMSIgdmlld0JveD0i

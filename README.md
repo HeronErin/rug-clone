@@ -28,7 +28,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
-### Version 1.14.0 news (unreleased)
+### Version 1.14.0 news (2021-11-24)
 
   * Bug fix: [`OrdFloat`][ofl-1-14] was incorrectly ordering +NaN < −∞.
   * The <code>[Integer][int-1-14]::[ZERO][int-z-1-14]</code> associated constant
@@ -43,57 +43,18 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     convert [`Float`][flo-1-14] and [`Complex`][com-1-14] numbers
     [incomplete-computation values][icv-1-14] to their final value.
 
-[com-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[comp-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html
-[comp-ci-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html#method.complete_into
-[compr-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/ops/trait.CompleteRound.html
-[flo-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[icv-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#incomplete-computation-values
-[int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
-[int-st-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.shrink_to
-[int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO
-[ofl-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.OrdFloat.html
-[rat-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
-[rat-ii-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.is_integer
-
-### Version 1.13.0 news (2021-07-29)
-
-  * The [incomplete-computation value][icv-1-13] returned by
-    <code>[Integer][int-1-13]::{[sum][int-s-1-13],[dot][int-d-1-13]}</code> can
-    now be subtracted from an [`Integer`][int-1-13].
-  * The [incomplete-computation value][icv-1-13] returned by
-    <code>[Rational][rat-1-13]::{[sum][rat-s-1-13],[dot][rat-d-1-13]}</code> can
-    now be subtracted from a [`Rational`][rat-1-13] number.
-  * The [incomplete-computation value][icv-1-13] returned by
-    <code>[Float][flo-1-13]::{[sum][flo-s-1-13],[dot][flo-d-1-13]}</code> can
-    now be subtracted from a [`Float`][flo-1-13].
-  * The [incomplete-computation value][icv-1-13] returned by
-    <code>[Complex][com-1-13]::{[sum][com-s-1-13],[dot][com-d-1-13]}</code> can
-    now be subtracted from a [`Complex`][com-1-13] number.
-  * The [incomplete-computation value][icv-1-13] returned by
-    <code>[Integer][int-1-13]::[square\_ref][int-sr-1-13]</code> can now be
-    added to/subtracted from an [`Integer`][int-1-13].
-  * The [`Complete`][comp-1-13] trait was added to make it easier to convert
-    [incomplete-computation values][icv-1-13] to their final value.
-  * The <code>[Round][rnd-1-13]::[reverse][rnd-r-1-13]</code> method was added.
-
-[com-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html
-[com-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html#method.dot
-[com-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Complex.html#method.sum
-[comp-1-13]: https://docs.rs/rug/~1.13/rug/trait.Complete.html
-[flo-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html
-[flo-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html#method.dot
-[flo-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Float.html#method.sum
-[icv-1-13]: https://docs.rs/rug/~1.13/rug/index.html#incomplete-computation-values
-[int-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html
-[int-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.dot
-[int-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.sum
-[int-sr-1-13]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.square_ref
-[rat-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html
-[rat-d-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html#method.dot
-[rat-s-1-13]: https://docs.rs/rug/~1.13/rug/struct.Rational.html#method.sum
-[rnd-1-13]: https://docs.rs/rug/~1.13/rug/float/enum.Round.html
-[rnd-r-1-13]: https://docs.rs/rug/~1.13/rug/float/enum.Round.html#method.reverse
+[com-1-14]: https://docs.rs/rug/~1.14/rug/struct.Complex.html
+[comp-1-14]: https://docs.rs/rug/~1.14/rug/trait.Complete.html
+[comp-ci-1-14]: https://docs.rs/rug/~1.14/rug/trait.Complete.html#method.complete_into
+[compr-1-14]: https://docs.rs/rug/~1.14/rug/ops/trait.CompleteRound.html
+[flo-1-14]: https://docs.rs/rug/~1.14/rug/struct.Float.html
+[icv-1-14]: https://docs.rs/rug/~1.14/rug/index.html#incomplete-computation-values
+[int-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html
+[int-st-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#method.shrink_to
+[int-z-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#associatedconstant.ZERO
+[ofl-1-14]: https://docs.rs/rug/~1.14/rug/float/struct.OrdFloat.html
+[rat-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html
+[rat-ii-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html#method.is_integer
 
 ### Other releases
 
@@ -185,7 +146,7 @@ a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.13"
+rug = "1.14"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -218,7 +179,7 @@ selectively, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.rug]
-version = "1.13"
+version = "1.14"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -229,7 +190,7 @@ thus not enabled. In that case, only the [`Assign`] trait and the traits that
 are in the [`ops`] module are provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.13/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.14/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -237,20 +198,20 @@ are in the [`ops`] module are provided by the crate.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.13/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.13/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.13/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.13/rug/struct.Float.html
-[`Integer`]: https://docs.rs/rug/~1.13/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.13/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.13/rug/struct.Rational.html
-[`new`]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.new
-[`ops`]: https://docs.rs/rug/~1.13/rug/ops/index.html
-[`parse_radix`]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.parse_radix
-[`parse`]: https://docs.rs/rug/~1.13/rug/struct.Integer.html#method.parse
+[`Assign::assign`]: https://docs.rs/rug/~1.14/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.14/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.14/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.14/rug/struct.Float.html
+[`Integer`]: https://docs.rs/rug/~1.14/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.14/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.14/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#method.new
+[`ops`]: https://docs.rs/rug/~1.14/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.13/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.13/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.14/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.14/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys

@@ -4,7 +4,7 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
-Version 1.14.0 (unreleased)
+Version 1.14.0 (2021-11-24)
 ===========================
 
   * Bug fix: [`OrdFloat`][ofl-1-14] was incorrectly ordering +NaN < −∞.
@@ -20,18 +20,18 @@ Version 1.14.0 (unreleased)
     convert [`Float`][flo-1-14] and [`Complex`][com-1-14] numbers
     [incomplete-computation values][icv-1-14] to their final value.
 
-[com-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[comp-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html
-[comp-ci-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/trait.Complete.html#method.complete_into
-[compr-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/ops/trait.CompleteRound.html
-[flo-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[icv-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#incomplete-computation-values
-[int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
-[int-st-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.shrink_to
-[int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO
-[ofl-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.OrdFloat.html
-[rat-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
-[rat-ii-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.is_integer
+[com-1-14]: https://docs.rs/rug/~1.14/rug/struct.Complex.html
+[comp-1-14]: https://docs.rs/rug/~1.14/rug/trait.Complete.html
+[comp-ci-1-14]: https://docs.rs/rug/~1.14/rug/trait.Complete.html#method.complete_into
+[compr-1-14]: https://docs.rs/rug/~1.14/rug/ops/trait.CompleteRound.html
+[flo-1-14]: https://docs.rs/rug/~1.14/rug/struct.Float.html
+[icv-1-14]: https://docs.rs/rug/~1.14/rug/index.html#incomplete-computation-values
+[int-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html
+[int-st-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#method.shrink_to
+[int-z-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#associatedconstant.ZERO
+[ofl-1-14]: https://docs.rs/rug/~1.14/rug/float/struct.OrdFloat.html
+[rat-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html
+[rat-ii-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html#method.is_integer
 
 Version 1.13.0 (2021-07-29)
 ===========================
