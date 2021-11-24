@@ -478,8 +478,7 @@ impl Complex {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// The string can contain either of the following three:
     ///
@@ -526,8 +525,7 @@ impl Complex {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// The string can contain either of the following three:
     ///
@@ -756,8 +754,7 @@ impl Complex {
 
     /// Borrows a negated copy of the [`Complex`] number.
     ///
-    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
-    /// [Complex]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Complex]></code>.
     ///
     /// This method performs a shallow copy and negates it, and negation does
     /// not change the allocated data.
@@ -787,8 +784,7 @@ impl Complex {
 
     /// Borrows a conjugate copy of the [`Complex`] number.
     ///
-    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
-    /// [Complex]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Complex]></code>.
     ///
     /// This method performs a shallow copy and negates its imaginary part, and
     /// negation does not change the allocated data.
@@ -817,8 +813,7 @@ impl Complex {
 
     /// Borrows a rotated copy of the [`Complex`] number.
     ///
-    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
-    /// [Complex]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Complex]></code>.
     ///
     /// This method operates by performing some shallow copying; unlike the
     /// [`mul_i`][Complex::mul_i] method and friends, this method swaps the
@@ -944,16 +939,15 @@ impl Complex {
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///   * <code>[AddAssign]\<Src> for [Complex]</code>
     ///   * <code>[AddAssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[Add]\<Src> for [Complex]</code>, <code>[Add]\<[Complex]> for
-    ///     Src</code>
-    ///   * <code>[SubAssign]\<Src> for [Complex]</code>, <code>[SubFrom]\<Src>
-    ///     for [Complex]</code>
+    ///   * <code>[Add]\<Src> for [Complex]</code>,
+    ///     <code>[Add]\<[Complex]> for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Complex]</code>,
+    ///     <code>[SubFrom]\<Src> for [Complex]</code>
     ///   * <code>[SubAssignRound]\<Src> for [Complex]</code>,
     ///     <code>[SubFromRound]\<Src> for [Complex]</code>
-    ///   * <code>[Sub]\<Src> for [Complex]</code>, <code>[Sub]\<[Complex]> for
-    ///     Src</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[Sub]\<Src> for [Complex]</code>,
+    ///     <code>[Sub]\<[Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1002,16 +996,15 @@ impl Complex {
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
     ///   * <code>[AddAssign]\<Src> for [Complex]</code>
     ///   * <code>[AddAssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[Add]\<Src> for [Complex]</code>, <code>[Add]\<[Complex]> for
-    ///     Src</code>
-    ///   * <code>[SubAssign]\<Src> for [Complex]</code>, <code>[SubFrom]\<Src>
-    ///     for [Complex]</code>
+    ///   * <code>[Add]\<Src> for [Complex]</code>,
+    ///     <code>[Add]\<[Complex]> for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Complex]</code>,
+    ///     <code>[SubFrom]\<Src> for [Complex]</code>
     ///   * <code>[SubAssignRound]\<Src> for [Complex]</code>,
     ///     <code>[SubFromRound]\<Src> for [Complex]</code>
-    ///   * <code>[Sub]\<Src> for [Complex]</code>, <code>[Sub]\<[Complex]> for
-    ///     Src</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[Sub]\<Src> for [Complex]</code>,
+    ///     <code>[Sub]\<[Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// This method will produce a result with correct rounding, except for some
     /// cases where underflow and/or overflow occur in intermediate products.
@@ -1132,8 +1125,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -1233,8 +1225,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as `&a * &b -
     /// &c`.
@@ -1321,8 +1312,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1403,8 +1393,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1485,8 +1474,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1546,8 +1534,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1636,8 +1623,7 @@ impl Complex {
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1731,8 +1717,7 @@ impl Complex {
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1826,8 +1811,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1905,8 +1889,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1995,8 +1978,7 @@ impl Complex {
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Float]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2072,8 +2054,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2151,8 +2132,7 @@ impl Complex {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2180,8 +2160,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2258,8 +2237,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2336,8 +2314,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2414,8 +2391,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2517,16 +2493,11 @@ impl Complex {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Complex][],
-    ///     [Complex][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Complex], \&mut
-    ///     [Complex][][)][tuple]</code>
-    ///   * <code>[AssignRound]\<Src> for [(][tuple][Complex][],
-    ///     [Complex][][)][tuple]</code>
-    ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Complex], \&mut
-    ///     [Complex][][)][tuple]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [(][tuple][Complex][], [Complex][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Complex][], [Complex][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Complex], \&mut [Complex][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple][Complex][], [Complex][][)][tuple]</code>
+    ///   * <code>[AssignRound]\<Src> for [(][tuple]\&mut [Complex], \&mut [Complex][][)][tuple]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [(][tuple][Complex][], [Complex][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2620,8 +2591,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2698,8 +2668,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2776,8 +2745,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2854,8 +2822,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2932,8 +2899,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3010,8 +2976,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3088,8 +3053,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3167,8 +3131,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3246,8 +3209,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3325,8 +3287,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3368,8 +3329,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3411,8 +3371,7 @@ impl Complex {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Complex]</code>
     ///   * <code>[AssignRound]\<Src> for [Complex]</code>
-    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] =
-    ///     [Complex]> for Src</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Complex]> for Src</code>
     ///
     /// # Examples
     ///

@@ -869,8 +869,7 @@ impl ThreadRandState<'_> {
         &mut self.inner
     }
 
-    /// Converts a random generator into <code>[Box]\<dyn
-    /// [ThreadRandGen]></code> if possible.
+    /// Converts a random generator into <code>[Box]\<dyn [ThreadRandGen]></code> if possible.
     ///
     /// If the conversion is not possible, <code>[Err]\(self)</code> is
     /// returned.

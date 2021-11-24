@@ -201,8 +201,7 @@ There are two things that can be done with incomplete-computation values:
  1. Assign them to an existing object without unnecessary allocations. This is
     usually achieved using the [`Assign`] trait or a similar method, for example
     <code>int.[assign][Assign::assign]\(incomplete)</code> and
-    <code>float.[assign\_round][ops::AssignRound::assign_round]\(incomplete,
-    [Round][float::Round]::[Up][float::Round::Up])</code>.
+    <code>float.[assign\_round][ops::AssignRound::assign_round]\(incomplete, [Round][float::Round]::[Up][float::Round::Up])</code>.
  2. Convert them to the final value using the [`Complete`] trait, the [`From`]
     trait or a similar method. For example incomplete integers can be completed
     using <code>incomplete.[complete][Complete::complete]\()</code> or

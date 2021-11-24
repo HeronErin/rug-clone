@@ -410,8 +410,7 @@ impl Rational {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// The string must contain a numerator, and may contain a denominator; the
     /// numerator and denominator are separated with a “`/`”. The numerator can
@@ -447,8 +446,7 @@ impl Rational {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// The string must contain a numerator, and may contain a denominator; the
     /// numerator and denominator are separated with a “`/`”. The numerator can
@@ -890,8 +888,7 @@ impl Rational {
 
     /// Borrows a negated copy of the [`Rational`] number.
     ///
-    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
-    /// [Rational]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -918,8 +915,7 @@ impl Rational {
 
     /// Borrows an absolute copy of the [`Rational`] number.
     ///
-    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
-    /// [Rational]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
     ///
     /// This method performs a shallow copy and possibly negates it, and
     /// negation does not change the allocated data.
@@ -946,8 +942,7 @@ impl Rational {
 
     /// Borrows a reciprocal copy of the [`Rational`] number.
     ///
-    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
-    /// [Rational]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
     ///
     /// This method performs some shallow copying, swapping numerator and
     /// denominator and making sure the sign is in the numerator.
@@ -1039,15 +1034,14 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///   * <code>[AddAssign]\<Src> for [Rational]</code>
-    ///   * <code>[Add]\<Src> for [Rational]</code>, <code>[Add]\<[Rational]>
-    ///     for Src</code>
-    ///   * <code>[SubAssign]\<Src> for [Rational]</code>, <code>[SubFrom]\<Src>
-    ///     for [Rational]</code>
-    ///   * <code>[Sub]\<Src> for [Rational]</code>, <code>[Sub]\<[Rational]>
-    ///     for Src</code>
+    ///   * <code>[Add]\<Src> for [Rational]</code>,
+    ///     <code>[Add]\<[Rational]> for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Rational]</code>,
+    ///     <code>[SubFrom]\<Src> for [Rational]</code>
+    ///   * <code>[Sub]\<Src> for [Rational]</code>,
+    ///     <code>[Sub]\<[Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1080,15 +1074,14 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///   * <code>[AddAssign]\<Src> for [Rational]</code>
-    ///   * <code>[Add]\<Src> for [Rational]</code>, <code>[Add]\<[Rational]>
-    ///     for Src</code>
-    ///   * <code>[SubAssign]\<Src> for [Rational]</code>, <code>[SubFrom]\<Src>
-    ///     for [Rational]</code>
-    ///   * <code>[Sub]\<Src> for [Rational]</code>, <code>[Sub]\<[Rational]>
-    ///     for Src</code>
+    ///   * <code>[Add]\<Src> for [Rational]</code>,
+    ///     <code>[Add]\<[Rational]> for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Rational]</code>,
+    ///     <code>[SubFrom]\<Src> for [Rational]</code>
+    ///   * <code>[Sub]\<Src> for [Rational]</code>,
+    ///     <code>[Sub]\<[Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1118,11 +1111,10 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///   * <code>[MulAssign]\<Src> for [Rational]</code>
-    ///   * <code>[Mul]\<Src> for [Rational]</code>, <code>[Mul]\<[Rational]>
-    ///     for Src</code>
+    ///   * <code>[Mul]\<Src> for [Rational]</code>,
+    ///     <code>[Mul]\<[Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1186,8 +1178,7 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1255,8 +1246,7 @@ impl Rational {
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1340,8 +1330,7 @@ impl Rational {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Panics
     ///
@@ -1427,8 +1416,7 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1493,8 +1481,7 @@ impl Rational {
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1556,8 +1543,7 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1618,14 +1604,10 @@ impl Rational {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Rational][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1695,8 +1677,7 @@ impl Rational {
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1758,8 +1739,7 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1826,14 +1806,10 @@ impl Rational {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Rational][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1901,8 +1877,7 @@ impl Rational {
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -1964,8 +1939,7 @@ impl Rational {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2032,14 +2006,10 @@ impl Rational {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Rational][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2118,8 +2088,7 @@ impl Rational {
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2189,8 +2158,7 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2279,14 +2247,10 @@ impl Rational {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Rational][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Rational], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Rational][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Rational][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2358,8 +2322,7 @@ impl Rational {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Rational]</code>
     ///   * <code>[From]\<Src> for [Rational]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Rational]> for Src</code>
     ///
     /// `r.square_ref()` produces the exact same result as `&r * &r`.
     ///

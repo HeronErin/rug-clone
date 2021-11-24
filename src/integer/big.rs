@@ -922,8 +922,7 @@ impl Integer {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// The string can start with an optional minus or plus sign. ASCII
     /// whitespace is ignored everywhere in the string. Underscores anywhere
@@ -956,8 +955,7 @@ impl Integer {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// The string can start with an optional minus or plus sign. ASCII
     /// whitespace is ignored everywhere in the string. Underscores anywhere
@@ -1783,8 +1781,7 @@ impl Integer {
 
     /// Borrows a negated copy of the [`Integer`].
     ///
-    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
-    /// [Integer]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Integer]></code>.
     ///
     /// This method performs a shallow copy and negates it, and negation does
     /// not change the allocated data.
@@ -1810,8 +1807,7 @@ impl Integer {
 
     /// Borrows an absolute copy of the [`Integer`].
     ///
-    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] =
-    /// [Integer]></code>.
+    /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Integer]></code>.
     ///
     /// This method performs a shallow copy and possibly negates it, and
     /// negation does not change the allocated data.
@@ -2300,15 +2296,14 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///   * <code>[AddAssign]\<Src> for [Integer]</code>
-    ///   * <code>[Add]\<Src> for [Integer]</code>, <code>[Add]\<[Integer]> for
-    ///     Src</code>
-    ///   * <code>[SubAssign]\<Src> for [Integer]</code>, <code>[SubFrom]\<Src>
-    ///     for [Integer]</code>
-    ///   * <code>[Sub]\<Src> for [Integer]</code>, <code>[Sub]\<[Integer]> for
-    ///     Src</code>
+    ///   * <code>[Add]\<Src> for [Integer]</code>,
+    ///     <code>[Add]\<[Integer]> for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Integer]</code>,
+    ///     <code>[SubFrom]\<Src> for [Integer]</code>
+    ///   * <code>[Sub]\<Src> for [Integer]</code>,
+    ///     <code>[Sub]\<[Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2342,15 +2337,14 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///   * <code>[AddAssign]\<Src> for [Integer]</code>
-    ///   * <code>[Add]\<Src> for [Integer]</code>, <code>[Add]\<[Integer]> for
-    ///     Src</code>
-    ///   * <code>[SubAssign]\<Src> for [Integer]</code>, <code>[SubFrom]\<Src>
-    ///     for [Integer]</code>
-    ///   * <code>[Sub]\<Src> for [Integer]</code>, <code>[Sub]\<[Integer]> for
-    ///     Src</code>
+    ///   * <code>[Add]\<Src> for [Integer]</code>,
+    ///     <code>[Add]\<[Integer]> for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Integer]</code>,
+    ///     <code>[SubFrom]\<Src> for [Integer]</code>
+    ///   * <code>[Sub]\<Src> for [Integer]</code>,
+    ///     <code>[Sub]\<[Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2380,11 +2374,10 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///   * <code>[MulAssign]\<Src> for [Integer]</code>
-    ///   * <code>[Mul]\<Src> for [Integer]</code>, <code>[Mul]\<[Integer]> for
-    ///     Src</code>
+    ///   * <code>[Mul]\<Src> for [Integer]</code>,
+    ///     <code>[Mul]\<[Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2449,8 +2442,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2518,8 +2510,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2604,8 +2595,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Panics
     ///
@@ -2684,8 +2674,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2748,8 +2737,7 @@ impl Integer {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2807,8 +2795,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -2880,14 +2867,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// The remainder has the same sign as the dividend.
     ///
@@ -2970,14 +2953,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3058,14 +3037,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3151,14 +3126,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3234,14 +3205,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3364,8 +3331,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3441,8 +3407,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3538,8 +3503,7 @@ impl Integer {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3664,8 +3628,7 @@ impl Integer {
     /// [incomplete-computation value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3793,8 +3756,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Panics
     ///
@@ -3832,8 +3794,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3854,8 +3815,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -3921,8 +3881,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4002,14 +3961,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4078,15 +4033,14 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///   * <code>[AddAssign]\<Src> for [Integer]</code>
-    ///   * <code>[Add]\<Src> for [Integer]</code>, <code>[Add]\<[Integer]> for
-    ///     Src</code>
-    ///   * <code>[SubAssign]\<Src> for [Integer]</code>, <code>[SubFrom]\<Src>
-    ///     for [Integer]</code>
-    ///   * <code>[Sub]\<Src> for [Integer]</code>, <code>[Sub]\<[Integer]> for
-    ///     Src</code>
+    ///   * <code>[Add]\<Src> for [Integer]</code>,
+    ///     <code>[Add]\<[Integer]> for Src</code>
+    ///   * <code>[SubAssign]\<Src> for [Integer]</code>,
+    ///     <code>[SubFrom]\<Src> for [Integer]</code>
+    ///   * <code>[Sub]\<Src> for [Integer]</code>,
+    ///     <code>[Sub]\<[Integer]> for Src</code>
     ///
     /// `i.square_ref()` produces the exact same result as `&i * &i`.
     ///
@@ -4149,8 +4103,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4222,14 +4175,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4321,8 +4270,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4403,8 +4351,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4484,8 +4431,7 @@ impl Integer {
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Option]\<[u32]></code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// The last item above is useful to obtain the result as a [`u32`] if it
     /// fits. If `other` > 0 , the result always fits. If the result does not
@@ -4598,24 +4544,16 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer],
-    ///     \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer], [Integer][][)][tuple]> for
-    ///     Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer], [Integer][][)][tuple]> for Src</code>
     ///
     /// In the case that only one of the two cofactors is required, the
     /// following are also implemented:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
     ///
     /// The GCD is always positive except when both inputs are zero. If the
     /// inputs are <i>a</i> and <i>b</i>, then the GCD is <i>g</i> and the
@@ -4737,8 +4675,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4811,8 +4748,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4956,8 +4892,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -4979,8 +4914,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5002,8 +4936,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5025,8 +4958,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5081,8 +5013,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5105,8 +5036,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5130,8 +5060,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// This function is meant for an isolated number. If a sequence of
     /// Fibonacci numbers is required, the first two values of the sequence
@@ -5155,14 +5084,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// This function is meant to calculate isolated numbers. If a sequence of
     /// Fibonacci numbers is required, the first two values of the sequence
@@ -5194,8 +5119,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// This function is meant for an isolated number. If a sequence of Lucas
     /// numbers is required, the first two values of the sequence should be
@@ -5219,14 +5143,10 @@ impl Integer {
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][],
-    ///     [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] =
-    ///     [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
     /// This function is meant to calculate isolated numbers. If a sequence of
     /// Lucas numbers is required, the first two values of the sequence should
@@ -5258,8 +5178,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Examples
     ///
@@ -5330,8 +5249,7 @@ impl Integer {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for
-    ///     Src</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// # Panics
     ///

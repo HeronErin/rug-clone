@@ -40,8 +40,7 @@ pub use crate::complex::small::SmallComplex;
 The `Prec` trait is used to specify the precision of the real and imaginary
 parts of a [`Complex`][crate::Complex] number.
 
-This trait is implememented for [`u32`] and for <code>[(][tuple][u32][],
-[u32][][)][tuple]</code>.
+This trait is implememented for [`u32`] and for <code>[(][tuple][u32][], [u32][][)][tuple]</code>.
 
 # Examples
 
