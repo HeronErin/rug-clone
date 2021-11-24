@@ -30,6 +30,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.14.0 news (unreleased)
 
+  * Bug fix: [`OrdFloat`][ofl-1-14] was incorrectly ordering +NaN < −∞.
   * The <code>[Integer][int-1-14]::[ZERO][int-z-1-14]</code> associated constant
     was added.
   * The <code>[Integer][int-1-14]::[shrink_to][int-st-1-14]</code> method was
@@ -51,6 +52,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [int-st-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.shrink_to
 [int-z-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#associatedconstant.ZERO
+[ofl-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.OrdFloat.html
 [rat-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html
 [rat-ii-1-14]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html#method.is_integer
 

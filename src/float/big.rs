@@ -1370,11 +1370,17 @@ impl Float {
     ///
     /// let nan_f = Float::with_val(53, Special::Nan);
     /// let nan = nan_f.as_ord();
+    /// let neg_nan_f = nan_f.as_neg();
+    /// let neg_nan = neg_nan_f.as_ord();
     /// assert_eq!(nan.cmp(nan), Ordering::Equal);
+    /// assert_eq!(neg_nan.cmp(nan), Ordering::Less);
     ///
+    /// let inf_f = Float::with_val(53, Special::Infinity);
+    /// let inf = inf_f.as_ord();
     /// let neg_inf_f = Float::with_val(53, Special::NegInfinity);
     /// let neg_inf = neg_inf_f.as_ord();
-    /// assert_eq!(nan.cmp(neg_inf), Ordering::Less);
+    /// assert_eq!(nan.cmp(inf), Ordering::Greater);
+    /// assert_eq!(neg_nan.cmp(neg_inf), Ordering::Less);
     ///
     /// let zero_f = Float::with_val(53, Special::Zero);
     /// let zero = zero_f.as_ord();

@@ -135,28 +135,42 @@ impl Ord for OrdFloat {
     fn cmp(&self, other: &OrdFloat) -> Ordering {
         let s = &self.inner;
         let o = &other.inner;
-        if s.is_zero() && o.is_zero() {
-            s.is_sign_positive().cmp(&o.is_sign_positive())
-        } else {
-            match (s.is_nan(), o.is_nan()) {
-                (false, true) => {
-                    if o.is_sign_negative() {
-                        Ordering::Greater
-                    } else {
-                        Ordering::Less
-                    }
-                }
-                (true, false) => {
-                    if o.is_sign_negative() {
-                        Ordering::Less
-                    } else {
-                        Ordering::Greater
-                    }
-                }
-                (true, true) => s.is_sign_positive().cmp(&o.is_sign_positive()),
-                (false, false) => xmpfr::cmp(s, o),
-            }
+        let s_neg = s.is_sign_negative();
+        let o_neg = o.is_sign_negative();
+        if s_neg != o_neg {
+            return if s_neg {
+                // -0 < +0
+                Ordering::Less
+            } else {
+                // +0 > -0
+                Ordering::Greater
+            };
         }
+        let s_nan = s.is_nan();
+        let o_nan = o.is_nan();
+        if s_nan {
+            return if o_nan {
+                // ±NaN = ±NaN
+                Ordering::Equal
+            } else if s_neg {
+                // -NaN < -∞
+                Ordering::Less
+            } else {
+                // +NaN > +∞
+                Ordering::Greater
+            };
+        }
+        if o_nan {
+            return if o_neg {
+                // -∞ > -NaN
+                Ordering::Greater
+            } else {
+                // +∞ < +NaN
+                Ordering::Less
+            };
+        }
+        // we have already handled zeros with different sign and NaNs
+        xmpfr::cmp(s, o)
     }
 }
 
@@ -165,13 +179,18 @@ impl PartialEq for OrdFloat {
     fn eq(&self, other: &OrdFloat) -> bool {
         let s = &self.inner;
         let o = &other.inner;
-        if s.is_nan() {
-            o.is_nan() && s.is_sign_negative() == o.is_sign_negative()
-        } else if s.is_zero() {
-            o.is_zero() && s.is_sign_negative() == o.is_sign_negative()
-        } else {
-            s.eq(o)
+        if s.is_sign_negative() != o.is_sign_negative() {
+            return false;
         }
+        let o_nan = o.is_nan();
+        if s.is_nan() {
+            return o_nan;
+        }
+        if o_nan {
+            return false;
+        }
+        // we have already handled zeros with different sign and NaNs
+        s.eq(o)
     }
 }
 
