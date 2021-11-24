@@ -6195,7 +6195,10 @@ pub struct PrivateUnsignedPrimitive {
     nails: usize,
 }
 
-// unsafe because bit patterns can be written to the implementing type
+/// # Safety
+///
+/// Bit patterns can be written to the implementing type. Implementations must
+/// make sure that all bit patterns are allowed.
 pub unsafe trait SealedUnsignedPrimitive: Sized {
     const PRIVATE: PrivateUnsignedPrimitive = PrivateUnsignedPrimitive {
         bytes: mem::size_of::<Self>(),
