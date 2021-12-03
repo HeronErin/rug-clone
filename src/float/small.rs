@@ -79,10 +79,9 @@ pub struct SmallFloat {
     limbs: Limbs,
 }
 
-// Safety: Mpfr has a repr equivalent to mpfr_t. The difference in the
-// repr(C) types Mpfr and mpfr_t is that Mpfr uses
-// UnsafeCell<NonNull<limb_t>> instead of *mut limb_t, but both
-// UnsafeCell and NonNull are repr(transparent).
+// Safety: Mpfr has a repr equivalent to mpfr_t. The difference in the repr(C)
+// types Mpfr and mpfr_t is that Mpfr uses UnsafeCell<NonNull<limb_t>> instead
+// of NonNull<limb_t>, but UnsafeCell is repr(transparent).
 #[repr(C)]
 pub struct Mpfr {
     pub prec: prec_t,

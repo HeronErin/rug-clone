@@ -74,12 +74,11 @@ pub struct SmallRational {
 // modify the UnsafeCell.
 unsafe impl Send for SmallRational {}
 
-// Safety: Mpz has a repr equivalent to mpz_t, so Mpq has a repr
-// equivalent to mpq_t. The difference in the repr(C) types Mpz and
-// mpz_t is that Mpz uses UnsafeCell<NonNull<limb_t>> instead of *mut
-// limb_t, but both UnsafeCell and NonNull are repr(transparent). The
-// difference in the repr(C) types Mpq and mpq_t is that Mpq uses Mpz
-// instead of mpz_t.
+// Safety: Mpz has a repr equivalent to mpz_t, so Mpq has a repr equivalent to
+// mpq_t. The difference in the repr(C) types Mpz and mpz_t is that Mpz uses
+// UnsafeCell<NonNull<limb_t>> instead of NonNull<limb_t>, but UnsafeCell is
+// repr(transparent). The difference in the repr(C) types Mpq and mpq_t is that
+// Mpq uses Mpz instead of mpz_t.
 #[derive(Clone)]
 #[repr(C)]
 struct Mpq {

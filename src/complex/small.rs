@@ -94,12 +94,11 @@ impl Default for SmallComplex {
     }
 }
 
-// Safety: Mpfr has a repr equivalent to mpfr_t, so Mpc has a repr
-// equivalent to mpc_t. The difference in the repr(C) types Mpfr and
-// mpfr_t is that Mpfr uses UnsafeCell<NonNull<limb_t>> instead of
-// *mut limb_t, but both UnsafeCell and NonNull are repr(transparent).
-// The difference in the repr(C) types Mpc and mpc_t is that Mpc uses
-// Mpfr instead of mpfr_t.
+// Safety: Mpfr has a repr equivalent to mpfr_t, so Mpc has a repr equivalent to
+// mpc_t. The difference in the repr(C) types Mpfr and mpfr_t is that Mpfr uses
+// UnsafeCell<NonNull<limb_t>> instead of NonNull<limb_t>, but UnsafeCell is
+// repr(transparent). The difference in the repr(C) types Mpc and mpc_t is that
+// Mpc uses Mpfr instead of mpfr_t.
 #[derive(Clone)]
 #[repr(C)]
 struct Mpc {

@@ -63,10 +63,9 @@ pub struct SmallInteger {
     limbs: Limbs,
 }
 
-// Safety: Mpz has a repr equivalent to mpz_t. The difference in the
-// repr(C) types Mpz and mpz_t is that Mpz uses
-// UnsafeCell<NonNull<limb_t>> instead of *mut limb_t, but both
-// UnsafeCell and NonNull are repr(transparent).
+// Safety: Mpz has a repr equivalent to mpz_t. The difference in the repr(C)
+// types Mpz and mpz_t is that Mpz uses UnsafeCell<NonNull<limb_t>> instead of
+// NonNull<limb_t>, but UnsafeCell is repr(transparent).
 #[repr(C)]
 pub struct Mpz {
     pub alloc: c_int,
