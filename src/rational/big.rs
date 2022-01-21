@@ -2958,7 +2958,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError
             kind: Kind::DenomZero,
         });
     }
-    let den_start = den_start.unwrap_or_else(|| digits.len());
+    let den_start = den_start.unwrap_or(digits.len());
     Ok(ParseIncomplete {
         is_negative,
         digits,
