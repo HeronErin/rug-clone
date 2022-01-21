@@ -316,4 +316,21 @@ mod tests {
         println!("{}\n{}\n{}", r, rf, rfr);
         assert!(rfr <= r);
     }
+
+    #[test]
+    fn check_zero_sign_consistency() {
+        let very_small = Rational::from(-1) >> 2000u32;
+        let very_small_f64 = very_small.to_f64();
+        let very_small_f32 = very_small.to_f32();
+        assert_eq!(very_small_f64, 0.0);
+        assert_eq!(very_small_f32, 0.0);
+        assert_eq!(very_small_f64.is_sign_negative(), very_small_f32.is_sign_negative());
+
+        let small = Rational::from(-1) >> 1000u32;
+        let small_f64 = small.to_f64();
+        let small_f32 = small.to_f32();
+        assert_ne!(small_f64, 0.0);
+        assert_eq!(small_f32, 0.0);
+        assert_eq!(very_small_f64.is_sign_negative(), small_f32.is_sign_negative());
+    }
 }

@@ -77,8 +77,9 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
             // normally f64 has 29 more significant bits than f32
             29
         } else if biased_exp <= 1023 - 126 - 24 {
-            // truncate everything except sign bit
-            63
+            // Do not try to keep sign bit, as that is not consistent with
+            // gmp::mpz_get_d
+            return 0.0;
         } else {
             // 1023 - 126 - 23 <= biased_exp <= 1023 - 126 - 1
             // 52 >= trunc_count >= 30
