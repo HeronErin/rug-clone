@@ -313,8 +313,7 @@ mod tests {
         let r = Rational::from((1, denom));
         let rf = r.to_f32();
         let rfr = Rational::from_f32(rf).unwrap();
-        println!("{}\n{}\n{}", r, rf, rfr);
-        assert!(rfr <= r);
+        assert!(rfr < r);
     }
 
     #[test]
