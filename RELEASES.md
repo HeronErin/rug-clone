@@ -4,6 +4,13 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
+Version 1.14.1 (unreleased)
+===========================
+
+  * Bug fix: <code>[Rational][rat-1-14]::[to_f32][rat-tf-1-14]</code> was
+    rounding away from zero in some cases when the rational number should be
+    converted to a subnormal number ([issue 36]).
+
 Version 1.14.0 (2021-11-24)
 ===========================
 
@@ -29,9 +36,11 @@ Version 1.14.0 (2021-11-24)
 [int-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html
 [int-st-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#method.shrink_to
 [int-z-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#associatedconstant.ZERO
+[issue 36]: https://gitlab.com/tspiteri/rug/-/issues/36
 [ofl-1-14]: https://docs.rs/rug/~1.14/rug/float/struct.OrdFloat.html
 [rat-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html
 [rat-ii-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html#method.is_integer
+[rat-tf-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html#method.to_f32
 
 Version 1.13.0 (2021-07-29)
 ===========================
