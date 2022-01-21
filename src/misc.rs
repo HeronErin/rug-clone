@@ -54,7 +54,6 @@ neg_abs! { i64; u64 }
 neg_abs! { i128; u128 }
 neg_abs! { isize; usize }
 
-#[inline]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
     // the least significant bits of f.
@@ -63,10 +62,30 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
     //   * If f is +/- infinity, the bits are already zero, so the
     //     masking has no effect.
     //   * If f is subnormal, f as f32 will be zero anyway.
+    //
+    // When f is normal but would be subnormal as f32, we need to clear more
+    // bits. Let x be exponent minus minimum f32 normal exponent, that is x =
+    // biased f64 exponent - 1023 + 126. Then
+    //   * If x >= 0, then truncate 53 - 24 bits.
+    //   * If x <= -24, then truncate at least 53 bits, but there are 52
+    //     non-implicit bits, so return 0.
+    //   * If -23 <= x <= -1, then truncate 53 - 24 - x bits.
     if !f.is_nan() {
         let u = f.to_bits();
+        let biased_exp = (u >> 52) as u32 & 0x7FF;
+        let trunc_count = if biased_exp >= 1023 - 126 {
+            // normally f64 has 29 more significant bits than f32
+            29
+        } else if biased_exp <= 1023 - 126 - 24 {
+            // truncate everything except sign bit
+            63
+        } else {
+            // 1023 - 126 - 23 <= biased_exp <= 1023 - 126 - 1
+            // 52 >= trunc_count >= 30
+            29 + 1023 - 126 - biased_exp
+        };
         // f64 has 29 more significant bits than f32.
-        let trunc_u = u & (!0 << 29);
+        let trunc_u = u & (!0 << trunc_count);
         let trunc_f = f64::from_bits(trunc_u);
         trunc_f as f32
     } else {
