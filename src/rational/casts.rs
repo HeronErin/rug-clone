@@ -306,4 +306,14 @@ mod tests {
         assert_eq!(f64_max.borrow().az::<f64>(), f64::MAX);
         assert_eq!(f64_overflow.borrow().az::<f64>(), f64::INFINITY);
     }
+
+    #[test]
+    fn check_issue_36() {
+        let denom = (Integer::from(1) << 126u32) + 1;
+        let r = Rational::from((1, denom));
+        let rf = r.to_f32();
+        let rfr = Rational::from_f32(rf).unwrap();
+        println!("{}\n{}\n{}", r, rf, rfr);
+        assert!(rfr <= r);
+    }
 }
