@@ -16,7 +16,7 @@
 
 #![allow(dead_code)]
 
-use az::WrappingCast;
+use az::{Az, WrappingCast};
 
 pub trait NegAbs {
     type Abs;
@@ -72,7 +72,7 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
     //   * If -23 <= x <= -1, then truncate 53 - 24 - x bits.
     if !f.is_nan() {
         let u = f.to_bits();
-        let biased_exp = (u >> 52) as u32 & 0x7FF;
+        let biased_exp = (u >> 52).az::<u32>() & 0x7FF;
         let trunc_count = if biased_exp >= 1023 - 126 {
             // normally f64 has 29 more significant bits than f32
             29
