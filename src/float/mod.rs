@@ -201,6 +201,7 @@ impl Round {
     /// assert_eq!(Round::Down.reverse(), Round::Up);
     /// assert_eq!(Round::Nearest.reverse(), Round::Nearest);
     /// ```
+    #[must_use]
     pub fn reverse(self) -> Round {
         match self {
             Round::Up => Round::Down,

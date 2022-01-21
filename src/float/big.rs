@@ -2175,6 +2175,7 @@ impl Float {
     /// assert!((rem_op - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn remainder(mut self, divisor: &Self) -> Self {
         self.remainder_round(divisor, Round::Nearest);
         self
@@ -2380,6 +2381,7 @@ impl Float {
     /// assert_eq!(mul_add, 4.5);
     /// ```
     #[inline]
+    #[must_use]
     pub fn mul_add(mut self, mul: &Self, add: &Self) -> Self {
         self.mul_add_round(mul, add, Round::Nearest);
         self
@@ -2499,6 +2501,7 @@ impl Float {
     /// assert_eq!(mul_sub, -44);
     /// ```
     #[inline]
+    #[must_use]
     pub fn mul_sub(mut self, mul: &Self, sub: &Self) -> Self {
         self.mul_sub_round(mul, sub, Round::Nearest);
         self
@@ -2614,6 +2617,7 @@ impl Float {
     /// assert_eq!(mul_add_mul, 60);
     /// ```
     #[inline]
+    #[must_use]
     pub fn mul_add_mul(mut self, mul: &Self, add_mul1: &Self, add_mul2: &Self) -> Self {
         self.mul_add_mul_round(mul, add_mul1, add_mul2, Round::Nearest);
         self
@@ -2729,6 +2733,7 @@ impl Float {
     /// assert_eq!(mul_sub_mul, 12);
     /// ```
     #[inline]
+    #[must_use]
     pub fn mul_sub_mul(mut self, mul: &Self, sub_mul1: &Self, sub_mul2: &Self) -> Self {
         self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Round::Nearest);
         self
@@ -2947,6 +2952,7 @@ impl Float {
     /// assert_eq!(square, 25.0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn square(mut self) -> Self {
         self.square_round(Round::Nearest);
         self
@@ -3022,6 +3028,7 @@ impl Float {
     /// assert_eq!(sqrt, 5.0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn sqrt(mut self) -> Self {
         self.sqrt_round(Round::Nearest);
         self
@@ -3120,6 +3127,7 @@ impl Float {
     /// assert_eq!(recip_sqrt, 0.25);
     /// ```
     #[inline]
+    #[must_use]
     pub fn recip_sqrt(mut self) -> Self {
         self.recip_sqrt_round(Round::Nearest);
         self
@@ -3196,6 +3204,7 @@ impl Float {
     /// assert_eq!(cbrt, 5.0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn cbrt(mut self) -> Self {
         self.cbrt_round(Round::Nearest);
         self
@@ -3271,6 +3280,7 @@ impl Float {
     /// assert_eq!(root, 5.0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn root(mut self, k: u32) -> Self {
         self.root_round(k, Round::Nearest);
         self
@@ -3346,6 +3356,7 @@ impl Float {
     /// assert_eq!(abs, 23.5);
     /// ```
     #[inline]
+    #[must_use]
     pub fn abs(mut self) -> Self {
         self.abs_mut();
         self
@@ -3406,6 +3417,7 @@ impl Float {
     /// assert_eq!(Float::with_val(53, 23.5).signum(), 1);
     /// ```
     #[inline]
+    #[must_use]
     pub fn signum(mut self) -> Self {
         self.signum_mut();
         self
@@ -3470,6 +3482,7 @@ impl Float {
     /// assert_eq!(copysign, -23.0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn copysign(mut self, y: &Self) -> Self {
         self.copysign_mut(y);
         self
@@ -3538,6 +3551,7 @@ impl Float {
     /// assert_eq!(clamped2, 0.5);
     /// ```
     #[inline]
+    #[must_use]
     pub fn clamp<Min, Max>(mut self, min: &Min, max: &Max) -> Self
     where
         Self: PartialOrd<Min>
@@ -3702,6 +3716,7 @@ impl Float {
     /// assert_eq!(recip, -4.0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn recip(mut self) -> Self {
         self.recip_round(Round::Nearest);
         self
@@ -3778,6 +3793,7 @@ impl Float {
     /// assert_eq!(min, -2);
     /// ```
     #[inline]
+    #[must_use]
     pub fn min(mut self, other: &Self) -> Self {
         self.min_round(other, Round::Nearest);
         self
@@ -3857,6 +3873,7 @@ impl Float {
     /// assert_eq!(max, 12.5);
     /// ```
     #[inline]
+    #[must_use]
     pub fn max(mut self, other: &Self) -> Self {
         self.max_round(other, Round::Nearest);
         self
@@ -3942,6 +3959,7 @@ impl Float {
     /// assert_eq!(diff2, 0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn positive_diff(mut self, other: &Self) -> Self {
         self.positive_diff_round(other, Round::Nearest);
         self
@@ -4040,6 +4058,7 @@ impl Float {
     /// assert!((ln - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn ln(mut self) -> Self {
         self.ln_round(Round::Nearest);
         self
@@ -4141,6 +4160,7 @@ impl Float {
     /// assert!((log2 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn log2(mut self) -> Self {
         self.log2_round(Round::Nearest);
         self
@@ -4219,6 +4239,7 @@ impl Float {
     /// assert!((log10 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn log10(mut self) -> Self {
         self.log10_round(Round::Nearest);
         self
@@ -4297,6 +4318,7 @@ impl Float {
     /// assert!((exp - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn exp(mut self) -> Self {
         self.exp_round(Round::Nearest);
         self
@@ -4374,6 +4396,7 @@ impl Float {
     /// assert!((exp2 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn exp2(mut self) -> Self {
         self.exp2_round(Round::Nearest);
         self
@@ -4452,6 +4475,7 @@ impl Float {
     /// assert!((exp10 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn exp10(mut self) -> Self {
         self.exp10_round(Round::Nearest);
         self
@@ -4530,6 +4554,7 @@ impl Float {
     /// assert!((sin - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn sin(mut self) -> Self {
         self.sin_round(Round::Nearest);
         self
@@ -4607,6 +4632,7 @@ impl Float {
     /// assert!((cos - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn cos(mut self) -> Self {
         self.cos_round(Round::Nearest);
         self
@@ -4684,6 +4710,7 @@ impl Float {
     /// assert!((tan - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn tan(mut self) -> Self {
         self.tan_round(Round::Nearest);
         self
@@ -4882,6 +4909,7 @@ impl Float {
     /// assert!((sec - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn sec(mut self) -> Self {
         self.sec_round(Round::Nearest);
         self
@@ -4959,6 +4987,7 @@ impl Float {
     /// assert!((csc - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn csc(mut self) -> Self {
         self.csc_round(Round::Nearest);
         self
@@ -5036,6 +5065,7 @@ impl Float {
     /// assert!((cot - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn cot(mut self) -> Self {
         self.cot_round(Round::Nearest);
         self
@@ -5113,6 +5143,7 @@ impl Float {
     /// assert!((asin - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn asin(mut self) -> Self {
         self.asin_round(Round::Nearest);
         self
@@ -5190,6 +5221,7 @@ impl Float {
     /// assert!((acos - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn acos(mut self) -> Self {
         self.acos_round(Round::Nearest);
         self
@@ -5267,6 +5299,7 @@ impl Float {
     /// assert!((atan - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn atan(mut self) -> Self {
         self.atan_round(Round::Nearest);
         self
@@ -5348,6 +5381,7 @@ impl Float {
     /// assert!((atan2 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn atan2(mut self, x: &Self) -> Self {
         self.atan2_round(x, Round::Nearest);
         self
@@ -5439,6 +5473,7 @@ impl Float {
     /// assert!((sinh - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn sinh(mut self) -> Self {
         self.sinh_round(Round::Nearest);
         self
@@ -5516,6 +5551,7 @@ impl Float {
     /// assert!((cosh - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn cosh(mut self) -> Self {
         self.cosh_round(Round::Nearest);
         self
@@ -5593,6 +5629,7 @@ impl Float {
     /// assert!((tanh - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn tanh(mut self) -> Self {
         self.tanh_round(Round::Nearest);
         self
@@ -5793,6 +5830,7 @@ impl Float {
     /// assert!((sech - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn sech(mut self) -> Self {
         self.sech_round(Round::Nearest);
         self
@@ -5870,6 +5908,7 @@ impl Float {
     /// assert!((csch - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn csch(mut self) -> Self {
         self.csch_round(Round::Nearest);
         self
@@ -5948,6 +5987,7 @@ impl Float {
     /// assert!((coth - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn coth(mut self) -> Self {
         self.coth_round(Round::Nearest);
         self
@@ -6026,6 +6066,7 @@ impl Float {
     /// assert!((asinh - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn asinh(mut self) -> Self {
         self.asinh_round(Round::Nearest);
         self
@@ -6104,6 +6145,7 @@ impl Float {
     /// assert!((acosh - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn acosh(mut self) -> Self {
         self.acosh_round(Round::Nearest);
         self
@@ -6182,6 +6224,7 @@ impl Float {
     /// assert!((atanh - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn atanh(mut self) -> Self {
         self.atanh_round(Round::Nearest);
         self
@@ -6286,6 +6329,7 @@ impl Float {
     /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
     /// ```
     #[inline]
+    #[must_use]
     pub fn ln_1p(mut self) -> Self {
         self.ln_1p_round(Round::Nearest);
         self
@@ -6369,6 +6413,7 @@ impl Float {
     /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
     /// ```
     #[inline]
+    #[must_use]
     pub fn exp_m1(mut self) -> Self {
         self.exp_m1_round(Round::Nearest);
         self
@@ -6450,6 +6495,7 @@ impl Float {
     /// assert!((eint - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn eint(mut self) -> Self {
         self.eint_round(Round::Nearest);
         self
@@ -6529,6 +6575,7 @@ impl Float {
     /// assert!((li2 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn li2(mut self) -> Self {
         self.li2_round(Round::Nearest);
         self
@@ -6609,6 +6656,7 @@ impl Float {
     /// assert!((gamma - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn gamma(mut self) -> Self {
         self.gamma_round(Round::Nearest);
         self
@@ -6690,6 +6738,7 @@ impl Float {
     /// assert!((gamma_inc - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn gamma_inc(mut self, x: &Self) -> Self {
         self.gamma_inc_round(x, Round::Nearest);
         self
@@ -6773,6 +6822,7 @@ impl Float {
     /// assert!((ln_gamma - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn ln_gamma(mut self) -> Self {
         self.ln_gamma_round(Round::Nearest);
         self
@@ -7006,6 +7056,7 @@ impl Float {
     /// assert!((digamma - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn digamma(mut self) -> Self {
         self.digamma_round(Round::Nearest);
         self
@@ -7085,6 +7136,7 @@ impl Float {
     /// assert!((zeta - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn zeta(mut self) -> Self {
         self.zeta_round(Round::Nearest);
         self
@@ -7186,6 +7238,7 @@ impl Float {
     /// assert!((erf - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn erf(mut self) -> Self {
         self.erf_round(Round::Nearest);
         self
@@ -7264,6 +7317,7 @@ impl Float {
     /// assert!((erfc - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn erfc(mut self) -> Self {
         self.erfc_round(Round::Nearest);
         self
@@ -7343,6 +7397,7 @@ impl Float {
     /// assert!((j0 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn j0(mut self) -> Self {
         self.j0_round(Round::Nearest);
         self
@@ -7422,6 +7477,7 @@ impl Float {
     /// assert!((j1 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn j1(mut self) -> Self {
         self.j1_round(Round::Nearest);
         self
@@ -7501,6 +7557,7 @@ impl Float {
     /// assert!((j2 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn jn(mut self, n: i32) -> Self {
         self.jn_round(n, Round::Nearest);
         self
@@ -7580,6 +7637,7 @@ impl Float {
     /// assert!((y0 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn y0(mut self) -> Self {
         self.y0_round(Round::Nearest);
         self
@@ -7659,6 +7717,7 @@ impl Float {
     /// assert!((y1 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn y1(mut self) -> Self {
         self.y1_round(Round::Nearest);
         self
@@ -7738,6 +7797,7 @@ impl Float {
     /// assert!((y2 - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn yn(mut self, n: i32) -> Self {
         self.yn_round(n, Round::Nearest);
         self
@@ -7818,6 +7878,7 @@ impl Float {
     /// assert!((agm - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn agm(mut self, other: &Self) -> Self {
         self.agm_round(other, Round::Nearest);
         self
@@ -7904,6 +7965,7 @@ impl Float {
     /// assert!((hypot - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn hypot(mut self, other: &Self) -> Self {
         self.hypot_round(other, Round::Nearest);
         self
@@ -7989,6 +8051,7 @@ impl Float {
     /// assert!((ai - expected).abs() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn ai(mut self) -> Self {
         self.ai_round(Round::Nearest);
         self
@@ -8069,6 +8132,7 @@ impl Float {
     /// assert_eq!(ceil2, 24);
     /// ```
     #[inline]
+    #[must_use]
     pub fn ceil(mut self) -> Self {
         self.ceil_mut();
         self
@@ -8132,6 +8196,7 @@ impl Float {
     /// assert_eq!(floor2, 23);
     /// ```
     #[inline]
+    #[must_use]
     pub fn floor(mut self) -> Self {
         self.floor_mut();
         self
@@ -8195,6 +8260,7 @@ impl Float {
     /// assert_eq!(round2, 24);
     /// ```
     #[inline]
+    #[must_use]
     pub fn round(mut self) -> Self {
         self.round_mut();
         self
@@ -8276,6 +8342,7 @@ impl Float {
     /// assert_eq!(round2, 24);
     /// ```
     #[inline]
+    #[must_use]
     pub fn round_even(mut self) -> Self {
         self.round_even_mut();
         self
@@ -8339,6 +8406,7 @@ impl Float {
     /// assert_eq!(trunc2, 23);
     /// ```
     #[inline]
+    #[must_use]
     pub fn trunc(mut self) -> Self {
         self.trunc_mut();
         self
@@ -8402,6 +8470,7 @@ impl Float {
     /// assert_eq!(fract2, 0.75);
     /// ```
     #[inline]
+    #[must_use]
     pub fn fract(mut self) -> Self {
         self.fract_mut();
         self

@@ -2416,6 +2416,7 @@ impl Integer {
     /// assert_eq!(abs, 100);
     /// ```
     #[inline]
+    #[must_use]
     pub fn abs(mut self) -> Self {
         self.abs_mut();
         self
@@ -2476,6 +2477,7 @@ impl Integer {
     /// assert_eq!(Integer::from(100).signum(), 1);
     /// ```
     #[inline]
+    #[must_use]
     pub fn signum(mut self) -> Self {
         self.signum_mut();
         self
@@ -2549,6 +2551,7 @@ impl Integer {
     /// assert_eq!(clamped2, 3);
     /// ```
     #[inline]
+    #[must_use]
     pub fn clamp<Min, Max>(mut self, min: &Min, max: &Max) -> Self
     where
         Self: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
@@ -2646,6 +2649,7 @@ impl Integer {
     /// assert_eq!(keep_8, 0xff);
     /// ```
     #[inline]
+    #[must_use]
     pub fn keep_bits(mut self, n: u32) -> Self {
         self.keep_bits_mut(n);
         self
@@ -2706,6 +2710,7 @@ impl Integer {
     /// assert_eq!(j_keep_8, 15);
     /// ```
     #[inline]
+    #[must_use]
     pub fn keep_signed_bits(mut self, n: u32) -> Self {
         self.keep_signed_bits_mut(n);
         self
@@ -2769,6 +2774,7 @@ impl Integer {
     /// assert_eq!(i, 8);
     /// ```
     #[inline]
+    #[must_use]
     pub fn next_power_of_two(mut self) -> Self {
         self.next_power_of_two_mut();
         self
@@ -3274,6 +3280,7 @@ impl Integer {
     /// assert_eq!(quotient, 54321);
     /// ```
     #[inline]
+    #[must_use]
     pub fn div_exact(mut self, divisor: &Self) -> Self {
         self.div_exact_mut(divisor);
         self
@@ -3371,6 +3378,7 @@ impl Integer {
     /// assert_eq!(q, 54321);
     /// ```
     #[inline]
+    #[must_use]
     pub fn div_exact_u(mut self, divisor: u32) -> Self {
         self.div_exact_u_mut(divisor);
         self
@@ -3705,6 +3713,7 @@ impl Integer {
     /// assert_eq!(power, 9);
     /// ```
     #[inline]
+    #[must_use]
     pub fn secure_pow_mod(mut self, exponent: &Self, modulo: &Self) -> Self {
         self.secure_pow_mod_mut(exponent, modulo);
         self
@@ -3850,6 +3859,7 @@ impl Integer {
     /// assert_eq!(root, 10);
     /// ```
     #[inline]
+    #[must_use]
     pub fn root(mut self, n: u32) -> Self {
         self.root_mut(n);
         self
@@ -4003,6 +4013,7 @@ impl Integer {
     /// assert_eq!(square, 169);
     /// ```
     #[inline]
+    #[must_use]
     pub fn square(mut self) -> Self {
         self.square_mut();
         self
@@ -4073,6 +4084,7 @@ impl Integer {
     /// assert_eq!(sqrt, 10);
     /// ```
     #[inline]
+    #[must_use]
     pub fn sqrt(mut self) -> Self {
         self.sqrt_mut();
         self
@@ -4242,6 +4254,7 @@ impl Integer {
     /// assert_eq!(prime, 800_000_011);
     /// ```
     #[inline]
+    #[must_use]
     pub fn next_prime(mut self) -> Self {
         self.next_prime_mut();
         self
@@ -4311,6 +4324,7 @@ impl Integer {
     /// assert_eq!(gcd3, 5);
     /// ```
     #[inline]
+    #[must_use]
     pub fn gcd(mut self, other: &Self) -> Self {
         self.gcd_mut(other);
         self
@@ -4393,6 +4407,7 @@ impl Integer {
     /// assert_eq!(gcd3, 5);
     /// ```
     #[inline]
+    #[must_use]
     pub fn gcd_u(mut self, other: u32) -> Self {
         self.gcd_u_mut(other);
         self
@@ -4639,6 +4654,7 @@ impl Integer {
     /// assert_eq!(lcm2, 0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn lcm(mut self, other: &Self) -> Self {
         self.lcm_mut(other);
         self
@@ -4714,6 +4730,7 @@ impl Integer {
     /// assert_eq!(lcm2, 0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn lcm_u(mut self, other: u32) -> Self {
         self.lcm_u_mut(other);
         self
@@ -4986,6 +5003,7 @@ impl Integer {
     /// assert_eq!(bin, 21);
     /// ```
     #[inline]
+    #[must_use]
     pub fn binomial(mut self, k: u32) -> Self {
         self.binomial_mut(k);
         self
@@ -5215,6 +5233,7 @@ impl Integer {
     /// assert!(below < 15);
     /// ```
     #[inline]
+    #[must_use]
     pub fn random_below(mut self, rng: &mut dyn MutRandState) -> Self {
         self.random_below_mut(rng);
         self

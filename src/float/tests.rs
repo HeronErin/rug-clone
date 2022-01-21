@@ -183,7 +183,7 @@ fn check_clamping_panic() {
     f.assign(-1);
     // Both 1.00001 and 0.99999 would be rounded to 1.0, but one
     // would be larger and the other would be smaller.
-    f.clamp(&1.00001, &0.99999);
+    let _panic = f.clamp(&1.00001, &0.99999);
 }
 
 #[test]

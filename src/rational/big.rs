@@ -1152,6 +1152,7 @@ impl Rational {
     /// assert_eq!(abs, (100, 17));
     /// ```
     #[inline]
+    #[must_use]
     pub fn abs(mut self) -> Self {
         self.abs_mut();
         self
@@ -1210,7 +1211,8 @@ impl Rational {
     /// assert_eq!(signum, -1);
     /// ```
     #[inline]
-    pub fn signum(mut self) -> Rational {
+    #[must_use]
+    pub fn signum(mut self) -> Self {
         self.signum_mut();
         self
     }
@@ -1284,6 +1286,7 @@ impl Rational {
     /// assert_eq!(clamped2, (1, 2));
     /// ```
     #[inline]
+    #[must_use]
     pub fn clamp<Min, Max>(mut self, min: &Min, max: &Max) -> Self
     where
         Self: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
@@ -1382,6 +1385,7 @@ impl Rational {
     /// assert_eq!(recip, (-17, 100));
     /// ```
     #[inline]
+    #[must_use]
     pub fn recip(mut self) -> Self {
         self.recip_mut();
         self
@@ -1448,7 +1452,8 @@ impl Rational {
     /// assert_eq!(trunc2, 3);
     /// ```
     #[inline]
-    pub fn trunc(mut self) -> Rational {
+    #[must_use]
+    pub fn trunc(mut self) -> Self {
         self.trunc_mut();
         self
     }
@@ -1516,6 +1521,7 @@ impl Rational {
     /// assert_eq!(rem, (-15, 17));
     /// ```
     #[inline]
+    #[must_use]
     pub fn rem_trunc(mut self) -> Self {
         self.rem_trunc_mut();
         self
@@ -1644,7 +1650,8 @@ impl Rational {
     /// assert_eq!(ceil2, 4);
     /// ```
     #[inline]
-    pub fn ceil(mut self) -> Rational {
+    #[must_use]
+    pub fn ceil(mut self) -> Self {
         self.ceil_mut();
         self
     }
@@ -1712,6 +1719,7 @@ impl Rational {
     /// assert_eq!(rem, (-2, 17));
     /// ```
     #[inline]
+    #[must_use]
     pub fn rem_ceil(mut self) -> Self {
         self.rem_ceil_mut();
         self
@@ -1846,7 +1854,8 @@ impl Rational {
     /// assert_eq!(floor2, 3);
     /// ```
     #[inline]
-    pub fn floor(mut self) -> Rational {
+    #[must_use]
+    pub fn floor(mut self) -> Self {
         self.floor_mut();
         self
     }
@@ -1912,6 +1921,7 @@ impl Rational {
     /// assert_eq!(rem, (2, 17));
     /// ```
     #[inline]
+    #[must_use]
     pub fn rem_floor(mut self) -> Self {
         self.rem_floor_mut();
         self
@@ -2049,7 +2059,8 @@ impl Rational {
     /// assert_eq!(round2, 4);
     /// ```
     #[inline]
-    pub fn round(mut self) -> Rational {
+    #[must_use]
+    pub fn round(mut self) -> Self {
         self.round_mut();
         self
     }
@@ -2127,6 +2138,7 @@ impl Rational {
     /// assert_eq!(rem2, (-3, 10));
     /// ```
     #[inline]
+    #[must_use]
     pub fn rem_round(mut self) -> Self {
         self.rem_round_mut();
         self
@@ -2292,6 +2304,7 @@ impl Rational {
     /// assert_eq!(square, (169, 4));
     /// ```
     #[inline]
+    #[must_use]
     pub fn square(mut self) -> Self {
         self.square_mut();
         self

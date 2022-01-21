@@ -1066,6 +1066,7 @@ impl Complex {
     /// assert_eq!(mul_add, (1010, 990));
     /// ```
     #[inline]
+    #[must_use]
     pub fn mul_add(mut self, mul: &Self, add: &Self) -> Self {
         self.mul_add_round(mul, add, NEAREST2);
         self
@@ -1166,6 +1167,7 @@ impl Complex {
     /// assert_eq!(mul_sub, (-990, -1010));
     /// ```
     #[inline]
+    #[must_use]
     pub fn mul_sub(mut self, mul: &Self, sub: &Self) -> Self {
         self.mul_sub_round(mul, sub, NEAREST2);
         self
@@ -1270,6 +1272,7 @@ impl Complex {
     /// assert!(proj2.imag().is_sign_negative());
     /// ```
     #[inline]
+    #[must_use]
     pub fn proj(mut self) -> Self {
         self.proj_mut();
         self
@@ -1347,6 +1350,7 @@ impl Complex {
     /// assert_eq!(square, (-3, -4));
     /// ```
     #[inline]
+    #[must_use]
     pub fn square(mut self) -> Self {
         self.square_round(NEAREST2);
         self
@@ -1428,6 +1432,7 @@ impl Complex {
     /// assert_eq!(sqrt, (0, 1));
     /// ```
     #[inline]
+    #[must_use]
     pub fn sqrt(mut self) -> Self {
         self.sqrt_round(NEAREST2);
         self
@@ -1508,6 +1513,7 @@ impl Complex {
     /// assert_eq!(conj, (1.5, -2.5));
     /// ```
     #[inline]
+    #[must_use]
     pub fn conj(mut self) -> Self {
         self.conj_mut();
         self
@@ -1565,7 +1571,8 @@ impl Complex {
     /// assert_eq!(abs, 50);
     /// ```
     #[inline]
-    pub fn abs(mut self) -> Complex {
+    #[must_use]
+    pub fn abs(mut self) -> Self {
         self.abs_mut();
         self
     }
@@ -1660,7 +1667,8 @@ impl Complex {
     /// assert_eq!(arg, (0.75_f64.atan(), 0));
     /// ```
     #[inline]
-    pub fn arg(mut self) -> Complex {
+    #[must_use]
+    pub fn arg(mut self) -> Self {
         self.arg_round(NEAREST2);
         self
     }
@@ -1758,6 +1766,7 @@ impl Complex {
     /// assert_eq!(rot2_less1, (-24, 13));
     /// ```
     #[inline]
+    #[must_use]
     pub fn mul_i(mut self, negative: bool) -> Self {
         self.mul_i_round(negative, NEAREST2);
         self
@@ -1843,6 +1852,7 @@ impl Complex {
     /// assert_eq!(recip, (0.5, -0.5));
     /// ```
     #[inline]
+    #[must_use]
     pub fn recip(mut self) -> Self {
         self.recip_round(NEAREST2);
         self
@@ -1919,7 +1929,8 @@ impl Complex {
     /// assert_eq!(norm, 25);
     /// ```
     #[inline]
-    pub fn norm(mut self) -> Complex {
+    #[must_use]
+    pub fn norm(mut self) -> Self {
         self.norm_round(NEAREST2);
         self
     }
@@ -2007,6 +2018,7 @@ impl Complex {
     /// assert!(*(ln - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn ln(mut self) -> Self {
         self.ln_round(NEAREST2);
         self
@@ -2084,6 +2096,7 @@ impl Complex {
     /// assert!(*(log10 - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn log10(mut self) -> Self {
         self.log10_round(NEAREST2);
         self
@@ -2190,6 +2203,7 @@ impl Complex {
     /// assert!(*(exp - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn exp(mut self) -> Self {
         self.exp_round(NEAREST2);
         self
@@ -2267,6 +2281,7 @@ impl Complex {
     /// assert!(*(sin - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn sin(mut self) -> Self {
         self.sin_round(NEAREST2);
         self
@@ -2344,6 +2359,7 @@ impl Complex {
     /// assert!(*(cos - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn cos(mut self) -> Self {
         self.cos_round(NEAREST2);
         self
@@ -2544,6 +2560,7 @@ impl Complex {
     /// assert!(*(tan - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn tan(mut self) -> Self {
         self.tan_round(NEAREST2);
         self
@@ -2621,6 +2638,7 @@ impl Complex {
     /// assert!(*(sinh - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn sinh(mut self) -> Self {
         self.sinh_round(NEAREST2);
         self
@@ -2698,6 +2716,7 @@ impl Complex {
     /// assert!(*(cosh - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn cosh(mut self) -> Self {
         self.cosh_round(NEAREST2);
         self
@@ -2775,6 +2794,7 @@ impl Complex {
     /// assert!(*(tanh - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn tanh(mut self) -> Self {
         self.tanh_round(NEAREST2);
         self
@@ -2852,6 +2872,7 @@ impl Complex {
     /// assert!(*(asin - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn asin(mut self) -> Self {
         self.asin_round(NEAREST2);
         self
@@ -2929,6 +2950,7 @@ impl Complex {
     /// assert!(*(acos - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn acos(mut self) -> Self {
         self.acos_round(NEAREST2);
         self
@@ -3006,6 +3028,7 @@ impl Complex {
     /// assert!(*(atan - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn atan(mut self) -> Self {
         self.atan_round(NEAREST2);
         self
@@ -3083,6 +3106,7 @@ impl Complex {
     /// assert!(*(asinh - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn asinh(mut self) -> Self {
         self.asinh_round(NEAREST2);
         self
@@ -3161,6 +3185,7 @@ impl Complex {
     /// assert!(*(acosh - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn acosh(mut self) -> Self {
         self.acosh_round(NEAREST2);
         self
@@ -3239,6 +3264,7 @@ impl Complex {
     /// assert!(*(atanh - expected).abs().real() < 0.0001);
     /// ```
     #[inline]
+    #[must_use]
     pub fn atanh(mut self) -> Self {
         self.atanh_round(NEAREST2);
         self
