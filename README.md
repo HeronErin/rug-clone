@@ -28,7 +28,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
-### Version 1.14.1 news (unreleased)
+### Version 1.14.1 news (2022-01-23)
 
   * Bug fix: <code>[Rational][rat-1-14]::[to_f32][rat-tf-1-14]</code> was
     rounding away from zero in some cases when the rational number should be

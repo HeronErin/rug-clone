@@ -4,7 +4,7 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
-Version 1.14.1 (unreleased)
+Version 1.14.1 (2022-01-23)
 ===========================
 
   * Bug fix: <code>[Rational][rat-1-14]::[to_f32][rat-tf-1-14]</code> was
