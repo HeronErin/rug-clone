@@ -21,7 +21,7 @@ use crate::{
 };
 use az::CheckedCast;
 use core::cmp::Ordering;
-use num_traits::{
+use num_traits_crate::{
     cast::{FromPrimitive, ToPrimitive},
     identities::{One, Zero},
     ops::{

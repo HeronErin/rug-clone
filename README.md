@@ -213,11 +213,12 @@ version bump. Similarly, on a minor version bump, optional dependencies can be
 updated to an incompatible newer version.
 
  1. `num-traits`, disabled by default. This implements some traits from the
-    [*num-traits* crate].
+    [*num-traits* crate] and the [*num-integer* crate].
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: https://docs.rs/rug/~1.14/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
+[*num-integer* crate]: https://crates.io/crates/num-integer
 [*num-traits* crate]: https://crates.io/crates/num-traits
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html

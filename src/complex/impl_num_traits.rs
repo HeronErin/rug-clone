@@ -15,7 +15,7 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::{ops::Pow, Complex};
-use num_traits::{
+use num_traits_crate::{
     ops::{
         inv::Inv,
         mul_add::{MulAdd, MulAddAssign},

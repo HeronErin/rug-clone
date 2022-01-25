@@ -16,7 +16,7 @@
 
 use crate::{ops::Pow, Float, Integer};
 use az::{CheckedAs, CheckedCast};
-use num_traits::{
+use num_traits_crate::{
     cast::ToPrimitive,
     ops::{
         inv::Inv,

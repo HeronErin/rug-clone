@@ -24,6 +24,7 @@ float = ["gmp-mpfr-sys/mpfr"]
 complex = ["float", "gmp-mpfr-sys/mpc"]
 rand = ["integer"]
 fail-on-warnings = []
+num-traits = ["num-integer", "num-traits-crate"]
 
 [dependencies.az]
 version = "1.1"
@@ -41,8 +42,15 @@ optional = true
 version = "1.0.25"
 optional = true
 
-[dependencies.num-traits]
+[dependencies.num-traits-crate]
+package = "num-traits"
 version = "0.2.13"
+default-features = false
+features = ["i128"]
+optional = true
+
+[dependencies.num-integer]
+version = "0.1.44"
 default-features = false
 features = ["i128"]
 optional = true
