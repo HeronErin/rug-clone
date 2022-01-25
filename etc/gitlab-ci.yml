@@ -94,9 +94,9 @@ stable-x86_64-gnulinux-tarpaulin:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: stable-x86_64
-    REQ_COVERAGE: "82.4"
+    REQ_COVERAGE: "79.9"
   script:
-  - cargo install --version 0.18.5 --locked cargo-tarpaulin
+  - cargo install --version 0.19.1 --locked cargo-tarpaulin
   - etc/extract-doc-tests.sh
   - stdbuf -oL etc/invoke-tarpaulin.sh | tee tarpaulin.log
   - etc/extract-doc-tests.sh restore
@@ -115,9 +115,9 @@ stable-x86_64-gnulinux-valgrind:
   script:
   - apt-get update -qq && apt-get install -y -qq valgrind
   - etc/extract-doc-tests.sh
-  - cargo +$TOOLCHAIN test --features serde --lib
+  - cargo +$TOOLCHAIN test --features "num-traits serde" --lib
   - valgrind $VALGRIND_OPTIONS "$(ls target/debug/deps/rug* | grep -v '\.d')"
-  - cargo +$TOOLCHAIN test --release --features serde --lib
+  - cargo +$TOOLCHAIN test --release --features "num-traits serde" --lib
   - valgrind $VALGRIND_OPTIONS "$(ls target/release/deps/rug* | grep -v '\.d')"
   - etc/extract-doc-tests.sh restore
 
@@ -203,9 +203,9 @@ stable-i686-gnulinux-valgrind:
   script:
   - apt-get update -qq && apt-get install -y -qq valgrind
   - etc/extract-doc-tests.sh
-  - cargo +$TOOLCHAIN test --features serde --lib
+  - cargo +$TOOLCHAIN test --features "num-traits serde" --lib
   - valgrind $VALGRIND_OPTIONS "$(ls target/debug/deps/rug* | grep -v '\.d')"
-  - cargo +$TOOLCHAIN test --release --features serde --lib
+  - cargo +$TOOLCHAIN test --release --features "num-traits serde" --lib
   - valgrind $VALGRIND_OPTIONS "$(ls target/release/deps/rug* | grep -v '\.d')"
   - etc/extract-doc-tests.sh restore
 
@@ -236,7 +236,7 @@ pages:
   - mkdir public
   # etc/rug.svg is not needed in new versions, but copy it for older versions at docs.rs
   - cp etc/rug.svg public
-  - cargo +$TOOLCHAIN doc --no-deps --features serde -Z rustdoc-map
+  - cargo +$TOOLCHAIN doc --no-deps --features "num-traits serde" -Z rustdoc-map
   - mv target/doc public/dev
   - bash etc/gen-doc-index.sh
   artifacts:

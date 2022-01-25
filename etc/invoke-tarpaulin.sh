@@ -9,7 +9,7 @@
 set -e
 shopt -s globstar
 
-# This filter script is for tarpaulin 0.18.5:
+# This filter script is for tarpaulin 0.19.1:
 
 FILTER_SCRIPT='
 # modify uncovered lines list
@@ -29,4 +29,4 @@ p                       # print the line(s) as sed is invoked with -e
 '
 
 EXCLUDE="--exclude-files build.rs src/ext/xmpz32.rs"
-cargo tarpaulin -v --features serde --ignore-tests $EXCLUDE |& sed -n -e "$FILTER_SCRIPT"
+cargo tarpaulin -v --features "num-traits serde" --ignore-tests $EXCLUDE |& sed -n -e "$FILTER_SCRIPT"

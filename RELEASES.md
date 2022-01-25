@@ -4,6 +4,15 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
+Version 1.15.0 (unreleased)
+===========================
+
+  * The new experimental feature [`num-traits`][feat-nt-1-15] was added to
+    implement some traits ([issue 30]).
+
+[feat-nt-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#experimental-optional-features
+[issue 30]: https://gitlab.com/tspiteri/rug/-/issues/30
+
 Version 1.14.1 (2022-01-23)
 ===========================
 

@@ -48,12 +48,12 @@ before_test:
 
 test_script:
   - cargo +beta-%TARGET% test --no-default-features --features "gmp-mpfr-sys gmp-mpfr-sys/mpc" -p gmp-mpfr-sys
-  - cargo +beta-%TARGET% test --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
-  - cargo +beta-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
+  - cargo +beta-%TARGET% test --features "fail-on-warnings num-traits serde" -p gmp-mpfr-sys -p rug
+  - cargo +beta-%TARGET% test --release --features "fail-on-warnings num-traits serde" -p gmp-mpfr-sys -p rug
   - cargo +beta-%TARGET% fmt -- --check
-  - cargo +beta-%TARGET% clippy --all-targets --features "fail-on-warnings serde"
+  - cargo +beta-%TARGET% clippy --all-targets --features "fail-on-warnings num-traits serde"
   - rm Cargo.lock
-  - cargo +1.37.0-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
+  - cargo +1.37.0-%TARGET% test --release --features "fail-on-warnings num-traits serde" -p gmp-mpfr-sys -p rug
 
 after_test:
   - bash -c "cd ""$USERPROFILE/.cargo/registry""; for c in cache/*/*.crate; do s=src/${c#cache/}; if [ ! -e ${s/.crate/} ]; then rm -v $c; fi; done; find cache -name \*.crate | sort"

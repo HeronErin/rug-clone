@@ -41,6 +41,12 @@ optional = true
 version = "1.0.25"
 optional = true
 
+[dependencies.num-traits]
+version = "0.2.13"
+default-features = false
+features = ["i128"]
+optional = true
+
 [dev-dependencies]
 serde_test = "1"
 serde_json = "1"
@@ -48,4 +54,4 @@ bincode = "1"
 byteorder = "1"
 
 [package.metadata.docs.rs]
-features = ["serde"]
+features = ["num-traits", "serde"]

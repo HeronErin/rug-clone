@@ -25,6 +25,8 @@ mod arith;
 pub(crate) mod big;
 mod casts;
 mod cmp;
+#[cfg(feature = "num-traits")]
+mod impl_num_traits;
 #[cfg(feature = "serde")]
 mod serde;
 mod small;

@@ -316,8 +316,19 @@ features are selected, the [gmp-mpfr-sys crate][sys crate] is not required and
 thus not enabled. In that case, only the [`Assign`] trait and the traits that
 are in the [`ops`] module are provided by the crate.
 
+## Experimental optional features
+
+It is not considered a breaking change if the following experimental features
+are removed. The removal of experimental features would however require a minor
+version bump. Similarly, on a minor version bump, optional dependencies can be
+updated to an incompatible newer version.
+
+ 1. `num-traits`, disabled by default. This implements some traits from the
+    [*num-traits* crate].
+
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: #incomplete-computation-values
+[*num-traits* crate]: https://crates.io/crates/num-traits
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [GNU LGPL]: https://www.gnu.org/licenses/lgpl-3.0.en.html

@@ -24,6 +24,8 @@ This module provides support for complex numbers of type
 pub(crate) mod arith;
 pub(crate) mod big;
 mod cmp;
+#[cfg(feature = "num-traits")]
+mod impl_num_traits;
 mod ord;
 #[cfg(feature = "serde")]
 mod serde;

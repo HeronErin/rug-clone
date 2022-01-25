@@ -28,6 +28,14 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
+### Version 1.15.0 news (unreleased)
+
+  * The new experimental feature [`num-traits`][feat-nt-1-15] was added to
+    implement some traits ([issue 30]).
+
+[feat-nt-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#experimental-optional-features
+[issue 30]: https://gitlab.com/tspiteri/rug/-/issues/30
+
 ### Version 1.14.1 news (2022-01-23)
 
   * Bug fix: <code>[Rational][rat-1-14]::[to_f32][rat-tf-1-14]</code> was
@@ -197,9 +205,20 @@ features are selected, the [gmp-mpfr-sys crate][sys crate] is not required and
 thus not enabled. In that case, only the [`Assign`] trait and the traits that
 are in the [`ops`] module are provided by the crate.
 
+## Experimental optional features
+
+It is not considered a breaking change if the following experimental features
+are removed. The removal of experimental features would however require a minor
+version bump. Similarly, on a minor version bump, optional dependencies can be
+updated to an incompatible newer version.
+
+ 1. `num-traits`, disabled by default. This implements some traits from the
+    [*num-traits* crate].
+
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: https://docs.rs/rug/~1.14/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
+[*num-traits* crate]: https://crates.io/crates/num-traits
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [GNU LGPL]: https://www.gnu.org/licenses/lgpl-3.0.en.html

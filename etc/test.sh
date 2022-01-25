@@ -30,11 +30,11 @@ function print_eval_check {
 # prepend "+" if TOOLCHAIN is set
 TOOLCHAIN=${TOOLCHAIN:++$TOOLCHAIN}
 
-# Test with default features and serde
+# Test with default features and num-traits and serde
 for build in "" --release; do
     print_eval_check \
         cargo $TOOLCHAIN \
         test $build \
-        --features "fail-on-warnings serde" \
+        --features "fail-on-warnings num-traits serde" \
         -p gmp-mpfr-sys -p rug
 done
