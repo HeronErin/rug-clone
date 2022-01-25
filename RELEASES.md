@@ -8,7 +8,8 @@ Version 1.15.0 (unreleased)
 ===========================
 
   * The new experimental feature [`num-traits`][feat-nt-1-15] was added to
-    implement some traits ([issue 30]).
+    implement some traits from the [*num-traits* crate] and the [*num-integer*
+    crate] ([issue 30]).
 
 [feat-nt-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#experimental-optional-features
 [issue 30]: https://gitlab.com/tspiteri/rug/-/issues/30
@@ -715,6 +716,8 @@ Version 0.6.0 (2017-08-09)
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*az* crate]: https://crates.io/crates/az
+[*num-integer* crate]: https://crates.io/crates/num-integer
+[*num-traits* crate]: https://crates.io/crates/num-traits
 [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
 [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
 [`Default`]: https://doc.rust-lang.org/nightly/core/default/trait.Default.html

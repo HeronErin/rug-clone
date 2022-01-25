@@ -31,7 +31,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 ### Version 1.15.0 news (unreleased)
 
   * The new experimental feature [`num-traits`][feat-nt-1-15] was added to
-    implement some traits ([issue 30]).
+    implement some traits from the [*num-traits* crate] and the [*num-integer*
+    crate] ([issue 30]).
 
 [feat-nt-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#experimental-optional-features
 [issue 30]: https://gitlab.com/tspiteri/rug/-/issues/30

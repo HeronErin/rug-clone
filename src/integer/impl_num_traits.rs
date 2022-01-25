@@ -352,10 +352,7 @@ impl NumInteger for Integer {
         }
     }
     #[inline]
-    fn prev_multiple_of(&self, other: &Self) -> Self
-    where
-        Self: Clone,
-    {
+    fn prev_multiple_of(&self, other: &Self) -> Self {
         let mut i = Integer::from(RemRounding::rem_floor(self, other));
         if i.cmp0() == Ordering::Equal {
             i.assign(self);
@@ -392,7 +389,6 @@ mod extended_gcd_hack {
         ops::{Add, Div, Mul, Rem, Sub},
     };
 
-    #[inline]
     pub fn new() -> ExtendedGcd<Integer> {
         let zero = <IntegerHack as Zero>::zero();
         let extended = <IntegerHack as NumInteger>::extended_gcd(&zero, &zero);
