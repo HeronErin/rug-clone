@@ -904,4 +904,21 @@ mod tests {
 
         float::free_cache(FreeCache::All);
     }
+
+    #[test]
+    fn check_shift_u_s() {
+        let c = &Complex::with_val(53, (13.75, -1.92e-10));
+
+        assert_eq!(c.clone() << 10u32, c.clone() << 10i32);
+        assert_eq!(c.clone() << 10u32, c.clone() >> -10i32);
+        assert_eq!(c.clone() >> 10u32, c.clone() >> 10i32);
+        assert_eq!(c.clone() >> 10u32, c.clone() << -10i32);
+
+        assert_eq!(c.clone() << 10u32, c.clone() << 10usize);
+        assert_eq!(c.clone() << 10u32, c.clone() << 10isize);
+        assert_eq!(c.clone() << 10u32, c.clone() >> -10isize);
+        assert_eq!(c.clone() >> 10u32, c.clone() >> 10usize);
+        assert_eq!(c.clone() >> 10u32, c.clone() >> 10isize);
+        assert_eq!(c.clone() >> 10u32, c.clone() << -10isize);
+    }
 }

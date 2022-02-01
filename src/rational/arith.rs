@@ -508,4 +508,34 @@ mod tests {
         check_u_s!(U64, against);
         check_u_s!(U128, against);
     }
+
+    #[test]
+    fn check_shift_u_s() {
+        let pos = &(Rational::from((13, 7)) >> 100u32);
+        let neg = &(Rational::from((19, 101)) << 200u32);
+
+        assert_eq!(pos.clone() << 10u32, pos.clone() << 10i32);
+        assert_eq!(pos.clone() << 10u32, pos.clone() >> -10i32);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() >> 10i32);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() << -10i32);
+
+        assert_eq!(neg.clone() << 10u32, neg.clone() << 10i32);
+        assert_eq!(neg.clone() << 10u32, neg.clone() >> -10i32);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() >> 10i32);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() << -10i32);
+
+        assert_eq!(pos.clone() << 10u32, pos.clone() << 10usize);
+        assert_eq!(pos.clone() << 10u32, pos.clone() << 10isize);
+        assert_eq!(pos.clone() << 10u32, pos.clone() >> -10isize);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() >> 10usize);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() >> 10isize);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() << -10isize);
+
+        assert_eq!(neg.clone() << 10u32, neg.clone() << 10usize);
+        assert_eq!(neg.clone() << 10u32, neg.clone() << 10isize);
+        assert_eq!(neg.clone() << 10u32, neg.clone() >> -10isize);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() >> 10usize);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() >> 10isize);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() << -10isize);
+    }
 }

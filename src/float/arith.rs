@@ -868,4 +868,34 @@ pub(crate) mod tests {
 
         float::free_cache(FreeCache::All);
     }
+
+    #[test]
+    fn check_shift_u_s() {
+        let pos = &Float::with_val(53, 13.75);
+        let neg = &Float::with_val(53, -1.92e-10);
+
+        assert_eq!(pos.clone() << 10u32, pos.clone() << 10i32);
+        assert_eq!(pos.clone() << 10u32, pos.clone() >> -10i32);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() >> 10i32);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() << -10i32);
+
+        assert_eq!(neg.clone() << 10u32, neg.clone() << 10i32);
+        assert_eq!(neg.clone() << 10u32, neg.clone() >> -10i32);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() >> 10i32);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() << -10i32);
+
+        assert_eq!(pos.clone() << 10u32, pos.clone() << 10usize);
+        assert_eq!(pos.clone() << 10u32, pos.clone() << 10isize);
+        assert_eq!(pos.clone() << 10u32, pos.clone() >> -10isize);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() >> 10usize);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() >> 10isize);
+        assert_eq!(pos.clone() >> 10u32, pos.clone() << -10isize);
+
+        assert_eq!(neg.clone() << 10u32, neg.clone() << 10usize);
+        assert_eq!(neg.clone() << 10u32, neg.clone() << 10isize);
+        assert_eq!(neg.clone() << 10u32, neg.clone() >> -10isize);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() >> 10usize);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() >> 10isize);
+        assert_eq!(neg.clone() >> 10u32, neg.clone() << -10isize);
+    }
 }
