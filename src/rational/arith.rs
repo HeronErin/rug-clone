@@ -214,6 +214,34 @@ arith_prim! {
 }
 arith_prim! {
     Rational;
+    xmpq::shl_isize;
+    Shl { shl }
+    ShlAssign { shl_assign }
+    isize, ShlIsizeIncomplete;
+}
+arith_prim! {
+    Rational;
+    xmpq::shr_isize;
+    Shr { shr }
+    ShrAssign { shr_assign }
+    isize, ShrIsizeIncomplete;
+}
+arith_prim! {
+    Rational;
+    xmpq::shl_usize;
+    Shl { shl }
+    ShlAssign { shl_assign }
+    usize, ShlUsizeIncomplete;
+}
+arith_prim! {
+    Rational;
+    xmpq::shr_usize;
+    Shr { shr }
+    ShrAssign { shr_assign }
+    usize, ShrUsizeIncomplete;
+}
+arith_prim! {
+    Rational;
     xmpq::pow_i32;
     Pow { pow }
     PowAssign { pow_assign }

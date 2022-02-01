@@ -325,6 +325,8 @@ unsafe_wrap! { fn mul(op1: O, op2: P) -> gmp::mpq_mul }
 unsafe_wrap! { fn div(op1: O, op2: P) -> gmp::mpq_div }
 unsafe_wrap! { fn shl_u32(op1: O; op2: u32) -> gmp::mpq_mul_2exp }
 unsafe_wrap! { fn shr_u32(op1: O; op2: u32) -> gmp::mpq_div_2exp }
+unsafe_wrap! { fn shl_usize(op1: O; op2: usize) -> mpq_mul_2exp_usize }
+unsafe_wrap! { fn shr_usize(op1: O; op2: usize) -> mpq_div_2exp_usize }
 
 // num and den must form a canonical pair
 #[inline]
@@ -411,6 +413,42 @@ pub fn shr_i32<O: OptRational>(rop: &mut Rational, op1: O, op2: i32) {
         shr_u32(rop, op1, op2_abs);
     } else {
         shl_u32(rop, op1, op2_abs);
+    }
+}
+
+#[inline]
+pub fn shl_isize<O: OptRational>(rop: &mut Rational, op1: O, op2: isize) {
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        shl_usize(rop, op1, op2_abs);
+    } else {
+        shr_usize(rop, op1, op2_abs);
+    }
+}
+
+#[inline]
+pub fn shr_isize<O: OptRational>(rop: &mut Rational, op1: O, op2: isize) {
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        shr_usize(rop, op1, op2_abs);
+    } else {
+        shl_usize(rop, op1, op2_abs);
+    }
+}
+
+#[inline]
+unsafe fn mpq_mul_2exp_usize(rop: *mut mpq_t, op1: *const mpq_t, op2: usize) {
+    let op2 = op2.unwrapped_cast();
+    unsafe {
+        gmp::mpq_mul_2exp(rop, op1, op2);
+    }
+}
+
+#[inline]
+unsafe fn mpq_div_2exp_usize(rop: *mut mpq_t, op1: *const mpq_t, op2: usize) {
+    let op2 = op2.unwrapped_cast();
+    unsafe {
+        gmp::mpq_div_2exp(rop, op1, op2);
     }
 }
 
