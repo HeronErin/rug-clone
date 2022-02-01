@@ -30,11 +30,23 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.15.0 news (unreleased)
 
+  * Now [`Integer`][int-1-15] implements [`Shl`], [`Shr`], [`ShlAssign`] and
+    [`ShrAssign`] with the right-hand side types [`isize`] and [`usize`] as well
+    as the previously supported [`i32`] and [`u32`].
   * The new experimental feature [`num-traits`][feat-nt-1-15] was added to
     implement some traits from the [*num-traits* crate] and the [*num-integer*
     crate] ([issue 30]).
 
+[`ShlAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.ShlAssign.html
+[`Shl`]: https://doc.rust-lang.org/nightly/core/ops/trait.Shl.html
+[`ShrAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.ShrAssign.html
+[`Shr`]: https://doc.rust-lang.org/nightly/core/ops/trait.Shr.html
+[`i32`]: https://doc.rust-lang.org/nightly/core/primitive.i32.html
+[`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
+[`u32`]: https://doc.rust-lang.org/nightly/core/primitive.u32.html
+[`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
 [feat-nt-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#experimental-optional-features
+[int-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [issue 30]: https://gitlab.com/tspiteri/rug/-/issues/30
 
 ### Version 1.14.1 news (2022-01-23)

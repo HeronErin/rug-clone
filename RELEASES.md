@@ -7,11 +7,15 @@ notice are preserved. This file is offered as-is, without any warranty. -->
 Version 1.15.0 (unreleased)
 ===========================
 
+  * Now [`Integer`][int-1-15] implements [`Shl`], [`Shr`], [`ShlAssign`] and
+    [`ShrAssign`] with the right-hand side types [`isize`] and [`usize`] as well
+    as the previously supported [`i32`] and [`u32`].
   * The new experimental feature [`num-traits`][feat-nt-1-15] was added to
     implement some traits from the [*num-traits* crate] and the [*num-integer*
     crate] ([issue 30]).
 
 [feat-nt-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#experimental-optional-features
+[int-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [issue 30]: https://gitlab.com/tspiteri/rug/-/issues/30
 
 Version 1.14.1 (2022-01-23)
@@ -729,25 +733,31 @@ Version 0.6.0 (2017-08-09)
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html
 [`Result`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html
 [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+[`ShlAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.ShlAssign.html
+[`Shl`]: https://doc.rust-lang.org/nightly/core/ops/trait.Shl.html
+[`ShrAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.ShrAssign.html
+[`Shr`]: https://doc.rust-lang.org/nightly/core/ops/trait.Shr.html
 [`Sum`]: https://doc.rust-lang.org/nightly/core/iter/trait.Sum.html
 [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
 [`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
-[`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
+[`bool`]: https://doc.rust-lang.org/nightly/core/primitive.bool.html
 [`deref`]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#tymethod.deref
-[`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
-[`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
-[`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
-[`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
-[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-[`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
-[`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
+[`f32`]: https://doc.rust-lang.org/nightly/core/primitive.f32.html
+[`f64`]: https://doc.rust-lang.org/nightly/core/primitive.f64.html
+[`i128`]: https://doc.rust-lang.org/nightly/core/primitive.i128.html
+[`i16`]: https://doc.rust-lang.org/nightly/core/primitive.i16.html
+[`i32`]: https://doc.rust-lang.org/nightly/core/primitive.i32.html
+[`i64`]: https://doc.rust-lang.org/nightly/core/primitive.i64.html
+[`i8`]: https://doc.rust-lang.org/nightly/core/primitive.i8.html
+[`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
 [`mem`]: https://doc.rust-lang.org/nightly/core/mem/index.html
-[`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-[`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
-[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-[`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
+[`u128`]: https://doc.rust-lang.org/nightly/core/primitive.u128.html
+[`u16`]: https://doc.rust-lang.org/nightly/core/primitive.u16.html
+[`u32`]: https://doc.rust-lang.org/nightly/core/primitive.u32.html
+[`u64`]: https://doc.rust-lang.org/nightly/core/primitive.u64.html
+[`u8`]: https://doc.rust-lang.org/nightly/core/primitive.u8.html
 [`uninitialized`]: https://doc.rust-lang.org/nightly/core/mem/fn.uninitialized.html
+[`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
 [gmp-mpfr-sys]: https://crates.io/crates/gmp-mpfr-sys
-[slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+[slice]: https://doc.rust-lang.org/nightly/core/primitive.slice.html

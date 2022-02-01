@@ -594,6 +594,8 @@ unsafe_wrap! { fn ior(op1: O, op2: P) -> gmp::mpz_ior }
 unsafe_wrap! { fn xor(op1: O, op2: P) -> gmp::mpz_xor }
 unsafe_wrap! { fn shl_u32(op1: O; op2: u32) -> gmp::mpz_mul_2exp }
 unsafe_wrap! { fn shr_u32(op1: O; op2: u32) -> gmp::mpz_fdiv_q_2exp }
+unsafe_wrap! { fn shl_usize(op1: O; op2: usize) -> mpz_mul_2exp_usize }
+unsafe_wrap! { fn shr_usize(op1: O; op2: usize) -> mpz_fdiv_q_2exp_usize }
 unsafe_wrap! { fn pow_u32(op1: O; op2: u32) -> gmp::mpz_pow_ui }
 unsafe_wrap! { fn abs(op: O) -> gmp::mpz_abs }
 unsafe_wrap! { fn fdiv_r_2exp(op: O; n: u32) -> gmp::mpz_fdiv_r_2exp }
@@ -742,6 +744,42 @@ pub fn shr_i32<O: OptInteger>(rop: &mut Integer, op1: O, op2: i32) {
         shr_u32(rop, op1, op2_abs);
     } else {
         shl_u32(rop, op1, op2_abs);
+    }
+}
+
+#[inline]
+pub fn shl_isize<O: OptInteger>(rop: &mut Integer, op1: O, op2: isize) {
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        shl_usize(rop, op1, op2_abs);
+    } else {
+        shr_usize(rop, op1, op2_abs);
+    }
+}
+
+#[inline]
+pub fn shr_isize<O: OptInteger>(rop: &mut Integer, op1: O, op2: isize) {
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        shr_usize(rop, op1, op2_abs);
+    } else {
+        shl_usize(rop, op1, op2_abs);
+    }
+}
+
+#[inline]
+unsafe fn mpz_mul_2exp_usize(rop: *mut mpz_t, op1: *const mpz_t, op2: usize) {
+    let op2 = op2.unwrapped_cast();
+    unsafe {
+        gmp::mpz_mul_2exp(rop, op1, op2);
+    }
+}
+
+#[inline]
+unsafe fn mpz_fdiv_q_2exp_usize(rop: *mut mpz_t, op1: *const mpz_t, op2: usize) {
+    let op2 = op2.unwrapped_cast();
+    unsafe {
+        gmp::mpz_fdiv_q_2exp(rop, op1, op2);
     }
 }
 

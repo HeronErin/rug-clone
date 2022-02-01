@@ -288,6 +288,34 @@ arith_prim! {
 }
 arith_prim! {
     Integer;
+    xmpz::shl_isize;
+    Shl { shl }
+    ShlAssign { shl_assign }
+    isize, ShlIsizeIncomplete;
+}
+arith_prim! {
+    Integer;
+    xmpz::shr_isize;
+    Shr { shr }
+    ShrAssign { shr_assign }
+    isize, ShrIsizeIncomplete;
+}
+arith_prim! {
+    Integer;
+    xmpz::shl_usize;
+    Shl { shl }
+    ShlAssign { shl_assign }
+    usize, ShlUsizeIncomplete;
+}
+arith_prim! {
+    Integer;
+    xmpz::shr_usize;
+    Shr { shr }
+    ShrAssign { shr_assign }
+    usize, ShrUsizeIncomplete;
+}
+arith_prim! {
+    Integer;
     xmpz::pow_u32;
     Pow { pow }
     PowAssign { pow_assign }
