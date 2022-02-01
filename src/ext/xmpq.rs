@@ -323,8 +323,8 @@ unsafe_wrap! { fn add(op1: O, op2: P) -> gmp::mpq_add }
 unsafe_wrap! { fn sub(op1: O, op2: P) -> gmp::mpq_sub }
 unsafe_wrap! { fn mul(op1: O, op2: P) -> gmp::mpq_mul }
 unsafe_wrap! { fn div(op1: O, op2: P) -> gmp::mpq_div }
-unsafe_wrap! { fn mul_2exp(op1: O; op2: u32) -> gmp::mpq_mul_2exp }
-unsafe_wrap! { fn div_2exp(op1: O; op2: u32) -> gmp::mpq_div_2exp }
+unsafe_wrap! { fn shl_u32(op1: O; op2: u32) -> gmp::mpq_mul_2exp }
+unsafe_wrap! { fn shr_u32(op1: O; op2: u32) -> gmp::mpq_div_2exp }
 
 // num and den must form a canonical pair
 #[inline]
@@ -395,22 +395,22 @@ pub fn set_0(rop: &mut Rational) {
 }
 
 #[inline]
-pub fn lshift_i32<O: OptRational>(rop: &mut Rational, op1: O, op2: i32) {
+pub fn shl_i32<O: OptRational>(rop: &mut Rational, op1: O, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        mul_2exp(rop, op1, op2_abs);
+        shl_u32(rop, op1, op2_abs);
     } else {
-        div_2exp(rop, op1, op2_abs);
+        shr_u32(rop, op1, op2_abs);
     }
 }
 
 #[inline]
-pub fn rshift_i32<O: OptRational>(rop: &mut Rational, op1: O, op2: i32) {
+pub fn shr_i32<O: OptRational>(rop: &mut Rational, op1: O, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        div_2exp(rop, op1, op2_abs);
+        shr_u32(rop, op1, op2_abs);
     } else {
-        mul_2exp(rop, op1, op2_abs);
+        shl_u32(rop, op1, op2_abs);
     }
 }
 

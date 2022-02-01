@@ -186,17 +186,31 @@ arith_prim_noncommut! {
 
 arith_prim! {
     Rational;
-    xmpq::lshift_i32;
+    xmpq::shl_i32;
     Shl { shl }
     ShlAssign { shl_assign }
     i32, ShlI32Incomplete;
 }
 arith_prim! {
     Rational;
-    xmpq::rshift_i32;
+    xmpq::shr_i32;
     Shr { shr }
     ShrAssign { shr_assign }
     i32, ShrI32Incomplete;
+}
+arith_prim! {
+    Rational;
+    xmpq::shl_u32;
+    Shl { shl }
+    ShlAssign { shl_assign }
+    u32, ShlU32Incomplete;
+}
+arith_prim! {
+    Rational;
+    xmpq::shr_u32;
+    Shr { shr }
+    ShrAssign { shr_assign }
+    u32, ShrU32Incomplete;
 }
 arith_prim! {
     Rational;
@@ -204,21 +218,6 @@ arith_prim! {
     Pow { pow }
     PowAssign { pow_assign }
     i32, PowI32Incomplete;
-}
-
-arith_prim! {
-    Rational;
-    xmpq::mul_2exp;
-    Shl { shl }
-    ShlAssign { shl_assign }
-    u32, ShlU32Incomplete;
-}
-arith_prim! {
-    Rational;
-    xmpq::div_2exp;
-    Shr { shr }
-    ShrAssign { shr_assign }
-    u32, ShrU32Incomplete;
 }
 arith_prim! {
     Rational;
