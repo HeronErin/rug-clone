@@ -30,10 +30,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.15.0 news (unreleased)
 
-  * Now [`Integer`][int-1-15] and [`Rational`][rat-1-15] implement [`Shl`],
-    [`Shr`], [`ShlAssign`] and [`ShrAssign`] with the right-hand side types
-    [`isize`] and [`usize`] as well as the previously supported [`i32`] and
-    [`u32`].
+  * Now [`Integer`][int-1-15], [`Rational`][rat-1-15], [`Float`][flo-1-15] and
+    [`Complex`][com-1-15] implement [`Shl`], [`Shr`], [`ShlAssign`] and
+    [`ShrAssign`] with the right-hand side types [`isize`] and [`usize`] as well
+    as the previously supported [`i32`] and [`u32`].
   * The new experimental feature [`num-traits`][feat-nt-1-15] was added to
     implement some traits from the [*num-traits* crate] and the [*num-integer*
     crate] ([issue 30]).
@@ -46,7 +46,9 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
 [`u32`]: https://doc.rust-lang.org/nightly/core/primitive.u32.html
 [`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
+[com-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [feat-nt-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/index.html#experimental-optional-features
+[flo-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
 [int-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
 [issue 30]: https://gitlab.com/tspiteri/rug/-/issues/30
 [rat-1-15]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Rational.html

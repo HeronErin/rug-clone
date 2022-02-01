@@ -405,6 +405,34 @@ arith_prim_exact_round! {
     ShrAssign { shr_assign }
     i32, ShrI32Incomplete;
 }
+arith_prim_exact_round! {
+    Float, u32, Round, Round::Nearest, Ordering;
+    xmpfr::shl_usize;
+    Shl { shl }
+    ShlAssign { shl_assign }
+    usize, ShlUsizeIncomplete;
+}
+arith_prim_exact_round! {
+    Float, u32, Round, Round::Nearest, Ordering;
+    xmpfr::shr_usize;
+    Shr { shr }
+    ShrAssign { shr_assign }
+    usize, ShrUsizeIncomplete;
+}
+arith_prim_exact_round! {
+    Float, u32, Round, Round::Nearest, Ordering;
+    xmpfr::shl_isize;
+    Shl { shl }
+    ShlAssign { shl_assign }
+    isize, ShlIsizeIncomplete;
+}
+arith_prim_exact_round! {
+    Float, u32, Round, Round::Nearest, Ordering;
+    xmpfr::shr_isize;
+    Shr { shr }
+    ShrAssign { shr_assign }
+    isize, ShrIsizeIncomplete;
+}
 mul_op_commut_round! {
     Float, u32, Round, Round::Nearest, Ordering;
     add_mul;

@@ -469,6 +469,34 @@ unsafe_wrap! { fn shl_i32(op1: O; op2: i32) -> mpfr::mul_2si }
 unsafe_wrap! { fn shr_i32(op1: O; op2: i32) -> mpfr::div_2si }
 unsafe_wrap! { fn shl_u32(op1: O; op2: u32) -> mpfr::mul_2ui }
 unsafe_wrap! { fn shr_u32(op1: O; op2: u32) -> mpfr::div_2ui }
+unsafe_wrap! { fn shl_isize(op1: O; op2: isize) -> mul_2isize }
+unsafe_wrap! { fn shr_isize(op1: O; op2: isize) -> div_2isize }
+unsafe_wrap! { fn shl_usize(op1: O; op2: usize) -> mul_2usize }
+unsafe_wrap! { fn shr_usize(op1: O; op2: usize) -> div_2usize }
+
+#[inline]
+unsafe fn mul_2isize(rop: *mut mpfr_t, op1: *const mpfr_t, op2: isize, rnd: rnd_t) -> c_int {
+    let op2 = op2.unwrapped_cast();
+    unsafe { mpfr::mul_2si(rop, op1, op2, rnd) }
+}
+
+#[inline]
+unsafe fn div_2isize(rop: *mut mpfr_t, op1: *const mpfr_t, op2: isize, rnd: rnd_t) -> c_int {
+    let op2 = op2.unwrapped_cast();
+    unsafe { mpfr::div_2si(rop, op1, op2, rnd) }
+}
+
+#[inline]
+unsafe fn mul_2usize(rop: *mut mpfr_t, op1: *const mpfr_t, op2: usize, rnd: rnd_t) -> c_int {
+    let op2 = op2.unwrapped_cast();
+    unsafe { mpfr::mul_2ui(rop, op1, op2, rnd) }
+}
+
+#[inline]
+unsafe fn div_2usize(rop: *mut mpfr_t, op1: *const mpfr_t, op2: usize, rnd: rnd_t) -> c_int {
+    let op2 = op2.unwrapped_cast();
+    unsafe { mpfr::div_2ui(rop, op1, op2, rnd) }
+}
 
 #[inline]
 pub fn check_range(x: &mut Float, dir: Ordering, rnd: Round) -> Ordering {
