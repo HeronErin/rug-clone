@@ -17,7 +17,7 @@
 use crate::{
     ext::xmpz,
     integer::ParseIntegerError,
-    ops::{DivRounding, Pow, RemRounding},
+    ops::{DivRounding, RemRounding},
     Assign, Integer,
 };
 use az::{CheckedCast, UnwrappedCast};
@@ -27,7 +27,6 @@ use num_traits_crate::{
     cast::{FromPrimitive, ToPrimitive},
     identities::{One, Zero},
     ops::mul_add::{MulAdd, MulAddAssign},
-    pow::Pow as NumPow,
     sign::Signed,
     Num,
 };
@@ -103,18 +102,6 @@ impl Signed for Integer {
     #[inline]
     fn is_negative(&self) -> bool {
         self.cmp0() == Ordering::Less
-    }
-}
-
-impl<Rhs> NumPow<Rhs> for Integer
-where
-    Integer: Pow<Rhs, Output = Integer>,
-{
-    type Output = Integer;
-
-    #[inline]
-    fn pow(self, rhs: Rhs) -> Self::Output {
-        Pow::pow(self, rhs)
     }
 }
 

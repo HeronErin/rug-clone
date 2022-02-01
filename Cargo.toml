@@ -46,7 +46,7 @@ optional = true
 package = "num-traits"
 version = "0.2.13"
 default-features = false
-features = ["i128"]
+features = ["i128", "std"]
 optional = true
 
 [dependencies.num-integer]

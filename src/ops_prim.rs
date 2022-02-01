@@ -61,6 +61,7 @@ macro_rules! int_ops {
                 *self = !*self;
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<u32> for $T {
             type Output = $T;
             #[inline]
@@ -68,6 +69,7 @@ macro_rules! int_ops {
                 self.pow(rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<u32> for &$T {
             type Output = $T;
             #[inline]
@@ -75,6 +77,7 @@ macro_rules! int_ops {
                 (*self).pow(rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<&u32> for $T {
             type Output = $T;
             #[inline]
@@ -82,6 +85,7 @@ macro_rules! int_ops {
                 self.pow(*rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<&u32> for &$T {
             type Output = $T;
             #[inline]
@@ -143,6 +147,7 @@ macro_rules! float_ops {
                 *self = -*self;
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<i32> for $T {
             type Output = $T;
             #[inline]
@@ -150,6 +155,7 @@ macro_rules! float_ops {
                 self.powi(rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<i32> for &$T {
             type Output = $T;
             #[inline]
@@ -157,6 +163,7 @@ macro_rules! float_ops {
                 self.powi(rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<&i32> for $T {
             type Output = $T;
             #[inline]
@@ -164,6 +171,7 @@ macro_rules! float_ops {
                 self.powi(*rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<&i32> for &$T {
             type Output = $T;
             #[inline]
@@ -183,6 +191,7 @@ macro_rules! float_ops {
                 *self = self.powi(*rhs);
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<$T> for $T {
             type Output = $T;
             #[inline]
@@ -190,6 +199,7 @@ macro_rules! float_ops {
                 self.powf(rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<$T> for &$T {
             type Output = $T;
             #[inline]
@@ -197,6 +207,7 @@ macro_rules! float_ops {
                 self.powf(rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<&$T> for $T {
             type Output = $T;
             #[inline]
@@ -204,6 +215,7 @@ macro_rules! float_ops {
                 self.powf(*rhs)
             }
         }
+        #[cfg(not(feature = "num-traits"))]
         impl Pow<&$T> for &$T {
             type Output = $T;
             #[inline]

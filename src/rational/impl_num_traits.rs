@@ -16,7 +16,6 @@
 
 use crate::{
     ext::{xmpq, xmpz},
-    ops::Pow,
     Assign, Integer, Rational,
 };
 use az::CheckedCast;
@@ -28,7 +27,6 @@ use num_traits_crate::{
         inv::Inv,
         mul_add::{MulAdd, MulAddAssign},
     },
-    pow::Pow as NumPow,
 };
 
 impl Zero for Rational {
@@ -71,18 +69,6 @@ impl Inv for Rational {
     #[inline]
     fn inv(self) -> Self::Output {
         self.recip()
-    }
-}
-
-impl<Rhs> NumPow<Rhs> for Rational
-where
-    Rational: Pow<Rhs, Output = Rational>,
-{
-    type Output = Rational;
-
-    #[inline]
-    fn pow(self, rhs: Rhs) -> Self::Output {
-        Pow::pow(self, rhs)
     }
 }
 

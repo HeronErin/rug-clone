@@ -14,7 +14,7 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ops::Pow, Float, Integer};
+use crate::{Float, Integer};
 use az::{CheckedAs, CheckedCast};
 use num_traits_crate::{
     cast::ToPrimitive,
@@ -22,7 +22,6 @@ use num_traits_crate::{
         inv::Inv,
         mul_add::{MulAdd, MulAddAssign},
     },
-    pow::Pow as NumPow,
 };
 
 impl Inv for Float {
@@ -31,18 +30,6 @@ impl Inv for Float {
     #[inline]
     fn inv(self) -> Self::Output {
         self.recip()
-    }
-}
-
-impl<Rhs> NumPow<Rhs> for Float
-where
-    Float: Pow<Rhs, Output = Float>,
-{
-    type Output = Float;
-
-    #[inline]
-    fn pow(self, rhs: Rhs) -> Self::Output {
-        Pow::pow(self, rhs)
     }
 }
 

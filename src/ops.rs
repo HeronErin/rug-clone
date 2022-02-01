@@ -476,6 +476,7 @@ pub trait ShrFrom<Lhs = Self> {
     fn shr_from(&mut self, lhs: Lhs);
 }
 
+#[cfg(not(feature = "num-traits"))]
 /**
 The power operation.
 
@@ -511,6 +512,10 @@ pub trait Pow<Rhs> {
     /// ```
     fn pow(self, rhs: Rhs) -> Self::Output;
 }
+
+#[cfg(feature = "num-traits")]
+#[doc(inline)]
+pub use num_traits_crate::pow::Pow;
 
 /**
 Compound power operation and assignment.

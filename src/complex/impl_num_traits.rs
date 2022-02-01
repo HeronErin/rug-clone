@@ -14,13 +14,10 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ops::Pow, Complex};
-use num_traits_crate::{
-    ops::{
-        inv::Inv,
-        mul_add::{MulAdd, MulAddAssign},
-    },
-    pow::Pow as NumPow,
+use crate::Complex;
+use num_traits_crate::ops::{
+    inv::Inv,
+    mul_add::{MulAdd, MulAddAssign},
 };
 
 impl Inv for Complex {
@@ -29,18 +26,6 @@ impl Inv for Complex {
     #[inline]
     fn inv(self) -> Self::Output {
         self.recip()
-    }
-}
-
-impl<Rhs> NumPow<Rhs> for Complex
-where
-    Complex: Pow<Rhs, Output = Complex>,
-{
-    type Output = Complex;
-
-    #[inline]
-    fn pow(self, rhs: Rhs) -> Self::Output {
-        Pow::pow(self, rhs)
     }
 }
 
