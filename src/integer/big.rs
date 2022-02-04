@@ -94,7 +94,7 @@ i -= 1;
 assert_eq!(i.count_ones(), Some(1000));
 
 let a = Integer::from(0xf00d);
-// &minus;1 is all ones in two’s complement
+// -1 is all ones in two’s complement
 let all_ones_xor_a = Integer::from(-1 ^ &a);
 // a is unchanged as we borrowed it
 let complement_a = !a;
