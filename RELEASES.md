@@ -32,7 +32,7 @@ Version 1.14.1 (2022-01-23)
 Version 1.14.0 (2021-11-24)
 ===========================
 
-  * Bug fix: [`OrdFloat`][ofl-1-14] was incorrectly ordering +NaN < −∞.
+  * Bug fix: [`OrdFloat`][ofl-1-14] was incorrectly ordering +NaN < &minus;∞.
   * The <code>[Integer][int-1-14]::[ZERO][int-z-1-14]</code> associated constant
     was added.
   * The <code>[Integer][int-1-14]::[shrink_to][int-st-1-14]</code> method was
@@ -673,7 +673,8 @@ Version 0.9.0 (2017-11-16)
 ==========================
 
   * Move `rug::float::AssignRound` to `rug::ops::AssignRound`.
-  * `OrdFloat` now orders +NaN above +∞, while −NaN is still below −∞.
+  * `OrdFloat` now orders +NaN above +∞, while &minus;NaN is still below
+    &minus;∞.
   * Change `Float::subnormalize` methods to require explicit minimum normal
     exponent.
   * Add `Float::subnormalize_ieee` methods to deduce exponent range from

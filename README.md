@@ -61,7 +61,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.14.0 news (2021-11-24)
 
-  * Bug fix: [`OrdFloat`][ofl-1-14] was incorrectly ordering +NaN < −∞.
+  * Bug fix: [`OrdFloat`][ofl-1-14] was incorrectly ordering +NaN < &minus;∞.
   * The <code>[Integer][int-1-14]::[ZERO][int-z-1-14]</code> associated constant
     was added.
   * The <code>[Integer][int-1-14]::[shrink_to][int-st-1-14]</code> method was

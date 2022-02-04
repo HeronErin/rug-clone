@@ -94,7 +94,7 @@ i -= 1;
 assert_eq!(i.count_ones(), Some(1000));
 
 let a = Integer::from(0xf00d);
-// −1 is all ones in two’s complement
+// &minus;1 is all ones in two’s complement
 let all_ones_xor_a = Integer::from(-1 ^ &a);
 // a is unchanged as we borrowed it
 let complement_a = !a;
@@ -146,7 +146,7 @@ acc += &m1 * &m2;
 assert_eq!(acc, 121);
 let other = Integer::from(2000);
 // Do not consume any values here:
-// 2000 − 3 × 7 = 1979
+// 2000 - 3 × 7 = 1979
 let sub = Integer::from(&other - &m1 * &m2);
 assert_eq!(sub, 1979);
 ```
@@ -1667,8 +1667,9 @@ impl Integer {
 
     /// Converts to an [`f32`] and an exponent, rounding towards zero.
     ///
-    /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1. If the value is
-    /// zero, `(0.0, 0)` is returned.
+    /// The returned [`f32`] is in the range
+    /// 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1. If the value is zero, `(0.0, 0)`
+    /// is returned.
     ///
     /// # Examples
     ///
@@ -1690,8 +1691,9 @@ impl Integer {
 
     /// Converts to an [`f64`] and an exponent, rounding towards zero.
     ///
-    /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1. If the value is
-    /// zero, `(0.0, 0)` is returned.
+    /// The returned [`f64`] is in the range
+    /// 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1. If the value is zero, `(0.0, 0)`
+    /// is returned.
     ///
     /// # Examples
     ///
@@ -2013,7 +2015,7 @@ impl Integer {
     /// assert!(Integer::from(0).is_perfect_power());
     /// // 25 is 5 to the power of 2
     /// assert!(Integer::from(25).is_perfect_power());
-    /// // −243 is −3 to the power of 5
+    /// // -243 is -3 to the power of 5
     /// assert!(Integer::from(243).is_perfect_power());
     ///
     /// assert!(!Integer::from(24).is_perfect_power());
@@ -2185,7 +2187,7 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// // −2 is ...11111110
+    /// // -2 is ...11111110
     /// assert_eq!(Integer::from(-2).find_zero(0), Some(0));
     /// assert_eq!(Integer::from(-2).find_zero(1), None);
     /// // 15 is ...00001111
@@ -2205,7 +2207,7 @@ impl Integer {
     /// // 1 is ...00000001
     /// assert_eq!(Integer::from(1).find_one(0), Some(0));
     /// assert_eq!(Integer::from(1).find_one(1), None);
-    /// // −16 is ...11110000
+    /// // -16 is ...11110000
     /// assert_eq!(Integer::from(-16).find_one(0), Some(4));
     /// assert_eq!(Integer::from(-16).find_one(20), Some(20));
     /// ```
@@ -2282,7 +2284,7 @@ impl Integer {
     /// let i = Integer::from(-1);
     /// assert_eq!(Integer::from(0).hamming_dist(&i), None);
     /// assert_eq!(Integer::from(-1).hamming_dist(&i), Some(0));
-    /// // −1 is ...11111111 and −13 is ...11110011
+    /// // -1 is ...11111111 and -13 is ...11110011
     /// assert_eq!(Integer::from(-13).hamming_dist(&i), Some(2));
     /// ```
     #[inline]
@@ -2466,7 +2468,7 @@ impl Integer {
     ///
     ///   * 0 if the value is zero
     ///   * 1 if the value is positive
-    ///   * −1 if the value is negative
+    ///   * &minus;1 if the value is negative
     ///
     /// # Examples
     ///
@@ -2487,7 +2489,7 @@ impl Integer {
     ///
     ///   * 0 if the value is zero
     ///   * 1 if the value is positive
-    ///   * −1 if the value is negative
+    ///   * &minus;1 if the value is negative
     ///
     /// # Examples
     ///
@@ -2506,7 +2508,7 @@ impl Integer {
     ///
     ///   * 0 if the value is zero
     ///   * 1 if the value is positive
-    ///   * −1 if the value is negative
+    ///   * &minus;1 if the value is negative
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
@@ -3082,13 +3084,13 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// // 23 / −10 → −2 rem 3
+    /// // 23 / -10 → -2 rem 3
     /// let (q, rem) = Integer::from(23).div_rem_round((-10).into());
     /// assert!(q == -2 && rem == 3);
-    /// // 25 / 10 → 3 rem −5
+    /// // 25 / 10 → 3 rem -5
     /// let (q, rem) = Integer::from(25).div_rem_round(10.into());
     /// assert!(q == 3 && rem == -5);
-    /// // −27 / 10 → −3 rem 3
+    /// // -27 / 10 → -3 rem 3
     /// let (q, rem) = Integer::from(-27).div_rem_round(10.into());
     /// assert!(q == -3 && rem == 3);
     /// ```
@@ -3112,7 +3114,7 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// // −25 / −10 → 3 rem 5
+    /// // -25 / -10 → 3 rem 5
     /// let mut dividend_quotient = Integer::from(-25);
     /// let mut divisor_rem = Integer::from(-10);
     /// dividend_quotient.div_rem_round_mut(&mut divisor_rem);
@@ -3141,7 +3143,7 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::{Complete, Integer};
-    /// // −28 / −10 → 3 rem 2
+    /// // -28 / -10 → 3 rem 2
     /// let dividend = Integer::from(-28);
     /// let divisor = Integer::from(-10);
     /// let (quotient, rem) = dividend.div_rem_round_ref(&divisor).complete();
@@ -3567,7 +3569,7 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     /// // 7 × 143 modulo 1000 = 1, so 7 has an inverse 143.
-    /// // 7 ^ −5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// let n = Integer::from(7);
     /// let e = Integer::from(-5);
     /// let m = Integer::from(1000);
@@ -3604,7 +3606,7 @@ impl Integer {
     ///     Err(()) => assert_eq!(n, 2),
     /// }
     /// // 7 × 143 modulo 1000 = 1, so 7 has an inverse 143.
-    /// // 7 ^ −5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// n.assign(7);
     /// match n.pow_mod_mut(&e, &m) {
     ///     Ok(()) => assert_eq!(n, 943),
@@ -3651,7 +3653,7 @@ impl Integer {
     /// assert!(two.pow_mod_ref(&minus_five, &thousand).is_none());
     ///
     /// // 7 × 143 modulo 1000 = 1, so 7 has an inverse 143.
-    /// // 7 ^ −5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// let r = seven.pow_mod_ref(&minus_five, &thousand).unwrap();
     /// let power = Integer::from(r);
     /// assert_eq!(power, 943);
@@ -4218,7 +4220,8 @@ impl Integer {
     /// Determines wheter a number is prime.
     ///
     /// This function uses some trial divisions, a Baille-PSW probable prime
-    /// test, then `reps` − 24 Miller-Rabin probabilistic primality tests.
+    /// test, then `reps`&nbsp;&minus;&nbsp;24 Miller-Rabin probabilistic
+    /// primality tests.
     ///
     /// # Examples
     ///
@@ -4449,8 +4452,8 @@ impl Integer {
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// The last item above is useful to obtain the result as a [`u32`] if it
-    /// fits. If `other` > 0 , the result always fits. If the result does not
-    /// fit, it is equal to the absolute value of `self`.
+    /// fits. If `other`&nbsp;>&nbsp;0 , the result always fits. If the result
+    /// does not fit, it is equal to the absolute value of `self`.
     ///
     /// # Examples
     ///
@@ -4483,15 +4486,18 @@ impl Integer {
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
     /// The values <i>s</i> and <i>t</i> are chosen such that normally,
-    /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations define
-    /// <i>s</i> and <i>t</i> uniquely. There are a few exceptional cases:
+    /// |<i>s</i>|&nbsp;<&nbsp;|<i>b</i>|&nbsp;/&nbsp;(2<i>g</i>) and
+    /// |<i>t</i>|&nbsp;<&nbsp;|<i>a</i>|&nbsp;/&nbsp;(2<i>g</i>), and these
+    /// relations define <i>s</i> and <i>t</i> uniquely. There are a few
+    /// exceptional cases:
     ///
-    ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
-    ///     <i>t</i> = sgn(<i>b</i>).
-    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>, then
-    ///     <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
-    ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
+    ///   * If |<i>a</i>|&nbsp;=&nbsp;|<i>b</i>|, then <i>s</i>&nbsp;=&nbsp;0,
+    ///     <i>t</i>&nbsp;=&nbsp;sgn(<i>b</i>).
+    ///   * Otherwise, if <i>b</i>&nbsp;=&nbsp;0 or
+    ///     |<i>b</i>|&nbsp;=&nbsp;2<i>g</i>, then
+    ///     <i>s</i>&nbsp;=&nbsp;sgn(<i>a</i>), and if <i>a</i>&nbsp;=&nbsp;0 or
+    ///     |<i>a</i>|&nbsp;=&nbsp;2<i>g</i>, then
+    ///     <i>t</i>&nbsp;=&nbsp;sgn(<i>b</i>).
     ///
     /// The initial value of `rop` is ignored.
     ///
@@ -4525,15 +4531,18 @@ impl Integer {
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
     /// The values <i>s</i> and <i>t</i> are chosen such that normally,
-    /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations define
-    /// <i>s</i> and <i>t</i> uniquely. There are a few exceptional cases:
+    /// |<i>s</i>|&nbsp;<&nbsp;|<i>b</i>|&nbsp;/&nbsp;(2<i>g</i>) and
+    /// |<i>t</i>|&nbsp;<&nbsp;|<i>a</i>|&nbsp;/&nbsp;(2<i>g</i>), and these
+    /// relations define <i>s</i> and <i>t</i> uniquely. There are a few
+    /// exceptional cases:
     ///
-    ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
-    ///     <i>t</i> = sgn(<i>b</i>).
-    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>, then
-    ///     <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
-    ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
+    ///   * If |<i>a</i>|&nbsp;=&nbsp;|<i>b</i>|, then <i>s</i>&nbsp;=&nbsp;0,
+    ///     <i>t</i>&nbsp;=&nbsp;sgn(<i>b</i>).
+    ///   * Otherwise, if <i>b</i>&nbsp;=&nbsp;0 or
+    ///     |<i>b</i>|&nbsp;=&nbsp;2<i>g</i>, then
+    ///     <i>s</i>&nbsp;=&nbsp;sgn(<i>a</i>), and if <i>a</i>&nbsp;=&nbsp;0 or
+    ///     |<i>a</i>|&nbsp;=&nbsp;2<i>g</i>, then
+    ///     <i>t</i>&nbsp;=&nbsp;sgn(<i>b</i>).
     ///
     /// The initial value of `rop` is ignored.
     ///
@@ -4577,15 +4586,18 @@ impl Integer {
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
     /// The values <i>s</i> and <i>t</i> are chosen such that normally,
-    /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
-    /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations define
-    /// <i>s</i> and <i>t</i> uniquely. There are a few exceptional cases:
+    /// |<i>s</i>|&nbsp;<&nbsp;|<i>b</i>|&nbsp;/&nbsp;(2<i>g</i>) and
+    /// |<i>t</i>|&nbsp;<&nbsp;|<i>a</i>|&nbsp;/&nbsp;(2<i>g</i>), and these
+    /// relations define <i>s</i> and <i>t</i> uniquely. There are a few
+    /// exceptional cases:
     ///
-    ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
-    ///     <i>t</i> = sgn(<i>b</i>).
-    ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>, then
-    ///     <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
-    ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
+    ///   * If |<i>a</i>|&nbsp;=&nbsp;|<i>b</i>|, then <i>s</i>&nbsp;=&nbsp;0,
+    ///     <i>t</i>&nbsp;=&nbsp;sgn(<i>b</i>).
+    ///   * Otherwise, if <i>b</i>&nbsp;=&nbsp;0 or
+    ///     |<i>b</i>|&nbsp;=&nbsp;2<i>g</i>, then
+    ///     <i>s</i>&nbsp;=&nbsp;sgn(<i>a</i>), and if <i>a</i>&nbsp;=&nbsp;0 or
+    ///     |<i>a</i>|&nbsp;=&nbsp;2<i>g</i>, then
+    ///     <i>t</i>&nbsp;=&nbsp;sgn(<i>b</i>).
     ///
     /// # Examples
     ///
@@ -5119,7 +5131,7 @@ impl Integer {
     /// let mut pair = <(Integer, Integer)>::from(f);
     /// assert_eq!(pair.0, 144);
     /// assert_eq!(pair.1, 89);
-    /// // Fibonacci number F[−1] is 1
+    /// // Fibonacci number F[-1] is 1
     /// pair.assign(Integer::fibonacci_2(0));
     /// assert_eq!(pair.0, 0);
     /// assert_eq!(pair.1, 1);

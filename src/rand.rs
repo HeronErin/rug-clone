@@ -188,9 +188,9 @@ impl RandState<'_> {
     /// For the linear congruential algorithm <i>X</i> = (<i>a</i> × <i>X</i> +
     /// <i>c</i>) mod 2<sup><i>m</i></sup>, <i>a</i>, <i>c</i> and <i>m</i> are
     /// selected from a table such that at least <i>size</i> bits of each
-    /// <i>X</i> will be used, that is <i>m</i>/2 ≥ <i>size</i>. The table only
-    /// has values for <i>size</i> ≤ 128; [`None`] will be returned if the
-    /// requested size is larger.
+    /// <i>X</i> will be used, that is <i>m</i>/2&nbsp;≥&nbsp;<i>size</i>. The
+    /// table only has values for <i>size</i>&nbsp;≤&nbsp;128; [`None`] will be
+    /// returned if the requested size is larger.
     ///
     /// # Examples
     ///

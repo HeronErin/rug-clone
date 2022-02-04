@@ -155,7 +155,7 @@ pub trait SubFrom<Lhs = Self> {
     /// use rug::{ops::SubFrom, Integer};
     /// let mut rhs = Integer::from(10);
     /// rhs.sub_from(100);
-    /// // rhs = 100 − 10
+    /// // rhs = 100 - 10
     /// assert_eq!(rhs, 90);
     /// # }
     /// ```
@@ -186,7 +186,7 @@ let matrix_left = ColumnVec(1, -2);
 let matrix_right = ColumnVec(3, -1);
 let matrix = SquareMatrix(matrix_left, matrix_right);
 // ( 1   3) ( 2) = ( 92)
-// (−2  −1) (30)   (−34)
+// (-2  -1) (30)   (-34)
 col.mul_from(&matrix);
 assert_eq!(col.0, 92);
 assert_eq!(col.1, -34);
@@ -824,7 +824,7 @@ pub trait AddAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.add_assign_round(-0.3, Round::Nearest);
-    /// // −3.3 rounded up to −3.25
+    /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -881,7 +881,7 @@ pub trait AddFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -0.3);
     /// let dir = f.add_from_round(-3, Round::Nearest);
-    /// // −3.3 rounded up to −3.25
+    /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -933,7 +933,7 @@ pub trait SubAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.sub_assign_round(0.3, Round::Nearest);
-    /// // −3.3 rounded up to −3.25
+    /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -990,7 +990,7 @@ pub trait SubFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 0.3);
     /// let dir = f.sub_from_round(-3, Round::Nearest);
-    /// // −3.3 rounded up to −3.25
+    /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -1042,7 +1042,7 @@ pub trait MulAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.mul_assign_round(13, Round::Nearest);
-    /// // −39 rounded down to −40
+    /// // -39 rounded down to -40
     /// assert_eq!(f, -40);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
@@ -1099,7 +1099,7 @@ pub trait MulFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 13);
     /// let dir = f.mul_from_round(-3, Round::Nearest);
-    /// // −39 rounded down to −40
+    /// // -39 rounded down to -40
     /// assert_eq!(f, -40);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
@@ -1151,7 +1151,7 @@ pub trait DivAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.div_assign_round(5, Round::Nearest);
-    /// // −0.6 rounded down to −0.625
+    /// // -0.6 rounded down to -0.625
     /// assert_eq!(f, -0.625);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
@@ -1208,7 +1208,7 @@ pub trait DivFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 5);
     /// let dir = f.div_from_round(-3, Round::Nearest);
-    /// // −0.6 rounded down to −0.625
+    /// // -0.6 rounded down to -0.625
     /// assert_eq!(f, -0.625);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
@@ -1369,7 +1369,7 @@ pub trait PowAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.pow_assign_round(5, Round::Nearest);
-    /// // −243 rounded up to −240
+    /// // -243 rounded up to -240
     /// assert_eq!(f, -240);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -1426,7 +1426,7 @@ pub trait PowFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 5);
     /// let dir = f.pow_from_round(-3, Round::Nearest);
-    /// // −243 rounded up to −240
+    /// // -243 rounded up to -240
     /// assert_eq!(f, -240);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }

@@ -112,19 +112,19 @@ use rug::Float;
 let a = Float::with_val(4, 24);
 // 1.5 in binary is 1.1.
 let mul1 = Float::with_val(4, 1.5);
-// −13 in binary is −1101.
+// -13 in binary is -1101.
 let mul2 = Float::with_val(4, -13);
-// 24 + 1.5 × −13 = 4.5
+// 24 + 1.5 × -13 = 4.5
 let add = Float::with_val(4, &a + &mul1 * &mul2);
 assert_eq!(add, 4.5);
-// 24 − 1.5 × −13 = 43.5, rounded to 44 using four bits of precision.
+// 24 - 1.5 × -13 = 43.5, rounded to 44 using four bits of precision.
 let sub = a - &mul1 * &mul2;
 assert_eq!(sub, 44);
 
 // With separate addition and multiplication:
 let a = Float::with_val(4, 24);
 // No borrows, so multiplication is computed immediately.
-// 1.5 × −13 = −19.5 (binary −10011.1), rounded to −20.
+// 1.5 × -13 = -19.5 (binary -10011.1), rounded to -20.
 let separate_add = a + mul1 * mul2;
 assert_eq!(separate_add, 4);
 ```
@@ -143,7 +143,7 @@ let d = Float::with_val(53, 2);
 // 24 × 1.5 + 12 × 2 = 60
 let add = Float::with_val(53, &a * &b + &c * &d);
 assert_eq!(add, 60);
-// 24 × 1.5 − 12 × 2 = 12
+// 24 × 1.5 - 12 × 2 = 12
 let sub = Float::with_val(53, &a * &b - &c * &d);
 assert_eq!(sub, 12);
 ```
@@ -216,9 +216,9 @@ let mut u = Float::new(200);
 for i in 1..=100_u32 {
     // multiply t by i in place, round towards +∞
     t.mul_assign_round(i, Round::Up);
-    // set u to 1/t, round towards −∞
+    // set u to 1/t, round towards -∞
     u.assign_round(t.recip_ref(), Round::Down);
-    // increase s by u in place, round towards −∞
+    // increase s by u in place, round towards -∞
     s.add_assign_round(&u, Round::Down);
 }
 // `None` means the number of printed digits depends on the precision
@@ -732,7 +732,7 @@ impl Float {
     /// let mut float = Float::with_val(16, 6.5);
     /// // 6.5 in binary is 110.1
     /// // Since the precision is 16 bits, this becomes
-    /// // 1101_0000_0000_0000 times two to the power of −12
+    /// // 1101_0000_0000_0000 times two to the power of -12
     /// let (int, exp) = float.to_integer_exp().unwrap();
     /// assert_eq!(int, 0b1101_0000_0000_0000);
     /// assert_eq!(exp, -13);
@@ -972,7 +972,7 @@ impl Float {
     /// ```rust
     /// use core::f64;
     /// use rug::{float::Round, Float};
-    /// // (2.0 ^ −90) + 1
+    /// // (2.0 ^ -90) + 1
     /// let f: Float = Float::with_val(100, -90).exp2() + 1;
     /// assert_eq!(f.to_f64_round(Round::Up), 1.0 + f64::EPSILON);
     /// ```
@@ -983,7 +983,7 @@ impl Float {
 
     /// Converts to an [`f32`] and an exponent, rounding to the nearest.
     ///
-    /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1.
+    /// The returned [`f32`] is in the range 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
     ///
     /// If the value is too small or too large for the target type, the minimum
     /// or maximum value allowed is returned.
@@ -1007,7 +1007,7 @@ impl Float {
     /// Converts to an [`f32`] and an exponent, applying the specified rounding
     /// method.
     ///
-    /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1.
+    /// The returned [`f32`] is in the range 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
     ///
     /// If the value is too small or too large for the target type, the minimum
     /// or maximum value allowed is returned.
@@ -1037,7 +1037,7 @@ impl Float {
 
     /// Converts to an [`f64`] and an exponent, rounding to the nearest.
     ///
-    /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1.
+    /// The returned [`f64`] is in the range 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
     ///
     /// If the value is too small or too large for the target type, the minimum
     /// or maximum value allowed is returned.
@@ -1061,7 +1061,7 @@ impl Float {
     /// Converts to an [`f64`] and an exponent, applying the specified rounding
     /// method.
     ///
-    /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1.
+    /// The returned [`f64`] is in the range 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
     ///
     /// If the value is too small or too large for the target type, the minimum
     /// or maximum value allowed is returned.
@@ -1185,7 +1185,7 @@ impl Float {
     /// assert_eq!((sign, &*s, exp), (true, "6250", Some(0)));
     /// let (sign, s, exp) = Float::with_val(8, -6.25).to_sign_string_exp(10, None);
     /// assert_eq!((sign, &*s, exp), (true, "6250", Some(1)));
-    /// // −4.8e4 = 48_000, which is rounded to 48_128 using 8 bits of precision
+    /// // -4.8e4 = 48_000, which is rounded to 48_128 using 8 bits of precision
     /// let (sign, s, exp) = Float::with_val(8, -4.8e4).to_sign_string_exp(10, None);
     /// assert_eq!((sign, &*s, exp), (true, "4813", Some(5)));
     /// ```
@@ -1221,15 +1221,15 @@ impl Float {
     /// ```rust
     /// use rug::{float::Round, Float};
     /// let val = Float::with_val(53, -0.0625);
-    /// // rounding −0.0625 to two significant digits towards −∞ gives −0.063
+    /// // rounding -0.0625 to two significant digits towards -∞ gives -0.063
     /// let (sign, s, exp) = val.to_sign_string_exp_round(10, Some(2), Round::Down);
     /// assert_eq!((sign, &*s, exp), (true, "63", Some(-1)));
-    /// // rounding −0.0625 to two significant digits towards +∞ gives −0.062
+    /// // rounding -0.0625 to two significant digits towards +∞ gives -0.062
     /// let (sign, s, exp) = val.to_sign_string_exp_round(10, Some(2), Round::Up);
     /// assert_eq!((sign, &*s, exp), (true, "62", Some(-1)));
     ///
     /// let val = Float::with_val(53, 6.25e4);
-    /// // rounding 6.25e4 to two significant digits towards −∞ gives 6.2e4
+    /// // rounding 6.25e4 to two significant digits towards -∞ gives 6.2e4
     /// let (sign, s, exp) = val.to_sign_string_exp_round(10, Some(2), Round::Down);
     /// assert_eq!((sign, &*s, exp), (false, "62", Some(5)));
     /// // rounding 6.25e4 to two significant digits towards +∞ gives 6.3e4
@@ -1616,16 +1616,16 @@ impl Float {
     /// If the value is a [normal number][Float::is_normal], returns its
     /// exponent.
     ///
-    /// The significand is assumed to be in the range 0.5 ≤ <i>x</i> < 1.
+    /// The significand is assumed to be in the range 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::{Assign, Float};
-    /// // −(2.0 ^ 32) == −(0.5 × 2 ^ 33)
+    /// // -(2.0 ^ 32) == -(0.5 × 2 ^ 33)
     /// let mut f = Float::with_val(53, -32f64.exp2());
     /// assert_eq!(f.get_exp(), Some(33));
-    /// // 0.8 × 2 ^ −39
+    /// // 0.8 × 2 ^ -39
     /// f.assign(0.8 * (-39f64).exp2());
     /// assert_eq!(f.get_exp(), Some(-39));
     /// f.assign(0);
@@ -1798,7 +1798,7 @@ impl Float {
         !self.is_sign_negative()
     }
 
-    /// Returns [`true`] if the value is negative, −0 or NaN with a negative
+    /// Returns [`true`] if the value is negative, &minus;0 or NaN with a negative
     /// sign.
     ///
     /// # Examples
@@ -1850,7 +1850,7 @@ impl Float {
         xmpfr::nextabove(self);
     }
 
-    /// Sets to the next value towards −∞.
+    /// Sets to the next value towards &minus;∞.
     ///
     /// # Examples
     ///
@@ -1878,8 +1878,8 @@ impl Float {
     ///   * binary64 (double precision) with 64 storage bits and a precision of
     ///     53 bits,
     ///   * binary{<i>k</i>} with <i>k</i> storage bits where <i>k</i> is a
-    ///     multiple of 32 and <i>k</i> ≥ 128, and a precision of <i>k</i> −
-    ///     round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
+    ///     multiple of 32 and <i>k</i>&nbsp;≥&nbsp;128, and a precision of
+    ///     <i>k</i> &minus; round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
     ///
     /// This method has no effect if the value is not in the subnormal range.
     ///
@@ -1888,7 +1888,7 @@ impl Float {
     /// ```rust
     /// use core::f32;
     /// use rug::Float;
-    /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
+    /// // minimum single subnormal is 0.5 × 2 ^ -148 = 2 ^ -149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
@@ -1915,8 +1915,8 @@ impl Float {
     ///   * binary64 (double precision) with 64 storage bits and a precision of
     ///     53 bits,
     ///   * binary{<i>k</i>} with <i>k</i> storage bits where <i>k</i> is a
-    ///     multiple of 32 and <i>k</i> ≥ 128, and a precision of <i>k</i> −
-    ///     round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
+    ///     multiple of 32 and <i>k</i>&nbsp;≥&nbsp;128, and a precision of
+    ///     <i>k</i> &minus; round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
     ///
     /// This method simply propagates `prev_rounding` if the value is not in the
     /// subnormal range.
@@ -1926,7 +1926,7 @@ impl Float {
     /// ```rust
     /// use core::cmp::Ordering;
     /// use rug::{float::Round, Float};
-    /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
+    /// // minimum single subnormal is 0.5 × 2 ^ -148 = 2 ^ -149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
@@ -1952,12 +1952,12 @@ impl Float {
     /// Subnormalization is only performed when the exponent lies within the
     /// subnormal range, that is when
     ///
-    /// `normal_exp_min` − <i>precision</i> + 1 ≤ <i>exponent</i> <
+    /// `normal_exp_min` &minus; <i>precision</i> + 1 ≤ <i>exponent</i> <
     /// `normal_exp_min`
     ///
     /// For example, for IEEE 754 single precision, the precision is 24 and
-    /// `normal_exp_min` is −125, so the subnormal range would be
-    /// −148 ≤ <i>exponent</i> < −125.
+    /// `normal_exp_min` is &minus;125, so the subnormal range would be
+    /// &minus;148&nbsp;≤&nbsp;<i>exponent</i>&nbsp;<&nbsp;&minus;125.
     ///
     /// This method has no effect if the value is not in the subnormal range.
     ///
@@ -1965,7 +1965,7 @@ impl Float {
     ///
     /// ```rust
     /// use rug::Float;
-    /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
+    /// // minimum single subnormal is 0.5 × 2 ^ -148 = 2 ^ -149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
@@ -1986,12 +1986,12 @@ impl Float {
     /// Subnormalization is only performed when the exponent lies within the
     /// subnormal range, that is when
     ///
-    /// `normal_exp_min` − <i>precision</i> + 1 ≤ <i>exponent</i> <
+    /// `normal_exp_min` &minus; <i>precision</i> + 1 ≤ <i>exponent</i> <
     /// `normal_exp_min`
     ///
     /// For example, for IEEE 754 single precision, the precision is 24 and
-    /// `normal_exp_min` is −125, so the subnormal range would be
-    /// −148 ≤ <i>exponent</i> < −125.
+    /// `normal_exp_min` is &minus;125, so the subnormal range would be
+    /// &minus;148&nbsp;≤&nbsp;<i>exponent</i>&nbsp;<&nbsp;&minus;125.
     ///
     /// This method simply propagates `prev_rounding` if the value is not in the
     /// subnormal range.
@@ -2001,7 +2001,7 @@ impl Float {
     /// ```rust
     /// use core::cmp::Ordering;
     /// use rug::{float::Round, Float};
-    /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
+    /// // minimum single subnormal is 0.5 × 2 ^ -148 = 2 ^ -149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
@@ -2151,8 +2151,9 @@ impl Float {
 
     /// Computes the remainder, rounding to the nearest.
     ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`, where
-    /// <i>n</i> is the integer quotient of `self` / `divisor` rounded to the
+    /// The remainder is the value of
+    /// `self`&nbsp;&minus;&nbsp;<i>n</i>&nbsp;×&nbsp;`divisor`, where <i>n</i>
+    /// is the integer quotient of `self`&nbsp;/&nbsp;`divisor` rounded to the
     /// nearest integer (ties rounded to even). This is different from the
     /// remainder obtained using the `%` operator or the [`Rem`][core::ops::Rem]
     /// trait, where <i>n</i> is truncated instead of rounded to the nearest.
@@ -2183,8 +2184,9 @@ impl Float {
 
     /// Computes the remainder, rounding to the nearest.
     ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`, where
-    /// <i>n</i> is the integer quotient of `self` / `divisor` rounded to the
+    /// The remainder is the value of
+    /// `self`&nbsp;&minus;&nbsp;<i>n</i>&nbsp;×&nbsp;`divisor`, where <i>n</i>
+    /// is the integer quotient of `self`&nbsp;/&nbsp;`divisor` rounded to the
     /// nearest integer (ties rounded to even). This is different from the
     /// remainder obtained using the `%=` operator or the
     /// [`RemAssign`][core::ops::RemAssign] trait, where <i>n</i> is truncated
@@ -2214,8 +2216,9 @@ impl Float {
 
     /// Computes the remainder, applying the specified rounding method.
     ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`, where
-    /// <i>n</i> is the integer quotient of `self` / `divisor` rounded to the
+    /// The remainder is the value of
+    /// `self`&nbsp;&minus;&nbsp;<i>n</i>&nbsp;×&nbsp;`divisor`, where <i>n</i>
+    /// is the integer quotient of `self`&nbsp;/&nbsp;`divisor` rounded to the
     /// nearest integer (ties rounded to even). This is different from the
     /// remainder obtained using the
     /// [`RemAssignRound`][crate::ops::RemAssignRound] trait, where <i>n</i> is
@@ -2229,8 +2232,8 @@ impl Float {
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, 128);
     /// let g = Float::with_val(6, 49);
-    /// // remainder of 128 / 49 is 128 − 3 × 49 = −19
-    /// // using 4 significant bits: −20
+    /// // remainder of 128 / 49 is 128 - 3 × 49 = -19
+    /// // using 4 significant bits: -20
     /// let dir = f.remainder_round(&g, Round::Nearest);
     /// assert_eq!(f, -20.0);
     /// assert_eq!(dir, Ordering::Less);
@@ -2238,7 +2241,7 @@ impl Float {
     /// // compare to RemAssignRound::rem_assign_round
     /// let mut f = Float::with_val(4, 128);
     /// let g = Float::with_val(6, 49);
-    /// // with RemAssignRound, remainder of 128 / 49 is 128 − 2 × 49 = 30
+    /// // with RemAssignRound, remainder of 128 / 49 is 128 - 2 × 49 = 30
     /// // using 4 significant bits: 30
     /// let dir = f.rem_assign_round(&g, Round::Nearest);
     /// assert_eq!(f, 30.0);
@@ -2251,8 +2254,9 @@ impl Float {
 
     /// Computes the remainder, rounding to the nearest.
     ///
-    /// The remainder is the value of `dividend` − <i>n</i> × `self`, where
-    /// <i>n</i> is the integer quotient of `dividend` / `self` rounded to the
+    /// The remainder is the value of
+    /// `dividend`&nbsp;&minus;&nbsp;<i>n</i>&nbsp;×&nbsp;`self`, where <i>n</i>
+    /// is the integer quotient of `dividend`&nbsp;/&nbsp;`self` rounded to the
     /// nearest integer (ties rounded to even). This is different from the
     /// remainder obtained using the [`RemFrom`] trait, where <i>n</i> is
     /// truncated instead of rounded to the nearest.
@@ -2283,8 +2287,9 @@ impl Float {
 
     /// Computes the remainder, applying the specified rounding method.
     ///
-    /// The remainder is the value of `dividend` − <i>n</i> × `self`, where
-    /// <i>n</i> is the integer quotient of `dividend` / `self` rounded to the
+    /// The remainder is the value of
+    /// `dividend`&nbsp;&minus;&nbsp;<i>n</i>&nbsp;×&nbsp;`self`, where <i>n</i>
+    /// is the integer quotient of `dividend`&nbsp;/&nbsp;`self` rounded to the
     /// nearest integer (ties rounded to even). This is different from the
     /// remainder obtained using the [`RemFromRound`][crate::ops::RemFromRound]
     /// trait, where <i>n</i> is truncated instead of rounded to the nearest.
@@ -2297,8 +2302,8 @@ impl Float {
     /// // Use only 4 bits of precision to show rounding.
     /// let f = Float::with_val(8, 171);
     /// let mut g = Float::with_val(4, 64);
-    /// // remainder of 171 / 64 is 171 − 3 × 64 = −21
-    /// // using 4 significant bits: −20
+    /// // remainder of 171 / 64 is 171 - 3 × 64 = -21
+    /// // using 4 significant bits: -20
     /// let dir = g.remainder_from_round(&f, Round::Nearest);
     /// assert_eq!(g, -20.0);
     /// assert_eq!(dir, Ordering::Greater);
@@ -2306,7 +2311,7 @@ impl Float {
     /// // compare to RemFromRound::rem_from_round
     /// let f = Float::with_val(8, 171);
     /// let mut g = Float::with_val(4, 64);
-    /// // with RemFromRound, remainder of 171 / 64 is 171 − 2 × 64 = 43
+    /// // with RemFromRound, remainder of 171 / 64 is 171 - 2 × 64 = 43
     /// // using 4 significant bits: 44
     /// let dir = g.rem_from_round(&f, Round::Nearest);
     /// assert_eq!(g, 44.0);
@@ -2319,8 +2324,9 @@ impl Float {
 
     /// Computes the remainder.
     ///
-    /// The remainder is the value of `self` − <i>n</i> × `divisor`, where
-    /// <i>n</i> is the integer quotient of `self` / `divisor` rounded to the
+    /// The remainder is the value of
+    /// `self`&nbsp;&minus;&nbsp;<i>n</i>&nbsp;×&nbsp;`divisor`, where <i>n</i>
+    /// is the integer quotient of `self`&nbsp;/&nbsp;`divisor` rounded to the
     /// nearest integer (ties rounded to even). This is different from the
     /// remainder obtained using the `%` operator or the [`Rem`][core::ops::Rem]
     /// trait, where <i>n</i> is truncated instead of rounded to the nearest.
@@ -2371,12 +2377,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mul1 = Float::with_val(4, 1.5);
-    /// // −13 in binary is −1101.
+    /// // -13 in binary is -1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let add = Float::with_val(4, 24);
     ///
-    /// // 1.5 × −13 + 24 = 4.5
+    /// // 1.5 × -13 + 24 = 4.5
     /// let mul_add = mul1.mul_add(&mul2, &add);
     /// assert_eq!(mul_add, 4.5);
     /// ```
@@ -2400,12 +2406,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mut mul1 = Float::with_val(4, 1.5);
-    /// // −13 in binary is −1101.
+    /// // -13 in binary is -1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let add = Float::with_val(4, 24);
     ///
-    /// // 1.5 × −13 + 24 = 4.5
+    /// // 1.5 × -13 + 24 = 4.5
     /// mul1.mul_add_mut(&mul2, &add);
     /// assert_eq!(mul1, 4.5);
     /// ```
@@ -2429,12 +2435,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mut mul1 = Float::with_val(4, 1.5);
-    /// // −13 in binary is −1101.
+    /// // -13 in binary is -1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let add = Float::with_val(4, 24);
     ///
-    /// // 1.5 × −13 + 24 = 4.5
+    /// // 1.5 × -13 + 24 = 4.5
     /// let dir = mul1.mul_add_round(&mul2, &add, Round::Nearest);
     /// assert_eq!(mul1, 4.5);
     /// assert_eq!(dir, Ordering::Equal);
@@ -2462,12 +2468,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mul1 = Float::with_val(4, 1.5);
-    /// // −13 in binary is −1101.
+    /// // -13 in binary is -1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let add = Float::with_val(4, 24);
     ///
-    /// // 1.5 × −13 + 24 = 4.5
+    /// // 1.5 × -13 + 24 = 4.5
     /// let ans = Float::with_val(4, mul1.mul_add_ref(&mul2, &add));
     /// assert_eq!(ans, 4.5);
     /// ```
@@ -2491,12 +2497,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mul1 = Float::with_val(4, 1.5);
-    /// // −13 in binary is −1101.
+    /// // -13 in binary is -1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let sub = Float::with_val(4, 24);
     ///
-    /// // 1.5 × −13 − 24 = −43.5, rounded to 44 using four bits of precision.
+    /// // 1.5 × -13 - 24 = -43.5, rounded to 44 using four bits of precision.
     /// let mul_sub = mul1.mul_sub(&mul2, &sub);
     /// assert_eq!(mul_sub, -44);
     /// ```
@@ -2520,12 +2526,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mut mul1 = Float::with_val(4, 1.5);
-    /// // −13 in binary is −1101.
+    /// // -13 in binary is -1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let sub = Float::with_val(4, 24);
     ///
-    /// // 1.5 × −13 − 24 = −43.5, rounded to 44 using four bits of precision.
+    /// // 1.5 × -13 - 24 = -43.5, rounded to 44 using four bits of precision.
     /// mul1.mul_sub_mut(&mul2, &sub);
     /// assert_eq!(mul1, -44);
     /// ```
@@ -2549,12 +2555,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mut mul1 = Float::with_val(4, 1.5);
-    /// // −13 in binary is −1101.
+    /// // -13 in binary is -1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let sub = Float::with_val(4, 24);
     ///
-    /// // 1.5 × −13 − 24 = −43.5, rounded to 44 using four bits of precision.
+    /// // 1.5 × -13 - 24 = -43.5, rounded to 44 using four bits of precision.
     /// let dir = mul1.mul_sub_round(&mul2, &sub, Round::Nearest);
     /// assert_eq!(mul1, -44);
     /// assert_eq!(dir, Ordering::Less);
@@ -2582,12 +2588,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mul1 = Float::with_val(4, 1.5);
-    /// // −13 in binary is −1101.
+    /// // -13 in binary is -1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let sub = Float::with_val(4, 24);
     ///
-    /// // 1.5 × −13 − 24 = −43.5, rounded to 44 using four bits of precision.
+    /// // 1.5 × -13 - 24 = -43.5, rounded to 44 using four bits of precision.
     /// let ans = Float::with_val(4, mul1.mul_sub_ref(&mul2, &sub));
     /// assert_eq!(ans, -44);
     /// ```
@@ -2728,7 +2734,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 × 1.5 − 12 × 2 = 12
+    /// // 24 × 1.5 - 12 × 2 = 12
     /// let mul_sub_mul = a.mul_sub_mul(&b, &c, &d);
     /// assert_eq!(mul_sub_mul, 12);
     /// ```
@@ -2753,7 +2759,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 × 1.5 − 12 × 2 = 12
+    /// // 24 × 1.5 - 12 × 2 = 12
     /// a.mul_sub_mul_mut(&b, &c, &d);
     /// assert_eq!(a, 12);
     /// ```
@@ -2778,7 +2784,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 × 1.5 − 12 × 2 = 12
+    /// // 24 × 1.5 - 12 × 2 = 12
     /// let dir = a.mul_sub_mul_round(&b, &c, &d, Round::Nearest);
     /// assert_eq!(a, 12);
     /// assert_eq!(dir, Ordering::Equal);
@@ -2813,7 +2819,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 × 1.5 − 12 × 2 = 12
+    /// // 24 × 1.5 - 12 × 2 = 12
     /// let ans = Float::with_val(53, a.mul_sub_mul_ref(&b, &c, &d));
     /// assert_eq!(ans, 12);
     /// ```
@@ -3404,7 +3410,7 @@ impl Float {
     /// Computes the signum.
     ///
     ///   * 1.0 if the value is positive, +0.0 or +∞
-    ///   * −1.0 if the value is negative, −0.0 or −∞
+    ///   * &minus;1.0 if the value is negative, &minus;0.0 or &minus;∞
     ///   * NaN if the value is NaN
     ///
     /// # Examples
@@ -3426,7 +3432,7 @@ impl Float {
     /// Computes the signum.
     ///
     ///   * 1.0 if the value is positive, +0.0 or +∞
-    ///   * −1.0 if the value is negative, −0.0 or −∞
+    ///   * &minus;1.0 if the value is negative, &minus;0.0 or &minus;∞
     ///   * NaN if the value is NaN
     ///
     /// # Examples
@@ -3445,7 +3451,7 @@ impl Float {
     /// Computes the signum.
     ///
     ///   * 1.0 if the value is positive, +0.0 or +∞
-    ///   * −1.0 if the value is negative, −0.0 or −∞
+    ///   * &minus;1.0 if the value is negative, &minus;0.0 or &minus;∞
     ///   * NaN if the value is NaN
     ///
     /// The following are implemented with the returned [incomplete-computation
@@ -3944,7 +3950,7 @@ impl Float {
     /// Computes the positive difference between `self` and `other`, rounding to
     /// the nearest.
     ///
-    /// The positive difference is `self` − `other` if `self` > `other`, zero if
+    /// The positive difference is `self` &minus; `other` if `self` > `other`, zero if
     /// `self` ≤ `other`, or NaN if any operand is NaN.
     ///
     /// # Examples
@@ -3968,7 +3974,7 @@ impl Float {
     /// Computes the positive difference between `self` and `other`, rounding to
     /// the nearest.
     ///
-    /// The positive difference is `self` − `other` if `self` > `other`, zero if
+    /// The positive difference is `self` &minus; `other` if `self` > `other`, zero if
     /// `self` ≤ `other`, or NaN if any operand is NaN.
     ///
     /// # Examples
@@ -3990,7 +3996,7 @@ impl Float {
     /// Computes the positive difference between `self` and `other`, applying
     /// the specified rounding method.
     ///
-    /// The positive difference is `self` − `other` if `self` > `other`, zero if
+    /// The positive difference is `self` &minus; `other` if `self` > `other`, zero if
     /// `self` ≤ `other`, or NaN if any operand is NaN.
     ///
     /// # Examples
@@ -4014,7 +4020,7 @@ impl Float {
 
     /// Computes the positive difference.
     ///
-    /// The positive difference is `self` − `other` if `self` > `other`, zero if
+    /// The positive difference is `self` &minus; `other` if `self` > `other`, zero if
     /// `self` ≤ `other`, or NaN if any operand is NaN.
     ///
     /// The following are implemented with the returned [incomplete-computation
@@ -5174,8 +5180,8 @@ impl Float {
     /// use rug::{float::Round, Float};
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, -0.75);
-    /// // asin(−0.75) = −0.8481
-    /// // using 4 significant bits: −0.875
+    /// // asin(-0.75) = -0.8481
+    /// // using 4 significant bits: -0.875
     /// let dir = f.asin_round(Round::Nearest);
     /// assert_eq!(f, -0.875);
     /// assert_eq!(dir, Ordering::Less);
@@ -5252,7 +5258,7 @@ impl Float {
     /// use rug::{float::Round, Float};
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, -0.75);
-    /// // acos(−0.75) = 2.4189
+    /// // acos(-0.75) = 2.4189
     /// // using 4 significant bits: 2.5
     /// let dir = f.acos_round(Round::Nearest);
     /// assert_eq!(f, 2.5);
@@ -5330,8 +5336,8 @@ impl Float {
     /// use rug::{float::Round, Float};
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, -0.75);
-    /// // atan(−0.75) = −0.6435
-    /// // using 4 significant bits: −0.625
+    /// // atan(-0.75) = -0.6435
+    /// // using 4 significant bits: -0.625
     /// let dir = f.atan_round(Round::Nearest);
     /// assert_eq!(f, -0.625);
     /// assert_eq!(dir, Ordering::Greater);
@@ -5421,7 +5427,7 @@ impl Float {
     /// // Use only 4 bits of precision to show rounding.
     /// let mut y = Float::with_val(4, 3.0);
     /// let x = Float::with_val(4, -4.0);
-    /// // atan2(3.0, −4.0) = 2.4981
+    /// // atan2(3.0, -4.0) = 2.4981
     /// // using 4 significant bits: 2.5
     /// let dir = y.atan2_round(&x, Round::Nearest);
     /// assert_eq!(y, 2.5);
@@ -6364,8 +6370,8 @@ impl Float {
     /// let two_to_m10 = (-10f64).exp2();
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
-    /// // ln_1p(1.5 × 2 ^ −10) = 1.4989 × 2 ^ −10
-    /// // using 4 significant bits: 1.5 × 2 ^ −10
+    /// // ln_1p(1.5 × 2 ^ -10) = 1.4989 × 2 ^ -10
+    /// // using 4 significant bits: 1.5 × 2 ^ -10
     /// let dir = f.ln_1p_round(Round::Nearest);
     /// assert_eq!(f, 1.5 * two_to_m10);
     /// assert_eq!(dir, Ordering::Greater);
@@ -6447,8 +6453,8 @@ impl Float {
     /// let two_to_m10 = (-10f64).exp2();
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
-    /// // exp_m1(1.5 × 2 ^ −10) = 1.5011 × 2 ^ −10
-    /// // using 4 significant bits: 1.5 × 2 ^ −10
+    /// // exp_m1(1.5 × 2 ^ -10) = 1.5011 × 2 ^ -10
+    /// // using 4 significant bits: 1.5 × 2 ^ -10
     /// let dir = f.exp_m1_round(Round::Nearest);
     /// assert_eq!(f, 1.5 * two_to_m10);
     /// assert_eq!(dir, Ordering::Less);
@@ -6855,8 +6861,8 @@ impl Float {
     /// use rug::{float::Round, Float};
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, 1.25);
-    /// // ln_gamma(1.25) = −0.0983
-    /// // using 4 significant bits: −0.1015625
+    /// // ln_gamma(1.25) = -0.0983
+    /// // using 4 significant bits: -0.1015625
     /// let dir = f.ln_gamma_round(Round::Nearest);
     /// assert_eq!(f, -0.1015625);
     /// assert_eq!(dir, Ordering::Less);
@@ -6922,13 +6928,13 @@ impl Float {
     /// use core::cmp::Ordering;
     /// use rug::{float::Constant, Float};
     ///
-    /// // gamma of −1/2 is −2√π
+    /// // gamma of -1/2 is -2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let f = Float::with_val(53, -0.5);
     /// let (ln_gamma, sign) = f.ln_abs_gamma();
-    /// // gamma of −1/2 is negative
+    /// // gamma of -1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
@@ -6953,13 +6959,13 @@ impl Float {
     /// use core::cmp::Ordering;
     /// use rug::{float::Constant, Float};
     ///
-    /// // gamma of −1/2 is −2√π
+    /// // gamma of -1/2 is -2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let mut f = Float::with_val(53, -0.5);
     /// let sign = f.ln_abs_gamma_mut();
-    /// // gamma of −1/2 is negative
+    /// // gamma of -1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
@@ -6986,13 +6992,13 @@ impl Float {
     ///     Float,
     /// };
     ///
-    /// // gamma of −1/2 is −2√π
+    /// // gamma of -1/2 is -2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let mut f = Float::with_val(53, -0.5);
     /// let (sign, dir) = f.ln_abs_gamma_round(Round::Nearest);
-    /// // gamma of −1/2 is negative
+    /// // gamma of -1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check is correct to 53 significant bits
     /// let (check, check_dir) =
@@ -7023,7 +7029,7 @@ impl Float {
     /// use rug::{float::Constant, Assign, Float};
     ///
     /// let neg1_2 = Float::with_val(53, -0.5);
-    /// // gamma of −1/2 is −2√π
+    /// // gamma of -1/2 is -2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
@@ -7031,7 +7037,7 @@ impl Float {
     /// let r = neg1_2.ln_abs_gamma_ref();
     /// let (mut f, mut sign) = (Float::new(53), Ordering::Equal);
     /// (&mut f, &mut sign).assign(r);
-    /// // gamma of −1/2 is negative
+    /// // gamma of -1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
@@ -7089,8 +7095,8 @@ impl Float {
     /// use rug::{float::Round, Float};
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, 1.25);
-    /// // digamma(1.25) = −0.2275
-    /// // using 4 significant bits: −0.234375
+    /// // digamma(1.25) = -0.2275
+    /// // using 4 significant bits: -0.234375
     /// let dir = f.digamma_round(Round::Nearest);
     /// assert_eq!(f, -0.234375);
     /// assert_eq!(dir, Ordering::Less);
@@ -7750,8 +7756,8 @@ impl Float {
     /// use rug::{float::Round, Float};
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, 1.25);
-    /// // y1(1.25) = −0.5844
-    /// // using 4 significant bits: −0.5625
+    /// // y1(1.25) = -0.5844
+    /// // using 4 significant bits: -0.5625
     /// let dir = f.y1_round(Round::Nearest);
     /// assert_eq!(f, -0.5625);
     /// assert_eq!(dir, Ordering::Greater);
@@ -7830,8 +7836,8 @@ impl Float {
     /// use rug::{float::Round, Float};
     /// // Use only 4 bits of precision to show rounding.
     /// let mut f = Float::with_val(4, 1.25);
-    /// // y2(1.25) = −1.1932
-    /// // using 4 significant bits: −1.25
+    /// // y2(1.25) = -1.1932
+    /// // using 4 significant bits: -1.25
     /// let dir = f.yn_round(2, Round::Nearest);
     /// assert_eq!(f, -1.25);
     /// assert_eq!(dir, Ordering::Less);
@@ -8644,15 +8650,16 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the range 0 ≤ <i>x</i> < 1.
+    /// Generates a random number in the range
+    /// 0&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
     ///
     /// This is equivalent to generating a random integer in the range
-    /// 0 ≤ <i>x</i> < 2<sup><i>p</i></sup>, where 2<sup><i>p</i></sup> is two
-    /// raised to the power of the precision, and then dividing the integer by
-    /// 2<sup><i>p</i></sup>. The smallest non-zero result will thus be
-    /// 2<sup>−<i>p</i></sup>, and will only have one bit set. In the smaller
-    /// possible results, many bits will be zero, and not all the precision will
-    /// be used.
+    /// 0&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;2<sup><i>p</i></sup>, where
+    /// 2<sup><i>p</i></sup> is two raised to the power of the precision, and
+    /// then dividing the integer by 2<sup><i>p</i></sup>. The smallest non-zero
+    /// result will thus be 2<sup>&minus;<i>p</i></sup>, and will only have one
+    /// bit set. In the smaller possible results, many bits will be zero, and
+    /// not all the precision will be used.
     ///
     /// There is a corner case where the generated random number is converted to
     /// NaN: if the precision is very large, the generated random number could
@@ -8686,7 +8693,8 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the continuous range 0 ≤ <i>x</i> < 1.
+    /// Generates a random number in the continuous range
+    /// 0&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
     ///
     /// The result can be rounded up to be equal to one. Unlike the
     /// [`random_bits`][Float::random_bits] method which generates a discrete
