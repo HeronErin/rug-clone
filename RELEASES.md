@@ -4,6 +4,17 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
+Version 1.16.0 (unreleased)
+===========================
+
+  * The new methods <code>[Float][flo-1-16]::[total\_cmp][flo-tc-1-16]</code>
+    and <code>[Complex][com-1-16]::[total\_cmp][com-tc-1-16]</code> were added.
+
+[com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
+[com-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.total_cmp
+[flo-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
+[flo-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.total_cmp
+
 Version 1.15.0 (2022-02-03)
 ===========================
 

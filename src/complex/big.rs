@@ -931,6 +931,38 @@ impl Complex {
         }
     }
 
+    /// Returns the total ordering between `self` and `other`.
+    ///
+    /// For ordering, the real part has precedence over the imaginary part.
+    /// Negative zero is ordered as less than positive zero. Negative NaN is
+    /// ordered as less than negative infinity, while positive NaN is ordered as
+    /// greater than positive infinity. Comparing two negative NaNs or two
+    /// positive NaNs produces equality.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Special, Complex};
+    /// let mut values = vec![
+    ///     Complex::with_val(53, (Special::Zero, Special::Zero)),
+    ///     Complex::with_val(53, (Special::Zero, Special::NegZero)),
+    ///     Complex::with_val(53, (Special::NegZero, Special::Infinity)),
+    /// ];
+    ///
+    /// values.sort_by(Complex::total_cmp);
+    ///
+    /// assert!(values[0].real().is_zero() && values[0].real().is_sign_negative());
+    /// assert!(values[0].imag().is_infinite() && values[0].imag().is_sign_positive());
+    /// assert!(values[1].real().is_zero() && values[1].real().is_sign_positive());
+    /// assert!(values[1].imag().is_zero() && values[1].imag().is_sign_negative());
+    /// assert!(values[2].real().is_zero() && values[2].real().is_sign_positive());
+    /// assert!(values[2].imag().is_zero() && values[2].imag().is_sign_positive());
+    /// ```
+    #[inline]
+    pub fn total_cmp(&self, other: &Complex) -> Ordering {
+        self.as_ord().cmp(other.as_ord())
+    }
+
     /// Adds a list of [`Complex`] numbers with correct rounding.
     ///
     /// The following are implemented with the returned [incomplete-computation

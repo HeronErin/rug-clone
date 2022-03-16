@@ -1613,6 +1613,40 @@ impl Float {
         }
     }
 
+    /// Returns the total ordering between `self` and `other`.
+    ///
+    /// Negative zero is ordered as less than positive zero. Negative NaN is
+    /// ordered as less than negative infinity, while positive NaN is ordered as
+    /// greater than positive infinity. Comparing two negative NaNs or two
+    /// positive NaNs produces equality.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::Special, Float};
+    /// let mut values = vec![
+    ///     Float::with_val(53, Special::Zero),
+    ///     Float::with_val(53, Special::NegZero),
+    ///     Float::with_val(53, Special::Infinity),
+    ///     Float::with_val(53, Special::NegInfinity),
+    ///     Float::with_val(53, Special::Nan),
+    ///     -Float::with_val(53, Special::Nan),
+    /// ];
+    ///
+    /// values.sort_by(Float::total_cmp);
+    ///
+    /// assert!(values[0].is_nan() && values[0].is_sign_negative());
+    /// assert!(values[1].is_infinite() && values[1].is_sign_negative());
+    /// assert!(values[2].is_zero() && values[2].is_sign_negative());
+    /// assert!(values[3].is_zero() && values[3].is_sign_positive());
+    /// assert!(values[4].is_infinite() && values[4].is_sign_positive());
+    /// assert!(values[5].is_nan() && values[5].is_sign_positive());
+    /// ```
+    #[inline]
+    pub fn total_cmp(&self, other: &Float) -> Ordering {
+        self.as_ord().cmp(other.as_ord())
+    }
+
     /// If the value is a [normal number][Float::is_normal], returns its
     /// exponent.
     ///

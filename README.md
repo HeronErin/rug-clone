@@ -28,6 +28,16 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
+### Version 1.16.0 news (unreleased)
+
+  * The new methods <code>[Float][flo-1-16]::[total\_cmp][flo-tc-1-16]</code>
+    and <code>[Complex][com-1-16]::[total\_cmp][com-tc-1-16]</code> were added.
+
+[com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
+[com-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.total_cmp
+[flo-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
+[flo-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.total_cmp
+
 ### Version 1.15.0 news (2022-02-03)
 
   * Now [`Integer`][int-1-15], [`Rational`][rat-1-15], [`Float`][flo-1-15] and
