@@ -14,7 +14,7 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpfr, Float};
+use crate::Float;
 use core::{
     cmp::Ordering,
     hash::{Hash, Hasher},
@@ -133,44 +133,7 @@ impl Eq for OrdFloat {}
 impl Ord for OrdFloat {
     #[inline]
     fn cmp(&self, other: &OrdFloat) -> Ordering {
-        let s = &self.inner;
-        let o = &other.inner;
-        let s_neg = s.is_sign_negative();
-        let o_neg = o.is_sign_negative();
-        if s_neg != o_neg {
-            return if s_neg {
-                // -0 < +0
-                Ordering::Less
-            } else {
-                // +0 > -0
-                Ordering::Greater
-            };
-        }
-        let s_nan = s.is_nan();
-        let o_nan = o.is_nan();
-        if s_nan {
-            return if o_nan {
-                // ±NaN = ±NaN
-                Ordering::Equal
-            } else if s_neg {
-                // -NaN < -∞
-                Ordering::Less
-            } else {
-                // +NaN > +∞
-                Ordering::Greater
-            };
-        }
-        if o_nan {
-            return if o_neg {
-                // -∞ > -NaN
-                Ordering::Greater
-            } else {
-                // +∞ < +NaN
-                Ordering::Less
-            };
-        }
-        // we have already handled zeros with different sign and NaNs
-        xmpfr::cmp(s, o)
+        self.inner.total_cmp(&other.inner)
     }
 }
 

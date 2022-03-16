@@ -1644,7 +1644,42 @@ impl Float {
     /// ```
     #[inline]
     pub fn total_cmp(&self, other: &Float) -> Ordering {
-        self.as_ord().cmp(other.as_ord())
+        let s_neg = self.is_sign_negative();
+        let o_neg = other.is_sign_negative();
+        if s_neg != o_neg {
+            return if s_neg {
+                // -0 < +0
+                Ordering::Less
+            } else {
+                // +0 > -0
+                Ordering::Greater
+            };
+        }
+        let s_nan = self.is_nan();
+        let o_nan = other.is_nan();
+        if s_nan {
+            return if o_nan {
+                // ±NaN = ±NaN
+                Ordering::Equal
+            } else if s_neg {
+                // -NaN < -∞
+                Ordering::Less
+            } else {
+                // +NaN > +∞
+                Ordering::Greater
+            };
+        }
+        if o_nan {
+            return if o_neg {
+                // -∞ > -NaN
+                Ordering::Greater
+            } else {
+                // +∞ < +NaN
+                Ordering::Less
+            };
+        }
+        // we have already handled zeros with different sign and NaNs
+        xmpfr::cmp(self, other)
     }
 
     /// If the value is a [normal number][Float::is_normal], returns its

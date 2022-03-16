@@ -960,7 +960,9 @@ impl Complex {
     /// ```
     #[inline]
     pub fn total_cmp(&self, other: &Complex) -> Ordering {
-        self.as_ord().cmp(other.as_ord())
+        self.real()
+            .total_cmp(other.real())
+            .then_with(|| self.imag().total_cmp(other.imag()))
     }
 
     /// Adds a list of [`Complex`] numbers with correct rounding.

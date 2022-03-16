@@ -114,8 +114,7 @@ impl Eq for OrdComplex {}
 impl Ord for OrdComplex {
     #[inline]
     fn cmp(&self, other: &OrdComplex) -> Ordering {
-        (self.inner.real().as_ord().cmp(other.inner.real().as_ord()))
-            .then_with(|| self.inner.imag().as_ord().cmp(other.inner.imag().as_ord()))
+        self.inner.total_cmp(&other.inner)
     }
 }
 
