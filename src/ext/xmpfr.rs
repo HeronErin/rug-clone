@@ -409,6 +409,10 @@ unsafe_wrap! { fn acos(op: O) -> mpfr::acos }
 unsafe_wrap! { fn asin(op: O) -> mpfr::asin }
 unsafe_wrap! { fn atan(op: O) -> mpfr::atan }
 unsafe_wrap! { fn atan2(y: O, x: P) -> mpfr::atan2 }
+unsafe_wrap! { fn acosu(op: O; u: u32) -> mpfr::acosu }
+unsafe_wrap! { fn asinu(op: O; u: u32) -> mpfr::asinu }
+unsafe_wrap! { fn atanu(op: O; u: u32) -> mpfr::atanu }
+unsafe_wrap! { fn atan2u(y: O, x: P; u: u32) -> mpfr::atan2u }
 unsafe_wrap! { fn cosh(op: O) -> mpfr::cosh }
 unsafe_wrap! { fn sinh(op: O) -> mpfr::sinh }
 unsafe_wrap! { fn tanh(op: O) -> mpfr::tanh }

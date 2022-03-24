@@ -48,6 +48,14 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
         [`cos_pi_round`][flo-cpro-1-19], [`cos_pi_ref`][flo-cpre-1-19]
       * [`tan_pi`][flo-tp-1-19], [`tan_pi_mut`][flo-tpm-1-19],
         [`tan_pi_round`][flo-tpro-1-19], [`tan_pi_ref`][flo-tpre-1-19]
+      * [`asin_u`][flo-asu-1-19], [`asin_u_mut`][flo-asum-1-19],
+        [`asin_u_round`][flo-asuro-1-19], [`asin_u_ref`][flo-asure-1-19]
+      * [`acos_u`][flo-acu-1-19], [`acos_u_mut`][flo-acum-1-19],
+        [`acos_u_round`][flo-acuro-1-19], [`acos_u_ref`][flo-acure-1-19]
+      * [`atan_u`][flo-atu-1-19], [`atan_u_mut`][flo-atum-1-19],
+        [`atan_u_round`][flo-aturo-1-19], [`atan_u_ref`][flo-ature-1-19]
+      * [`atan2_u`][flo-at2u-1-19], [`atan2_u_mut`][flo-at2um-1-19],
+        [`atan2_u_round`][flo-at2uro-1-19], [`atan2_u_ref`][flo-at2ure-1-19]
   * The following methods were added to [`Complex`][com-1-19]:
       * [`agm`][com-a-1-19], [`agm_mut`][com-am-1-19],
         [`agm_round`][com-aro-1-19], [`agm_ref`][com-are-1-19]
@@ -122,8 +130,24 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [com-r-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.real
 [flo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html
 [flo-ac-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_complex
+[flo-acu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_u
+[flo-acum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_u_mut
+[flo-acure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_u_ref
+[flo-acuro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_u_round
 [flo-ao-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_ord
 [flo-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_raw
+[flo-asu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_u
+[flo-asum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_u_mut
+[flo-asure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_u_ref
+[flo-asuro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_u_round
+[flo-at2u-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_u
+[flo-at2um-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_u_mut
+[flo-at2ure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_u_ref
+[flo-at2uro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_u_round
+[flo-atu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_u
+[flo-atum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_u_mut
+[flo-ature-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_u_ref
+[flo-aturo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_u_round
 [flo-cl-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.classify
 [flo-cm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cmp0
 [flo-cp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_pi

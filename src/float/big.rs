@@ -5098,14 +5098,17 @@ impl Float {
     /// Computes the sine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to the
     /// nearest.
     ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the sine for
+    /// `self` in degrees.
+    ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 60);
-    /// let sin_u = f.sin_u(360);
+    /// let sin = f.sin_u(360);
     /// let expected = 0.75_f64.sqrt();
-    /// assert!((sin_u - expected).abs() < 0.0001);
+    /// assert!((sin - expected).abs() < 0.0001);
     /// ```
     #[inline]
     #[must_use]
@@ -5116,6 +5119,9 @@ impl Float {
 
     /// Computes the sine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to the
     /// nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the sine for
+    /// `self` in degrees.
     ///
     /// # Examples
     ///
@@ -5133,6 +5139,9 @@ impl Float {
 
     /// Computes the sine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, applying the
     /// specified rounding method.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the sine for
+    /// `self` in degrees.
     ///
     /// # Examples
     ///
@@ -5154,6 +5163,9 @@ impl Float {
 
     /// Computes the sine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`.
     ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the sine for
+    /// `self` in degrees.
+    ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
@@ -5165,9 +5177,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 60);
-    /// let sin_u = Float::with_val(53, f.sin_u_ref(360));
+    /// let sin = Float::with_val(53, f.sin_u_ref(360));
     /// let expected = 0.75_f64.sqrt();
-    /// assert!((sin_u - expected).abs() < 0.0001);
+    /// assert!((sin - expected).abs() < 0.0001);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
@@ -5179,14 +5191,17 @@ impl Float {
     /// Computes the cosine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to the
     /// nearest.
     ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the cosine for
+    /// `self` in degrees.
+    ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 30);
-    /// let cos_u = f.cos_u(360);
+    /// let cos = f.cos_u(360);
     /// let expected = 0.75_f64.sqrt();
-    /// assert!((cos_u - expected).abs() < 0.0001);
+    /// assert!((cos - expected).abs() < 0.0001);
     /// ```
     #[inline]
     #[must_use]
@@ -5197,6 +5212,9 @@ impl Float {
 
     /// Computes the cosine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to the
     /// nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the cosine for
+    /// `self` in degrees.
     ///
     /// # Examples
     ///
@@ -5214,6 +5232,9 @@ impl Float {
 
     /// Computes the cosine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, applying the
     /// specified rounding method.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the cosine for
+    /// `self` in degrees.
     ///
     /// # Examples
     ///
@@ -5235,6 +5256,9 @@ impl Float {
 
     /// Computes the cosine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`.
     ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the cosine for
+    /// `self` in degrees.
+    ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
@@ -5246,9 +5270,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 30);
-    /// let cos_u = Float::with_val(53, f.cos_u_ref(360));
+    /// let cos = Float::with_val(53, f.cos_u_ref(360));
     /// let expected = 0.75_f64.sqrt();
-    /// assert!((cos_u - expected).abs() < 0.0001);
+    /// assert!((cos - expected).abs() < 0.0001);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
@@ -5260,14 +5284,17 @@ impl Float {
     /// Computes the tangent of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to
     /// the nearest.
     ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the tangent for
+    /// `self` in degrees.
+    ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 60);
-    /// let tan_u = f.tan_u(360);
+    /// let tan = f.tan_u(360);
     /// let expected = 3_f64.sqrt();
-    /// assert!((tan_u - expected).abs() < 0.0001);
+    /// assert!((tan - expected).abs() < 0.0001);
     /// ```
     #[inline]
     #[must_use]
@@ -5278,6 +5305,9 @@ impl Float {
 
     /// Computes the tangent of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to
     /// the nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the tangent for
+    /// `self` in degrees.
     ///
     /// # Examples
     ///
@@ -5295,6 +5325,9 @@ impl Float {
 
     /// Computes the tangent of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, applying the
     /// specified rounding method.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the tangent for
+    /// `self` in degrees.
     ///
     /// # Examples
     ///
@@ -5316,6 +5349,9 @@ impl Float {
 
     /// Computes the tangent of (2π/<i>u</i>)&nbsp;×&nbsp;`self`.
     ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the tangent for
+    /// `self` in degrees.
+    ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Float]</code>
@@ -5327,9 +5363,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 60);
-    /// let tan_u = Float::with_val(53, f.tan_u_ref(360));
+    /// let tan = Float::with_val(53, f.tan_u_ref(360));
     /// let expected = 3_f64.sqrt();
-    /// assert!((tan_u - expected).abs() < 0.0001);
+    /// assert!((tan - expected).abs() < 0.0001);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
@@ -5340,14 +5376,17 @@ impl Float {
 
     /// Computes the sine of π&nbsp;×&nbsp;`self`, rounding to the nearest.
     ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the tangent for
+    /// `self` in degrees.
+    ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 0.25);
-    /// let sin_pi = f.sin_pi();
+    /// let sin = f.sin_pi();
     /// let expected = 0.5_f64.sqrt();
-    /// assert!((sin_pi - expected).abs() < 0.0001);
+    /// assert!((sin - expected).abs() < 0.0001);
     /// ```
     #[inline]
     #[must_use]
@@ -5406,9 +5445,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 0.25);
-    /// let sin_pi = Float::with_val(53, f.sin_pi_ref());
+    /// let sin = Float::with_val(53, f.sin_pi_ref());
     /// let expected = 0.5_f64.sqrt();
-    /// assert!((sin_pi - expected).abs() < 0.0001);
+    /// assert!((sin - expected).abs() < 0.0001);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
@@ -5424,9 +5463,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 0.25);
-    /// let cos_pi = f.cos_pi();
+    /// let cos = f.cos_pi();
     /// let expected = 0.5_f64.sqrt();
-    /// assert!((cos_pi - expected).abs() < 0.0001);
+    /// assert!((cos - expected).abs() < 0.0001);
     /// ```
     #[inline]
     #[must_use]
@@ -5485,9 +5524,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 0.25);
-    /// let cos_pi = Float::with_val(53, f.cos_pi_ref());
+    /// let cos = Float::with_val(53, f.cos_pi_ref());
     /// let expected = 0.5_f64.sqrt();
-    /// assert!((cos_pi - expected).abs() < 0.0001);
+    /// assert!((cos - expected).abs() < 0.0001);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
@@ -5503,9 +5542,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 0.125);
-    /// let tan_pi = f.tan_pi();
+    /// let tan = f.tan_pi();
     /// let expected = 0.4142_f64;
-    /// assert!((tan_pi - expected).abs() < 0.0001);
+    /// assert!((tan - expected).abs() < 0.0001);
     /// ```
     #[inline]
     #[must_use]
@@ -5564,9 +5603,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let f = Float::with_val(53, 0.125);
-    /// let tan_pi = Float::with_val(53, f.tan_pi_ref());
+    /// let tan = Float::with_val(53, f.tan_pi_ref());
     /// let expected = 0.4142_f64;
-    /// assert!((tan_pi - expected).abs() < 0.0001);
+    /// assert!((tan - expected).abs() < 0.0001);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
@@ -6117,7 +6156,7 @@ impl Float {
         xmpfr::atan2(self, (), x, round)
     }
 
-    /// Computes the arc-tangent.
+    /// Computes the arc-tangent2.
     ///
     /// This is similar to the arc-tangent of `self / x`, but has an output
     /// range of 2π rather than π.
@@ -6144,6 +6183,399 @@ impl Float {
     #[inline]
     pub fn atan2_ref<'a>(&'a self, x: &'a Self) -> Atan2Incomplete<'_> {
         Atan2Incomplete { ref_self: self, x }
+    }
+
+    /// Computes the arc-sine then divides by 2π/<i>u</i>, rounding to the
+    /// nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-sine in
+    /// degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let asin = f.asin_u(360);
+    /// let expected = -48.5904_f64;
+    /// assert!((asin - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn asin_u(mut self, u: u32) -> Self {
+        self.asin_u_round(u, Round::Nearest);
+        self
+    }
+
+    /// Computes the arc-sine then divides by 2π/<i>u</i>, rounding to the
+    /// nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-sine in
+    /// degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.asin_u_mut(360);
+    /// let expected = -48.5904_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asin_u_mut(&mut self, u: u32) {
+        self.asin_u_round(u, Round::Nearest);
+    }
+
+    /// Computes the arc-sine then divides by 2π/<i>u</i>, applying the
+    /// specified rounding method.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-sine in
+    /// degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // asin(-0.75) = -48.5904°
+    /// // using 4 significant bits: -48
+    /// let dir = f.asin_u_round(360, Round::Nearest);
+    /// assert_eq!(f, -48);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn asin_u_round(&mut self, u: u32, round: Round) -> Ordering {
+        xmpfr::asinu(self, (), u, round)
+    }
+
+    /// Computes the arc-sine then divides by 2π/<i>u</i>.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-sine in
+    /// degrees.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let asin = Float::with_val(53, f.asin_u_ref(360));
+    /// let expected = -48.5904_f64;
+    /// assert!((asin - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn asin_u_ref(&self, u: u32) -> AsinUIncomplete<'_> {
+        AsinUIncomplete { ref_self: self, u }
+    }
+
+    /// Computes the arc-cosine then divides by 2π/<i>u</i>, rounding to the
+    /// nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-cosine in
+    /// degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let acos = f.acos_u(360);
+    /// let expected = 138.5904_f64;
+    /// assert!((acos - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn acos_u(mut self, u: u32) -> Self {
+        self.acos_u_round(u, Round::Nearest);
+        self
+    }
+
+    /// Computes the arc-cosine then divides by 2π/<i>u</i>, rounding to the
+    /// nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-cosine in
+    /// degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.acos_u_mut(360);
+    /// let expected = 138.5904_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acos_u_mut(&mut self, u: u32) {
+        self.acos_u_round(u, Round::Nearest);
+    }
+
+    /// Computes the arc-cosine then divides by 2π/<i>u</i>, applying the
+    /// specified rounding method.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-cosine in
+    /// degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // acos(-0.75) = 138.5904°
+    /// // using 4 significant bits: 144
+    /// let dir = f.acos_u_round(360, Round::Nearest);
+    /// assert_eq!(f, 144);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn acos_u_round(&mut self, u: u32, round: Round) -> Ordering {
+        xmpfr::acosu(self, (), u, round)
+    }
+
+    /// Computes the arc-cosine then divides by 2π/<i>u</i>.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-cosine in
+    /// degrees.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let acos = Float::with_val(53, f.acos_u_ref(360));
+    /// let expected = 138.5904_f64;
+    /// assert!((acos - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn acos_u_ref(&self, u: u32) -> AcosUIncomplete<'_> {
+        AcosUIncomplete { ref_self: self, u }
+    }
+
+    /// Computes the arc-tangent then divides by 2π/<i>u</i>, rounding to the
+    /// nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-tangent
+    /// in degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let atan = f.atan_u(360);
+    /// let expected = -36.8699_f64;
+    /// assert!((atan - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn atan_u(mut self, u: u32) -> Self {
+        self.atan_u_round(u, Round::Nearest);
+        self
+    }
+
+    /// Computes the arc-tangent then divides by 2π/<i>u</i>, rounding to the
+    /// nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-tangent
+    /// in degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.atan_u_mut(360);
+    /// let expected = -36.8699_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan_u_mut(&mut self, u: u32) {
+        self.atan_u_round(u, Round::Nearest);
+    }
+
+    /// Computes the arc-tangent then divides by 2π/<i>u</i>, applying the
+    /// specified rounding method.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-tangent
+    /// in degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // atan(-0.75) = -36.8699°
+    /// // using 4 significant bits: -36
+    /// let dir = f.atan_u_round(360, Round::Nearest);
+    /// assert_eq!(f, -36);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn atan_u_round(&mut self, u: u32, round: Round) -> Ordering {
+        xmpfr::atanu(self, (), u, round)
+    }
+
+    /// Computes the arc-tangent then divides by 2π/<i>u</i>.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-tangent
+    /// in degrees.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let atan = Float::with_val(53, f.atan_u_ref(360));
+    /// let expected = -36.8699_f64;
+    /// assert!((atan - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn atan_u_ref(&self, u: u32) -> AtanUIncomplete<'_> {
+        AtanUIncomplete { ref_self: self, u }
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x` then divides by 2π/<i>u</i>,
+    /// rounding to the nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-tangent
+    /// in degrees.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of <i>u</i> rather than <i>u</i>/2.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// let atan2 = y.atan2_u(&x, 360);
+    /// let expected = 143.1301_f64;
+    /// assert!((atan2 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn atan2_u(mut self, x: &Self, u: u32) -> Self {
+        self.atan2_u_round(x, u, Round::Nearest);
+        self
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x` then divides by 2π/<i>u</i>,
+    /// rounding to the nearest.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-tangent
+    /// in degrees.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of <i>u</i> rather than <i>u</i>/2.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// y.atan2_u_mut(&x, 360);
+    /// let expected = 143.1301_f64;
+    /// assert!((y - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan2_u_mut(&mut self, x: &Self, u: u32) {
+        self.atan2_u_round(x, u, Round::Nearest);
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x` then divides by 2π/<i>u</i>,
+    /// applying the specified rounding method.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-tangent
+    /// in degrees.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of <i>u</i> rather than <i>u</i>/2.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut y = Float::with_val(4, 3.0);
+    /// let x = Float::with_val(4, -4.0);
+    /// // atan2(3.0, -4.0) = 143.1301°
+    /// // using 4 significant bits: 144
+    /// let dir = y.atan2_u_round(&x, 360, Round::Nearest);
+    /// assert_eq!(y, 144);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn atan2_u_round(&mut self, x: &Self, u: u32, round: Round) -> Ordering {
+        xmpfr::atan2u(self, (), x, u, round)
+    }
+
+    /// Computes the arc-tangent2 then divides by 2π/<i>u</i>.
+    ///
+    /// For example, if <i>u</i>&nbsp;=&nbsp;360, then this is the arc-tangent
+    /// in degrees.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of <i>u</i> rather than <i>u</i>/2.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// let r = y.atan2_u_ref(&x, 360);
+    /// let atan2 = Float::with_val(53, r);
+    /// let expected = 143.1301_f64;
+    /// assert!((atan2 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn atan2_u_ref<'a>(&'a self, x: &'a Self, u: u32) -> Atan2UIncomplete<'_> {
+        Atan2UIncomplete {
+            ref_self: self,
+            x,
+            u,
+        }
     }
 
     /// Computes the hyperbolic sine, rounding to the nearest.
@@ -9924,6 +10356,10 @@ ref_math_op1_float! { xmpfr::acos; struct AcosIncomplete {} }
 ref_math_op1_float! { xmpfr::asin; struct AsinIncomplete {} }
 ref_math_op1_float! { xmpfr::atan; struct AtanIncomplete {} }
 ref_math_op2_float! { xmpfr::atan2; struct Atan2Incomplete { x } }
+ref_math_op1_float! { xmpfr::acosu; struct AcosUIncomplete { u: u32 } }
+ref_math_op1_float! { xmpfr::asinu; struct AsinUIncomplete { u: u32 } }
+ref_math_op1_float! { xmpfr::atanu; struct AtanUIncomplete { u: u32 } }
+ref_math_op2_float! { xmpfr::atan2u; struct Atan2UIncomplete { x, u: u32 } }
 ref_math_op1_float! { xmpfr::cosh; struct CoshIncomplete {} }
 ref_math_op1_float! { xmpfr::sinh; struct SinhIncomplete {} }
 ref_math_op1_float! { xmpfr::tanh; struct TanhIncomplete {} }
