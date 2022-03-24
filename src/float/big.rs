@@ -5095,6 +5095,249 @@ impl Float {
         SinCosIncomplete { ref_self: self }
     }
 
+    /// Computes the sine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 60);
+    /// let sin_u = f.sin_u(360);
+    /// let expected = 0.75_f64.sqrt();
+    /// assert!((sin_u - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn sin_u(mut self, u: u32) -> Self {
+        self.sin_u_round(u, Round::Nearest);
+        self
+    }
+
+    /// Computes the sine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 60);
+    /// f.sin_u_mut(360);
+    /// let expected = 0.75_f64.sqrt();
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn sin_u_mut(&mut self, u: u32) {
+        self.sin_u_round(u, Round::Nearest);
+    }
+
+    /// Computes the sine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 60);
+    /// // sin(60°) = 0.8660
+    /// // using 4 significant bits: 0.875
+    /// let dir = f.sin_u_round(360, Round::Nearest);
+    /// assert_eq!(f, 0.875);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn sin_u_round(&mut self, u: u32, round: Round) -> Ordering {
+        xmpfr::sinu(self, (), u, round)
+    }
+
+    /// Computes the sine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 60);
+    /// let sin_u = Float::with_val(53, f.sin_u_ref(360));
+    /// let expected = 0.75_f64.sqrt();
+    /// assert!((sin_u - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn sin_u_ref(&self, u: u32) -> SinUIncomplete<'_> {
+        SinUIncomplete { ref_self: self, u }
+    }
+
+    /// Computes the cosine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 30);
+    /// let cos_u = f.cos_u(360);
+    /// let expected = 0.75_f64.sqrt();
+    /// assert!((cos_u - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn cos_u(mut self, u: u32) -> Self {
+        self.cos_u_round(u, Round::Nearest);
+        self
+    }
+
+    /// Computes the cosine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 30);
+    /// f.cos_u_mut(360);
+    /// let expected = 0.75_f64.sqrt();
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn cos_u_mut(&mut self, u: u32) {
+        self.cos_u_round(u, Round::Nearest);
+    }
+
+    /// Computes the cosine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 30);
+    /// // cos(30°) = 0.8660
+    /// // using 4 significant bits: 0.875
+    /// let dir = f.cos_u_round(360, Round::Nearest);
+    /// assert_eq!(f, 0.875);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn cos_u_round(&mut self, u: u32, round: Round) -> Ordering {
+        xmpfr::cosu(self, (), u, round)
+    }
+
+    /// Computes the cosine of (2π/<i>u</i>)&nbsp;×&nbsp;`self`.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 30);
+    /// let cos_u = Float::with_val(53, f.cos_u_ref(360));
+    /// let expected = 0.75_f64.sqrt();
+    /// assert!((cos_u - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn cos_u_ref(&self, u: u32) -> CosUIncomplete<'_> {
+        CosUIncomplete { ref_self: self, u }
+    }
+
+    /// Computes the tangent of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to
+    /// the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 60);
+    /// let tan_u = f.tan_u(360);
+    /// let expected = 3_f64.sqrt();
+    /// assert!((tan_u - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn tan_u(mut self, u: u32) -> Self {
+        self.tan_u_round(u, Round::Nearest);
+        self
+    }
+
+    /// Computes the tangent of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, rounding to
+    /// the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 60);
+    /// f.tan_u_mut(360);
+    /// let expected = 3_f64.sqrt();
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn tan_u_mut(&mut self, u: u32) {
+        self.tan_u_round(u, Round::Nearest);
+    }
+
+    /// Computes the tangent of (2π/<i>u</i>)&nbsp;×&nbsp;`self`, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 60);
+    /// // tan(60°) = 1.7321
+    /// // using 4 significant bits: 1.75
+    /// let dir = f.tan_u_round(360, Round::Nearest);
+    /// assert_eq!(f, 1.75);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn tan_u_round(&mut self, u: u32, round: Round) -> Ordering {
+        xmpfr::tanu(self, (), u, round)
+    }
+
+    /// Computes the tangent of (2π/<i>u</i>)&nbsp;×&nbsp;`self`.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 60);
+    /// let tan_u = Float::with_val(53, f.tan_u_ref(360));
+    /// let expected = 3_f64.sqrt();
+    /// assert!((tan_u - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn tan_u_ref(&self, u: u32) -> TanUIncomplete<'_> {
+        TanUIncomplete { ref_self: self, u }
+    }
+
     /// Computes the secant, rounding to the nearest.
     ///
     /// # Examples
@@ -9431,6 +9674,9 @@ ref_math_op1_float! { xmpfr::sin; struct SinIncomplete {} }
 ref_math_op1_float! { xmpfr::cos; struct CosIncomplete {} }
 ref_math_op1_float! { xmpfr::tan; struct TanIncomplete {} }
 ref_math_op1_2_float! { xmpfr::sin_cos; struct SinCosIncomplete {} }
+ref_math_op1_float! { xmpfr::sinu; struct SinUIncomplete { u: u32 } }
+ref_math_op1_float! { xmpfr::cosu; struct CosUIncomplete { u: u32 } }
+ref_math_op1_float! { xmpfr::tanu; struct TanUIncomplete { u: u32 } }
 ref_math_op1_float! { xmpfr::sec; struct SecIncomplete {} }
 ref_math_op1_float! { xmpfr::csc; struct CscIncomplete {} }
 ref_math_op1_float! { xmpfr::cot; struct CotIncomplete {} }

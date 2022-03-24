@@ -396,6 +396,9 @@ unsafe_wrap! { fn exp10(op: O) -> mpfr::exp10 }
 unsafe_wrap! { fn sin(op: O) -> mpfr::sin }
 unsafe_wrap! { fn cos(op: O) -> mpfr::cos }
 unsafe_wrap! { fn tan(op: O) -> mpfr::tan }
+unsafe_wrap! { fn sinu(op: O; u: u32) -> mpfr::sinu }
+unsafe_wrap! { fn cosu(op: O; u: u32) -> mpfr::cosu }
+unsafe_wrap! { fn tanu(op: O; u: u32) -> mpfr::tanu }
 unsafe_wrap! { fn sec(op: O) -> mpfr::sec }
 unsafe_wrap! { fn csc(op: O) -> mpfr::csc }
 unsafe_wrap! { fn cot(op: O) -> mpfr::cot }

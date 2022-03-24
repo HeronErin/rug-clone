@@ -35,6 +35,13 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     1.5][sys-1-5].
   * The <code>[Round][r-1-19]::[AwayZero][r-az-1-19]</code> rounding mode was
     added.
+  * The following methods were added to [`Float`][flo-1-19]:
+      * [`sin_u`][flo-su-1-19], [`sin_u_mut`][flo-sum-1-19],
+        [`sin_u_round`][flo-suro-1-19], [`sin_u_ref`][flo-sure-1-19]
+      * [`cos_u`][flo-cu-1-19], [`cos_u_mut`][flo-cum-1-19],
+        [`cos_u_round`][flo-curo-1-19], [`cos_u_ref`][flo-cure-1-19]
+      * [`tan_u`][flo-tu-1-19], [`tan_u_mut`][flo-tum-1-19],
+        [`tan_u_round`][flo-turo-1-19], [`tan_u_ref`][flo-ture-1-19]
   * The following methods were added to [`Complex`][com-1-19]:
       * [`agm`][com-a-1-19], [`agm_mut`][com-am-1-19],
         [`agm_round`][com-aro-1-19], [`agm_ref`][com-are-1-19]
@@ -113,6 +120,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [flo-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_raw
 [flo-cl-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.classify
 [flo-cm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cmp0
+[flo-cu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u
+[flo-cum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u_mut
+[flo-cure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u_ref
+[flo-curo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u_round
 [flo-fr-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.from_raw
 [flo-ge-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.get_exp
 [flo-if-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_finite
@@ -124,6 +135,14 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [flo-isp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_sign_positive
 [flo-iz-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_zero
 [flo-p-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.prec
+[flo-su-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_u
+[flo-sum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_u_mut
+[flo-sure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_u_ref
+[flo-suro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_u_round
+[flo-tu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_u
+[flo-tum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_u_mut
+[flo-ture-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_u_ref
+[flo-turo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_u_round
 [int-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html
 [int-aa-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.as_abs
 [int-al-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.as_limbs
