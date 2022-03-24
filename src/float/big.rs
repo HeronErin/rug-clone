@@ -6578,6 +6578,341 @@ impl Float {
         }
     }
 
+    /// Computes the arc-sine then divides by π, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let asin = f.asin_pi();
+    /// let expected = -0.2699_f64;
+    /// assert!((asin - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn asin_pi(mut self) -> Self {
+        self.asin_pi_round(Round::Nearest);
+        self
+    }
+
+    /// Computes the arc-sine then divides by π, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.asin_pi_mut();
+    /// let expected = -0.2699_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn asin_pi_mut(&mut self) {
+        self.asin_pi_round(Round::Nearest);
+    }
+
+    /// Computes the arc-sine then divides by π, applying the specified rounding
+    /// method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // asin(-0.75) = -0.2699
+    /// // using 4 significant bits: -0.28125
+    /// let dir = f.asin_pi_round(Round::Nearest);
+    /// assert_eq!(f, -0.28125);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn asin_pi_round(&mut self, round: Round) -> Ordering {
+        xmpfr::asinpi(self, (), round)
+    }
+
+    /// Computes the arc-sine then divides by π.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let asin = Float::with_val(53, f.asin_pi_ref());
+    /// let expected = -0.2699_f64;
+    /// assert!((asin - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn asin_pi_ref(&self) -> AsinPiIncomplete<'_> {
+        AsinPiIncomplete { ref_self: self }
+    }
+
+    /// Computes the arc-cosine then divides by π, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let acos = f.acos_pi();
+    /// let expected = 0.7699_f64;
+    /// assert!((acos - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn acos_pi(mut self) -> Self {
+        self.acos_pi_round(Round::Nearest);
+        self
+    }
+
+    /// Computes the arc-cosine then divides by π, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.acos_pi_mut();
+    /// let expected = 0.7699_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn acos_pi_mut(&mut self) {
+        self.acos_pi_round(Round::Nearest);
+    }
+
+    /// Computes the arc-cosine then divides by π, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // acos(-0.75) = 0.7699
+    /// // using 4 significant bits: 0.75
+    /// let dir = f.acos_pi_round(Round::Nearest);
+    /// assert_eq!(f, 0.75);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn acos_pi_round(&mut self, round: Round) -> Ordering {
+        xmpfr::acospi(self, (), round)
+    }
+
+    /// Computes the arc-cosine then divides by π.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let acos = Float::with_val(53, f.acos_pi_ref());
+    /// let expected = 0.7699_f64;
+    /// assert!((acos - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn acos_pi_ref(&self) -> AcosPiIncomplete<'_> {
+        AcosPiIncomplete { ref_self: self }
+    }
+
+    /// Computes the arc-tangent then divides by π, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let atan = f.atan_pi();
+    /// let expected = -0.2048_f64;
+    /// assert!((atan - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn atan_pi(mut self) -> Self {
+        self.atan_pi_round(Round::Nearest);
+        self
+    }
+
+    /// Computes the arc-tangent then divides by π, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, -0.75);
+    /// f.atan_pi_mut();
+    /// let expected = -0.2048_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan_pi_mut(&mut self) {
+        self.atan_pi_round(Round::Nearest);
+    }
+
+    /// Computes the arc-tangent then divides by π, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, -0.75);
+    /// // atan(-0.75) = -0.2048
+    /// // using 4 significant bits: -0.203125
+    /// let dir = f.atan_pi_round(Round::Nearest);
+    /// assert_eq!(f, -0.203125);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn atan_pi_round(&mut self, round: Round) -> Ordering {
+        xmpfr::atanpi(self, (), round)
+    }
+
+    /// Computes the arc-tangent then divides by π.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -0.75);
+    /// let atan = Float::with_val(53, f.atan_pi_ref());
+    /// let expected = -0.2048_f64;
+    /// assert!((atan - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn atan_pi_ref(&self) -> AtanPiIncomplete<'_> {
+        AtanPiIncomplete { ref_self: self }
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x` then divides by π, rounding
+    /// to the nearest.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of 2 rather than 1.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// let atan2 = y.atan2_pi(&x);
+    /// let expected = 0.7952_f64;
+    /// assert!((atan2 - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn atan2_pi(mut self, x: &Self) -> Self {
+        self.atan2_pi_round(x, Round::Nearest);
+        self
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x` then divides by π, rounding
+    /// to the nearest.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of 2 rather than 1.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// y.atan2_pi_mut(&x);
+    /// let expected = 0.7952_f64;
+    /// assert!((y - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn atan2_pi_mut(&mut self, x: &Self) {
+        self.atan2_pi_round(x, Round::Nearest);
+    }
+
+    /// Computes the arc-tangent2 of `self` and `x` then divides by π, applying
+    /// the specified rounding method.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of 2 rather than 1.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut y = Float::with_val(4, 3.0);
+    /// let x = Float::with_val(4, -4.0);
+    /// // atan2(3.0, -4.0) = 0.7952
+    /// // using 4 significant bits: 0.8125
+    /// let dir = y.atan2_pi_round(&x, Round::Nearest);
+    /// assert_eq!(y, 0.8125);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn atan2_pi_round(&mut self, x: &Self, round: Round) -> Ordering {
+        xmpfr::atan2pi(self, (), x, round)
+    }
+
+    /// Computes the arc-tangent2 then divides by π.
+    ///
+    /// This is similar to the arc-tangent of `self / x`, but has an output
+    /// range of 2 rather than 1.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let y = Float::with_val(53, 3.0);
+    /// let x = Float::with_val(53, -4.0);
+    /// let r = y.atan2_pi_ref(&x);
+    /// let atan2 = Float::with_val(53, r);
+    /// let expected = 0.7952_f64;
+    /// assert!((atan2 - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn atan2_pi_ref<'a>(&'a self, x: &'a Self) -> Atan2PiIncomplete<'_> {
+        Atan2PiIncomplete { ref_self: self, x }
+    }
+
     /// Computes the hyperbolic sine, rounding to the nearest.
     ///
     /// # Examples
@@ -10360,6 +10695,10 @@ ref_math_op1_float! { xmpfr::acosu; struct AcosUIncomplete { u: u32 } }
 ref_math_op1_float! { xmpfr::asinu; struct AsinUIncomplete { u: u32 } }
 ref_math_op1_float! { xmpfr::atanu; struct AtanUIncomplete { u: u32 } }
 ref_math_op2_float! { xmpfr::atan2u; struct Atan2UIncomplete { x, u: u32 } }
+ref_math_op1_float! { xmpfr::acospi; struct AcosPiIncomplete {} }
+ref_math_op1_float! { xmpfr::asinpi; struct AsinPiIncomplete {} }
+ref_math_op1_float! { xmpfr::atanpi; struct AtanPiIncomplete {} }
+ref_math_op2_float! { xmpfr::atan2pi; struct Atan2PiIncomplete { x } }
 ref_math_op1_float! { xmpfr::cosh; struct CoshIncomplete {} }
 ref_math_op1_float! { xmpfr::sinh; struct SinhIncomplete {} }
 ref_math_op1_float! { xmpfr::tanh; struct TanhIncomplete {} }

@@ -32,6 +32,14 @@ Version 1.19.0 (unreleased)
         [`atan_u_round`][flo-aturo-1-19], [`atan_u_ref`][flo-ature-1-19]
       * [`atan2_u`][flo-at2u-1-19], [`atan2_u_mut`][flo-at2um-1-19],
         [`atan2_u_round`][flo-at2uro-1-19], [`atan2_u_ref`][flo-at2ure-1-19]
+      * [`asin_pi`][flo-asp-1-19], [`asin_pi_mut`][flo-aspm-1-19],
+        [`asin_pi_round`][flo-aspro-1-19], [`asin_pi_ref`][flo-aspre-1-19]
+      * [`acos_pi`][flo-acp-1-19], [`acos_pi_mut`][flo-acpm-1-19],
+        [`acos_pi_round`][flo-acpro-1-19], [`acos_pi_ref`][flo-acpre-1-19]
+      * [`atan_pi`][flo-atp-1-19], [`atan_pi_mut`][flo-atpm-1-19],
+        [`atan_pi_round`][flo-atpro-1-19], [`atan_pi_ref`][flo-atpre-1-19]
+      * [`atan2_pi`][flo-at2p-1-19], [`atan2_pi_mut`][flo-at2pm-1-19],
+        [`atan2_pi_round`][flo-at2pro-1-19], [`atan2_pi_ref`][flo-at2pre-1-19]
   * The following methods were added to [`Complex`][com-1-19]:
       * [`agm`][com-a-1-19], [`agm_mut`][com-am-1-19],
         [`agm_round`][com-aro-1-19], [`agm_ref`][com-are-1-19]
@@ -104,20 +112,36 @@ Version 1.19.0 (unreleased)
 [com-r-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.real
 [flo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html
 [flo-ac-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_complex
+[flo-acp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_pi
+[flo-acpm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_pi_mut
+[flo-acpre-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_pi_ref
+[flo-acpro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_pi_round
 [flo-acu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_u
 [flo-acum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_u_mut
 [flo-acure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_u_ref
 [flo-acuro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.acos_u_round
 [flo-ao-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_ord
 [flo-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_raw
+[flo-asp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_pi
+[flo-aspm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_pi_mut
+[flo-aspre-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_pi_ref
+[flo-aspro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_pi_round
 [flo-asu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_u
 [flo-asum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_u_mut
 [flo-asure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_u_ref
 [flo-asuro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.asin_u_round
+[flo-at2p-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_pi
+[flo-at2pm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_pi_mut
+[flo-at2pre-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_pi_ref
+[flo-at2pro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_pi_round
 [flo-at2u-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_u
 [flo-at2um-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_u_mut
 [flo-at2ure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_u_ref
 [flo-at2uro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan2_u_round
+[flo-atp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_pi
+[flo-atpm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_pi_mut
+[flo-atpre-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_pi_ref
+[flo-atpro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_pi_round
 [flo-atu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_u
 [flo-atum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_u_mut
 [flo-ature-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.atan_u_ref
