@@ -18,6 +18,12 @@ Version 1.19.0 (unreleased)
         [`cos_u_round`][flo-curo-1-19], [`cos_u_ref`][flo-cure-1-19]
       * [`tan_u`][flo-tu-1-19], [`tan_u_mut`][flo-tum-1-19],
         [`tan_u_round`][flo-turo-1-19], [`tan_u_ref`][flo-ture-1-19]
+      * [`sin_pi`][flo-sp-1-19], [`sin_pi_mut`][flo-spm-1-19],
+        [`sin_pi_round`][flo-spro-1-19], [`sin_pi_ref`][flo-spre-1-19]
+      * [`cos_pi`][flo-cp-1-19], [`cos_pi_mut`][flo-cpm-1-19],
+        [`cos_pi_round`][flo-cpro-1-19], [`cos_pi_ref`][flo-cpre-1-19]
+      * [`tan_pi`][flo-tp-1-19], [`tan_pi_mut`][flo-tpm-1-19],
+        [`tan_pi_round`][flo-tpro-1-19], [`tan_pi_ref`][flo-tpre-1-19]
   * The following methods were added to [`Complex`][com-1-19]:
       * [`agm`][com-a-1-19], [`agm_mut`][com-am-1-19],
         [`agm_round`][com-aro-1-19], [`agm_ref`][com-are-1-19]
@@ -94,6 +100,10 @@ Version 1.19.0 (unreleased)
 [flo-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_raw
 [flo-cl-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.classify
 [flo-cm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cmp0
+[flo-cp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_pi
+[flo-cpm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_pi_mut
+[flo-cpre-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_pi_ref
+[flo-cpro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_pi_round
 [flo-cu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u
 [flo-cum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u_mut
 [flo-cure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u_ref
@@ -109,10 +119,18 @@ Version 1.19.0 (unreleased)
 [flo-isp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_sign_positive
 [flo-iz-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_zero
 [flo-p-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.prec
+[flo-sp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi
+[flo-spm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi_mut
+[flo-spre-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi_ref
+[flo-spro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi_round
 [flo-su-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_u
 [flo-sum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_u_mut
 [flo-sure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_u_ref
 [flo-suro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_u_round
+[flo-tp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_pi
+[flo-tpm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_pi_mut
+[flo-tpre-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_pi_ref
+[flo-tpro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_pi_round
 [flo-tu-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_u
 [flo-tum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_u_mut
 [flo-ture-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.tan_u_ref
