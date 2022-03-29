@@ -752,6 +752,65 @@ impl Complex {
         xmpc::split(self)
     }
 
+    /// Borrows a pair of [`Float`] references as a `Complex` number.
+    ///
+    /// For a similar method that processes two mutable [`Float`] references as
+    /// a mutable `Complex` number, see
+    /// [`real_imag_mutate`][Complex::real_imag_mutate].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Complex, Float};
+    ///
+    /// let real = Float::with_val(53, 4.2);
+    /// let imag = Float::with_val(53, -2.3);
+    /// let c = Complex::borrow_real_imag(&real, &imag);
+    /// assert_eq!(*c, (4.2, -2.3));
+    /// ```
+    pub fn borrow_real_imag<'a>(real: &'a Float, imag: &'a Float) -> BorrowComplex<'a> {
+        let raw = mpc_t {
+            re: *real.inner(),
+            im: *imag.inner(),
+        };
+        // Safety: the lifetime of the return type is equal to the lifetime of real and imag.
+        unsafe { BorrowComplex::from_raw(raw) }
+    }
+
+    /// Calls a function with a pair of [`Float`] mutable references borrowed as
+    /// a [`Complex`] number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Complex, Float};
+    ///
+    /// let mut real = Float::with_val(53, 4.2);
+    /// let mut imag = Float::with_val(53, -2.3);
+    /// // (4.2, -2.3) × i = (2.3, 4.2)
+    /// Complex::real_imag_mutate(&mut real, &mut imag, |c| c.mul_i_mut(false));
+    /// assert_eq!(real, 2.3);
+    /// assert_eq!(imag, 4.2);
+    /// ```
+    #[inline]
+    pub fn real_imag_mutate<F>(real: &mut Float, imag: &mut Float, func: F)
+    where
+        F: FnOnce(&mut Complex),
+    {
+        let raw = mpc_t {
+            re: *real.inner(),
+            im: *imag.inner(),
+        };
+        // Safety: real and imag are mutable and unaliased as they are mutable references.
+        let mut c = ManuallyDrop::new(unsafe { Complex::from_raw(raw) });
+        func(&mut c);
+        // Safety: the values of the complex number parts are individually valid.
+        unsafe {
+            *real.inner_mut() = *c.real().inner();
+            *imag.inner_mut() = *c.imag().inner();
+        }
+    }
+
     /// Borrows a negated copy of the [`Complex`] number.
     ///
     /// The returned object implements <code>[Deref]\<[Target][Deref::Target] = [Complex]></code>.

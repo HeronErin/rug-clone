@@ -9,8 +9,14 @@ Version 1.16.0 (unreleased)
 
   * The new methods <code>[Float][flo-1-16]::[total\_cmp][flo-tc-1-16]</code>
     and <code>[Complex][com-1-16]::[total\_cmp][com-tc-1-16]</code> were added.
+  * The new methods
+    <code>[Complex][com-1-16]::[borrow\_real\_imag][com-bri-1-16]</code> and
+    <code>[Complex][com-1-16]::[real\_imag\_mutate][com-rim-1-16]</code> were
+    added.
 
 [com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
+[com-bri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.borrow_real_imag
+[com-rim-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.real_imag_mutate
 [com-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.total_cmp
 [flo-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
 [flo-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.total_cmp
