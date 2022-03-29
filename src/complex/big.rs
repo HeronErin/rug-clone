@@ -752,10 +752,13 @@ impl Complex {
         xmpc::split(self)
     }
 
-    /// Borrows a pair of [`Float`] references as a `Complex` number.
+    /// Borrows a pair of [`Float`] references as a [`Complex`] number.
+    ///
+    /// The returned object implements
+    /// <code>[Deref]\<[Target][Deref::Target] = [Complex]></code>.
     ///
     /// For a similar method that processes two mutable [`Float`] references as
-    /// a mutable `Complex` number, see
+    /// a mutable [`Complex`] number, see
     /// [`real_imag_mutate`][Complex::real_imag_mutate].
     ///
     /// # Examples
@@ -1010,10 +1013,13 @@ impl Complex {
     ///
     /// values.sort_by(Complex::total_cmp);
     ///
+    /// // (-0, +∞)
     /// assert!(values[0].real().is_zero() && values[0].real().is_sign_negative());
     /// assert!(values[0].imag().is_infinite() && values[0].imag().is_sign_positive());
+    /// // (+0, -0)
     /// assert!(values[1].real().is_zero() && values[1].real().is_sign_positive());
     /// assert!(values[1].imag().is_zero() && values[1].imag().is_sign_negative());
+    /// // (+0, +0)
     /// assert!(values[2].real().is_zero() && values[2].real().is_sign_positive());
     /// assert!(values[2].imag().is_zero() && values[2].imag().is_sign_positive());
     /// ```

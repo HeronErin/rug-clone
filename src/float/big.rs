@@ -1635,11 +1635,17 @@ impl Float {
     ///
     /// values.sort_by(Float::total_cmp);
     ///
+    /// // NaN with negative sign
     /// assert!(values[0].is_nan() && values[0].is_sign_negative());
+    /// // -∞
     /// assert!(values[1].is_infinite() && values[1].is_sign_negative());
+    /// // -0
     /// assert!(values[2].is_zero() && values[2].is_sign_negative());
+    /// // +0
     /// assert!(values[3].is_zero() && values[3].is_sign_positive());
+    /// // +∞
     /// assert!(values[4].is_infinite() && values[4].is_sign_positive());
+    /// // NaN with positive sign
     /// assert!(values[5].is_nan() && values[5].is_sign_positive());
     /// ```
     #[inline]
