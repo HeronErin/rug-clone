@@ -36,7 +36,11 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     <code>[Complex][com-1-16]::[borrow\_real\_imag][com-bri-1-16]</code> and
     <code>[Complex][com-1-16]::[real\_imag\_mutate][com-rim-1-16]</code> were
     added.
+  * Arithmetic operators are overloaded to work on combinations of Rug types and
+    [`isize`] and [`usize`].
 
+[`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
+[`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
 [com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [com-bri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.borrow_real_imag
 [com-rim-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.real_imag_mutate

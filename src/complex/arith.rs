@@ -204,11 +204,13 @@ arith_prim_commut_round! {
     i32, AddI32Incomplete;
     i64, AddI64Incomplete;
     i128, AddI128Incomplete;
+    isize, AddIsizeIncomplete;
     u8, AddU8Incomplete;
     u16, AddU16Incomplete;
     u32, AddU32Incomplete;
     u64, AddU64Incomplete;
     u128, AddU128Incomplete;
+    usize, AddUsizeIncomplete;
     f32, AddF32Incomplete;
     f64, AddF64Incomplete;
 }
@@ -225,11 +227,13 @@ arith_prim_noncommut_round! {
     i32, SubI32Incomplete, SubFromI32Incomplete;
     i64, SubI64Incomplete, SubFromI64Incomplete;
     i128, SubI128Incomplete, SubFromI128Incomplete;
+    isize, SubIsizeIncomplete, SubFromIsizeIncomplete;
     u8, SubU8Incomplete, SubFromU8Incomplete;
     u16, SubU16Incomplete, SubFromU16Incomplete;
     u32, SubU32Incomplete, SubFromU32Incomplete;
     u64, SubU64Incomplete, SubFromU64Incomplete;
     u128, SubU128Incomplete, SubFromU128Incomplete;
+    usize, SubUsizeIncomplete, SubFromUsizeIncomplete;
     f32, SubF32Incomplete, SubFromF32Incomplete;
     f64, SubF64Incomplete, SubFromF64Incomplete;
 }
@@ -246,11 +250,13 @@ arith_prim_commut_round! {
     i32, MulI32Incomplete;
     i64, MulI64Incomplete;
     i128, MulI128Incomplete;
+    isize, MulIsizeIncomplete;
     u8, MulU8Incomplete;
     u16, MulU16Incomplete;
     u32, MulU32Incomplete;
     u64, MulU64Incomplete;
     u128, MulU128Incomplete;
+    usize, MulUsizeIncomplete;
     f32, MulF32Incomplete;
     f64, MulF64Incomplete;
 }
@@ -267,11 +273,13 @@ arith_prim_noncommut_round! {
     i32, DivI32Incomplete, DivFromI32Incomplete;
     i64, DivI64Incomplete, DivFromI64Incomplete;
     i128, DivI128Incomplete, DivFromI128Incomplete;
+    isize, DivIsizeIncomplete, DivFromIsizeIncomplete;
     u8, DivU8Incomplete, DivFromU8Incomplete;
     u16, DivU16Incomplete, DivFromU16Incomplete;
     u32, DivU32Incomplete, DivFromU32Incomplete;
     u64, DivU64Incomplete, DivFromU64Incomplete;
     u128, DivU128Incomplete, DivFromU128Incomplete;
+    usize, DivUsizeIncomplete, DivFromUsizeIncomplete;
     f32, DivF32Incomplete, DivFromF32Incomplete;
     f64, DivF64Incomplete, DivFromF64Incomplete;
 }
@@ -288,11 +296,13 @@ arith_prim_noncommut_round! {
     i32, PowI32Incomplete, PowFromI32Incomplete;
     i64, PowI64Incomplete, PowFromI64Incomplete;
     i128, PowI128Incomplete, PowFromI128Incomplete;
+    isize, PowIsizeIncomplete, PowFromIsizeIncomplete;
     u8, PowU8Incomplete, PowFromU8Incomplete;
     u16, PowU16Incomplete, PowFromU16Incomplete;
     u32, PowU32Incomplete, PowFromU32Incomplete;
     u64, PowU64Incomplete, PowFromU64Incomplete;
     u128, PowU128Incomplete, PowFromU128Incomplete;
+    usize, PowUsizeIncomplete, PowFromUsizeIncomplete;
     f32, PowF32Incomplete, PowFromF32Incomplete;
     f64, PowF64Incomplete, PowFromF64Incomplete;
 }
@@ -763,7 +773,9 @@ mod tests {
 
     #[test]
     fn check_arith_others() {
-        use crate::tests::{F32, F64, I128, I16, I32, I64, I8, U128, U16, U32, U64, U8};
+        use crate::tests::{
+            F32, F64, I128, I16, I32, I64, I8, ISIZE, U128, U16, U32, U64, U8, USIZE,
+        };
         let large = [
             Complex::with_val(20, (Special::Zero, 1.0)),
             Complex::with_val(20, (Special::NegZero, 1.0)),
@@ -811,6 +823,8 @@ mod tests {
             .chain(I64.iter().map(|&x| Complex::with_val(20, x)))
             .chain(U128.iter().map(|&x| Complex::with_val(20, x)))
             .chain(I128.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(USIZE.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(ISIZE.iter().map(|&x| Complex::with_val(20, x)))
             .chain(F32.iter().map(|&x| Complex::with_val(20, x)))
             .chain(F64.iter().map(|&x| Complex::with_val(20, x)))
             .collect::<Vec<Complex>>();
@@ -825,11 +839,13 @@ mod tests {
         check_others!(I32, against, 0);
         check_others!(I64, against, 0);
         check_others!(I128, against, 0);
+        check_others!(ISIZE, against, 0);
         check_others!(U8, against, 0);
         check_others!(U16, against, 0);
         check_others!(U32, against, 0);
         check_others!(U64, against, 0);
         check_others!(U128, against, 0);
+        check_others!(USIZE, against, 0);
         check_others!(F32, against, 0.0);
         check_others!(F64, against, 0.0);
         #[cfg(feature = "integer")]

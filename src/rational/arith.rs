@@ -126,11 +126,13 @@ arith_prim_commut! {
     i32, AddI32Incomplete;
     i64, AddI64Incomplete;
     i128, AddI128Incomplete;
+    isize, AddIsizeIncomplete;
     u8, AddU8Incomplete;
     u16, AddU16Incomplete;
     u32, AddU32Incomplete;
     u64, AddU64Incomplete;
     u128, AddU128Incomplete;
+    usize, AddUsizeIncomplete;
 }
 arith_prim_noncommut! {
     Rational;
@@ -143,11 +145,13 @@ arith_prim_noncommut! {
     i32, SubI32Incomplete, SubFromI32Incomplete;
     i64, SubI64Incomplete, SubFromI64Incomplete;
     i128, SubI128Incomplete, SubFromI128Incomplete;
+    isize, SubIsizeIncomplete, SubFromIsizeIncomplete;
     u8, SubU8Incomplete, SubFromU8Incomplete;
     u16, SubU16Incomplete, SubFromU16Incomplete;
     u32, SubU32Incomplete, SubFromU32Incomplete;
     u64, SubU64Incomplete, SubFromU64Incomplete;
     u128, SubU128Incomplete, SubFromU128Incomplete;
+    usize, SubUsizeIncomplete, SubFromUsizeIncomplete;
 }
 arith_prim_commut! {
     Rational;
@@ -160,11 +164,13 @@ arith_prim_commut! {
     i32, MulI32Incomplete;
     i64, MulI64Incomplete;
     i128, MulI128Incomplete;
+    isize, MulIsizeIncomplete;
     u8, MulU8Incomplete;
     u16, MulU16Incomplete;
     u32, MulU32Incomplete;
     u64, MulU64Incomplete;
     u128, MulU128Incomplete;
+    usize, MulUsizeIncomplete;
 }
 arith_prim_noncommut! {
     Rational;
@@ -177,11 +183,13 @@ arith_prim_noncommut! {
     i32, DivI32Incomplete, DivFromI32Incomplete;
     i64, DivI64Incomplete, DivFromI64Incomplete;
     i128, DivI128Incomplete, DivFromI128Incomplete;
+    isize, DivIsizeIncomplete, DivFromIsizeIncomplete;
     u8, DivU8Incomplete, DivFromU8Incomplete;
     u16, DivU16Incomplete, DivFromU16Incomplete;
     u32, DivU32Incomplete, DivFromU32Incomplete;
     u64, DivU64Incomplete, DivFromU64Incomplete;
     u128, DivU128Incomplete, DivFromU128Incomplete;
+    usize, DivUsizeIncomplete, DivFromUsizeIncomplete;
 }
 
 arith_prim! {
@@ -486,7 +494,7 @@ mod tests {
 
     #[test]
     fn check_arith_u_s() {
-        use crate::tests::{I128, I16, I32, I64, I8, U128, U16, U32, U64, U8};
+        use crate::tests::{I128, I16, I32, I64, I8, ISIZE, U128, U16, U32, U64, U8, USIZE};
         let large = [(1, 3, 100), (-11, 5, 200), (33, 79, -150)];
         let against = (large.iter().map(|&(n, d, s)| Rational::from((n, d)) << s))
             .chain(num_den(I32))
@@ -495,6 +503,8 @@ mod tests {
             .chain(num_den(U64))
             .chain(num_den(I128))
             .chain(num_den(U128))
+            .chain(num_den(ISIZE))
+            .chain(num_den(USIZE))
             .collect::<Vec<Rational>>();
 
         check_u_s!(I8, against);
@@ -502,11 +512,12 @@ mod tests {
         check_u_s!(I32, against);
         check_u_s!(I64, against);
         check_u_s!(I128, against);
+        check_u_s!(ISIZE, against);
         check_u_s!(U8, against);
         check_u_s!(U16, against);
         check_u_s!(U32, against);
         check_u_s!(U64, against);
-        check_u_s!(U128, against);
+        check_u_s!(USIZE, against);
     }
 
     #[test]

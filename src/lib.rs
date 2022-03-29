@@ -663,6 +663,8 @@ mod tests {
         u64::MAX as i128 + 1,
         i128::MAX,
     ];
+    pub const USIZE: &[usize] = &[0, 1, 1000, 1001, isize::MAX as usize + 1, usize::MAX];
+    pub const ISIZE: &[isize] = &[isize::MIN, -1001, -1000, -1, 0, 1, 1000, 1001, isize::MAX];
     #[cfg(any(feature = "rational", feature = "float"))]
     pub const F32: &[f32] = &[
         -f32::NAN,

@@ -132,11 +132,13 @@ arith_prim_commut! {
     i32, AddI32Incomplete;
     i64, AddI64Incomplete;
     i128, AddI128Incomplete;
+    isize, AddIsizeIncomplete;
     u8, AddU8Incomplete;
     u16, AddU16Incomplete;
     u32, AddU32Incomplete;
     u64, AddU64Incomplete;
     u128, AddU128Incomplete;
+    usize, AddUsizeIncomplete;
 }
 arith_prim_noncommut! {
     Integer;
@@ -149,11 +151,13 @@ arith_prim_noncommut! {
     i32, SubI32Incomplete, SubFromI32Incomplete;
     i64, SubI64Incomplete, SubFromI64Incomplete;
     i128, SubI128Incomplete, SubFromI128Incomplete;
+    isize, SubIsizeIncomplete, SubFromIsizeIncomplete;
     u8, SubU8Incomplete, SubFromU8Incomplete;
     u16, SubU16Incomplete, SubFromU16Incomplete;
     u32, SubU32Incomplete, SubFromU32Incomplete;
     u64, SubU64Incomplete, SubFromU64Incomplete;
     u128, SubU128Incomplete, SubFromU128Incomplete;
+    usize, SubUsizeIncomplete, SubFromUsizeIncomplete;
 }
 arith_prim_commut! {
     Integer;
@@ -166,11 +170,13 @@ arith_prim_commut! {
     i32, MulI32Incomplete;
     i64, MulI64Incomplete;
     i128, MulI128Incomplete;
+    isize, MulIsizeIncomplete;
     u8, MulU8Incomplete;
     u16, MulU16Incomplete;
     u32, MulU32Incomplete;
     u64, MulU64Incomplete;
     u128, MulU128Incomplete;
+    usize, MulUsizeIncomplete;
 }
 arith_prim_noncommut! {
     Integer;
@@ -183,11 +189,13 @@ arith_prim_noncommut! {
     i32, DivI32Incomplete, DivFromI32Incomplete;
     i64, DivI64Incomplete, DivFromI64Incomplete;
     i128, DivI128Incomplete, DivFromI128Incomplete;
+    isize, DivIsizeIncomplete, DivFromIsizeIncomplete;
     u8, DivU8Incomplete, DivFromU8Incomplete;
     u16, DivU16Incomplete, DivFromU16Incomplete;
     u32, DivU32Incomplete, DivFromU32Incomplete;
     u64, DivU64Incomplete, DivFromU64Incomplete;
     u128, DivU128Incomplete, DivFromU128Incomplete;
+    usize, DivUsizeIncomplete, DivFromUsizeIncomplete;
 }
 arith_prim_noncommut! {
     Integer;
@@ -200,11 +208,13 @@ arith_prim_noncommut! {
     i32, RemI32Incomplete, RemFromI32Incomplete;
     i64, RemI64Incomplete, RemFromI64Incomplete;
     i128, RemI128Incomplete, RemFromI128Incomplete;
+    isize, RemIsizeIncomplete, RemFromIsizeIncomplete;
     u8, RemU8Incomplete, RemFromU8Incomplete;
     u16, RemU16Incomplete, RemFromU16Incomplete;
     u32, RemU32Incomplete, RemFromU32Incomplete;
     u64, RemU64Incomplete, RemFromU64Incomplete;
     u128, RemU128Incomplete, RemFromU128Incomplete;
+    usize, RemUsizeIncomplete, RemFromUsizeIncomplete;
 }
 arith_prim_commut! {
     Integer;
@@ -217,11 +227,13 @@ arith_prim_commut! {
     i32, BitAndI32Incomplete;
     i64, BitAndI64Incomplete;
     i128, BitAndI128Incomplete;
+    isize, BitAndIsizeIncomplete;
     u8, BitAndU8Incomplete;
     u16, BitAndU16Incomplete;
     u32, BitAndU32Incomplete;
     u64, BitAndU64Incomplete;
     u128, BitAndU128Incomplete;
+    usize, BitAndUsizeIncomplete;
 }
 arith_prim_commut! {
     Integer;
@@ -234,11 +246,13 @@ arith_prim_commut! {
     i32, BitOrI32Incomplete;
     i64, BitOrI64Incomplete;
     i128, BitOrI128Incomplete;
+    isize, BitOrIsizeIncomplete;
     u8, BitOrU8Incomplete;
     u16, BitOrU16Incomplete;
     u32, BitOrU32Incomplete;
     u64, BitOrU64Incomplete;
     u128, BitOrU128Incomplete;
+    usize, BitOrUsizeIncomplete;
 }
 arith_prim_commut! {
     Integer;
@@ -251,11 +265,13 @@ arith_prim_commut! {
     i32, BitXorI32Incomplete;
     i64, BitXorI64Incomplete;
     i128, BitXorI128Incomplete;
+    isize, BitXorIsizeIncomplete;
     u8, BitXorU8Incomplete;
     u16, BitXorU16Incomplete;
     u32, BitXorU32Incomplete;
     u64, BitXorU64Incomplete;
     u128, BitXorU128Incomplete;
+    usize, BitXorUsizeIncomplete;
 }
 
 arith_prim! {
@@ -349,11 +365,13 @@ mul_op_commut! {
     MulI32Incomplete, AddMulI32Incomplete;
     MulI64Incomplete, AddMulI64Incomplete;
     MulI128Incomplete, AddMulI128Incomplete;
+    MulIsizeIncomplete, AddMulIsizeIncomplete;
     MulU8Incomplete, AddMulU8Incomplete;
     MulU16Incomplete, AddMulU16Incomplete;
     MulU32Incomplete, AddMulU32Incomplete;
     MulU64Incomplete, AddMulU64Incomplete;
     MulU128Incomplete, AddMulU128Incomplete;
+    MulUsizeIncomplete, AddMulUsizeIncomplete;
 }
 mul_op_noncommut! {
     Integer;
@@ -366,11 +384,13 @@ mul_op_noncommut! {
     MulI32Incomplete, SubMulI32Incomplete, SubMulFromI32Incomplete;
     MulI64Incomplete, SubMulI64Incomplete, SubMulFromI64Incomplete;
     MulI128Incomplete, SubMulI128Incomplete, SubMulFromI128Incomplete;
+    MulIsizeIncomplete, SubMulIsizeIncomplete, SubMulFromIsizeIncomplete;
     MulU8Incomplete, SubMulU8Incomplete, SubMulFromU8Incomplete;
     MulU16Incomplete, SubMulU16Incomplete, SubMulFromU16Incomplete;
     MulU32Incomplete, SubMulU32Incomplete, SubMulFromU32Incomplete;
     MulU64Incomplete, SubMulU64Incomplete, SubMulFromU64Incomplete;
     MulU128Incomplete, SubMulU128Incomplete, SubMulFromU128Incomplete;
+    MulUsizeIncomplete, SubMulUsizeIncomplete, SubMulFromUsizeIncomplete;
 }
 
 trait PrimOps<Long>: AsLong {
@@ -585,7 +605,7 @@ mod tests {
 
     #[test]
     fn check_arith() {
-        use crate::tests::{I128, I32, I64, U128, U32, U64};
+        use crate::tests::{I128, I32, I64, ISIZE, U128, U32, U64, USIZE};
         let large = [(1, 100), (-11, 200), (33, 150)];
         let all = (large.iter().map(|&(n, s)| Integer::from(n) << s))
             .chain(U32.iter().map(|&x| Integer::from(x)))
@@ -594,6 +614,8 @@ mod tests {
             .chain(I64.iter().map(|&x| Integer::from(x)))
             .chain(U128.iter().map(|&x| Integer::from(x)))
             .chain(I128.iter().map(|&x| Integer::from(x)))
+            .chain(USIZE.iter().map(|&x| Integer::from(x)))
+            .chain(ISIZE.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
 
         for l in &all {
@@ -643,7 +665,7 @@ mod tests {
 
     #[test]
     fn check_arith_u_s() {
-        use crate::tests::{I128, I16, I32, I64, I8, U128, U16, U32, U64, U8};
+        use crate::tests::{I128, I16, I32, I64, I8, ISIZE, U128, U16, U32, U64, U8, USIZE};
         let large = [(1, 100), (-11, 200), (33, 150)];
         let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
             .chain(U32.iter().map(|&x| Integer::from(x)))
@@ -652,6 +674,8 @@ mod tests {
             .chain(I64.iter().map(|&x| Integer::from(x)))
             .chain(U128.iter().map(|&x| Integer::from(x)))
             .chain(I128.iter().map(|&x| Integer::from(x)))
+            .chain(USIZE.iter().map(|&x| Integer::from(x)))
+            .chain(ISIZE.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
 
         check_u_s!(I8, against);
@@ -659,11 +683,13 @@ mod tests {
         check_u_s!(I32, against);
         check_u_s!(I64, against);
         check_u_s!(I128, against);
+        check_u_s!(ISIZE, against);
         check_u_s!(U8, against);
         check_u_s!(U16, against);
         check_u_s!(U32, against);
         check_u_s!(U64, against);
         check_u_s!(U128, against);
+        check_u_s!(USIZE, against);
     }
 
     macro_rules! test_ref_op {
