@@ -4026,7 +4026,7 @@ impl BorrowComplex<'_> {
     ///
     ///   * The value must be initialized.
     ///   * The [`mpc_t`] type can be considered as a kind of pointer, so there
-    ///     can be multiple copies of it. [`BorrowInteger`] cannot mutate the
+    ///     can be multiple copies of it. [`BorrowComplex`] cannot mutate the
     ///     value, so there can be other copies, but none of them are allowed to
     ///     mutate the value.
     ///   * The lifetime is obtained from the return type. The user must ensure
