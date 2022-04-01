@@ -2836,6 +2836,10 @@ impl BorrowRational<'_> {
     ///     mutate the value.
     ///   * The lifetime is obtained from the return type. The user must ensure
     ///     the value remains valid for the duration of the lifetime.
+    ///   * The numerator and denominator must be in canonical form, as the rest
+    ///     of the library assumes that they are. Most GMP functions leave the
+    ///     rational number in canonical form, but assignment functions do not.
+    ///     Check the [GMP documentation][gmp mpq] for details.
     ///
     /// # Examples
     ///

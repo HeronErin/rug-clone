@@ -6027,7 +6027,7 @@ impl BorrowInteger<'_> {
     /// let borrow = unsafe { BorrowInteger::from_raw(raw) };
     /// assert_eq!(i, *borrow);
     /// ```
-    pub unsafe fn from_raw<'a>(raw: mpz_t) -> BorrowInteger<'a> {
+    pub const unsafe fn from_raw<'a>(raw: mpz_t) -> BorrowInteger<'a> {
         BorrowInteger {
             inner: ManuallyDrop::new(unsafe { Integer::from_raw(raw) }),
             phantom: PhantomData,
