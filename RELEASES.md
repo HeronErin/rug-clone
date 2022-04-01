@@ -15,9 +15,15 @@ Version 1.16.0 (unreleased)
     added.
   * Arithmetic operators are overloaded to work on combinations of Rug types and
     [`isize`] and [`usize`].
+  * The [`BorrowInteger`][bi-1-16], [`BorrowRational`][br-1-16],
+    [`BorrowFloat`][bf-1-16] and [`BorrowComplex`][bc-1-16] structs were added.
 
 [`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
 [`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
+[bc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowComplex.html
+[bf-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowFloat.html
+[bi-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowInteger.html
+[br-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowRational.html
 [com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [com-bri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.borrow_real_imag
 [com-rim-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.real_imag_mutate

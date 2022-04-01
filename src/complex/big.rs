@@ -3996,6 +3996,22 @@ impl CompleteRound for RandomContIncomplete<'_> {
     }
 }
 
+/// Used to get a reference to a [`Complex`] number.
+///
+/// The struct implements <code>[Deref]\<[Target][Deref::Target] = [Complex]></code>.
+///
+/// No memory is unallocated when this struct is dropped.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::{complex::BorrowComplex, Complex};
+/// let c = Complex::with_val(53, (4.2, -2.3));
+/// let neg: BorrowComplex = c.as_neg();
+/// // c is still valid
+/// assert_eq!(c, (4.2, -2.3));
+/// assert_eq!(*neg, (-4.2, 2.3));
+/// ```
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct BorrowComplex<'a> {
@@ -4004,8 +4020,31 @@ pub struct BorrowComplex<'a> {
 }
 
 impl BorrowComplex<'_> {
+    /// Create a borrow from a raw [MPC complex number][mpc_t].
+    ///
+    /// # Safety
+    ///
+    ///   * The value must be initialized.
+    ///   * The [`mpc_t`] type can be considered as a kind of pointer, so there
+    ///     can be multiple copies of it. [`BorrowInteger`] cannot mutate the
+    ///     value, so there can be other copies, but none of them are allowed to
+    ///     mutate the value.
+    ///   * The lifetime is obtained from the return type. The user must ensure
+    ///     the value remains valid for the duration of the lifetime.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{complex::BorrowComplex, Complex};
+    /// let c = Complex::with_val(53, (4.2, -2.3));
+    /// // Safety: c.as_raw() is a valid pointer.
+    /// let raw = unsafe { *c.as_raw() };
+    /// // Safety: c is still valid when borrow is used.
+    /// let borrow = unsafe { BorrowComplex::from_raw(raw) };
+    /// assert_eq!(c, *borrow);
+    /// ```
     // unsafe because the lifetime is obtained from return type
-    pub(crate) unsafe fn from_raw<'a>(raw: mpc_t) -> BorrowComplex<'a> {
+    pub unsafe fn from_raw<'a>(raw: mpc_t) -> BorrowComplex<'a> {
         BorrowComplex {
             inner: ManuallyDrop::new(unsafe { Complex::from_raw(raw) }),
             phantom: PhantomData,

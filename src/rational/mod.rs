@@ -34,7 +34,7 @@ mod small;
 mod tests;
 mod traits;
 
-pub use crate::rational::big::ParseRationalError;
+pub use crate::rational::big::{BorrowRational, ParseRationalError};
 pub use crate::rational::small::SmallRational;
 
 /**

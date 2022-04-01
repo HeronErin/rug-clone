@@ -2801,6 +2801,22 @@ ref_rat_op_int! { xmpq::round_int; struct RoundIncomplete {} }
 ref_math_op1! { Rational; xmpq::round_fract; struct RemRoundIncomplete {} }
 ref_rat_op_rat_int! { xmpq::round_fract_whole; struct FractRoundIncomplete {} }
 
+/// Used to get a reference to a [`Rational`] number.
+///
+/// The struct implements <code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
+///
+/// No memory is unallocated when this struct is dropped.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::{rational::BorrowRational, Rational};
+/// let r = Rational::from((42, 3));
+/// let neg: BorrowRational = r.as_neg();
+/// // r is still valid
+/// assert_eq!(r, (42, 3));
+/// assert_eq!(*neg, (-42, 3));
+/// ```
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct BorrowRational<'a> {
@@ -2809,8 +2825,30 @@ pub struct BorrowRational<'a> {
 }
 
 impl BorrowRational<'_> {
-    // unsafe because the lifetime is obtained from return type
-    pub(crate) const unsafe fn from_raw<'a>(raw: mpq_t) -> BorrowRational<'a> {
+    /// Create a borrow from a raw [GMP rational number][mpq_t].
+    ///
+    /// # Safety
+    ///
+    ///   * The value must be initialized.
+    ///   * The [`mpq_t`] type can be considered as a kind of pointer, so there
+    ///     can be multiple copies of it. [`BorrowRational`] cannot mutate the
+    ///     value, so there can be other copies, but none of them are allowed to
+    ///     mutate the value.
+    ///   * The lifetime is obtained from the return type. The user must ensure
+    ///     the value remains valid for the duration of the lifetime.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{rational::BorrowRational, Rational};
+    /// let r = Rational::from((42, 3));
+    /// // Safety: r.as_raw() is a valid pointer.
+    /// let raw = unsafe { *r.as_raw() };
+    /// // Safety: r is still valid when borrow is used.
+    /// let borrow = unsafe { BorrowRational::from_raw(raw) };
+    /// assert_eq!(r, *borrow);
+    /// ```
+    pub const unsafe fn from_raw<'a>(raw: mpq_t) -> BorrowRational<'a> {
         BorrowRational {
             inner: ManuallyDrop::new(Rational { inner: raw }),
             phantom: PhantomData,

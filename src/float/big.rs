@@ -52,10 +52,10 @@ use std::{
     ffi::{CStr, CString},
 };
 #[cfg(feature = "complex")]
-use {crate::complex::big::BorrowComplex, gmp_mpfr_sys::mpc::mpc_t};
+use {crate::complex::BorrowComplex, gmp_mpfr_sys::mpc::mpc_t};
 #[cfg(feature = "integer")]
 use {
-    crate::{integer::big::BorrowInteger, Integer},
+    crate::{integer::BorrowInteger, Integer},
     gmp_mpfr_sys::{gmp::mpz_t, mpfr::prec_t},
 };
 
@@ -9476,6 +9476,22 @@ impl CompleteRound for RandomExpIncomplete<'_> {
     }
 }
 
+/// Used to get a reference to a [`Float`].
+///
+/// The struct implements <code>[Deref]\<[Target][Deref::Target] = [Float]></code>.
+///
+/// No memory is unallocated when this struct is dropped.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::{float::BorrowFloat, Float};
+/// let f = Float::with_val(53, 4.2);
+/// let neg: BorrowFloat = f.as_neg();
+/// // f is still valid
+/// assert_eq!(f, 4.2);
+/// assert_eq!(*neg, -4.2);
+/// ```
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct BorrowFloat<'a> {
@@ -9484,8 +9500,30 @@ pub struct BorrowFloat<'a> {
 }
 
 impl BorrowFloat<'_> {
-    // unsafe because the lifetime is obtained from return type
-    unsafe fn from_raw<'a>(raw: mpfr_t) -> BorrowFloat<'a> {
+    /// Create a borrow from a raw [MPFR floating-point number][mpfr_t].
+    ///
+    /// # Safety
+    ///
+    ///   * The value must be initialized.
+    ///   * The [`mpfr_t`] type can be considered as a kind of pointer, so there
+    ///     can be multiple copies of it. [`BorrowFloat`] cannot mutate the
+    ///     value, so there can be other copies, but none of them are allowed to
+    ///     mutate the value.
+    ///   * The lifetime is obtained from the return type. The user must ensure
+    ///     the value remains valid for the duration of the lifetime.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{float::BorrowFloat, Float};
+    /// let f = Float::with_val(53, 4.2);
+    /// // Safety: f.as_raw() is a valid pointer.
+    /// let raw = unsafe { *f.as_raw() };
+    /// // Safety: f is still valid when borrow is used.
+    /// let borrow = unsafe { BorrowFloat::from_raw(raw) };
+    /// assert_eq!(f, *borrow);
+    /// ```
+    pub unsafe fn from_raw<'a>(raw: mpfr_t) -> BorrowFloat<'a> {
         BorrowFloat {
             inner: ManuallyDrop::new(unsafe { Float::from_raw(raw) }),
             phantom: PhantomData,

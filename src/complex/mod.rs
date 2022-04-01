@@ -34,7 +34,7 @@ mod small;
 mod tests;
 mod traits;
 
-pub use crate::complex::big::ParseComplexError;
+pub use crate::complex::big::{BorrowComplex, ParseComplexError};
 pub use crate::complex::ord::OrdComplex;
 pub use crate::complex::small::SmallComplex;
 

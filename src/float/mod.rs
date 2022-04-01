@@ -36,7 +36,7 @@ pub(crate) mod tests;
 mod traits;
 
 pub use crate::float::{
-    big::ParseFloatError,
+    big::{BorrowFloat, ParseFloatError},
     ord::OrdFloat,
     small::{SmallFloat, ToSmall},
 };

@@ -52,7 +52,7 @@ mod tests;
 mod traits;
 
 pub use crate::integer::{
-    big::{IsPrime, ParseIntegerError, UnsignedPrimitive},
+    big::{BorrowInteger, IsPrime, ParseIntegerError, UnsignedPrimitive},
     small::{SmallInteger, ToSmall},
 };
 

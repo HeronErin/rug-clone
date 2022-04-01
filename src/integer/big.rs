@@ -36,7 +36,7 @@ use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use libc::{c_char, c_void};
 use std::error::Error;
 #[cfg(feature = "rational")]
-use {crate::rational::big::BorrowRational, core::ptr::NonNull, gmp_mpfr_sys::gmp::mpq_t};
+use {crate::rational::BorrowRational, core::ptr::NonNull, gmp_mpfr_sys::gmp::mpq_t};
 
 /**
 An arbitrary-precision integer.
@@ -5980,6 +5980,22 @@ impl From<RandomBelowIncomplete<'_>> for Integer {
     }
 }
 
+/// Used to get a reference to an [`Integer`].
+///
+/// The struct implements <code>[Deref]\<[Target][Deref::Target] = [Integer]></code>.
+///
+/// No memory is unallocated when this struct is dropped.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::{integer::BorrowInteger, Integer};
+/// let i = Integer::from(42);
+/// let neg: BorrowInteger = i.as_neg();
+/// // i is still valid
+/// assert_eq!(i, 42);
+/// assert_eq!(*neg, -42);
+/// ```
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct BorrowInteger<'a> {
@@ -5988,8 +6004,30 @@ pub struct BorrowInteger<'a> {
 }
 
 impl BorrowInteger<'_> {
-    // unsafe because the lifetime is obtained from return type
-    pub(crate) unsafe fn from_raw<'a>(raw: mpz_t) -> BorrowInteger<'a> {
+    /// Create a borrow from a raw [GMP integer][mpz_t].
+    ///
+    /// # Safety
+    ///
+    ///   * The value must be initialized.
+    ///   * The [`mpz_t`] type can be considered as a kind of pointer, so there
+    ///     can be multiple copies of it. [`BorrowInteger`] cannot mutate the
+    ///     value, so there can be other copies, but none of them are allowed to
+    ///     mutate the value.
+    ///   * The lifetime is obtained from the return type. The user must ensure
+    ///     the value remains valid for the duration of the lifetime.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{integer::BorrowInteger, Integer};
+    /// let i = Integer::from(42);
+    /// // Safety: i.as_raw() is a valid pointer.
+    /// let raw = unsafe { *i.as_raw() };
+    /// // Safety: i is still valid when borrow is used.
+    /// let borrow = unsafe { BorrowInteger::from_raw(raw) };
+    /// assert_eq!(i, *borrow);
+    /// ```
+    pub unsafe fn from_raw<'a>(raw: mpz_t) -> BorrowInteger<'a> {
         BorrowInteger {
             inner: ManuallyDrop::new(unsafe { Integer::from_raw(raw) }),
             phantom: PhantomData,
