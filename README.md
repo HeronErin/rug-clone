@@ -43,10 +43,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 [`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
 [`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
-[bc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowComplex.html
+[bc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/complex/struct.BorrowComplex.html
 [bf-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowFloat.html
-[bi-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowInteger.html
-[br-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowRational.html
+[bi-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/integer/struct.BorrowInteger.html
+[br-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/rational/struct.BorrowRational.html
 [com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [com-bri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.borrow_real_imag
 [com-rim-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.real_imag_mutate
