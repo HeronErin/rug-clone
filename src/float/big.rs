@@ -8285,6 +8285,89 @@ impl Float {
         Exp10M1Incomplete { ref_self: self }
     }
 
+    /// Computes (1 + `self`) to the power of `n`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let compound = f.compound_i(100);
+    /// let expected = 1.1576_f64;
+    /// assert!((compound - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn compound_i(mut self, n: i32) -> Self {
+        self.compound_i_round(n, Round::Nearest);
+        self
+    }
+
+    /// Computes (1 + `self`) to the power of `n`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+    /// f.compound_i_mut(100);
+    /// let expected = 1.1576_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn compound_i_mut(&mut self, n: i32) {
+        self.compound_i_round(n, Round::Nearest);
+    }
+
+    /// Computes (1 + `self`) to the power of `n`, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// let two_to_m10 = (-10f64).exp2();
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+    /// // compound_i(1.5 × 2 ^ -10, 100) = 1.1576
+    /// // using 4 significant bits: 1.125
+    /// let dir = f.compound_i_round(100, Round::Nearest);
+    /// assert_eq!(f, 1.125);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn compound_i_round(&mut self, n: i32, round: Round) -> Ordering {
+        xmpfr::compound_si(self, (), n, round)
+    }
+
+    /// Computes (1 + `self`) to the power of `n`.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let compound = Float::with_val(53, f.compound_i_ref(100));
+    /// let expected = 1.1576_f64;
+    /// assert!((compound - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn compound_i_ref(&self, n: i32) -> CompoundIIncomplete<'_> {
+        CompoundIIncomplete { ref_self: self, n }
+    }
+
     /// Computes the exponential integral, rounding to the nearest.
     ///
     /// # Examples
@@ -11052,6 +11135,7 @@ ref_math_op1_float! { xmpfr::log10p1; struct LogTen1pIncomplete {} }
 ref_math_op1_float! { xmpfr::expm1; struct ExpM1Incomplete {} }
 ref_math_op1_float! { xmpfr::exp2m1; struct Exp2M1Incomplete {} }
 ref_math_op1_float! { xmpfr::exp10m1; struct Exp10M1Incomplete {} }
+ref_math_op1_float! { xmpfr::compound_si; struct CompoundIIncomplete { n: i32 } }
 ref_math_op1_float! { xmpfr::eint; struct EintIncomplete {} }
 ref_math_op1_float! { xmpfr::li2; struct Li2Incomplete {} }
 ref_math_op1_float! { xmpfr::gamma; struct GammaIncomplete {} }
