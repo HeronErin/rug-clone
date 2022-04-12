@@ -8119,6 +8119,172 @@ impl Float {
         ExpM1Incomplete { ref_self: self }
     }
 
+    /// Subtracts one from 2 to the power of `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let exp2_m1 = f.exp2_m1();
+    /// let expected = 1.0402_f64 * two_to_m10;
+    /// assert!((exp2_m1 - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn exp2_m1(mut self) -> Self {
+        self.exp2_m1_round(Round::Nearest);
+        self
+    }
+
+    /// Subtracts one from 2 to the power of `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+    /// f.exp2_m1_mut();
+    /// let expected = 1.0402_f64 * two_to_m10;
+    /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    pub fn exp2_m1_mut(&mut self) {
+        self.exp2_m1_round(Round::Nearest);
+    }
+
+    /// Subtracts one from 2 to the power of `self`, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// let two_to_m10 = (-10f64).exp2();
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+    /// // exp2_m1(1.5 × 2 ^ -10) = 1.0402 × 2 ^ -10
+    /// // using 4 significant bits: 1.0 × 2 ^ -10
+    /// let dir = f.exp2_m1_round(Round::Nearest);
+    /// assert_eq!(f, 1.0 * two_to_m10);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn exp2_m1_round(&mut self, round: Round) -> Ordering {
+        xmpfr::exp2m1(self, (), round)
+    }
+
+    /// Computes one less than 2 to the power of the value.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let exp2_m1 = Float::with_val(53, f.exp2_m1_ref());
+    /// let expected = 1.0402_f64 * two_to_m10;
+    /// assert!((exp2_m1 - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn exp2_m1_ref(&self) -> Exp2M1Incomplete<'_> {
+        Exp2M1Incomplete { ref_self: self }
+    }
+
+    /// Subtracts one from 10 to the power of `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let exp10_m1 = f.exp10_m1();
+    /// let expected = 3.4597_f64 * two_to_m10;
+    /// assert!((exp10_m1 - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn exp10_m1(mut self) -> Self {
+        self.exp10_m1_round(Round::Nearest);
+        self
+    }
+
+    /// Subtracts one from 10 to the power of `self`, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+    /// f.exp10_m1_mut();
+    /// let expected = 3.4597_f64 * two_to_m10;
+    /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    pub fn exp10_m1_mut(&mut self) {
+        self.exp10_m1_round(Round::Nearest);
+    }
+
+    /// Subtracts one from 10 to the power of `self`, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// let two_to_m10 = (-10f64).exp2();
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+    /// // exp10_m1(1.5 × 2 ^ -10) = 3.4597 × 2 ^ -10
+    /// // using 4 significant bits: 3.5 × 2 ^ -10
+    /// let dir = f.exp10_m1_round(Round::Nearest);
+    /// assert_eq!(f, 3.5 * two_to_m10);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn exp10_m1_round(&mut self, round: Round) -> Ordering {
+        xmpfr::exp10m1(self, (), round)
+    }
+
+    /// Computes one less than 10 to the power of the value.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let exp10_m1 = Float::with_val(53, f.exp10_m1_ref());
+    /// let expected = 3.4597_f64 * two_to_m10;
+    /// assert!((exp10_m1 - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn exp10_m1_ref(&self) -> Exp10M1Incomplete<'_> {
+        Exp10M1Incomplete { ref_self: self }
+    }
+
     /// Computes the exponential integral, rounding to the nearest.
     ///
     /// # Examples
@@ -10884,6 +11050,8 @@ ref_math_op1_float! { xmpfr::log1p; struct Ln1pIncomplete {} }
 ref_math_op1_float! { xmpfr::log2p1; struct LogTwo1pIncomplete {} }
 ref_math_op1_float! { xmpfr::log10p1; struct LogTen1pIncomplete {} }
 ref_math_op1_float! { xmpfr::expm1; struct ExpM1Incomplete {} }
+ref_math_op1_float! { xmpfr::exp2m1; struct Exp2M1Incomplete {} }
+ref_math_op1_float! { xmpfr::exp10m1; struct Exp10M1Incomplete {} }
 ref_math_op1_float! { xmpfr::eint; struct EintIncomplete {} }
 ref_math_op1_float! { xmpfr::li2; struct Li2Incomplete {} }
 ref_math_op1_float! { xmpfr::gamma; struct GammaIncomplete {} }

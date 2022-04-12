@@ -431,6 +431,8 @@ unsafe_wrap! { fn log1p(op: O) -> mpfr::log1p }
 unsafe_wrap! { fn log2p1(op: O) -> mpfr::log2p1 }
 unsafe_wrap! { fn log10p1(op: O) -> mpfr::log10p1 }
 unsafe_wrap! { fn expm1(op: O) -> mpfr::expm1 }
+unsafe_wrap! { fn exp2m1(op: O) -> mpfr::exp2m1 }
+unsafe_wrap! { fn exp10m1(op: O) -> mpfr::exp10m1 }
 unsafe_wrap! { fn eint(op: O) -> mpfr::eint }
 unsafe_wrap! { fn li2(op: O) -> mpfr::li2 }
 unsafe_wrap! { fn gamma(op: O) -> mpfr::gamma }

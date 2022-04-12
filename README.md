@@ -68,6 +68,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
         [`log2_1p_round`][flo-l2ro-1-19], [`log2_1p_ref`][flo-l2re-1-19]
       * [`log10_1p`][flo-l10-1-19], [`log10_1p_mut`][flo-l10m-1-19],
         [`log10_1p_round`][flo-l10ro-1-19], [`log10_1p_ref`][flo-l10re-1-19]
+      * [`exp2_m1`][flo-e2-1-19], [`exp2_m1_mut`][flo-e2m-1-19],
+        [`exp2_m1_round`][flo-e2ro-1-19], [`exp2_m1_ref`][flo-e2re-1-19]
+      * [`exp10_m1`][flo-e10-1-19], [`exp10_m1_mut`][flo-e10m-1-19],
+        [`exp10_m1_round`][flo-e10ro-1-19], [`exp10_m1_ref`][flo-e10re-1-19]
   * The following methods were added to [`Complex`][com-1-19]:
       * [`agm`][com-a-1-19], [`agm_mut`][com-am-1-19],
         [`agm_round`][com-aro-1-19], [`agm_ref`][com-are-1-19]
@@ -186,6 +190,14 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [flo-cum-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u_mut
 [flo-cure-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u_ref
 [flo-curo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cos_u_round
+[flo-e10-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.exp10_m1
+[flo-e10m-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.exp10_m1_mut
+[flo-e10re-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.exp10_m1_ref
+[flo-e10ro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.exp10_m1_round
+[flo-e2-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.exp2_m1
+[flo-e2m-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.exp2_m1_mut
+[flo-e2re-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.exp2_m1_ref
+[flo-e2ro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.exp2_m1_round
 [flo-fr-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.from_raw
 [flo-ge-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.get_exp
 [flo-if-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_finite
