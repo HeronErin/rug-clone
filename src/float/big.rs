@@ -3526,6 +3526,85 @@ impl Float {
         RootIncomplete { ref_self: self, k }
     }
 
+    /// Computes the <i>k</i>th root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 625.0);
+    /// let root_i = f.root_i(-4);
+    /// let expected = 0.2000_f64;
+    /// assert!((root_i - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn root_i(mut self, k: i32) -> Self {
+        self.root_i_round(k, Round::Nearest);
+        self
+    }
+
+    /// Computes the <i>k</i>th root, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 625.0);
+    /// f.root_i_mut(-4);
+    /// let expected = 0.2000_f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn root_i_mut(&mut self, k: i32) {
+        self.root_i_round(k, Round::Nearest);
+    }
+
+    /// Computes the <i>k</i>th root, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 5.0);
+    /// // 5.0 ^ -1/4 = 0.6687
+    /// // using 4 significant bits: 0.6875
+    /// let dir = f.root_i_round(-4, Round::Nearest);
+    /// assert_eq!(f, 0.6875);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn root_i_round(&mut self, k: i32, round: Round) -> Ordering {
+        xmpfr::rootn_si(self, (), k, round)
+    }
+
+    /// Computes the <i>k</i>th root.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 625.0);
+    /// let r = f.root_i_ref(-4);
+    /// let root_i = Float::with_val(53, r);
+    /// let expected = 0.2000_f64;
+    /// assert!((root_i - expected).abs() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn root_i_ref(&self, k: i32) -> RootIIncomplete<'_> {
+        RootIIncomplete { ref_self: self, k }
+    }
+
     /// Computes the absolute value.
     ///
     /// # Examples
@@ -11011,6 +11090,7 @@ ref_math_op0_float! { xmpfr::sqrt_ui; struct SqrtUIncomplete { u: u32 } }
 ref_math_op1_float! { xmpfr::rec_sqrt; struct RecipSqrtIncomplete {} }
 ref_math_op1_float! { xmpfr::cbrt; struct CbrtIncomplete {} }
 ref_math_op1_float! { xmpfr::rootn_ui; struct RootIncomplete { k: u32 } }
+ref_math_op1_float! { xmpfr::rootn_si; struct RootIIncomplete { k: i32 } }
 ref_math_op1_float! { xmpfr::abs; struct AbsIncomplete {} }
 ref_math_op1_float! { xmpfr::signum; struct SignumIncomplete {} }
 ref_math_op2_float! { xmpfr::copysign; struct CopysignIncomplete { y } }

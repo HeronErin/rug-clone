@@ -50,6 +50,8 @@ Version 1.19.0 (unreleased)
         [`exp10_m1_round`][flo-e10ro-1-19], [`exp10_m1_ref`][flo-e10re-1-19]
       * [`compound_i`][flo-ci-1-19], [`compound_i_mut`][flo-cim-1-19],
         [`compound_i_round`][flo-ciro-1-19], [`compound_i_ref`][flo-cire-1-19]
+      * [`root_i`][flo-ri-1-19], [`root_i_mut`][flo-rim-1-19],
+        [`root_i_round`][flo-riro-1-19], [`root_i_ref`][flo-rire-1-19]
   * The following methods were added to [`Complex`][com-1-19]:
       * [`agm`][com-a-1-19], [`agm_mut`][com-am-1-19],
         [`agm_round`][com-aro-1-19], [`agm_ref`][com-are-1-19]
@@ -197,6 +199,10 @@ Version 1.19.0 (unreleased)
 [flo-l2re-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log2_1p_ref
 [flo-l2ro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log2_1p_round
 [flo-p-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.prec
+[flo-ri-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.root_i
+[flo-rim-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.root_i_mut
+[flo-rire-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.root_i_ref
+[flo-riro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.root_i_round
 [flo-sp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi
 [flo-spm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi_mut
 [flo-spre-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi_ref

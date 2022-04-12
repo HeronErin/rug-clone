@@ -382,6 +382,7 @@ unsafe_wrap0! { fn sqrt_ui(u: u32) -> mpfr::sqrt_ui }
 unsafe_wrap! { fn rec_sqrt(op: O) -> mpfr::rec_sqrt }
 unsafe_wrap! { fn cbrt(op: O) -> mpfr::cbrt }
 unsafe_wrap! { fn rootn_ui(op: O; k: u32) -> mpfr::rootn_ui }
+unsafe_wrap! { fn rootn_si(op: O; k: i32) -> mpfr::rootn_si }
 unsafe_wrap! { fn abs(op: O) -> mpfr::abs }
 unsafe_wrap! { fn min(op1: O, op2: P) -> mpfr::min }
 unsafe_wrap! { fn max(op1: O, op2: P) -> mpfr::max }
