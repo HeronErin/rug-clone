@@ -28,7 +28,7 @@ use crate::Float;
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use az::{CheckedAs, CheckedCast};
+use az::CheckedCast;
 use core::cmp::Ordering;
 use core::ffi::{c_long, c_ulong};
 use core::ops::{
@@ -509,7 +509,7 @@ macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
         fn $fn<O: OptFloat>(rop: &mut Float, op1: O, op2: Self, rnd: Round) -> Ordering {
-            if let Some(op2) = op2.checked_as() {
+            if let Some(op2) = op2.checked_cast() {
                 $deleg_long(rop, op1, op2, rnd)
             } else {
                 let small: SmallFloat = op2.into();
@@ -529,7 +529,7 @@ macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
         fn $fn<O: OptFloat>(rop: &mut Float, op1: Self, op2: O, rnd: Round) -> Ordering {
-            if let Some(op1) = op1.checked_as() {
+            if let Some(op1) = op1.checked_cast() {
                 $deleg_long(rop, op1, op2, rnd)
             } else {
                 let small: SmallFloat = op1.into();
@@ -572,7 +572,7 @@ where
     forward! { fn mul() -> xmpfr::mul_ui, xmpfr::mul }
     forward! { fn div() -> xmpfr::div_ui, xmpfr::div }
     reverse! { fn div_from() -> xmpfr::ui_div, xmpfr::div }
-    forward! { fn rem() -> xmpfr::fmod }
+    forward! { fn rem() -> xmpfr::fmod_ui, xmpfr::fmod }
     reverse! { fn rem_from() -> xmpfr::fmod }
     forward! { fn pow() -> xmpfr::pow_ui, xmpfr::pow }
     reverse! { fn pow_from() -> xmpfr::ui_pow, xmpfr::pow }

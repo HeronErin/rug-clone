@@ -480,6 +480,7 @@ unsafe_wrap! { fn add_ui(op1: O; op2: c_ulong) -> mpfr::add_ui }
 unsafe_wrap! { fn sub_ui(op1: O; op2: c_ulong) -> mpfr::sub_ui }
 unsafe_wrap! { fn mul_ui(op1: O; op2: c_ulong) -> mpfr::mul_ui }
 unsafe_wrap! { fn div_ui(op1: O; op2: c_ulong) -> mpfr::div_ui }
+unsafe_wrap! { fn fmod_ui(op1: O; op2: c_ulong) -> mpfr::fmod_ui }
 unsafe_wrap! { fn pow_ui(op1: O; op2: c_ulong) -> mpfr::pow_ui }
 unsafe_wrap! { fn add_d(op1: O; op2: f64) -> mpfr::add_d }
 unsafe_wrap! { fn sub_d(op1: O; op2: f64) -> mpfr::sub_d }
