@@ -40,6 +40,10 @@ Version 1.19.0 (unreleased)
         [`atan_pi_round`][flo-atpro-1-19], [`atan_pi_ref`][flo-atpre-1-19]
       * [`atan2_pi`][flo-at2p-1-19], [`atan2_pi_mut`][flo-at2pm-1-19],
         [`atan2_pi_round`][flo-at2pro-1-19], [`atan2_pi_ref`][flo-at2pre-1-19]
+      * [`log2_1p`][flo-l2-1-19], [`log2_1p_mut`][flo-l2m-1-19],
+        [`log2_1p_round`][flo-l2ro-1-19], [`log2_1p_ref`][flo-l2re-1-19]
+      * [`log10_1p`][flo-l10-1-19], [`log10_1p_mut`][flo-l10m-1-19],
+        [`log10_1p_round`][flo-l10ro-1-19], [`log10_1p_ref`][flo-l10re-1-19]
   * The following methods were added to [`Complex`][com-1-19]:
       * [`agm`][com-a-1-19], [`agm_mut`][com-am-1-19],
         [`agm_round`][com-aro-1-19], [`agm_ref`][com-are-1-19]
@@ -166,6 +170,14 @@ Version 1.19.0 (unreleased)
 [flo-isn-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_sign_negative
 [flo-isp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_sign_positive
 [flo-iz-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_zero
+[flo-l10-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log10_1p
+[flo-l10m-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log10_1p_mut
+[flo-l10re-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log10_1p_ref
+[flo-l10ro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log10_1p_round
+[flo-l2-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log2_1p
+[flo-l2m-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log2_1p_mut
+[flo-l2re-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log2_1p_ref
+[flo-l2ro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#methoed.log2_1p_round
 [flo-p-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.prec
 [flo-sp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi
 [flo-spm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.sin_pi_mut

@@ -7865,6 +7865,176 @@ impl Float {
         Ln1pIncomplete { ref_self: self }
     }
 
+    /// Computes the logarithm to base 2 of one plus `self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let log2_1p = f.log2_1p();
+    /// let expected = 2.1625_f64 * two_to_m10;
+    /// assert!((log2_1p - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn log2_1p(mut self) -> Self {
+        self.log2_1p_round(Round::Nearest);
+        self
+    }
+
+    /// Computes the logarithm to base 2 of one plus `self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+    /// f.log2_1p_mut();
+    /// let expected = 2.1625_f64 * two_to_m10;
+    /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    pub fn log2_1p_mut(&mut self) {
+        self.log2_1p_round(Round::Nearest);
+    }
+
+    /// Computes the logarithm to base 2 of one plus `self`, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// let two_to_m10 = (-10f64).exp2();
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+    /// // log2_1p(1.5 × 2 ^ -10) = 2.1625 × 2 ^ -10
+    /// // using 4 significant bits: 2.25 × 2 ^ -10
+    /// let dir = f.log2_1p_round(Round::Nearest);
+    /// assert_eq!(f, 2.25 * two_to_m10);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn log2_1p_round(&mut self, round: Round) -> Ordering {
+        xmpfr::log2p1(self, (), round)
+    }
+
+    /// Computes the logorithm to base 2 of one plus the value.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let log2_1p = Float::with_val(53, f.log2_1p_ref());
+    /// let expected = 2.1625_f64 * two_to_m10;
+    /// assert!((log2_1p - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn log2_1p_ref(&self) -> LogTwo1pIncomplete<'_> {
+        LogTwo1pIncomplete { ref_self: self }
+    }
+
+    /// Computes the logarithm to base 10 of one plus `self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let log10_1p = f.log10_1p();
+    /// let expected = 0.6510_f64 * two_to_m10;
+    /// assert!((log10_1p - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn log10_1p(mut self) -> Self {
+        self.log10_1p_round(Round::Nearest);
+        self
+    }
+
+    /// Computes the logarithm to base 10 of one plus `self`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+    /// f.log10_1p_mut();
+    /// let expected = 0.6510_f64 * two_to_m10;
+    /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    #[inline]
+    pub fn log10_1p_mut(&mut self) {
+        self.log10_1p_round(Round::Nearest);
+    }
+
+    /// Computes the logarithm to base 10 of one plus `self`, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::{float::Round, Float};
+    /// let two_to_m10 = (-10f64).exp2();
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+    /// // log10_1p(1.5 × 2 ^ -10) = 0.6510 × 2 ^ -10
+    /// // using 4 significant bits: 0.625 × 2 ^ -10
+    /// let dir = f.log10_1p_round(Round::Nearest);
+    /// assert_eq!(f, 0.625 * two_to_m10);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn log10_1p_round(&mut self, round: Round) -> Ordering {
+        xmpfr::log10p1(self, (), round)
+    }
+
+    /// Computes the logorithm to base 10 of one plus the value.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Float]</code>
+    ///   * <code>[AssignRound]\<Src> for [Float]</code>
+    ///   * <code>[CompleteRound]\<[Completed][CompleteRound::Completed] = [Float]> for Src</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let two_to_m10 = (-10f64).exp2();
+    /// let f = Float::with_val(53, 1.5 * two_to_m10);
+    /// let log10_1p = Float::with_val(53, f.log10_1p_ref());
+    /// let expected = 0.6510_f64 * two_to_m10;
+    /// assert!((log10_1p - expected).abs() < 0.0001 * two_to_m10);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn log10_1p_ref(&self) -> LogTen1pIncomplete<'_> {
+        LogTen1pIncomplete { ref_self: self }
+    }
+
     /// Subtracts one from the exponential of `self`, rounding to the nearest.
     ///
     /// # Examples
@@ -10711,6 +10881,8 @@ ref_math_op1_float! { xmpfr::asinh; struct AsinhIncomplete {} }
 ref_math_op1_float! { xmpfr::atanh; struct AtanhIncomplete {} }
 ref_math_op0_float! { xmpfr::fac_ui; struct FactorialIncomplete { n: u32 } }
 ref_math_op1_float! { xmpfr::log1p; struct Ln1pIncomplete {} }
+ref_math_op1_float! { xmpfr::log2p1; struct LogTwo1pIncomplete {} }
+ref_math_op1_float! { xmpfr::log10p1; struct LogTen1pIncomplete {} }
 ref_math_op1_float! { xmpfr::expm1; struct ExpM1Incomplete {} }
 ref_math_op1_float! { xmpfr::eint; struct EintIncomplete {} }
 ref_math_op1_float! { xmpfr::li2; struct Li2Incomplete {} }
