@@ -30,6 +30,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.16.0 news (unreleased)
 
+  * Now [`Float`][flo-1-16] implements [`Cast`][az-c-1-1],
+    [`CheckedCast`][az-cc-1-1] and [`UnwrappedCast`][az-uc-1-1] with primitive
+    integers as the destination types, in addition to the previously supported
+    [`SaturatingCast`][az-sc-1-1].
   * The new methods <code>[Float][flo-1-16]::[total\_cmp][flo-tc-1-16]</code>
     and <code>[Complex][com-1-16]::[total\_cmp][com-tc-1-16]</code> were added.
   * The new methods
@@ -43,6 +47,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 [`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
 [`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
+[az-c-1-1]: https://docs.rs/az/1.1/az/trait.Cast.html
+[az-cc-1-1]: https://docs.rs/az/1.1/az/trait.CheckedCast.html
+[az-sc-1-1]: https://docs.rs/az/1.1/az/trait.SaturatingCast.html
+[az-uc-1-1]: https://docs.rs/az/1.1/az/trait.UnwrappedCast.html
 [bc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/complex/struct.BorrowComplex.html
 [bf-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowFloat.html
 [bi-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/integer/struct.BorrowInteger.html

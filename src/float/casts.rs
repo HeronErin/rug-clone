@@ -14,6 +14,8 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+#[cfg(feature = "integer")]
+use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
 use crate::{
@@ -21,17 +23,32 @@ use crate::{
     float::{small, Round, SmallFloat},
     Assign, Float,
 };
-use az::{Cast, SaturatingAs, SaturatingCast, WrappingAs};
+use az::{Cast, CheckedAs, CheckedCast, SaturatingCast, UnwrappedCast, WrappingAs};
 use core::cmp::Ordering;
-use gmp_mpfr_sys::mpfr;
-#[cfg(feature = "integer")]
-use {
-    crate::Integer,
-    az::{CheckedCast, UnwrappedCast},
-};
 
-macro_rules! cast_int {
-    ($Prim:ty, $U:ty, $nbits:expr, $unchecked_get:path) => {
+macro_rules! cast_int_uint_common {
+    ($Prim:ty) => {
+        impl Cast<$Prim> for Float {
+            #[inline]
+            fn cast(self) -> $Prim {
+                (&self).cast()
+            }
+        }
+
+        impl Cast<$Prim> for &'_ Float {
+            #[inline]
+            fn cast(self) -> $Prim {
+                self.unwrapped_cast()
+            }
+        }
+
+        impl CheckedCast<$Prim> for Float {
+            #[inline]
+            fn checked_cast(self) -> Option<$Prim> {
+                (&self).checked_cast()
+            }
+        }
+
         impl SaturatingCast<$Prim> for Float {
             #[inline]
             fn saturating_cast(self) -> $Prim {
@@ -42,74 +59,94 @@ macro_rules! cast_int {
         impl SaturatingCast<$Prim> for &'_ Float {
             fn saturating_cast(self) -> $Prim {
                 if self.is_nan() {
-                    unsafe {
-                        mpfr::set_erangeflag();
-                    }
-                    return 0;
+                    panic!("NaN");
                 }
-                let val = if self.is_infinite() { None } else { Some(self) };
-                let val = match val {
-                    None => None,
-                    Some(val) => {
-                        const ZERO: $Prim = 0;
-                        let mut small = SmallFloat::from(ZERO);
-                        // Safety: assigning a value will not change the precision,
-                        // so there is no reallocation.
-                        unsafe {
-                            small
-                                .as_nonreallocating_float()
-                                .assign(val.round_even_ref());
-                        }
-                        // We already checked for NaN, so we can use mpfr::sgn.
-                        debug_assert!(!small.is_nan());
-                        let cmp0 = xmpfr::sgn(&*small);
-                        match cmp0 {
-                            Ordering::Less => match small.get_exp() {
-                                None => None,
-                                Some(exp) if exp > $nbits => None,
-                                Some(exp) => {
-                                    // Safety:
-                                    //  1. small is normal, so we can get the number.
-                                    //  2. Since it is a normal integer, exp > 0
-                                    debug_assert!(small.is_normal());
-                                    let abs = unsafe { $unchecked_get(&small) >> ($nbits - exp) };
-                                    if abs > <$Prim>::min_value().wrapping_as::<$U>() {
-                                        None
-                                    } else {
-                                        Some(abs.wrapping_as::<$Prim>().wrapping_neg())
-                                    }
-                                }
-                            },
-                            Ordering::Equal => Some(0),
-                            Ordering::Greater => match small.get_exp() {
-                                None => None,
-                                Some(exp) if exp >= $nbits => None,
-                                Some(exp) => {
-                                    // Safety:
-                                    //  1. small is normal, so we can get the number.
-                                    //  2. Since it is a normal integer, exp > 0
-                                    debug_assert!(small.is_normal());
-                                    let abs = unsafe { $unchecked_get(&small) >> ($nbits - exp) };
-                                    // We have already checked that exp < $nbits, so
-                                    // the value fits.
-                                    Some(abs.wrapping_as::<$Prim>())
-                                }
-                            },
-                        }
-                    }
-                };
-                match val {
+                match self.checked_cast() {
                     Some(val) => val,
                     None => {
-                        unsafe {
-                            mpfr::set_erangeflag();
-                        }
                         if self.is_sign_negative() {
                             <$Prim>::min_value()
                         } else {
                             <$Prim>::max_value()
                         }
                     }
+                }
+            }
+        }
+
+        impl UnwrappedCast<$Prim> for Float {
+            #[inline]
+            fn unwrapped_cast(self) -> $Prim {
+                (&self).unwrapped_cast()
+            }
+        }
+
+        impl UnwrappedCast<$Prim> for &'_ Float {
+            #[inline]
+            fn unwrapped_cast(self) -> $Prim {
+                if self.is_nan() {
+                    panic!("NaN");
+                }
+                self.checked_cast().expect("overflow")
+            }
+        }
+    };
+}
+
+macro_rules! cast_int {
+    ($Prim:ty, $U:ty, $nbits:expr, $unchecked_get:path) => {
+        cast_int_uint_common! { $Prim }
+
+        impl CheckedCast<$Prim> for &'_ Float {
+            fn checked_cast(self) -> Option<$Prim> {
+                if !self.is_finite() {
+                    return None;
+                }
+
+                const ZERO: $Prim = 0;
+                let mut small = SmallFloat::from(ZERO);
+                // Safety: assigning a value will not change the precision,
+                // so there is no reallocation.
+                unsafe {
+                    small
+                        .as_nonreallocating_float()
+                        .assign(self.round_even_ref());
+                }
+                // We already checked for NaN, so we can use mpfr::sgn.
+                debug_assert!(!small.is_nan());
+                let cmp0 = xmpfr::sgn(&*small);
+                match cmp0 {
+                    Ordering::Less => match small.get_exp() {
+                        None => None,
+                        Some(exp) if exp > $nbits => None,
+                        Some(exp) => {
+                            // Safety:
+                            //  1. small is normal, so we can get the number.
+                            //  2. Since it is a normal integer, exp > 0
+                            debug_assert!(small.is_normal());
+                            let abs = unsafe { $unchecked_get(&small) >> ($nbits - exp) };
+                            if abs > <$Prim>::min_value().wrapping_as::<$U>() {
+                                None
+                            } else {
+                                Some(abs.wrapping_as::<$Prim>().wrapping_neg())
+                            }
+                        }
+                    },
+                    Ordering::Equal => Some(0),
+                    Ordering::Greater => match small.get_exp() {
+                        None => None,
+                        Some(exp) if exp >= $nbits => None,
+                        Some(exp) => {
+                            // Safety:
+                            //  1. small is normal, so we can get the number.
+                            //  2. Since it is a normal integer, exp > 0
+                            debug_assert!(small.is_normal());
+                            let abs = unsafe { $unchecked_get(&small) >> ($nbits - exp) };
+                            // We have already checked that exp < $nbits, so
+                            // the value fits.
+                            Some(abs.wrapping_as::<$Prim>())
+                        }
+                    },
                 }
             }
         }
@@ -118,66 +155,40 @@ macro_rules! cast_int {
 
 macro_rules! cast_uint {
     ($Prim:ty, $nbits:expr, $unchecked_get:path) => {
-        impl SaturatingCast<$Prim> for Float {
-            #[inline]
-            fn saturating_cast(self) -> $Prim {
-                (&self).saturating_cast()
-            }
-        }
+        cast_int_uint_common! { $Prim }
 
-        impl SaturatingCast<$Prim> for &'_ Float {
-            fn saturating_cast(self) -> $Prim {
-                if self.is_nan() {
-                    unsafe {
-                        mpfr::set_erangeflag();
-                    }
-                    return 0;
+        impl CheckedCast<$Prim> for &'_ Float {
+            fn checked_cast(self) -> Option<$Prim> {
+                if !self.is_finite() {
+                    return None;
                 }
-                let val = if self.is_infinite() { None } else { Some(self) };
-                let val = match val {
-                    None => None,
-                    Some(val) => {
-                        const ZERO: $Prim = 0;
-                        let mut small = SmallFloat::from(ZERO);
-                        // Safety: assigning a value will not change the precision,
-                        // so there is no reallocation.
-                        unsafe {
-                            small
-                                .as_nonreallocating_float()
-                                .assign(val.round_even_ref());
+
+                const ZERO: $Prim = 0;
+                let mut small = SmallFloat::from(ZERO);
+                // Safety: assigning a value will not change the precision,
+                // so there is no reallocation.
+                unsafe {
+                    small
+                        .as_nonreallocating_float()
+                        .assign(self.round_even_ref());
+                }
+                // We already checked for NaN, so we can use mpfr::sgn.
+                debug_assert!(!small.is_nan());
+                let cmp0 = xmpfr::sgn(&*small);
+                match cmp0 {
+                    Ordering::Less => None,
+                    Ordering::Equal => Some(0),
+                    Ordering::Greater => match small.get_exp() {
+                        None => None,
+                        Some(exp) if exp > $nbits => None,
+                        Some(exp) => {
+                            // Safety:
+                            //  1. small is normal, so we can get the number.
+                            //  2. Since it is a normal integer, exp > 0
+                            debug_assert!(small.is_normal());
+                            Some(unsafe { $unchecked_get(&small) >> ($nbits - exp) })
                         }
-                        // We already checked for NaN, so we can use mpfr::sgn.
-                        debug_assert!(!small.is_nan());
-                        let cmp0 = xmpfr::sgn(&*small);
-                        match cmp0 {
-                            Ordering::Less => None,
-                            Ordering::Equal => Some(0),
-                            Ordering::Greater => match small.get_exp() {
-                                None => None,
-                                Some(exp) if exp > $nbits => None,
-                                Some(exp) => {
-                                    // Safety:
-                                    //  1. small is normal, so we can get the number.
-                                    //  2. Since it is a normal integer, exp > 0
-                                    debug_assert!(small.is_normal());
-                                    Some(unsafe { $unchecked_get(&small) >> ($nbits - exp) })
-                                }
-                            },
-                        }
-                    }
-                };
-                match val {
-                    Some(val) => val,
-                    None => {
-                        unsafe {
-                            mpfr::set_erangeflag();
-                        }
-                        if self.is_sign_negative() {
-                            <$Prim>::min_value()
-                        } else {
-                            <$Prim>::max_value()
-                        }
-                    }
+                    },
                 }
             }
         }
@@ -190,23 +201,18 @@ cast_int! { i32, u32, 32, small::unchecked_get_unshifted_u32 }
 cast_int! { i64, u64, 64, small::unchecked_get_unshifted_u64 }
 cast_int! { i128, u128, 128, small::unchecked_get_unshifted_u128 }
 
-impl SaturatingCast<isize> for Float {
-    #[inline]
-    fn saturating_cast(self) -> isize {
-        (&self).saturating_cast()
-    }
-}
+cast_int_uint_common! { isize }
 
-impl SaturatingCast<isize> for &'_ Float {
+impl CheckedCast<isize> for &'_ Float {
     #[inline]
-    fn saturating_cast(self) -> isize {
+    fn checked_cast(self) -> Option<isize> {
         #[cfg(target_pointer_width = "32")]
         {
-            self.saturating_as::<i32>().cast()
+            self.checked_as::<i32>().map(az::cast)
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.saturating_as::<i64>().cast()
+            self.checked_as::<i64>().map(az::cast)
         }
     }
 }
@@ -217,23 +223,18 @@ cast_uint! { u32, 32, small::unchecked_get_unshifted_u32 }
 cast_uint! { u64, 64, small::unchecked_get_unshifted_u64 }
 cast_uint! { u128, 128, small::unchecked_get_unshifted_u128 }
 
-impl SaturatingCast<usize> for Float {
-    #[inline]
-    fn saturating_cast(self) -> usize {
-        (&self).saturating_cast()
-    }
-}
+cast_int_uint_common! { usize }
 
-impl SaturatingCast<usize> for &'_ Float {
+impl CheckedCast<usize> for &'_ Float {
     #[inline]
-    fn saturating_cast(self) -> usize {
+    fn checked_cast(self) -> Option<usize> {
         #[cfg(target_pointer_width = "32")]
         {
-            self.saturating_as::<u32>().cast()
+            self.checked_as::<u32>().map(az::cast)
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.saturating_as::<u64>().cast()
+            self.checked_as::<u64>().map(az::cast)
         }
     }
 }

@@ -799,7 +799,8 @@ pub fn inf_p(op: &Float) -> bool {
 
 #[inline]
 pub fn number_p(op: &Float) -> bool {
-    (unsafe { mpfr::number_p(op.as_raw()) }) != 0
+    // do not use mpfr::number_p as it is not inlined like nan_p and inf_p
+    !nan_p(op) && !inf_p(op)
 }
 
 #[inline]
