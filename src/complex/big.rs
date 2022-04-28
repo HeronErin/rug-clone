@@ -759,7 +759,7 @@ impl Complex {
     ///
     /// For a similar method that processes two mutable [`Float`] references as
     /// a mutable [`Complex`] number, see
-    /// [`real_imag_mutate`][Complex::real_imag_mutate].
+    /// [`mutate_real_imag`][Complex::mutate_real_imag].
     ///
     /// # Examples
     ///
@@ -791,12 +791,12 @@ impl Complex {
     /// let mut real = Float::with_val(53, 4.2);
     /// let mut imag = Float::with_val(53, -2.3);
     /// // (4.2, -2.3) × i = (2.3, 4.2)
-    /// Complex::real_imag_mutate(&mut real, &mut imag, |c| c.mul_i_mut(false));
+    /// Complex::mutate_real_imag(&mut real, &mut imag, |c| c.mul_i_mut(false));
     /// assert_eq!(real, 2.3);
     /// assert_eq!(imag, 4.2);
     /// ```
     #[inline]
-    pub fn real_imag_mutate<F>(real: &mut Float, imag: &mut Float, func: F)
+    pub fn mutate_real_imag<F>(real: &mut Float, imag: &mut Float, func: F)
     where
         F: FnOnce(&mut Complex),
     {

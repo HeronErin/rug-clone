@@ -38,7 +38,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     and <code>[Complex][com-1-16]::[total\_cmp][com-tc-1-16]</code> were added.
   * The new methods
     <code>[Complex][com-1-16]::[borrow\_real\_imag][com-bri-1-16]</code> and
-    <code>[Complex][com-1-16]::[real\_imag\_mutate][com-rim-1-16]</code> were
+    <code>[Complex][com-1-16]::[mutate\_real\_imag][com-mri-1-16]</code> were
     added.
   * Arithmetic operators are overloaded to work on combinations of Rug types and
     [`isize`] and [`usize`].
@@ -57,7 +57,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [br-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/rational/struct.BorrowRational.html
 [com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
 [com-bri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.borrow_real_imag
-[com-rim-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.real_imag_mutate
+[com-mri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.mutate_real_imag
 [com-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.total_cmp
 [flo-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
 [flo-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.total_cmp
