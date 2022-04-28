@@ -28,7 +28,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
-### Version 1.16.0 news (unreleased)
+### Version 1.16.0 news (2022-04-28)
 
   * Now [`Float`][flo-1-16] implements [`Cast`][az-c-1-1],
     [`CheckedCast`][az-cc-1-1] and [`UnwrappedCast`][az-uc-1-1] with primitive
@@ -51,77 +51,16 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [az-cc-1-1]: https://docs.rs/az/1.1/az/trait.CheckedCast.html
 [az-sc-1-1]: https://docs.rs/az/1.1/az/trait.SaturatingCast.html
 [az-uc-1-1]: https://docs.rs/az/1.1/az/trait.UnwrappedCast.html
-[bc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/complex/struct.BorrowComplex.html
-[bf-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowFloat.html
-[bi-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/integer/struct.BorrowInteger.html
-[br-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/rational/struct.BorrowRational.html
-[com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[com-bri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.borrow_real_imag
-[com-mri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.mutate_real_imag
-[com-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.total_cmp
-[flo-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[flo-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.total_cmp
-
-### Version 1.15.0 news (2022-02-03)
-
-  * Now [`Integer`][int-1-15], [`Rational`][rat-1-15], [`Float`][flo-1-15] and
-    [`Complex`][com-1-15] implement [`Shl`], [`Shr`], [`ShlAssign`] and
-    [`ShrAssign`] with [`isize`] and [`usize`] as the type of the right-hand
-    side, in addition to the previously supported [`i32`] and [`u32`].
-  * The new experimental feature [`num-traits`][feat-nt-1-15] was added to
-    implement some traits from the [*num-traits* crate] and the [*num-integer*
-    crate] ([issue 30]).
-
-[`ShlAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.ShlAssign.html
-[`Shl`]: https://doc.rust-lang.org/nightly/core/ops/trait.Shl.html
-[`ShrAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.ShrAssign.html
-[`Shr`]: https://doc.rust-lang.org/nightly/core/ops/trait.Shr.html
-[`i32`]: https://doc.rust-lang.org/nightly/core/primitive.i32.html
-[`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
-[`u32`]: https://doc.rust-lang.org/nightly/core/primitive.u32.html
-[`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
-[com-1-15]: https://docs.rs/rug/~1.15/rug/struct.Complex.html
-[feat-nt-1-15]: https://docs.rs/rug/~1.15/rug/index.html#experimental-optional-features
-[flo-1-15]: https://docs.rs/rug/~1.15/rug/struct.Float.html
-[int-1-15]: https://docs.rs/rug/~1.15/rug/struct.Integer.html
-[issue 30]: https://gitlab.com/tspiteri/rug/-/issues/30
-[rat-1-15]: https://docs.rs/rug/~1.15/rug/struct.Rational.html
-
-### Version 1.14.1 news (2022-01-23)
-
-  * Bug fix: <code>[Rational][rat-1-14]::[to_f32][rat-tf-1-14]</code> was
-    rounding away from zero in some cases when the rational number should be
-    converted to a subnormal number ([issue 36]).
-
-### Version 1.14.0 news (2021-11-24)
-
-  * Bug fix: [`OrdFloat`][ofl-1-14] was incorrectly ordering +NaN < &minus;∞.
-  * The <code>[Integer][int-1-14]::[ZERO][int-z-1-14]</code> associated constant
-    was added.
-  * The <code>[Integer][int-1-14]::[shrink_to][int-st-1-14]</code> method was
-    added.
-  * The <code>[Rational][rat-1-14]::[is_integer][rat-ii-1-14]</code> method was
-    added.
-  * The <code>[Complete][comp-1-14]::[complete_into][comp-ci-1-14]</code>
-    provided method was added to the [`Complete`][comp-1-14] trait.
-  * The [`CompleteRound`][compr-1-14] trait was added to make it easier to
-    convert [`Float`][flo-1-14] and [`Complex`][com-1-14] numbers
-    [incomplete-computation values][icv-1-14] to their final value.
-
-[com-1-14]: https://docs.rs/rug/~1.14/rug/struct.Complex.html
-[comp-1-14]: https://docs.rs/rug/~1.14/rug/trait.Complete.html
-[comp-ci-1-14]: https://docs.rs/rug/~1.14/rug/trait.Complete.html#method.complete_into
-[compr-1-14]: https://docs.rs/rug/~1.14/rug/ops/trait.CompleteRound.html
-[flo-1-14]: https://docs.rs/rug/~1.14/rug/struct.Float.html
-[icv-1-14]: https://docs.rs/rug/~1.14/rug/index.html#incomplete-computation-values
-[int-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html
-[int-st-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#method.shrink_to
-[int-z-1-14]: https://docs.rs/rug/~1.14/rug/struct.Integer.html#associatedconstant.ZERO
-[issue 36]: https://gitlab.com/tspiteri/rug/-/issues/36
-[ofl-1-14]: https://docs.rs/rug/~1.14/rug/float/struct.OrdFloat.html
-[rat-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html
-[rat-ii-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html#method.is_integer
-[rat-tf-1-14]: https://docs.rs/rug/~1.14/rug/struct.Rational.html#method.to_f32
+[bc-1-16]: https://docs.rs/rug/~1.16/rug/complex/struct.BorrowComplex.html
+[bf-1-16]: https://docs.rs/rug/~1.16/rug/float/struct.BorrowFloat.html
+[bi-1-16]: https://docs.rs/rug/~1.16/rug/integer/struct.BorrowInteger.html
+[br-1-16]: https://docs.rs/rug/~1.16/rug/rational/struct.BorrowRational.html
+[com-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html
+[com-bri-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.borrow_real_imag
+[com-mri-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.mutate_real_imag
+[com-tc-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.total_cmp
+[flo-1-16]: https://docs.rs/rug/~1.16/rug/struct.Float.html
+[flo-tc-1-16]: https://docs.rs/rug/~1.16/rug/struct.Float.html#method.total_cmp
 
 ### Other releases
 
@@ -213,7 +152,7 @@ a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.15"
+rug = "1.16"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -246,7 +185,7 @@ selectively, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.rug]
-version = "1.15"
+version = "1.16"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -267,7 +206,7 @@ updated to an incompatible newer version.
     [*num-traits* crate] and the [*num-integer* crate].
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.15/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.16/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [*num-integer* crate]: https://crates.io/crates/num-integer
 [*num-traits* crate]: https://crates.io/crates/num-traits
@@ -277,20 +216,20 @@ updated to an incompatible newer version.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.15/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.15/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.15/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.15/rug/struct.Float.html
-[`Integer`]: https://docs.rs/rug/~1.15/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.15/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.15/rug/struct.Rational.html
-[`new`]: https://docs.rs/rug/~1.15/rug/struct.Integer.html#method.new
-[`ops`]: https://docs.rs/rug/~1.15/rug/ops/index.html
-[`parse_radix`]: https://docs.rs/rug/~1.15/rug/struct.Integer.html#method.parse_radix
-[`parse`]: https://docs.rs/rug/~1.15/rug/struct.Integer.html#method.parse
+[`Assign::assign`]: https://docs.rs/rug/~1.16/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.16/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.16/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.16/rug/struct.Float.html
+[`Integer`]: https://docs.rs/rug/~1.16/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.16/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.16/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.16/rug/struct.Integer.html#method.new
+[`ops`]: https://docs.rs/rug/~1.16/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.16/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.16/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.15/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.15/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.16/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.16/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys

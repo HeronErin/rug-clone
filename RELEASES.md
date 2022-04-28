@@ -4,7 +4,7 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
-Version 1.16.0 (unreleased)
+Version 1.16.0 (2022-04-28)
 ===========================
 
   * Now [`Float`][flo-1-16] implements [`Cast`][az-c-1-1],
@@ -26,16 +26,16 @@ Version 1.16.0 (unreleased)
 [az-cc-1-1]: https://docs.rs/az/1.1/az/trait.CheckedCast.html
 [az-sc-1-1]: https://docs.rs/az/1.1/az/trait.SaturatingCast.html
 [az-uc-1-1]: https://docs.rs/az/1.1/az/trait.UnwrappedCast.html
-[bc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/complex/struct.BorrowComplex.html
-[bf-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/float/struct.BorrowFloat.html
-[bi-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/integer/struct.BorrowInteger.html
-[br-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/rational/struct.BorrowRational.html
-[com-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[com-bri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.borrow_real_imag
-[com-mri-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.mutate_real_imag
-[com-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html#method.total_cmp
-[flo-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[flo-tc-1-16]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.total_cmp
+[bc-1-16]: https://docs.rs/rug/~1.16/rug/complex/struct.BorrowComplex.html
+[bf-1-16]: https://docs.rs/rug/~1.16/rug/float/struct.BorrowFloat.html
+[bi-1-16]: https://docs.rs/rug/~1.16/rug/integer/struct.BorrowInteger.html
+[br-1-16]: https://docs.rs/rug/~1.16/rug/rational/struct.BorrowRational.html
+[com-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html
+[com-bri-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.borrow_real_imag
+[com-mri-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.mutate_real_imag
+[com-tc-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.total_cmp
+[flo-1-16]: https://docs.rs/rug/~1.16/rug/struct.Float.html
+[flo-tc-1-16]: https://docs.rs/rug/~1.16/rug/struct.Float.html#method.total_cmp
 
 Version 1.15.0 (2022-02-03)
 ===========================
