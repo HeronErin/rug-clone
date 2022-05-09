@@ -2852,6 +2852,8 @@ impl BorrowRational<'_> {
     /// let borrow = unsafe { BorrowRational::from_raw(raw) };
     /// assert_eq!(r, *borrow);
     /// ```
+    ///
+    /// [gmp mpq]: gmp_mpfr_sys::C::GMP::Rational_Number_Functions#index-Rational-number-functions
     pub const unsafe fn from_raw<'a>(raw: mpq_t) -> BorrowRational<'a> {
         BorrowRational {
             inner: ManuallyDrop::new(Rational { inner: raw }),
