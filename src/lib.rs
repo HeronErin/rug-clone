@@ -207,6 +207,7 @@ There are two things that can be done with incomplete-computation values:
     using <code>incomplete.[complete][Complete::complete]\()</code> or
     <code>[Integer]::[from][From::from]\(incomplete)</code>. Incomplete
     floating-point numbers can be completed using
+    <code>incomplete.[complete][ops::CompleteRound::complete]\(53)</code> or
     <code>[Float]::[with_val][Float::with_val]\(53, incomplete)</code> since the
     precision has to be specified.
 
