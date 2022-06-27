@@ -4,6 +4,28 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
+Version 1.17.0 (unreleased)
+===========================
+
+  * Bug fix: the [`CompleteRound`][cr-1-17] trait is now implemented for
+      * the value returned from
+        <code>[Float][flo-1-17]::[mul\_add\_mul\_ref][flo-mamr-1-17]</code>
+      * the value returned from
+        <code>[Float][flo-1-17]::[mul\_sub\_mul\_ref][flo-msmr-1-17]</code>
+  * The [`CompleteRound`][cr-1-17] trait is now also implemented for
+      * the value returned from negating a reference to [`Float`][flo-1-17],
+        that is
+        <code>&lt;&amp;[Float][flo-1-17] as [Neg][`Neg`]>::[Output][NegOutput]</code>
+      * the value returned from negating a reference to [`Complex`][com-1-17],
+        that is
+        <code>&lt;&amp;[Complex][com-1-17] as [Neg][`Neg`]>::[Output][NegOutput]</code>
+
+[com-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
+[cr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/ops/trait.CompleteRound.html
+[flo-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
+[flo-mamr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_add_mul_ref
+[flo-msmr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_sub_mul_ref
+
 Version 1.16.0 (2022-04-28)
 ===========================
 
@@ -760,11 +782,13 @@ Version 0.6.0 (2017-08-09)
 [*az* crate]: https://crates.io/crates/az
 [*num-integer* crate]: https://crates.io/crates/num-integer
 [*num-traits* crate]: https://crates.io/crates/num-traits
+[NegOutput]: https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html#associatedtype.Output
 [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
 [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
 [`Default`]: https://doc.rust-lang.org/nightly/core/default/trait.Default.html
 [`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
 [`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
+[`Neg`]: https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html
 [`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
 [`Product`]: https://doc.rust-lang.org/nightly/core/iter/trait.Product.html
 [`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html

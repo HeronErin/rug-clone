@@ -74,6 +74,17 @@ impl AssignRound<NegIncomplete<'_>> for Complex {
     }
 }
 
+impl CompleteRound for NegIncomplete<'_> {
+    type Completed = Complex;
+    type Prec = (u32, u32);
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn complete_round(self, prec: (u32, u32), round: Round2) -> (Complex, Ordering2) {
+        Complex::with_val_round(prec, self, round)
+    }
+}
+
 arith_binary_self_round! {
     Complex, (u32, u32), Round2, NEAREST2, Ordering2;
     xmpc::add;

@@ -28,6 +28,29 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
+### Version 1.17.0 news (unreleased)
+
+  * Bug fix: the [`CompleteRound`][cr-1-17] trait is now implemented for
+      * the value returned from
+        <code>[Float][flo-1-17]::[mul\_add\_mul\_ref][flo-mamr-1-17]</code>
+      * the value returned from
+        <code>[Float][flo-1-17]::[mul\_sub\_mul\_ref][flo-msmr-1-17]</code>
+  * The [`CompleteRound`][cr-1-17] trait is now also implemented for
+      * the value returned from negating a reference to [`Float`][flo-1-17],
+        that is,
+        <code>&lt;&amp;[Float][flo-1-17] as [Neg][`Neg`]>::[Output][NegOutput]</code>
+      * the value returned from negating a reference to [`Complex`][com-1-17],
+        that is,
+        <code>&lt;&amp;[Complex][com-1-17] as [Neg][`Neg`]>::[Output][NegOutput]</code>
+
+[NegOutput]: https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html#associatedtype.Output
+[`Neg`]: https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html
+[com-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
+[cr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/ops/trait.CompleteRound.html
+[flo-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
+[flo-mamr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_add_mul_ref
+[flo-msmr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_sub_mul_ref
+
 ### Version 1.16.0 news (2022-04-28)
 
   * Now [`Float`][flo-1-16] implements [`Cast`][az-c-1-1],

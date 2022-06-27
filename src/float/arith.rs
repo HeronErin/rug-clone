@@ -77,6 +77,17 @@ impl AssignRound<NegIncomplete<'_>> for Float {
     }
 }
 
+impl CompleteRound for NegIncomplete<'_> {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
+    }
+}
+
 arith_binary_self_round! {
     Float, u32, Round, Round::Nearest, Ordering;
     xmpfr::add;
@@ -616,6 +627,17 @@ impl AssignRound<MulAddMulIncomplete<'_>> for Float {
     }
 }
 
+impl CompleteRound for MulAddMulIncomplete<'_> {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
+    }
+}
+
 impl<'a> Sub for MulIncomplete<'a> {
     type Output = MulSubMulIncomplete<'a>;
     #[inline]
@@ -643,6 +665,17 @@ impl AssignRound<MulSubMulIncomplete<'_>> for Float {
             src.rhs.rhs,
             round,
         )
+    }
+}
+
+impl CompleteRound for MulSubMulIncomplete<'_> {
+    type Completed = Float;
+    type Prec = u32;
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
+        Float::with_val_round(prec, self, round)
     }
 }
 
