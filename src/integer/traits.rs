@@ -29,11 +29,6 @@ use core::{
 };
 use gmp_mpfr_sys::gmp::limb_t;
 use std::error::Error;
-#[cfg(feature = "float")]
-use {
-    crate::Float,
-    core::fmt::{LowerExp, UpperExp},
-};
 
 impl Default for Integer {
     #[inline]
@@ -250,22 +245,6 @@ impl UpperHex for Integer {
     }
 }
 
-#[cfg(feature = "float")]
-impl LowerExp for Integer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let float = Float::with_val(self.significant_bits(), self);
-        LowerExp::fmt(&float, f)
-    }
-}
-
-#[cfg(feature = "float")]
-impl UpperExp for Integer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let float = Float::with_val(self.significant_bits(), self);
-        UpperExp::fmt(&float, f)
-    }
-}
-
 // strip_prefix requires rustc 1.45
 #[allow(clippy::manual_strip)]
 fn fmt_radix(
@@ -283,6 +262,37 @@ fn fmt_radix(
         (false, &s[..])
     };
     f.pad_integral(!neg, prefix, buf)
+}
+
+#[cfg(feature = "float")]
+mod float_conv {
+    use {
+        crate::{float, Float, Integer},
+        core::fmt::{Formatter, LowerExp, Result as FmtResult, UpperExp},
+    };
+
+    fn float_from_int(i: &Integer) -> Float {
+        let abs = i.as_abs();
+        let mut prec = abs.significant_bits();
+        // avoid copying trailing zeros
+        if let Some(zeros) = abs.find_one(0) {
+            prec -= zeros;
+        }
+        prec = prec.max(float::prec_min());
+        Float::with_val(prec, i)
+    }
+
+    impl LowerExp for Integer {
+        fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+            LowerExp::fmt(&float_from_int(self), f)
+        }
+    }
+
+    impl UpperExp for Integer {
+        fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+            UpperExp::fmt(&float_from_int(self), f)
+        }
+    }
 }
 
 /// Provides a reference to the underlying digits as

@@ -291,6 +291,9 @@ fn check_formatting() {
         assert_eq!(format!("{:+.2E}", i), "+1.0E1000");
         assert_eq!(format!("{:.9e}", i), "1.00000000e1000");
         assert_eq!(format!("{:.10E}", i), "9.999999999E999");
+
+        i.assign(0);
+        assert_eq!(format!("{:.1e}", i), "0");
     }
 }
 
