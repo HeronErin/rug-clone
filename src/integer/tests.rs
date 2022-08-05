@@ -278,6 +278,20 @@ fn check_formatting() {
     assert_eq!(format!("{:08X}", i), "-000000B");
     assert_eq!(format!("{:#08x}", i), "-0x0000b");
     assert_eq!(format!("{:#8X}", i), "    -0xB");
+
+    #[cfg(feature = "float")]
+    {
+        // one "1" followed by 1000 "0"s
+        i.assign(Integer::u_pow_u(10, 1000));
+        assert_eq!(format!("{:.1e}", i), "1e1000");
+        assert_eq!(format!("{:.2E}", i), "1.0E1000");
+        i -= Integer::from(Integer::u_pow_u(10, 990));
+        // ten "9"s followed by 990 "0"s
+        assert_eq!(format!("{:.1e}", i), "1e1000");
+        assert_eq!(format!("{:+.2E}", i), "+1.0E1000");
+        assert_eq!(format!("{:.9e}", i), "1.00000000e1000");
+        assert_eq!(format!("{:.10E}", i), "9.999999999E999");
+    }
 }
 
 #[test]

@@ -7,6 +7,9 @@ notice are preserved. This file is offered as-is, without any warranty. -->
 Version 1.17.0 (unreleased)
 ===========================
 
+  * [`Integer`][int-1-17] now implements [`LowerExp`] and [`UpperExp`] as a
+    convenience, by transparently converting the [`Integer`][int-1-17] to a
+    [`Float`][flo-1-17] ([issue 42]).
   * Bug fix: the [`CompleteRound`][cr-1-17] trait is now implemented for
       * the value returned from
         <code>[Float][flo-1-17]::[mul\_add\_mul\_ref][flo-mamr-1-17]</code>
@@ -25,6 +28,8 @@ Version 1.17.0 (unreleased)
 [flo-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
 [flo-mamr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_add_mul_ref
 [flo-msmr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_sub_mul_ref
+[int-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[issue 42]: https://gitlab.com/tspiteri/rug/-/issues/42
 
 Version 1.16.0 (2022-04-28)
 ===========================

@@ -29,6 +29,11 @@ use core::{
 };
 use gmp_mpfr_sys::gmp::limb_t;
 use std::error::Error;
+#[cfg(feature = "float")]
+use {
+    crate::Float,
+    core::fmt::{LowerExp, UpperExp},
+};
 
 impl Default for Integer {
     #[inline]
@@ -242,6 +247,22 @@ impl LowerHex for Integer {
 impl UpperHex for Integer {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 16, true, "0x")
+    }
+}
+
+#[cfg(feature = "float")]
+impl LowerExp for Integer {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let float = Float::with_val(self.significant_bits(), self);
+        LowerExp::fmt(&float, f)
+    }
+}
+
+#[cfg(feature = "float")]
+impl UpperExp for Integer {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let float = Float::with_val(self.significant_bits(), self);
+        UpperExp::fmt(&float, f)
     }
 }
 
