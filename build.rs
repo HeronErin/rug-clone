@@ -29,6 +29,7 @@ fn main() {
     }
 
     check_feature("unsafe_in_unsafe", TRY_UNSAFE_IN_UNSAFE);
+    check_feature("doc_alias", TRY_DOC_ALIAS);
 }
 
 fn check_feature(name: &str, contents: &str) {
@@ -95,4 +96,9 @@ const TRY_UNSAFE_IN_UNSAFE: &str = r#"// try_unsafe_in_unsafe.rs
 #![warn(unsafe_op_in_unsafe_fn)]
 
 fn main() {}
+"#;
+
+const TRY_DOC_ALIAS: &str = r#"// try_doc_alias.rs
+#[doc(alias = "alias")]
+pub fn main() {}
 "#;
