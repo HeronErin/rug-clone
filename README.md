@@ -28,13 +28,13 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
-### Version 1.17.0 news (unreleased)
+### Version 1.17.0 news (2022-08-06)
 
   * The new method
     <code>[Integer][int-1-17]::[assign\_bytes\_radix\_unchecked][int-abru-1-17]</code>
     was added ([issue 41]).
-  * [`Integer`][int-1-17] now implements [`LowerExp`] and [`UpperExp`] as a
-    convenience, by transparently converting the [`Integer`][int-1-17] to a
+  * [`Integer`][int-1-17] now implements [`LowerExp`] and [`UpperExp`] for
+    convenience by transparently converting the [`Integer`][int-1-17] to a
     [`Float`][flo-1-17] ([issue 42]).
   * Bug fix: the [`CompleteRound`][cr-1-17] trait is now implemented for
       * the value returned from
@@ -53,49 +53,15 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
 [`Neg`]: https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html
 [`UpperExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.UpperExp.html
-[com-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[cr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/ops/trait.CompleteRound.html
-[flo-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[flo-mamr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_add_mul_ref
-[flo-msmr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_sub_mul_ref
-[int-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
-[int-abru-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.assign_bytes_radix_unchecked
+[com-1-17]: https://docs.rs/rug/~1.17/rug/struct.Complex.html
+[cr-1-17]: https://docs.rs/rug/~1.17/rug/ops/trait.CompleteRound.html
+[flo-1-17]: https://docs.rs/rug/~1.17/rug/struct.Float.html
+[flo-mamr-1-17]: https://docs.rs/rug/~1.17/rug/struct.Float.html#method.mul_add_mul_ref
+[flo-msmr-1-17]: https://docs.rs/rug/~1.17/rug/struct.Float.html#method.mul_sub_mul_ref
+[int-1-17]: https://docs.rs/rug/~1.17/rug/struct.Integer.html
+[int-abru-1-17]: https://docs.rs/rug/~1.17/rug/struct.Integer.html#method.assign_bytes_radix_unchecked
 [issue 41]: https://gitlab.com/tspiteri/rug/-/issues/41
 [issue 42]: https://gitlab.com/tspiteri/rug/-/issues/42
-
-### Version 1.16.0 news (2022-04-28)
-
-  * Now [`Float`][flo-1-16] implements [`Cast`][az-c-1-1],
-    [`CheckedCast`][az-cc-1-1] and [`UnwrappedCast`][az-uc-1-1] with primitive
-    integers as the destination types, in addition to the previously supported
-    [`SaturatingCast`][az-sc-1-1].
-  * The new methods <code>[Float][flo-1-16]::[total\_cmp][flo-tc-1-16]</code>
-    and <code>[Complex][com-1-16]::[total\_cmp][com-tc-1-16]</code> were added.
-  * The new methods
-    <code>[Complex][com-1-16]::[borrow\_real\_imag][com-bri-1-16]</code> and
-    <code>[Complex][com-1-16]::[mutate\_real\_imag][com-mri-1-16]</code> were
-    added.
-  * Arithmetic operators are overloaded to work on combinations of Rug types and
-    [`isize`] and [`usize`].
-  * The [`BorrowInteger`][bi-1-16], [`BorrowRational`][br-1-16],
-    [`BorrowFloat`][bf-1-16] and [`BorrowComplex`][bc-1-16] structs were added.
-
-[`isize`]: https://doc.rust-lang.org/nightly/core/primitive.isize.html
-[`usize`]: https://doc.rust-lang.org/nightly/core/primitive.usize.html
-[az-c-1-1]: https://docs.rs/az/1.1/az/trait.Cast.html
-[az-cc-1-1]: https://docs.rs/az/1.1/az/trait.CheckedCast.html
-[az-sc-1-1]: https://docs.rs/az/1.1/az/trait.SaturatingCast.html
-[az-uc-1-1]: https://docs.rs/az/1.1/az/trait.UnwrappedCast.html
-[bc-1-16]: https://docs.rs/rug/~1.16/rug/complex/struct.BorrowComplex.html
-[bf-1-16]: https://docs.rs/rug/~1.16/rug/float/struct.BorrowFloat.html
-[bi-1-16]: https://docs.rs/rug/~1.16/rug/integer/struct.BorrowInteger.html
-[br-1-16]: https://docs.rs/rug/~1.16/rug/rational/struct.BorrowRational.html
-[com-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html
-[com-bri-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.borrow_real_imag
-[com-mri-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.mutate_real_imag
-[com-tc-1-16]: https://docs.rs/rug/~1.16/rug/struct.Complex.html#method.total_cmp
-[flo-1-16]: https://docs.rs/rug/~1.16/rug/struct.Float.html
-[flo-tc-1-16]: https://docs.rs/rug/~1.16/rug/struct.Float.html#method.total_cmp
 
 ### Other releases
 
@@ -187,7 +153,7 @@ a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.16"
+rug = "1.17"
 ```
 
 Rug requires rustc version 1.37.0 or later.
@@ -220,7 +186,7 @@ selectively, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.rug]
-version = "1.16"
+version = "1.17"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -241,7 +207,7 @@ updated to an incompatible newer version.
     [*num-traits* crate] and the [*num-integer* crate].
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.16/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.17/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [*num-integer* crate]: https://crates.io/crates/num-integer
 [*num-traits* crate]: https://crates.io/crates/num-traits
@@ -251,20 +217,20 @@ updated to an incompatible newer version.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.16/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.16/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.16/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.16/rug/struct.Float.html
-[`Integer`]: https://docs.rs/rug/~1.16/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.16/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.16/rug/struct.Rational.html
-[`new`]: https://docs.rs/rug/~1.16/rug/struct.Integer.html#method.new
-[`ops`]: https://docs.rs/rug/~1.16/rug/ops/index.html
-[`parse_radix`]: https://docs.rs/rug/~1.16/rug/struct.Integer.html#method.parse_radix
-[`parse`]: https://docs.rs/rug/~1.16/rug/struct.Integer.html#method.parse
+[`Assign::assign`]: https://docs.rs/rug/~1.17/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.17/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.17/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.17/rug/struct.Float.html
+[`Integer`]: https://docs.rs/rug/~1.17/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.17/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.17/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.17/rug/struct.Integer.html#method.new
+[`ops`]: https://docs.rs/rug/~1.17/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.17/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.17/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.16/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.16/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.17/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.17/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys

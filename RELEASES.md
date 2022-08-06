@@ -4,14 +4,14 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
-Version 1.17.0 (unreleased)
+Version 1.17.0 (2022-08-06)
 ===========================
 
   * The new method
     <code>[Integer][int-1-17]::[assign\_bytes\_radix\_unchecked][int-abru-1-17]</code>
     was added ([issue 41]).
-  * [`Integer`][int-1-17] now implements [`LowerExp`] and [`UpperExp`] as a
-    convenience, by transparently converting the [`Integer`][int-1-17] to a
+  * [`Integer`][int-1-17] now implements [`LowerExp`] and [`UpperExp`] for
+    convenience by transparently converting the [`Integer`][int-1-17] to a
     [`Float`][flo-1-17] ([issue 42]).
   * Bug fix: the [`CompleteRound`][cr-1-17] trait is now implemented for
       * the value returned from
@@ -26,13 +26,13 @@ Version 1.17.0 (unreleased)
         that is
         <code>&lt;&amp;[Complex][com-1-17] as [Neg][`Neg`]>::[Output][NegOutput]</code>
 
-[com-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Complex.html
-[cr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/ops/trait.CompleteRound.html
-[flo-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html
-[flo-mamr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_add_mul_ref
-[flo-msmr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_sub_mul_ref
-[int-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
-[int-abru-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.assign_bytes_radix_unchecked
+[com-1-17]: https://docs.rs/rug/~1.17/rug/struct.Complex.html
+[cr-1-17]: https://docs.rs/rug/~1.17/rug/ops/trait.CompleteRound.html
+[flo-1-17]: https://docs.rs/rug/~1.17/rug/struct.Float.html
+[flo-mamr-1-17]: https://docs.rs/rug/~1.17/rug/struct.Float.html#method.mul_add_mul_ref
+[flo-msmr-1-17]: https://docs.rs/rug/~1.17/rug/struct.Float.html#method.mul_sub_mul_ref
+[int-1-17]: https://docs.rs/rug/~1.17/rug/struct.Integer.html
+[int-abru-1-17]: https://docs.rs/rug/~1.17/rug/struct.Integer.html#method.assign_bytes_radix_unchecked
 [issue 41]: https://gitlab.com/tspiteri/rug/-/issues/41
 [issue 42]: https://gitlab.com/tspiteri/rug/-/issues/42
 
