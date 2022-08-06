@@ -961,6 +961,10 @@ impl Integer {
     /// whitespace is ignored everywhere in the string. Underscores anywhere
     /// except before the first digit are ignored as well.
     ///
+    /// See also [`assign_bytes_radix_unchecked`], which is an unsafe low-level
+    /// method that can be used if parsing is already done by an external
+    /// function.
+    ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
@@ -979,6 +983,7 @@ impl Integer {
     /// assert!(invalid.is_err());
     /// ```
     ///
+    /// [`assign_bytes_radix_unchecked`]: Self::assign_bytes_radix_unchecked
     /// [icv]: crate#incomplete-computation-values
     /// [slice]: prim@slice
     #[inline]
@@ -1011,13 +1016,13 @@ impl Integer {
     /// use rug::Integer;
     /// let bytes = &[0, 3, 9, 2];
     /// let radix = 10;
-    /// let neg = false;
+    /// let neg = true;
     /// let mut i = Integer::new();
-    /// // SAFETY: radix and bytes are in the required range
+    /// // SAFETY: radix and bytes are in the required ranges
     /// unsafe {
     ///     i.assign_bytes_radix_unchecked(bytes, radix, neg);
     /// }
-    /// assert_eq!(i, 392);
+    /// assert_eq!(i, -392);
     /// ```
     pub unsafe fn assign_bytes_radix_unchecked(
         &mut self,

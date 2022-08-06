@@ -456,6 +456,10 @@ impl Rational {
     /// ignored anywhere except before the first digit of the numerator and
     /// between the “`/`” and the the first digit of the denominator.
     ///
+    /// If parsing is already done by an external function, the unsafe low-level
+    /// <code>[Integer]::[assign\_bytes\_radix\_unchecked]</code> method can be
+    /// used in conjunction with the [`mutate_numer_denom`] method.
+    ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
@@ -474,6 +478,27 @@ impl Rational {
     /// assert!(invalid.is_err());
     /// ```
     ///
+    /// If parsing is done externally, low-level code can be used.
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    ///
+    /// let num_bytes = &[1, 2];
+    /// let den_bytes = &[2, 3];
+    /// let radix = 10;
+    /// let neg = true;
+    /// let mut r = Rational::new();
+    /// // SAFETY: radix and the bytes are in the required ranges
+    /// r.mutate_numer_denom(|num, den| unsafe {
+    ///     num.assign_bytes_radix_unchecked(num_bytes, radix, neg);
+    ///     den.assign_bytes_radix_unchecked(den_bytes, radix, false);
+    /// });
+    /// // -12/23
+    /// assert_eq!(r, (-12, 23));
+    /// ```
+    ///
+    /// [`mutate_numer_denom`]: Rational::mutate_numer_denom
+    /// [assign\_bytes\_radix\_unchecked]: Integer::assign_bytes_radix_unchecked
     /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
