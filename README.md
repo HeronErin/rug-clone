@@ -30,6 +30,9 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.17.0 news (unreleased)
 
+  * The new method
+    <code>[Integer][int-1-17]::[assign\_bytes\_radix\_unchecked][int-abru-1-17]</code>
+    was added ([issue 41]).
   * [`Integer`][int-1-17] now implements [`LowerExp`] and [`UpperExp`] as a
     convenience, by transparently converting the [`Integer`][int-1-17] to a
     [`Float`][flo-1-17] ([issue 42]).
@@ -40,10 +43,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
         <code>[Float][flo-1-17]::[mul\_sub\_mul\_ref][flo-msmr-1-17]</code>
   * The [`CompleteRound`][cr-1-17] trait is now also implemented for
       * the value returned from negating a reference to [`Float`][flo-1-17],
-        that is,
+        that is
         <code>&lt;&amp;[Float][flo-1-17] as [Neg][`Neg`]>::[Output][NegOutput]</code>
       * the value returned from negating a reference to [`Complex`][com-1-17],
-        that is,
+        that is
         <code>&lt;&amp;[Complex][com-1-17] as [Neg][`Neg`]>::[Output][NegOutput]</code>
 
 [NegOutput]: https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html#associatedtype.Output
@@ -56,6 +59,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [flo-mamr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_add_mul_ref
 [flo-msmr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_sub_mul_ref
 [int-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[int-abru-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.assign_bytes_radix_unchecked
+[issue 41]: https://gitlab.com/tspiteri/rug/-/issues/41
 [issue 42]: https://gitlab.com/tspiteri/rug/-/issues/42
 
 ### Version 1.16.0 news (2022-04-28)

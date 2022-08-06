@@ -989,6 +989,53 @@ impl Integer {
         parse(src.as_ref(), radix)
     }
 
+    /// Assigns from bytes in the given radix.
+    ///
+    /// The radix must be between 2 and 256 inclusive.
+    ///
+    /// Each byte must be a value from 0 to `radix - 1`, not an ASCII character.
+    /// The bytes must be ordered most-significant byte first.
+    ///
+    /// If `is_negative` is [`true`], the returned value is negative (unless it is 0).
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that
+    ///
+    ///   * 2&nbsp;≤&nbsp;`radix`&nbsp;≤&nbsp;256
+    ///   * all bytes are in the range 0&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;`radix`
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let bytes = &[0, 3, 9, 2];
+    /// let radix = 10;
+    /// let neg = false;
+    /// let mut i = Integer::new();
+    /// // SAFETY: radix and bytes are in the required range
+    /// unsafe {
+    ///     i.assign_bytes_radix_unchecked(bytes, radix, neg);
+    /// }
+    /// assert_eq!(i, 392);
+    /// ```
+    pub unsafe fn assign_bytes_radix_unchecked(
+        &mut self,
+        bytes: &[u8],
+        radix: i32,
+        is_negative: bool,
+    ) {
+        if bytes.is_empty() {
+            xmpz::set_0(self);
+            return;
+        }
+        xmpz::realloc_for_mpn_set_str(self, bytes.len(), radix);
+        unsafe {
+            let size = gmp::mpn_set_str(self.inner.d.as_ptr(), bytes.as_ptr(), bytes.len(), radix);
+            self.inner.size = (if is_negative { -size } else { size }).unwrapped_cast();
+        }
+    }
+
     /// Converts to an [`i8`] if the value fits.
     ///
     /// This conversion can also be performed using
@@ -6086,20 +6133,11 @@ pub struct ParseIncomplete {
 }
 
 impl Assign<ParseIncomplete> for Integer {
+    #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
-        if src.digits.is_empty() {
-            xmpz::set_0(self);
-            return;
-        }
-        xmpz::realloc_for_mpn_set_str(self, src.digits.len(), src.radix);
+        // SAFETY: radix is in correct range, and all digits are < radix
         unsafe {
-            let size = gmp::mpn_set_str(
-                self.inner.d.as_ptr(),
-                src.digits.as_ptr(),
-                src.digits.len(),
-                src.radix,
-            );
-            self.inner.size = (if src.is_negative { -size } else { size }).unwrapped_cast();
+            self.assign_bytes_radix_unchecked(src.digits.as_slice(), src.radix, src.is_negative);
         }
     }
 }

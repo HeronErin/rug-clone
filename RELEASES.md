@@ -7,6 +7,9 @@ notice are preserved. This file is offered as-is, without any warranty. -->
 Version 1.17.0 (unreleased)
 ===========================
 
+  * The new method
+    <code>[Integer][int-1-17]::[assign\_bytes\_radix\_unchecked][int-abru-1-17]</code>
+    was added ([issue 41]).
   * [`Integer`][int-1-17] now implements [`LowerExp`] and [`UpperExp`] as a
     convenience, by transparently converting the [`Integer`][int-1-17] to a
     [`Float`][flo-1-17] ([issue 42]).
@@ -29,6 +32,8 @@ Version 1.17.0 (unreleased)
 [flo-mamr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_add_mul_ref
 [flo-msmr-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Float.html#method.mul_sub_mul_ref
 [int-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html
+[int-abru-1-17]: https://tspiteri.gitlab.io/rug/dev/rug/struct.Integer.html#method.assign_bytes_radix_unchecked
+[issue 41]: https://gitlab.com/tspiteri/rug/-/issues/41
 [issue 42]: https://gitlab.com/tspiteri/rug/-/issues/42
 
 Version 1.16.0 (2022-04-28)
