@@ -50,7 +50,7 @@ features = ["i128", "std"]
 optional = true
 
 [dependencies.num-integer]
-version = "0.1.44"
+version = "0.1.45"
 default-features = false
 features = ["i128"]
 optional = true

@@ -310,7 +310,11 @@ impl NumInteger for Integer {
     }
     #[inline]
     fn extended_gcd(&self, other: &Self) -> ExtendedGcd<Self> {
-        let mut gcdc = extended_gcd_hack::new();
+        let mut gcdc = ExtendedGcd::<Integer> {
+            gcd: Integer::new(),
+            x: Integer::new(),
+            y: Integer::new(),
+        };
         (&mut gcdc.gcd, &mut gcdc.x, &mut gcdc.y).assign(self.gcd_cofactors_ref(other));
         gcdc
     }
@@ -364,119 +368,5 @@ impl Roots for Integer {
     #[inline]
     fn cbrt(&self) -> Self {
         self.root_ref(3).into()
-    }
-}
-
-// Ugh, ExtendedGcd has no public constructor and a hidden field, so we have to
-// use this ugly ugly hack to create it.
-mod extended_gcd_hack {
-    use super::*;
-    use core::{
-        mem,
-        ops::{Add, Div, Mul, Rem, Sub},
-    };
-
-    pub fn new() -> ExtendedGcd<Integer> {
-        let zero = <IntegerHack as Zero>::zero();
-        let extended = <IntegerHack as NumInteger>::extended_gcd(&zero, &zero);
-        // SAFETY: IntegerHack is ABI-compatible with Integer, so we can transmute
-        unsafe { mem::transmute(extended) }
-    }
-
-    #[repr(transparent)]
-    #[derive(Clone, Eq, Ord, PartialEq, PartialOrd)]
-    struct IntegerHack(Integer);
-
-    impl Add for IntegerHack {
-        type Output = Self;
-        fn add(self, rhs: Self) -> Self {
-            IntegerHack(<Integer as Add>::add(self.0, rhs.0))
-        }
-    }
-    impl Sub for IntegerHack {
-        type Output = Self;
-        fn sub(self, rhs: Self) -> Self {
-            IntegerHack(<Integer as Sub>::sub(self.0, rhs.0))
-        }
-    }
-    impl Mul for IntegerHack {
-        type Output = Self;
-        fn mul(self, rhs: Self) -> Self {
-            IntegerHack(<Integer as Mul>::mul(self.0, rhs.0))
-        }
-    }
-    impl Div for IntegerHack {
-        type Output = Self;
-        fn div(self, rhs: Self) -> Self {
-            IntegerHack(<Integer as Div>::div(self.0, rhs.0))
-        }
-    }
-    impl Rem for IntegerHack {
-        type Output = Self;
-        fn rem(self, rhs: Self) -> Self {
-            IntegerHack(<Integer as Rem>::rem(self.0, rhs.0))
-        }
-    }
-    impl Zero for IntegerHack {
-        #[inline]
-        fn zero() -> Self {
-            IntegerHack(<Integer as Zero>::zero())
-        }
-        #[inline]
-        fn is_zero(&self) -> bool {
-            <Integer as Zero>::is_zero(&self.0)
-        }
-    }
-    impl One for IntegerHack {
-        #[inline]
-        fn one() -> Self {
-            IntegerHack(<Integer as One>::one())
-        }
-    }
-    impl Num for IntegerHack {
-        type FromStrRadixErr = <Integer as Num>::FromStrRadixErr;
-        #[inline]
-        fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
-            <Integer as Num>::from_str_radix(str, radix).map(IntegerHack)
-        }
-    }
-    impl NumInteger for IntegerHack {
-        #[inline]
-        fn div_floor(&self, other: &Self) -> Self {
-            IntegerHack(<Integer as NumInteger>::div_floor(&self.0, &other.0))
-        }
-        #[inline]
-        fn mod_floor(&self, other: &Self) -> Self {
-            IntegerHack(<Integer as NumInteger>::mod_floor(&self.0, &other.0))
-        }
-        #[inline]
-        fn gcd(&self, other: &Self) -> Self {
-            IntegerHack(<Integer as NumInteger>::gcd(&self.0, &other.0))
-        }
-        #[inline]
-        fn lcm(&self, other: &Self) -> Self {
-            IntegerHack(<Integer as NumInteger>::lcm(&self.0, &other.0))
-        }
-        #[inline]
-        fn divides(&self, other: &Self) -> bool {
-            <Integer as NumInteger>::divides(&self.0, &other.0)
-        }
-        #[inline]
-        fn is_multiple_of(&self, other: &Self) -> bool {
-            <Integer as NumInteger>::is_multiple_of(&self.0, &other.0)
-        }
-        #[inline]
-        fn is_even(&self) -> bool {
-            <Integer as NumInteger>::is_even(&self.0)
-        }
-        #[inline]
-        fn is_odd(&self) -> bool {
-            <Integer as NumInteger>::is_odd(&self.0)
-        }
-        #[inline]
-        fn div_rem(&self, other: &Self) -> (Self, Self) {
-            let (div, rem) = <Integer as NumInteger>::div_rem(&self.0, &other.0);
-            (IntegerHack(div), IntegerHack(rem))
-        }
     }
 }
