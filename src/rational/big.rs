@@ -1343,12 +1343,12 @@ impl Rational {
     where
         Self: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
     {
-        if (&*self).lt(min) {
+        if (*self).lt(min) {
             self.assign(min);
-            assert!(!(&*self).gt(max), "minimum larger than maximum");
-        } else if (&*self).gt(max) {
+            assert!(!(*self).gt(max), "minimum larger than maximum");
+        } else if (*self).gt(max) {
             self.assign(max);
-            assert!(!(&*self).lt(min), "minimum larger than maximum");
+            assert!(!(*self).lt(min), "minimum larger than maximum");
         }
     }
 
@@ -2779,10 +2779,10 @@ where
     fn assign(&mut self, src: ClampIncomplete<Min, Max>) {
         if src.ref_self.lt(src.min) {
             self.assign(src.min);
-            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
+            assert!(!(*self).gt(src.max), "minimum larger than maximum");
         } else if src.ref_self.gt(src.max) {
             self.assign(src.max);
-            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
+            assert!(!(*self).lt(src.min), "minimum larger than maximum");
         } else {
             self.assign(src.ref_self);
         }
