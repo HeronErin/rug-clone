@@ -14,15 +14,13 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::ext::xmpfr;
+use crate::float::{small, Round, SmallFloat};
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{
-    ext::xmpfr,
-    float::{small, Round, SmallFloat},
-    Assign, Float,
-};
+use crate::{Assign, Float};
 use az::{Cast, CheckedAs, CheckedCast, SaturatingCast, UnwrappedCast, WrappingAs};
 use core::cmp::Ordering;
 
@@ -373,12 +371,10 @@ impl UnwrappedCast<Rational> for &'_ Float {
 mod tests {
     use crate::{Assign, Float};
     use az::{Az, SaturatingAs, SaturatingCast};
-    use core::{
-        borrow::Borrow,
-        f32, f64,
-        fmt::Debug,
-        ops::{Add, Sub},
-    };
+    use core::borrow::Borrow;
+    use core::fmt::Debug;
+    use core::ops::{Add, Sub};
+    use core::{f32, f64};
 
     fn check_integer<T>(min: T, max: T)
     where

@@ -14,23 +14,19 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::complex::SmallComplex;
+use crate::ext::xmpfr::{self, ordering1, raw_round, OptFloat, EXP_ZERO};
+use crate::float::Round;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{
-    complex::SmallComplex,
-    ext::xmpfr::{self, ordering1, raw_round, OptFloat, EXP_ZERO},
-    float::Round,
-    Complex, Float,
-};
+use crate::{Complex, Float};
 use az::UnwrappedCast;
 use core::{cmp::Ordering, mem::MaybeUninit, ptr::NonNull};
-use gmp_mpfr_sys::{
-    gmp::{self, limb_t},
-    mpc::{self, mpc_t, rnd_t},
-    mpfr::{mpfr_t, prec_t},
-};
+use gmp_mpfr_sys::gmp::{self, limb_t};
+use gmp_mpfr_sys::mpc::{self, mpc_t, rnd_t};
+use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
 use libc::{c_int, c_long, c_ulong};
 
 pub trait OptComplex: Copy {

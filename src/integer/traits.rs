@@ -14,19 +14,17 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpz,
-    integer::{big, ParseIntegerError, TryFromIntegerError},
-    Assign, Integer,
-};
+use crate::ext::xmpz;
+use crate::integer::{big, ParseIntegerError, TryFromIntegerError};
+use crate::{Assign, Integer};
 use az::{Az, CheckedCast};
-use core::{
-    convert::TryFrom,
-    fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
-    hash::{Hash, Hasher},
-    mem::{self, MaybeUninit},
-    str::FromStr,
+use core::convert::TryFrom;
+use core::fmt::{
+    Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex,
 };
+use core::hash::{Hash, Hasher};
+use core::mem::{self, MaybeUninit};
+use core::str::FromStr;
 use gmp_mpfr_sys::gmp::limb_t;
 use std::error::Error;
 

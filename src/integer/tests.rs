@@ -16,11 +16,9 @@
 
 #![allow(clippy::float_cmp)]
 
-use crate::{
-    integer::Order,
-    ops::{NegAssign, SubFrom},
-    Assign, Complete, Integer,
-};
+use crate::integer::Order;
+use crate::ops::{NegAssign, SubFrom};
+use crate::{Assign, Complete, Integer};
 use az::{Az, WrappingAs};
 use core::{f32, f64, i128, i32, i64, u128, u32, u64};
 

@@ -15,10 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::Float;
-use core::{
-    cmp::Ordering,
-    hash::{Hash, Hasher},
-};
+use core::cmp::Ordering;
+use core::hash::{Hash, Hasher};
 
 /**
 A float that supports total ordering and hashing.
@@ -32,10 +30,8 @@ positive NaNs produces equality.
 
 ```rust
 use core::cmp::Ordering;
-use rug::{
-    float::{OrdFloat, Special},
-    Float,
-};
+use rug::float::{OrdFloat, Special};
+use rug::Float;
 
 let pos_nan_f = Float::with_val(53, Special::Nan);
 let pos_inf_f = Float::with_val(53, Special::Infinity);
@@ -195,11 +191,9 @@ impl AsMut<Float> for OrdFloat {
 #[allow(clippy::eq_op)]
 #[cfg(test)]
 mod tests {
-    use crate::{
-        float::{self, FreeCache, OrdFloat, Special},
-        ops::NegAssign,
-        Assign, Float,
-    };
+    use crate::float::{self, FreeCache, OrdFloat, Special};
+    use crate::ops::NegAssign;
+    use crate::{Assign, Float};
     use core::hash::{Hash, Hasher};
     use std::collections::hash_map::DefaultHasher;
 

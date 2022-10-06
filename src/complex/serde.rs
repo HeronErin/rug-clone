@@ -14,18 +14,13 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    complex::OrdComplex,
-    ext::xmpfr,
-    float,
-    serdeize::{self, Data, PrecReq, PrecVal},
-    Assign, Complex,
-};
+use crate::complex::OrdComplex;
+use crate::ext::xmpfr;
+use crate::serdeize::{self, Data, PrecReq, PrecVal};
+use crate::{float, Assign, Complex};
 use az::UnwrappedCast;
-use serde::{
-    de::{Deserialize, Deserializer, Error as DeError},
-    ser::{Serialize, Serializer},
-};
+use serde::de::{Deserialize, Deserializer, Error as DeError};
+use serde::ser::{Serialize, Serializer};
 
 impl Serialize for Complex {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -109,10 +104,8 @@ impl<'de> Deserialize<'de> for OrdComplex {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        float::{self, FreeCache, Special},
-        Assign, Complex,
-    };
+    use crate::float::{self, FreeCache, Special};
+    use crate::{Assign, Complex};
     use az::UnwrappedCast;
     use serde_json::json;
 

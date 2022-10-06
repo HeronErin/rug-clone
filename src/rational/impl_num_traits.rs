@@ -14,20 +14,14 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::{xmpq, xmpz},
-    Assign, Integer, Rational,
-};
+use crate::ext::{xmpq, xmpz};
+use crate::{Assign, Integer, Rational};
 use az::CheckedCast;
 use core::cmp::Ordering;
-use num_traits_crate::{
-    cast::{FromPrimitive, ToPrimitive},
-    identities::{One, Zero},
-    ops::{
-        inv::Inv,
-        mul_add::{MulAdd, MulAddAssign},
-    },
-};
+use num_traits_crate::cast::{FromPrimitive, ToPrimitive};
+use num_traits_crate::identities::{One, Zero};
+use num_traits_crate::ops::inv::Inv;
+use num_traits_crate::ops::mul_add::{MulAdd, MulAddAssign};
 
 impl Zero for Rational {
     #[inline]

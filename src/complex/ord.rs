@@ -15,10 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::Complex;
-use core::{
-    cmp::Ordering,
-    hash::{Hash, Hasher},
-};
+use core::cmp::Ordering;
+use core::hash::{Hash, Hasher};
 
 /**
 A complex number that supports total ordering and hashing.
@@ -164,11 +162,9 @@ impl AsMut<Complex> for OrdComplex {
 #[allow(clippy::eq_op)]
 #[cfg(test)]
 mod tests {
-    use crate::{
-        complex::OrdComplex,
-        float::{self, FreeCache, Special},
-        Complex,
-    };
+    use crate::complex::OrdComplex;
+    use crate::float::{self, FreeCache, Special};
+    use crate::Complex;
     use core::hash::{Hash, Hasher};
     use std::collections::hash_map::DefaultHasher;
 

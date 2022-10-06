@@ -14,19 +14,15 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpq::{self, OptRational},
-    integer::{arith::AsLong, SmallInteger},
-    ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom},
-    Assign, Complete, Integer, Rational,
-};
+use crate::ext::xmpq::{self, OptRational};
+use crate::integer::{arith::AsLong, SmallInteger};
+use crate::ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
+use crate::{Assign, Complete, Integer, Rational};
 use az::{CheckedAs, CheckedCast};
-use core::{
-    iter::{Product, Sum},
-    ops::{
-        Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
-        SubAssign,
-    },
+use core::iter::{Product, Sum};
+use core::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
+    SubAssign,
 };
 use libc::{c_long, c_ulong};
 

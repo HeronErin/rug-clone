@@ -14,21 +14,19 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::complex::SmallComplex;
+use crate::ext::xmpc::{self, OptComplex, Ordering2, Round2, NEAREST2};
+use crate::float::SmallFloat;
+use crate::ops::{
+    AddAssignRound, AddFrom, AddFromRound, AssignRound, CompleteRound, DivAssignRound, DivFrom,
+    DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound,
+    PowFrom, PowFromRound, SubAssignRound, SubFrom, SubFromRound,
+};
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{
-    complex::SmallComplex,
-    ext::xmpc::{self, OptComplex, Ordering2, Round2, NEAREST2},
-    float::SmallFloat,
-    ops::{
-        AddAssignRound, AddFrom, AddFromRound, AssignRound, CompleteRound, DivAssignRound, DivFrom,
-        DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign,
-        PowAssignRound, PowFrom, PowFromRound, SubAssignRound, SubFrom, SubFromRound,
-    },
-    Complex, Float,
-};
+use crate::{Complex, Float};
 use az::{CheckedAs, CheckedCast};
 use core::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
@@ -651,15 +649,15 @@ fn mul_sub<O: OptComplex>(
 
 #[cfg(test)]
 mod tests {
+    use crate::float::{self, arith::tests as float_tests, FreeCache, Special};
+    use crate::ops::{NegAssign, Pow};
+    #[cfg(feature = "integer")]
+    use crate::Integer;
     #[cfg(feature = "rational")]
     use crate::Rational;
-    use crate::{
-        float::{self, arith::tests as float_tests, FreeCache, Special},
-        ops::{NegAssign, Pow},
-        Complex, Float,
-    };
+    use crate::{Complex, Float};
     #[cfg(feature = "integer")]
-    use {crate::Integer, core::str::FromStr};
+    use core::str::FromStr;
 
     #[test]
     fn check_neg() {

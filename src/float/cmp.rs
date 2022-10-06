@@ -14,18 +14,14 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::ext::xmpfr;
+use crate::float::big::{IExpIncomplete, UExpIncomplete};
+use crate::float::Special;
+use crate::Float;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{
-    ext::xmpfr,
-    float::{
-        big::{IExpIncomplete, UExpIncomplete},
-        Special,
-    },
-    Float,
-};
 use az::Cast;
 use core::cmp::Ordering;
 
@@ -191,15 +187,15 @@ cmp! { IExpIncomplete }
 
 #[cfg(test)]
 mod tests {
+    use crate::float::{self, FreeCache, Special};
+    #[cfg(feature = "integer")]
+    use crate::Integer;
     #[cfg(feature = "rational")]
     use crate::Rational;
-    use crate::{
-        float::{self, FreeCache, Special},
-        Assign, Float,
-    };
+    use crate::{Assign, Float};
     use core::cmp::Ordering;
     #[cfg(feature = "integer")]
-    use {crate::Integer, core::str::FromStr};
+    use core::str::FromStr;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Float])
     where

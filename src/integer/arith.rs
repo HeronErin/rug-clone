@@ -14,23 +14,18 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpz::{self, OptInteger},
-    integer::SmallInteger,
-    ops::{
-        AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
-        PowAssign, RemFrom, SubFrom,
-    },
-    Assign, Complete, Integer,
+use crate::ext::xmpz::{self, OptInteger};
+use crate::integer::SmallInteger;
+use crate::ops::{
+    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
+    PowAssign, RemFrom, SubFrom,
 };
+use crate::{Assign, Complete, Integer};
 use az::{CheckedAs, CheckedCast};
-use core::{
-    iter::{Product, Sum},
-    ops::{
-        Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div,
-        DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub,
-        SubAssign,
-    },
+use core::iter::{Product, Sum};
+use core::ops::{
+    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
+    Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
 use libc::{c_long, c_ulong};
 
@@ -585,14 +580,10 @@ fn rhs_has_more_alloc(lhs: &Integer, rhs: &Integer) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ops::{AddFrom, Pow, SubFrom},
-        Integer,
-    };
-    use core::{
-        cmp::Ordering,
-        ops::{AddAssign, SubAssign},
-    };
+    use crate::ops::{AddFrom, Pow, SubFrom};
+    use crate::Integer;
+    use core::cmp::Ordering;
+    use core::ops::{AddAssign, SubAssign};
 
     macro_rules! test_op {
         ($lhs:ident $op:tt $rhs:ident) => {

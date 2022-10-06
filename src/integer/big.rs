@@ -14,24 +14,19 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::ext::xmpz;
+use crate::integer::{arith::MulIncomplete, Order};
+use crate::ops::{DivRounding, NegAssign, SubFrom};
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
-use crate::{
-    ext::xmpz,
-    integer::{arith::MulIncomplete, Order},
-    misc,
-    ops::{DivRounding, NegAssign, SubFrom},
-    Assign, Complete,
-};
+use crate::{misc, Assign, Complete};
 use az::{Az, Cast, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingCast};
-use core::{
-    cmp::Ordering,
-    fmt::{Display, Formatter, Result as FmtResult},
-    marker::PhantomData,
-    mem::{self, ManuallyDrop, MaybeUninit},
-    ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign},
-    slice,
-};
+use core::cmp::Ordering;
+use core::fmt::{Display, Formatter, Result as FmtResult};
+use core::marker::PhantomData;
+use core::mem::{self, ManuallyDrop, MaybeUninit};
+use core::ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign};
+use core::slice;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use libc::{c_char, c_void};
 use std::error::Error;

@@ -35,11 +35,9 @@ pub(crate) mod small;
 pub(crate) mod tests;
 mod traits;
 
-pub use crate::float::{
-    big::{BorrowFloat, ParseFloatError},
-    ord::OrdFloat,
-    small::{SmallFloat, ToSmall},
-};
+pub use crate::float::big::{BorrowFloat, ParseFloatError};
+pub use crate::float::ord::OrdFloat;
+pub use crate::float::small::{SmallFloat, ToSmall};
 use az::SaturatingCast;
 use core::{i32, u32};
 use gmp_mpfr_sys::mpfr::{self, prec_t};

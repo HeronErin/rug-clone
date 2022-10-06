@@ -14,15 +14,11 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    float::{
-        self,
-        tests::{clear_nanflag, nanflag, Cmp},
-        FreeCache, Round, Special,
-    },
-    ops::{AddAssignRound, AssignRound, NegAssign, SubAssignRound, SubFrom, SubFromRound},
-    Assign, Complex,
-};
+use crate::float;
+use crate::float::tests::{clear_nanflag, nanflag, Cmp};
+use crate::float::{FreeCache, Round, Special};
+use crate::ops::{AddAssignRound, AssignRound, NegAssign, SubAssignRound, SubFrom, SubFromRound};
+use crate::{Assign, Complex};
 use core::{cmp::Ordering, f64};
 
 #[test]

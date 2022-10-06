@@ -14,22 +14,16 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpfr,
-    float::{self, small::Mpfr, ToSmall},
-    Assign, Complex,
-};
-use core::{
-    cell::UnsafeCell,
-    mem::{self, MaybeUninit},
-    ops::Deref,
-    ptr::NonNull,
-};
-use gmp_mpfr_sys::{
-    gmp::{self, limb_t},
-    mpc::mpc_t,
-    mpfr::{mpfr_t, prec_t},
-};
+use crate::ext::xmpfr;
+use crate::float::{self, small::Mpfr, ToSmall};
+use crate::{Assign, Complex};
+use core::cell::UnsafeCell;
+use core::mem::{self, MaybeUninit};
+use core::ops::Deref;
+use core::ptr::NonNull;
+use gmp_mpfr_sys::gmp::{self, limb_t};
+use gmp_mpfr_sys::mpc::mpc_t;
+use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
 type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
@@ -333,11 +327,9 @@ impl Assign for SmallComplex {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        complex::SmallComplex,
-        float::{self, FreeCache},
-        Assign,
-    };
+    use crate::complex::SmallComplex;
+    use crate::float::{self, FreeCache};
+    use crate::Assign;
 
     #[test]
     fn check_assign() {

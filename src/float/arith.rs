@@ -14,28 +14,24 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::ext::xmpfr::{self, OptFloat};
+use crate::float::{Round, SmallFloat};
+use crate::ops::{
+    AddAssignRound, AddFrom, AddFromRound, AssignRound, CompleteRound, DivAssignRound, DivFrom,
+    DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound,
+    PowFrom, PowFromRound, RemAssignRound, RemFrom, RemFromRound, SubAssignRound, SubFrom,
+    SubFromRound,
+};
+use crate::Float;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{
-    ext::xmpfr::{self, OptFloat},
-    float::{Round, SmallFloat},
-    ops::{
-        AddAssignRound, AddFrom, AddFromRound, AssignRound, CompleteRound, DivAssignRound, DivFrom,
-        DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign,
-        PowAssignRound, PowFrom, PowFromRound, RemAssignRound, RemFrom, RemFromRound,
-        SubAssignRound, SubFrom, SubFromRound,
-    },
-    Float,
-};
 use az::{CheckedAs, CheckedCast};
-use core::{
-    cmp::Ordering,
-    ops::{
-        Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Shl, ShlAssign, Shr,
-        ShrAssign, Sub, SubAssign,
-    },
+use core::cmp::Ordering;
+use core::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Shl, ShlAssign, Shr,
+    ShrAssign, Sub, SubAssign,
 };
 use libc::{c_long, c_ulong};
 
@@ -696,13 +692,11 @@ fn mul_sub<O: OptFloat>(rop: &mut Float, mul: MulIncomplete<'_>, sub: O, rnd: Ro
 
 #[cfg(test)]
 pub(crate) mod tests {
+    use crate::float::{self, FreeCache, Special};
+    use crate::ops::Pow;
+    use crate::Float;
     #[cfg(feature = "rational")]
     use crate::Rational;
-    use crate::{
-        float::{self, FreeCache, Special},
-        ops::Pow,
-        Float,
-    };
     #[cfg(feature = "integer")]
     use {crate::Integer, core::str::FromStr};
 

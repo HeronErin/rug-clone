@@ -652,11 +652,9 @@ Implementing the trait:
 ```rust
 # #[cfg(feature = "float")] {
 use core::cmp::Ordering;
-use rug::{
-    float::Round,
-    ops::{CompleteRound, Pow},
-    Float,
-};
+use rug::float::Round;
+use rug::ops::{CompleteRound, Pow};
+use rug::Float;
 struct LazyPow4<'a>(&'a Float);
 impl CompleteRound for LazyPow4<'_> {
     type Completed = Float;
@@ -841,11 +839,9 @@ method.
 ```rust
 # #[cfg(feature = "float")] {
 use core::cmp::Ordering;
-use rug::{
-    float::Round,
-    ops::{AddAssignRound, AddFromRound},
-    Float,
-};
+use rug::float::Round;
+use rug::ops::{AddAssignRound, AddFromRound};
+use rug::Float;
 struct F(f64);
 impl AddFromRound<f64> for F {
     type Round = Round;
@@ -950,11 +946,9 @@ method.
 ```rust
 # #[cfg(feature = "float")] {
 use core::cmp::Ordering;
-use rug::{
-    float::Round,
-    ops::{SubAssignRound, SubFromRound},
-    Float,
-};
+use rug::float::Round;
+use rug::ops::{SubAssignRound, SubFromRound};
+use rug::Float;
 struct F(f64);
 impl SubFromRound<f64> for F {
     type Round = Round;
@@ -1059,11 +1053,9 @@ rounding method.
 ```rust
 # #[cfg(feature = "float")] {
 use core::cmp::Ordering;
-use rug::{
-    float::Round,
-    ops::{MulAssignRound, MulFromRound},
-    Float,
-};
+use rug::float::Round;
+use rug::ops::{MulAssignRound, MulFromRound};
+use rug::Float;
 struct F(f64);
 impl MulFromRound<f64> for F {
     type Round = Round;
@@ -1168,11 +1160,9 @@ method.
 ```rust
 # #[cfg(feature = "float")] {
 use core::cmp::Ordering;
-use rug::{
-    float::Round,
-    ops::{DivAssignRound, DivFromRound},
-    Float,
-};
+use rug::float::Round;
+use rug::ops::{DivAssignRound, DivFromRound};
+use rug::Float;
 struct F(f64);
 impl DivFromRound<f64> for F {
     type Round = Round;
@@ -1277,11 +1267,9 @@ rounding method.
 ```rust
 # #[cfg(feature = "float")] {
 use core::cmp::Ordering;
-use rug::{
-    float::Round,
-    ops::{RemAssignRound, RemFromRound},
-    Float,
-};
+use rug::float::Round;
+use rug::ops::{RemAssignRound, RemFromRound};
+use rug::Float;
 struct F(f64);
 impl RemFromRound<f64> for F {
     type Round = Round;
@@ -1386,11 +1374,9 @@ rounding method.
 ```rust
 # #[cfg(feature = "float")] {
 use core::cmp::Ordering;
-use rug::{
-    float::Round,
-    ops::{PowAssignRound, PowFromRound},
-    Float,
-};
+use rug::float::Round;
+use rug::ops::{PowAssignRound, PowFromRound};
+use rug::Float;
 struct F(f64);
 impl PowFromRound<f64> for F {
     type Round = Round;

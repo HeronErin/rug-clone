@@ -14,24 +14,18 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::ext::xmpfr;
+use crate::float::big::{self, ExpFormat, Format};
+use crate::float::{Constant, OrdFloat, Round, Special};
+use crate::ops::AssignRound;
 #[cfg(feature = "integer")]
 use crate::Integer;
-use crate::{
-    ext::xmpfr,
-    float::{
-        big::{self, ExpFormat, Format},
-        Constant, OrdFloat, Round, Special,
-    },
-    ops::AssignRound,
-    Assign, Float,
-};
+use crate::{Assign, Float};
 use az::{UnwrappedAs, UnwrappedCast};
-use core::{
-    cmp::Ordering,
-    fmt::{
-        Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult,
-        UpperExp, UpperHex,
-    },
+use core::cmp::Ordering;
+use core::fmt::{
+    Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult, UpperExp,
+    UpperHex,
 };
 use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "rational")]
@@ -355,11 +349,9 @@ unsafe impl Sync for Float {}
 #[cfg(test)]
 #[allow(clippy::float_cmp)]
 mod tests {
-    use crate::{
-        float::{self, FreeCache, Round},
-        ops::AssignRound,
-        Assign, Float,
-    };
+    use crate::float::{self, FreeCache, Round};
+    use crate::ops::AssignRound;
+    use crate::{Assign, Float};
     use core::cmp::Ordering;
 
     #[test]

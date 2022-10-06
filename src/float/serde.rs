@@ -14,17 +14,13 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpfr,
-    float::{self, OrdFloat},
-    serdeize::{self, Data, PrecReq, PrecVal},
-    Assign, Float,
-};
+use crate::ext::xmpfr;
+use crate::float::{self, OrdFloat};
+use crate::serdeize::{self, Data, PrecReq, PrecVal};
+use crate::{Assign, Float};
 use az::UnwrappedCast;
-use serde::{
-    de::{Deserialize, Deserializer, Error as DeError},
-    ser::{Serialize, Serializer},
-};
+use serde::de::{Deserialize, Deserializer, Error as DeError};
+use serde::ser::{Serialize, Serializer};
 
 impl Serialize for Float {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -95,10 +91,8 @@ impl<'de> Deserialize<'de> for OrdFloat {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        float::{self, FreeCache, Special},
-        Assign, Float,
-    };
+    use crate::float::{self, FreeCache, Special};
+    use crate::{Assign, Float};
     use az::UnwrappedCast;
     use serde_json::json;
 

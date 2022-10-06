@@ -14,24 +14,18 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    complex::{
-        big::{self, Format},
-        OrdComplex,
-    },
-    ext::xmpc::{self, Ordering2, Round2},
-    float::{big::ExpFormat, Round, Special},
-    ops::AssignRound,
-    Assign, Complex, Float,
+use crate::complex::big::{self, Format};
+use crate::complex::OrdComplex;
+use crate::ext::xmpc::{self, Ordering2, Round2};
+use crate::float::{big::ExpFormat, Round, Special};
+use crate::ops::AssignRound;
+use crate::{Assign, Complex, Float};
+use core::cmp::Ordering;
+use core::fmt::{
+    Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult,
+    UpperExp, UpperHex,
 };
-use core::{
-    cmp::Ordering,
-    fmt::{
-        Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
-        Result as FmtResult, UpperExp, UpperHex,
-    },
-    mem::MaybeUninit,
-};
+use core::mem::MaybeUninit;
 use gmp_mpfr_sys::mpc;
 
 impl Clone for Complex {
@@ -309,11 +303,9 @@ unsafe impl Sync for Complex {}
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        float::{self, FreeCache, Round},
-        ops::AssignRound,
-        Assign, Complex, Float,
-    };
+    use crate::float::{self, FreeCache, Round};
+    use crate::ops::AssignRound;
+    use crate::{Assign, Complex, Float};
     use core::cmp::Ordering;
 
     #[test]

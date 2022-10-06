@@ -18,13 +18,10 @@
 use crate::rand::MutRandState;
 use crate::{misc::NegAbs, ops::NegAssign, Integer};
 use az::{Az, Cast, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
-use core::{
-    cmp::Ordering,
-    i16, i8,
-    mem::MaybeUninit,
-    ptr::{self, NonNull},
-    u16, u8,
-};
+use core::cmp::Ordering;
+use core::mem::MaybeUninit;
+use core::ptr::{self, NonNull};
+use core::{i16, i8, u16, u8};
 use gmp_mpfr_sys::gmp::{self, bitcnt_t, limb_t, mpz_t, size_t};
 use libc::{c_int, c_long, c_ulong};
 

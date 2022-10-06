@@ -14,18 +14,14 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpz::{self, OptInteger},
-    misc::NegAbs,
-    ops::{NegAssign, SubFrom},
-    rational::SmallRational,
-    Assign, Integer, Rational,
-};
+use crate::ext::xmpz::{self, OptInteger};
+use crate::misc::NegAbs;
+use crate::ops::{NegAssign, SubFrom};
+use crate::rational::SmallRational;
+use crate::{Assign, Integer, Rational};
 use az::{Az, CheckedAs, UnwrappedAs, UnwrappedCast};
-use core::{
-    cmp::Ordering,
-    mem::{self, MaybeUninit},
-};
+use core::cmp::Ordering;
+use core::mem::{self, MaybeUninit};
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use libc::{c_int, c_long, c_ulong};
 

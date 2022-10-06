@@ -6,14 +6,12 @@
 
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 
-use std::{
-    env,
-    ffi::OsString,
-    fs::{self, File},
-    io::{Result as IoResult, Write},
-    path::{Path, PathBuf},
-    process::{Command, Stdio},
-};
+use std::env;
+use std::ffi::OsString;
+use std::fs::{self, File};
+use std::io::{Result as IoResult, Write};
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 
 fn main() {
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {

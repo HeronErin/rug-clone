@@ -14,24 +14,20 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::float::{Round, SmallFloat, Special};
+use crate::misc::NegAbs;
+use crate::ops::NegAssign;
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
+use crate::Float;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{
-    float::{Round, SmallFloat, Special},
-    misc::NegAbs,
-    ops::NegAssign,
-    Float,
-};
 use az::{CheckedAs, UnwrappedCast};
 use core::{cmp::Ordering, mem::MaybeUninit, ptr::NonNull};
-use gmp_mpfr_sys::{
-    gmp::{self, limb_t},
-    mpfr::{self, exp_t, mpfr_t, prec_t, rnd_t},
-};
+use gmp_mpfr_sys::gmp::{self, limb_t};
+use gmp_mpfr_sys::mpfr::{self, exp_t, mpfr_t, prec_t, rnd_t};
 use libc::{c_int, c_long, c_ulong, c_void, intmax_t, uintmax_t};
 
 pub trait OptFloat: Copy {

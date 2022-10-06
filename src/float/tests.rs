@@ -16,19 +16,15 @@
 
 #![allow(clippy::float_cmp)]
 
+use crate::float::{self, FreeCache, Round, Special};
+use crate::ops::{AddAssignRound, AssignRound, NegAssign, SubAssignRound, SubFrom, SubFromRound};
 #[cfg(feature = "rand")]
 use crate::rand::{RandGen, RandState};
-use crate::{
-    float::{self, FreeCache, Round, Special},
-    ops::{AddAssignRound, AssignRound, NegAssign, SubAssignRound, SubFrom, SubFromRound},
-    Assign, Float,
-};
+use crate::{Assign, Float};
 use az::Az;
-use core::{
-    cmp::Ordering,
-    f64,
-    fmt::{Debug, Error as FmtError, Formatter},
-};
+use core::cmp::Ordering;
+use core::f64;
+use core::fmt::{Debug, Error as FmtError, Formatter};
 use gmp_mpfr_sys::{gmp, mpfr};
 
 pub fn nanflag() -> bool {

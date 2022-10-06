@@ -14,18 +14,14 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpq,
-    integer::{small::Mpz, ToSmall},
-    Assign, Rational,
-};
+use crate::ext::xmpq;
+use crate::integer::{small::Mpz, ToSmall};
+use crate::{Assign, Rational};
 use az::Cast;
-use core::{
-    cell::UnsafeCell,
-    mem::{self, MaybeUninit},
-    ops::Deref,
-    ptr::NonNull,
-};
+use core::cell::UnsafeCell;
+use core::mem::{self, MaybeUninit};
+use core::ops::Deref;
+use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
 use libc::c_int;
 

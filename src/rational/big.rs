@@ -14,21 +14,17 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::{xmpq, xmpz},
-    integer::big as big_integer,
-    ops::{NegAssign, SubFrom},
-    rational::arith::MulIncomplete,
-    Assign, Complete, Integer,
-};
+use crate::ext::{xmpq, xmpz};
+use crate::integer::big as big_integer;
+use crate::ops::{NegAssign, SubFrom};
+use crate::rational::arith::MulIncomplete;
+use crate::{Assign, Complete, Integer};
 use az::{Cast, CheckedCast, UnwrappedAs, UnwrappedCast};
-use core::{
-    cmp::Ordering,
-    fmt::{Display, Formatter, Result as FmtResult},
-    marker::PhantomData,
-    mem::{ManuallyDrop, MaybeUninit},
-    ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign},
-};
+use core::cmp::Ordering;
+use core::fmt::{Display, Formatter, Result as FmtResult};
+use core::marker::PhantomData;
+use core::mem::{ManuallyDrop, MaybeUninit};
+use core::ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign};
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::error::Error;
 

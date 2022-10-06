@@ -14,43 +14,33 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::ext::xmpfr::{self, ordering1, raw_round};
+use crate::float::arith::{
+    AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete,
+};
+use crate::float::{OrdFloat, Round, SmallFloat, Special};
+use crate::ops::{
+    AddAssignRound, AssignRound, CompleteRound, DivRounding, NegAssign, SubAssignRound, SubFrom,
+    SubFromRound,
+};
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{
-    ext::xmpfr::{self, ordering1, raw_round},
-    float::{
-        self,
-        arith::{AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete},
-        OrdFloat, Round, SmallFloat, Special,
-    },
-    misc,
-    ops::{
-        AddAssignRound, AssignRound, CompleteRound, DivRounding, NegAssign, SubAssignRound,
-        SubFrom, SubFromRound,
-    },
-    Assign,
-};
+use crate::{float, misc, Assign};
 use az::{Az, CheckedCast, SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs};
-use core::{
-    cmp::Ordering,
-    fmt::{Display, Formatter, Result as FmtResult},
-    marker::PhantomData,
-    mem::{ManuallyDrop, MaybeUninit},
-    num::FpCategory,
-    ops::{Add, AddAssign, Deref, Sub, SubAssign},
-    slice, str,
-};
-use gmp_mpfr_sys::{
-    gmp::{self, limb_t},
-    mpfr::{self, exp_t, mpfr_t},
-};
+use core::cmp::Ordering;
+use core::fmt::{Display, Formatter, Result as FmtResult};
+use core::marker::PhantomData;
+use core::mem::{ManuallyDrop, MaybeUninit};
+use core::num::FpCategory;
+use core::ops::{Add, AddAssign, Deref, Sub, SubAssign};
+use core::{slice, str};
+use gmp_mpfr_sys::gmp::{self, limb_t};
+use gmp_mpfr_sys::mpfr::{self, exp_t, mpfr_t};
 use libc::c_char;
-use std::{
-    error::Error,
-    ffi::{CStr, CString},
-};
+use std::error::Error;
+use std::ffi::{CStr, CString};
 #[cfg(feature = "complex")]
 use {crate::complex::BorrowComplex, gmp_mpfr_sys::mpc::mpc_t};
 #[cfg(feature = "integer")]
@@ -204,11 +194,9 @@ using 200-bit precision. The program writes:
 `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
 
 ```rust
-use rug::{
-    float::{self, FreeCache, Round},
-    ops::{AddAssignRound, AssignRound, MulAssignRound},
-    Float,
-};
+use rug::float::{self, FreeCache, Round};
+use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
+use rug::Float;
 
 let mut t = Float::with_val(200, 1.0);
 let mut s = Float::with_val(200, 1.0);
@@ -7062,10 +7050,8 @@ impl Float {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{
-    ///     float::{Constant, Round},
-    ///     Float,
-    /// };
+    /// use rug::float::{Constant, Round};
+    /// use rug::Float;
     ///
     /// // gamma of -1/2 is -2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;

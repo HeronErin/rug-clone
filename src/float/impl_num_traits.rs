@@ -16,13 +16,9 @@
 
 use crate::{Float, Integer};
 use az::{CheckedAs, CheckedCast};
-use num_traits_crate::{
-    cast::ToPrimitive,
-    ops::{
-        inv::Inv,
-        mul_add::{MulAdd, MulAddAssign},
-    },
-};
+use num_traits_crate::cast::ToPrimitive;
+use num_traits_crate::ops::inv::Inv;
+use num_traits_crate::ops::mul_add::{MulAdd, MulAddAssign};
 
 impl Inv for Float {
     type Output = Self;

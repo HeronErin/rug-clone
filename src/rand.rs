@@ -40,11 +40,9 @@ so that they can be used with methods like
 
 use crate::Integer;
 use az::{Cast, UnwrappedAs, UnwrappedCast};
-use core::{
-    marker::PhantomData,
-    mem::{ManuallyDrop, MaybeUninit},
-    ptr::{self, NonNull},
-};
+use core::marker::PhantomData;
+use core::mem::{ManuallyDrop, MaybeUninit};
+use core::ptr::{self, NonNull};
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randfnptr_t, randseed_t, randstate_t};
 use libc::{c_ulong, c_void};
 use std::process;
@@ -228,10 +226,8 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{
-    ///     rand::{RandGen, RandState},
-    ///     Integer,
-    /// };
+    /// use rug::rand::{RandGen, RandState};
+    /// use rug::Integer;
     /// struct Seed;
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
@@ -275,10 +271,8 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{
-    ///     rand::{RandGen, RandState},
-    ///     Integer,
-    /// };
+    /// use rug::rand::{RandGen, RandState};
+    /// use rug::Integer;
     /// struct Seed;
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
@@ -619,10 +613,8 @@ impl ThreadRandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{
-    ///     rand::{ThreadRandGen, ThreadRandState},
-    ///     Integer,
-    /// };
+    /// use rug::rand::{ThreadRandGen, ThreadRandState};
+    /// use rug::Integer;
     /// // dummy pointer field to ensure Seed is not Send and not Sync
     /// struct Seed(*const ());
     /// impl ThreadRandGen for Seed {
@@ -666,10 +658,8 @@ impl ThreadRandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{
-    ///     rand::{ThreadRandGen, ThreadRandState},
-    ///     Integer,
-    /// };
+    /// use rug::rand::{ThreadRandGen, ThreadRandState};
+    /// use rug::Integer;
     /// // dummy pointer field to ensure Seed is not Send and not Sync
     /// struct Seed(*const ());
     /// impl ThreadRandGen for Seed {
@@ -1025,10 +1015,8 @@ program to abort.
 # Examples
 
 ```rust
-use rug::{
-    rand::{RandGen, RandState},
-    Integer,
-};
+use rug::rand::{RandGen, RandState};
+use rug::Integer;
 struct SimpleGenerator {
     seed: u64,
 }
@@ -1154,10 +1142,8 @@ pub trait RandGen: Send + Sync {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{
-    ///     rand::{RandGen, RandState},
-    ///     Assign, Integer,
-    /// };
+    /// use rug::rand::{RandGen, RandState};
+    /// use rug::{Assign, Integer};
     /// struct Seed {
     ///     inner: Integer,
     /// }

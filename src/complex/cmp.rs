@@ -83,14 +83,14 @@ eq_re! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
+    use crate::float::{self, FreeCache, Special};
+    #[cfg(feature = "integer")]
+    use crate::Integer;
     #[cfg(feature = "rational")]
     use crate::Rational;
-    use crate::{
-        float::{self, FreeCache, Special},
-        Assign, Complex, Float,
-    };
+    use crate::{Assign, Complex, Float};
     #[cfg(feature = "integer")]
-    use {crate::Integer, core::str::FromStr};
+    use core::str::FromStr;
 
     fn check_eq_prim<T>(s: &[T], against: &[Complex])
     where

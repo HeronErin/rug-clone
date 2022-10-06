@@ -14,22 +14,18 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{
-    ext::xmpz,
-    integer::ParseIntegerError,
-    ops::{DivRounding, RemRounding},
-    Assign, Integer,
-};
+use crate::ext::xmpz;
+use crate::integer::ParseIntegerError;
+use crate::ops::{DivRounding, RemRounding};
+use crate::{Assign, Integer};
 use az::{CheckedCast, UnwrappedCast};
 use core::cmp::Ordering;
 use num_integer::{ExtendedGcd, Integer as NumInteger, Roots};
-use num_traits_crate::{
-    cast::{FromPrimitive, ToPrimitive},
-    identities::{One, Zero},
-    ops::mul_add::{MulAdd, MulAddAssign},
-    sign::Signed,
-    Num,
-};
+use num_traits_crate::cast::{FromPrimitive, ToPrimitive};
+use num_traits_crate::identities::{One, Zero};
+use num_traits_crate::ops::mul_add::{MulAdd, MulAddAssign};
+use num_traits_crate::sign::Signed;
+use num_traits_crate::Num;
 
 impl Zero for Integer {
     #[inline]

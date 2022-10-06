@@ -15,10 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use core::fmt::{Display, Formatter, Result as FmtResult};
-use serde::{
-    de::{Deserialize, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor},
-    ser::{SerializeStruct, Serializer},
-};
+use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor};
+use serde::ser::{SerializeStruct, Serializer};
 
 #[allow(dead_code)]
 pub enum PrecReq {

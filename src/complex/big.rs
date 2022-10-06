@@ -14,41 +14,29 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
+use crate::complex::{OrdComplex, Prec};
+use crate::ext::xmpc::{self, Ordering2, Round2, NEAREST2};
+use crate::ext::xmpfr;
+use crate::float;
+use crate::float::big::{
+    self as big_float, ExpFormat, Format as FloatFormat, ParseIncomplete as FloatParseIncomplete,
+};
+use crate::float::{ParseFloatError, Round, Special};
+use crate::misc;
+use crate::ops::{
+    AddAssignRound, AssignRound, CompleteRound, NegAssign, SubAssignRound, SubFrom, SubFromRound,
+};
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
-use crate::{
-    complex::{
-        arith::{AddMulIncomplete, SubMulFromIncomplete},
-        OrdComplex, Prec,
-    },
-    ext::{
-        xmpc::{self, Ordering2, Round2, NEAREST2},
-        xmpfr,
-    },
-    float::{
-        self,
-        big::{
-            self as big_float, ExpFormat, Format as FloatFormat,
-            ParseIncomplete as FloatParseIncomplete,
-        },
-        ParseFloatError, Round, Special,
-    },
-    misc,
-    ops::{
-        AddAssignRound, AssignRound, CompleteRound, NegAssign, SubAssignRound, SubFrom,
-        SubFromRound,
-    },
-    Assign, Float,
-};
+use crate::{Assign, Float};
 use az::UnwrappedCast;
-use core::{
-    cmp::Ordering,
-    fmt::{Display, Formatter, Result as FmtResult},
-    marker::PhantomData,
-    mem::{ManuallyDrop, MaybeUninit},
-    ops::{Add, AddAssign, Deref, Sub, SubAssign},
-    slice,
-};
+use core::cmp::Ordering;
+use core::fmt::{Display, Formatter, Result as FmtResult};
+use core::marker::PhantomData;
+use core::mem::{ManuallyDrop, MaybeUninit};
+use core::ops::{Add, AddAssign, Deref, Sub, SubAssign};
+use core::slice;
 use gmp_mpfr_sys::mpc::mpc_t;
 use std::error::Error;
 
@@ -394,10 +382,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use gmp_mpfr_sys::{
-    ///     mpc,
-    ///     mpfr::{self, rnd_t},
-    /// };
+    /// use gmp_mpfr_sys::mpc;
+    /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (-14.5, 3.25));
     /// let mut m = c.into_raw();
@@ -425,10 +411,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use gmp_mpfr_sys::{
-    ///     mpc,
-    ///     mpfr::{self, rnd_t},
-    /// };
+    /// use gmp_mpfr_sys::mpc;
+    /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (-14.5, 3.25));
     /// let m_ptr = c.as_raw();

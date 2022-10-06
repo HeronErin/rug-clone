@@ -16,12 +16,10 @@
 
 use crate::{misc::NegAbs, Assign, Integer};
 use az::{Az, Cast, WrappingCast};
-use core::{
-    cell::UnsafeCell,
-    mem::{self, MaybeUninit},
-    ops::Deref,
-    ptr::NonNull,
-};
+use core::cell::UnsafeCell;
+use core::mem::{self, MaybeUninit};
+use core::ops::Deref;
+use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use libc::c_int;
 

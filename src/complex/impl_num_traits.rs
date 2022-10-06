@@ -15,10 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::Complex;
-use num_traits_crate::ops::{
-    inv::Inv,
-    mul_add::{MulAdd, MulAddAssign},
-};
+use num_traits_crate::ops::inv::Inv;
+use num_traits_crate::ops::mul_add::{MulAdd, MulAddAssign};
 
 impl Inv for Complex {
     type Output = Self;
