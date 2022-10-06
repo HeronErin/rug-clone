@@ -6088,7 +6088,7 @@ impl Deref for BorrowInteger<'_> {
     type Target = Integer;
     #[inline]
     fn deref(&self) -> &Integer {
-        &*self.inner
+        &self.inner
     }
 }
 

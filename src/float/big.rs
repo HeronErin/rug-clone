@@ -1019,7 +1019,7 @@ impl Float {
         unsafe {
             xmpfr::set(sf.as_nonreallocating_float(), self, round);
         }
-        let (f, exp) = xmpfr::get_f64_2exp(&*sf, Round::Zero);
+        let (f, exp) = xmpfr::get_f64_2exp(&sf, Round::Zero);
         (f as f32, exp.unwrapped_cast())
     }
 
@@ -9521,7 +9521,7 @@ impl Deref for BorrowFloat<'_> {
     type Target = Float;
     #[inline]
     fn deref(&self) -> &Float {
-        &*self.inner
+        &self.inner
     }
 }
 
@@ -9572,8 +9572,6 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
     } else {
         let digits = req_digits(f, format);
         let log2_radix = f64::from(format.radix).log2();
-        // LOG10_2 requires rustc 1.43
-        #[allow(clippy::approx_constant)]
         const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
         let exp = (xmpfr::get_exp(f).az::<f64>() / log2_radix - 1.0).abs();
         // add 1 for '-' and an extra 1 in case of rounding errors
@@ -9655,7 +9653,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         // there is also 1 byte for nul character, which will be used for point
         assert!(c_len + 1 < size, "buffer overflow");
         let added_sign = *write_ptr == b'-';
-        let added_digits = c_len - if added_sign { 1 } else { 0 };
+        let added_digits = c_len - usize::from(added_sign);
         let digits_before_point = if format.exp == ExpFormat::Exp
             || exp <= 0
             || exp.unwrapped_as::<usize>() > added_digits
@@ -9667,7 +9665,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
             exp = 0;
             e
         };
-        let bytes_before_point = digits_before_point + if added_sign { 1 } else { 0 };
+        let bytes_before_point = digits_before_point + usize::from(added_sign);
         if bytes_before_point == c_len {
             // no point
             vec.set_len(vec.len() + c_len)

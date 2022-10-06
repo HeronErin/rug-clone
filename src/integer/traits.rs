@@ -243,8 +243,6 @@ impl UpperHex for Integer {
     }
 }
 
-// strip_prefix requires rustc 1.45
-#[allow(clippy::manual_strip)]
 fn fmt_radix(
     i: &Integer,
     f: &mut Formatter<'_>,

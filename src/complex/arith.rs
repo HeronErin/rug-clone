@@ -559,7 +559,7 @@ where
     #[inline]
     fn pow<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2 {
         let small: SmallFloat = op2.into();
-        xmpc::pow_fr(rop, op1, &*small, rnd)
+        xmpc::pow_fr(rop, op1, &small, rnd)
     }
 
     #[inline]
@@ -583,7 +583,7 @@ where
     #[inline]
     fn pow<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2 {
         let small: SmallFloat = op2.into();
-        xmpc::pow_fr(rop, op1, &*small, rnd)
+        xmpc::pow_fr(rop, op1, &small, rnd)
     }
 
     #[inline]
@@ -607,7 +607,7 @@ where
     #[inline]
     fn pow<O: OptComplex>(rop: &mut Complex, op1: O, op2: Self, rnd: Round2) -> Ordering2 {
         let small: SmallFloat = op2.into();
-        xmpc::pow_fr(rop, op1, &*small, rnd)
+        xmpc::pow_fr(rop, op1, &small, rnd)
     }
 
     #[inline]

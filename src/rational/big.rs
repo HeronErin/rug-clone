@@ -2887,7 +2887,7 @@ impl Deref for BorrowRational<'_> {
     type Target = Rational;
     #[inline]
     fn deref(&self) -> &Rational {
-        &*self.inner
+        &self.inner
     }
 }
 

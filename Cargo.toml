@@ -8,6 +8,7 @@
 name = "rug"
 version = "1.17.0"
 edition = "2018"
+rust-version = "1.37"
 description = "Arbitrary-precision integers, rational, floating-point and complex numbers based on GMP, MPFR and MPC"
 documentation = "https://docs.rs/rug"
 repository = "https://gitlab.com/tspiteri/rug"

@@ -4040,7 +4040,7 @@ impl Deref for BorrowComplex<'_> {
     type Target = Complex;
     #[inline]
     fn deref(&self) -> &Complex {
-        &*self.inner
+        &self.inner
     }
 }
 
@@ -4077,8 +4077,8 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     let re_prefix = !f.prefix.is_empty() && re.is_finite();
     let im_prefix = !f.prefix.is_empty() && im.is_finite();
     let extra = 3
-        + if re_plus { 1 } else { 0 }
-        + if im_plus { 1 } else { 0 }
+        + usize::from(re_plus)
+        + usize::from(im_plus)
         + if re_prefix { f.prefix.len() } else { 0 }
         + if im_prefix { f.prefix.len() } else { 0 };
     let ff = FloatFormat {
@@ -4194,7 +4194,7 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseComplexEr
         bytes = misc::trim_start(inside);
         bytes = misc::trim_end(bytes);
     } else {
-        return match Float::parse_radix(&bytes, radix) {
+        return match Float::parse_radix(bytes, radix) {
             Ok(re) => Ok(ParseIncomplete::Real(re)),
             Err(e) => parse_error!(ParseErrorKind::InvalidFloat(e)),
         };

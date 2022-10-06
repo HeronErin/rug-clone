@@ -444,8 +444,6 @@ NzQgMCAwLjY1NDc1IDAuNDc0MTMgMS4xNzQgMS4xMjg5IDEuMTc0eiIvPgogICA8L2c+CiAgPC9nPgog
 #![cfg_attr(not(unsafe_in_unsafe), allow(unused_unsafe))]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
 #![allow(clippy::useless_conversion)]
-// matches! requires rustc 1.42
-#![allow(clippy::match_like_matches_macro)]
 #[macro_use]
 mod macros;
 mod ext;

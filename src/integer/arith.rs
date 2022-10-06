@@ -469,7 +469,7 @@ where
             xmpz::addmul_si(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
-            xmpz::addmul(rop, op1, &*small);
+            xmpz::addmul(rop, op1, &small);
         }
     }
 
@@ -479,7 +479,7 @@ where
             xmpz::submul_si(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
-            xmpz::submul(rop, op1, &*small);
+            xmpz::submul(rop, op1, &small);
         }
     }
 
@@ -489,7 +489,7 @@ where
             xmpz::mulsub_si(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
-            xmpz::mulsub(rop, op1, &*small);
+            xmpz::mulsub(rop, op1, &small);
         }
     }
 }
@@ -516,7 +516,7 @@ where
             xmpz::addmul_ui(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
-            xmpz::addmul(rop, op1, &*small);
+            xmpz::addmul(rop, op1, &small);
         }
     }
 
@@ -526,7 +526,7 @@ where
             xmpz::submul_ui(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
-            xmpz::submul(rop, op1, &*small);
+            xmpz::submul(rop, op1, &small);
         }
     }
 
@@ -536,7 +536,7 @@ where
             xmpz::mulsub_ui(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
-            xmpz::mulsub(rop, op1, &*small);
+            xmpz::mulsub(rop, op1, &small);
         }
     }
 }
