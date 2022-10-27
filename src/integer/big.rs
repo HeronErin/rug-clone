@@ -4526,11 +4526,11 @@ impl Integer {
     }
 
     /// Finds the greatest common divisor (GCD) of the two inputs (`self` and
-    /// `other`), and two cofactors to obtain the GCD from the two inputs.
+    /// `other`), and two coefficients to obtain the GCD from the two inputs.
     ///
     /// The GCD is always positive except when both inputs are zero. If the
     /// inputs are <i>a</i> and <i>b</i>, then the GCD is <i>g</i> and the
-    /// cofactors are <i>s</i> and <i>t</i> such that
+    /// coefficients are <i>s</i> and <i>t</i> such that
     ///
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
@@ -4556,26 +4556,26 @@ impl Integer {
     /// use rug::Integer;
     /// let a = Integer::from(4);
     /// let b = Integer::from(6);
-    /// let (g, s, t) = a.gcd_cofactors(b, Integer::new());
+    /// let (g, s, t) = a.gcd_ext(b, Integer::new());
     /// assert_eq!(g, 2);
     /// assert_eq!(s, -1);
     /// assert_eq!(t, 1);
     /// ```
     #[inline]
-    pub fn gcd_cofactors(mut self, mut other: Self, mut rop: Self) -> (Self, Self, Self) {
-        self.gcd_cofactors_mut(&mut other, &mut rop);
+    pub fn gcd_ext(mut self, mut other: Self, mut rop: Self) -> (Self, Self, Self) {
+        self.gcd_ext_mut(&mut other, &mut rop);
         (self, other, rop)
     }
 
     /// Finds the greatest common divisor (GCD) of the two inputs (`self` and
-    /// `other`), and two cofactors to obtain the GCD from the two inputs.
+    /// `other`), and two coefficients to obtain the GCD from the two inputs.
     ///
-    /// The GCD is stored in `self`, and the two cofactors are stored in `other`
-    /// and `rop`.
+    /// The GCD is stored in `self`, and the two coefficients are stored in
+    /// `other` and `rop`.
     ///
     /// The GCD is always positive except when both inputs are zero. If the
     /// inputs are <i>a</i> and <i>b</i>, then the GCD is <i>g</i> and the
-    /// cofactors are <i>s</i> and <i>t</i> such that
+    /// coefficients are <i>s</i> and <i>t</i> such that
     ///
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
@@ -4602,18 +4602,18 @@ impl Integer {
     /// let mut a_g = Integer::from(4);
     /// let mut b_s = Integer::from(6);
     /// let mut t = Integer::new();
-    /// a_g.gcd_cofactors_mut(&mut b_s, &mut t);
+    /// a_g.gcd_ext_mut(&mut b_s, &mut t);
     /// assert_eq!(a_g, 2);
     /// assert_eq!(b_s, -1);
     /// assert_eq!(t, 1);
     /// ```
     #[inline]
-    pub fn gcd_cofactors_mut(&mut self, other: &mut Self, rop: &mut Self) {
+    pub fn gcd_ext_mut(&mut self, other: &mut Self, rop: &mut Self) {
         xmpz::gcdext(self, other, Some(rop), (), ());
     }
 
     /// Finds the greatest common divisor (GCD) of the two inputs (`self` and
-    /// `other`), and two cofactors to obtain the GCD from the two inputs.
+    /// `other`), and two coefficients to obtain the GCD from the two inputs.
     ///
     /// The following are implemented with the returned [incomplete-computation
     /// value][icv] as `Src`:
@@ -4622,7 +4622,7 @@ impl Integer {
     ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer], [Integer][][)][tuple]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer], [Integer][][)][tuple]> for Src</code>
     ///
-    /// In the case that only one of the two cofactors is required, the
+    /// In the case that only one of the two coefficients is required, the
     /// following are also implemented:
     ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
     ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
@@ -4630,7 +4630,7 @@ impl Integer {
     ///
     /// The GCD is always positive except when both inputs are zero. If the
     /// inputs are <i>a</i> and <i>b</i>, then the GCD is <i>g</i> and the
-    /// cofactors are <i>s</i> and <i>t</i> such that
+    /// coefficients are <i>s</i> and <i>t</i> such that
     ///
     /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
     ///
@@ -4654,7 +4654,7 @@ impl Integer {
     /// use rug::{Assign, Integer};
     /// let a = Integer::from(4);
     /// let b = Integer::from(6);
-    /// let r = a.gcd_cofactors_ref(&b);
+    /// let r = a.gcd_ext_ref(&b);
     /// let mut g = Integer::new();
     /// let mut s = Integer::new();
     /// let mut t = Integer::new();
@@ -4666,8 +4666,8 @@ impl Integer {
     /// assert_eq!(t, 1);
     /// ```
     ///
-    /// In the case that only one of the two cofactors is required, this can be
-    /// achieved as follows:
+    /// In the case that only one of the two coefficients is required, this can
+    /// be achieved as follows:
     ///
     /// ```rust
     /// use rug::{Assign, Integer};
@@ -4676,21 +4676,21 @@ impl Integer {
     ///
     /// // no t required
     /// let (mut g1, mut s1) = (Integer::new(), Integer::new());
-    /// (&mut g1, &mut s1).assign(a.gcd_cofactors_ref(&b));
+    /// (&mut g1, &mut s1).assign(a.gcd_ext_ref(&b));
     /// assert_eq!(g1, 2);
     /// assert_eq!(s1, -1);
     ///
     /// // no s required
     /// let (mut g2, mut t2) = (Integer::new(), Integer::new());
-    /// (&mut g2, &mut t2).assign(b.gcd_cofactors_ref(&a));
+    /// (&mut g2, &mut t2).assign(b.gcd_ext_ref(&a));
     /// assert_eq!(g2, 2);
     /// assert_eq!(t2, 1);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
     #[inline]
-    pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdCofactorsIncomplete<'_> {
-        GcdCofactorsIncomplete {
+    pub fn gcd_ext_ref<'a>(&'a self, other: &'a Self) -> GcdExtIncomplete<'_> {
+        GcdExtIncomplete {
             ref_self: self,
             other,
         }
@@ -5357,6 +5357,27 @@ impl Integer {
             rng,
         }
     }
+
+    /// This method has been renamed to [`gcd_ext`][Self::gcd_ext].
+    #[deprecated(since = "1.18.0", note = "renamed to `gcd_ext`")]
+    #[inline]
+    pub fn gcd_cofactors(self, other: Self, rop: Self) -> (Self, Self, Self) {
+        self.gcd_ext(other, rop)
+    }
+
+    /// This method has been renamed to [`gcd_ext_mut`][Self::gcd_ext_mut].
+    #[deprecated(since = "1.18.0", note = "renamed to `gcd_ext_mut`")]
+    #[inline]
+    pub fn gcd_cofactors_mut(&mut self, other: &mut Self, rop: &mut Self) {
+        self.gcd_ext_mut(other, rop);
+    }
+
+    /// This method has been renamed to [`gcd_ext_ref`][Self::gcd_ext_ref].
+    #[deprecated(since = "1.18.0", note = "renamed to `gcd_ext_ref`")]
+    #[inline]
+    pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdExtIncomplete<'_> {
+        self.gcd_ext_ref(other)
+    }
 }
 
 #[derive(Debug)]
@@ -5872,44 +5893,44 @@ impl From<GcdUIncomplete<'_>> for Option<u32> {
 }
 
 #[derive(Debug)]
-pub struct GcdCofactorsIncomplete<'a> {
+pub struct GcdExtIncomplete<'a> {
     ref_self: &'a Integer,
     other: &'a Integer,
 }
 
-impl Assign<GcdCofactorsIncomplete<'_>> for (&mut Integer, &mut Integer, &mut Integer) {
+impl Assign<GcdExtIncomplete<'_>> for (&mut Integer, &mut Integer, &mut Integer) {
     #[inline]
-    fn assign(&mut self, src: GcdCofactorsIncomplete<'_>) {
+    fn assign(&mut self, src: GcdExtIncomplete<'_>) {
         xmpz::gcdext(self.0, self.1, Some(self.2), src.ref_self, src.other);
     }
 }
 
-impl Assign<GcdCofactorsIncomplete<'_>> for (Integer, Integer, Integer) {
+impl Assign<GcdExtIncomplete<'_>> for (Integer, Integer, Integer) {
     #[inline]
-    fn assign(&mut self, src: GcdCofactorsIncomplete<'_>) {
+    fn assign(&mut self, src: GcdExtIncomplete<'_>) {
         (&mut self.0, &mut self.1, &mut self.2).assign(src);
     }
 }
 
-from_assign! { GcdCofactorsIncomplete<'_> => Integer, Integer, Integer }
+from_assign! { GcdExtIncomplete<'_> => Integer, Integer, Integer }
 
-impl Assign<GcdCofactorsIncomplete<'_>> for (&mut Integer, &mut Integer) {
+impl Assign<GcdExtIncomplete<'_>> for (&mut Integer, &mut Integer) {
     #[inline]
-    fn assign(&mut self, src: GcdCofactorsIncomplete<'_>) {
+    fn assign(&mut self, src: GcdExtIncomplete<'_>) {
         xmpz::gcdext(self.0, self.1, None, src.ref_self, src.other);
     }
 }
 
-impl Assign<GcdCofactorsIncomplete<'_>> for (Integer, Integer) {
+impl Assign<GcdExtIncomplete<'_>> for (Integer, Integer) {
     #[inline]
-    fn assign(&mut self, src: GcdCofactorsIncomplete<'_>) {
+    fn assign(&mut self, src: GcdExtIncomplete<'_>) {
         Assign::assign(&mut (&mut self.0, &mut self.1), src);
     }
 }
 
-impl From<GcdCofactorsIncomplete<'_>> for (Integer, Integer) {
+impl From<GcdExtIncomplete<'_>> for (Integer, Integer) {
     #[inline]
-    fn from(src: GcdCofactorsIncomplete<'_>) -> Self {
+    fn from(src: GcdExtIncomplete<'_>) -> Self {
         let mut dst = Self::default();
         Assign::assign(&mut (&mut dst.0, &mut dst.1), src);
         dst

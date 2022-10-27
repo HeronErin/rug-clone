@@ -4,6 +4,23 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
+Version 1.18.0 (unreleased)
+===========================
+
+  * The methods
+    <code>[Integer][int-1-18]::{[gcd\_cofactors][int-gc-1-18],[gcd\_cofactors\_mut][int-gcm-1-18],[gcd\_cofactors\_ref][int-gcr-1-18]}</code>
+    were renamed to
+    <code>[Integer][int-1-18]::{[gcd\_ext][int-ge-1-18],[gcd\_ext\_mut][int-gem-1-18],[gcd\_ext\_ref][int-ger-1-18]}</code>.
+    The old method names are deprecated.
+
+[int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
+[int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
+[int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
+[int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
+[int-ge-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_ext
+[int-gem-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_ext_mut
+[int-ger-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_ext_ref
+
 Version 1.17.0 (2022-08-06)
 ===========================
 

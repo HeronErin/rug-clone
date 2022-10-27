@@ -1121,7 +1121,7 @@ pub fn start_invert(op: &Integer, modulo: &Integer) -> Option<Integer> {
     if modulo.cmp0() == Ordering::Equal {
         return None;
     }
-    let (gcd, sinverse) = <(Integer, Integer)>::from(op.gcd_cofactors_ref(modulo));
+    let (gcd, sinverse) = <(Integer, Integer)>::from(op.gcd_ext_ref(modulo));
     if is_1(&gcd) {
         Some(sinverse)
     } else {
