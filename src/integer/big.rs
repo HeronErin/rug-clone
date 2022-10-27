@@ -4556,14 +4556,14 @@ impl Integer {
     /// use rug::Integer;
     /// let a = Integer::from(4);
     /// let b = Integer::from(6);
-    /// let (g, s, t) = a.gcd_ext(b, Integer::new());
+    /// let (g, s, t) = a.extended_gcd(b, Integer::new());
     /// assert_eq!(g, 2);
     /// assert_eq!(s, -1);
     /// assert_eq!(t, 1);
     /// ```
     #[inline]
-    pub fn gcd_ext(mut self, mut other: Self, mut rop: Self) -> (Self, Self, Self) {
-        self.gcd_ext_mut(&mut other, &mut rop);
+    pub fn extended_gcd(mut self, mut other: Self, mut rop: Self) -> (Self, Self, Self) {
+        self.extended_gcd_mut(&mut other, &mut rop);
         (self, other, rop)
     }
 
@@ -4602,13 +4602,13 @@ impl Integer {
     /// let mut a_g = Integer::from(4);
     /// let mut b_s = Integer::from(6);
     /// let mut t = Integer::new();
-    /// a_g.gcd_ext_mut(&mut b_s, &mut t);
+    /// a_g.extended_gcd_mut(&mut b_s, &mut t);
     /// assert_eq!(a_g, 2);
     /// assert_eq!(b_s, -1);
     /// assert_eq!(t, 1);
     /// ```
     #[inline]
-    pub fn gcd_ext_mut(&mut self, other: &mut Self, rop: &mut Self) {
+    pub fn extended_gcd_mut(&mut self, other: &mut Self, rop: &mut Self) {
         xmpz::gcdext(self, other, Some(rop), (), ());
     }
 
@@ -4654,7 +4654,7 @@ impl Integer {
     /// use rug::{Assign, Integer};
     /// let a = Integer::from(4);
     /// let b = Integer::from(6);
-    /// let r = a.gcd_ext_ref(&b);
+    /// let r = a.extended_gcd_ref(&b);
     /// let mut g = Integer::new();
     /// let mut s = Integer::new();
     /// let mut t = Integer::new();
@@ -4676,20 +4676,20 @@ impl Integer {
     ///
     /// // no t required
     /// let (mut g1, mut s1) = (Integer::new(), Integer::new());
-    /// (&mut g1, &mut s1).assign(a.gcd_ext_ref(&b));
+    /// (&mut g1, &mut s1).assign(a.extended_gcd_ref(&b));
     /// assert_eq!(g1, 2);
     /// assert_eq!(s1, -1);
     ///
     /// // no s required
     /// let (mut g2, mut t2) = (Integer::new(), Integer::new());
-    /// (&mut g2, &mut t2).assign(b.gcd_ext_ref(&a));
+    /// (&mut g2, &mut t2).assign(b.extended_gcd_ref(&a));
     /// assert_eq!(g2, 2);
     /// assert_eq!(t2, 1);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
     #[inline]
-    pub fn gcd_ext_ref<'a>(&'a self, other: &'a Self) -> GcdExtIncomplete<'_> {
+    pub fn extended_gcd_ref<'a>(&'a self, other: &'a Self) -> GcdExtIncomplete<'_> {
         GcdExtIncomplete {
             ref_self: self,
             other,
@@ -5358,25 +5358,25 @@ impl Integer {
         }
     }
 
-    /// This method has been renamed to [`gcd_ext`][Self::gcd_ext].
-    #[deprecated(since = "1.18.0", note = "renamed to `gcd_ext`")]
+    /// This method has been renamed to [`extended_gcd`][Self::extended_gcd].
+    #[deprecated(since = "1.18.0", note = "renamed to `extended_gcd`")]
     #[inline]
     pub fn gcd_cofactors(self, other: Self, rop: Self) -> (Self, Self, Self) {
-        self.gcd_ext(other, rop)
+        self.extended_gcd(other, rop)
     }
 
-    /// This method has been renamed to [`gcd_ext_mut`][Self::gcd_ext_mut].
-    #[deprecated(since = "1.18.0", note = "renamed to `gcd_ext_mut`")]
+    /// This method has been renamed to [`extended_gcd_mut`][Self::extended_gcd_mut].
+    #[deprecated(since = "1.18.0", note = "renamed to `extended_gcd_mut`")]
     #[inline]
     pub fn gcd_cofactors_mut(&mut self, other: &mut Self, rop: &mut Self) {
-        self.gcd_ext_mut(other, rop);
+        self.extended_gcd_mut(other, rop);
     }
 
-    /// This method has been renamed to [`gcd_ext_ref`][Self::gcd_ext_ref].
-    #[deprecated(since = "1.18.0", note = "renamed to `gcd_ext_ref`")]
+    /// This method has been renamed to [`extended_gcd_ref`][Self::extended_gcd_ref].
+    #[deprecated(since = "1.18.0", note = "renamed to `extended_gcd_ref`")]
     #[inline]
     pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdExtIncomplete<'_> {
-        self.gcd_ext_ref(other)
+        self.extended_gcd_ref(other)
     }
 }
 

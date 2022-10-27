@@ -311,7 +311,7 @@ impl NumInteger for Integer {
             x: Integer::new(),
             y: Integer::new(),
         };
-        (&mut gcdc.gcd, &mut gcdc.x, &mut gcdc.y).assign(self.gcd_cofactors_ref(other));
+        (&mut gcdc.gcd, &mut gcdc.x, &mut gcdc.y).assign(self.extended_gcd_ref(other));
         gcdc
     }
     #[inline]
