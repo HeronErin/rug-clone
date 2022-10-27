@@ -42,6 +42,8 @@ clibs-x86_64-gnulinux:
     - cargo/
     - gmp-mpfr-sys-cache/
     expire_in: 1 day
+  only:
+  - ci
 
 beta-x86_64-gnulinux:
   image: amd64/rust:1
@@ -52,6 +54,8 @@ beta-x86_64-gnulinux:
     TOOLCHAIN: beta-x86_64
   script:
   - etc/test.sh
+  only:
+  - ci
 
 stable-x86_64-gnulinux:
   image: amd64/rust:1
@@ -62,6 +66,8 @@ stable-x86_64-gnulinux:
     TOOLCHAIN: stable-x86_64
   script:
   - etc/test.sh
+  only:
+  - ci
 
 nightly-x86_64-gnulinux:
   image: amd64/rust:1
@@ -72,6 +78,8 @@ nightly-x86_64-gnulinux:
     TOOLCHAIN: nightly-x86_64
   script:
   - etc/test.sh
+  only:
+  - ci
 
 1.37.0-x86_64-gnulinux:
   image: amd64/rust:1
@@ -82,6 +90,8 @@ nightly-x86_64-gnulinux:
     TOOLCHAIN: 1.37.0-x86_64
   script:
   - etc/test.sh
+  only:
+  - ci
 
 stable-x86_64-gnulinux-tarpaulin:
   image: amd64/rust:1
@@ -102,6 +112,8 @@ stable-x86_64-gnulinux-tarpaulin:
   - etc/extract-doc-tests.sh restore
   - echo "Check that coverage not less than $REQ_COVERAGE%"
   - tail -1 tarpaulin.log | awk '{ if ($1 < '$REQ_COVERAGE') { exit 1 } }'
+  only:
+  - ci
 
 stable-x86_64-gnulinux-valgrind:
   image: amd64/rust:1
@@ -120,6 +132,8 @@ stable-x86_64-gnulinux-valgrind:
   - cargo +$TOOLCHAIN test --release --features "num-traits serde" --lib
   - valgrind $VALGRIND_OPTIONS "$(ls target/release/deps/rug* | grep -v '\.d')"
   - etc/extract-doc-tests.sh restore
+  only:
+  - ci
 
 beta-x86_64-gnulinux-tidy:
   image: amd64/rust:1
@@ -131,6 +145,8 @@ beta-x86_64-gnulinux-tidy:
   script:
   - rustup component add --toolchain $TOOLCHAIN rustfmt clippy
   - etc/tidy.sh
+  only:
+  - ci
 
 clibs-i686-gnulinux:
   image: i386/rust:1
@@ -150,6 +166,8 @@ clibs-i686-gnulinux:
     - cargo/
     - gmp-mpfr-sys-cache/
     expire_in: 1 day
+  only:
+  - ci
 
 beta-i686-gnulinux:
   image: i386/rust:1
@@ -160,6 +178,8 @@ beta-i686-gnulinux:
     TOOLCHAIN: beta-i686
   script:
   - etc/test.sh
+  only:
+  - ci
 
 stable-i686-gnulinux:
   image: i386/rust:1
@@ -170,6 +190,8 @@ stable-i686-gnulinux:
     TOOLCHAIN: stable-i686
   script:
   - etc/test.sh
+  only:
+  - ci
 
 nightly-i686-gnulinux:
   image: i386/rust:1
@@ -180,6 +202,8 @@ nightly-i686-gnulinux:
     TOOLCHAIN: nightly-i686
   script:
   - etc/test.sh
+  only:
+  - ci
 
 1.37.0-i686-gnulinux:
   image: i386/rust:1
@@ -190,6 +214,8 @@ nightly-i686-gnulinux:
     TOOLCHAIN: 1.37.0-i686
   script:
   - etc/test.sh
+  only:
+  - ci
 
 stable-i686-gnulinux-valgrind:
   image: i386/rust:1
@@ -208,6 +234,8 @@ stable-i686-gnulinux-valgrind:
   - cargo +$TOOLCHAIN test --release --features "num-traits serde" --lib
   - valgrind $VALGRIND_OPTIONS "$(ls target/release/deps/rug* | grep -v '\.d')"
   - etc/extract-doc-tests.sh restore
+  only:
+  - ci
 
 beta-i686-gnulinux-tidy:
   image: i386/rust:1
@@ -219,6 +247,8 @@ beta-i686-gnulinux-tidy:
   script:
   - rustup component add --toolchain $TOOLCHAIN rustfmt clippy
   - etc/tidy.sh
+  only:
+  - ci
 
 pages:
   image: amd64/rust:1
@@ -241,4 +271,4 @@ pages:
     paths:
     - public
   only:
-  - master
+  - www
