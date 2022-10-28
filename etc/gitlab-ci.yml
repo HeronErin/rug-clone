@@ -44,6 +44,7 @@ clibs-x86_64-gnulinux:
     expire_in: 1 day
   only:
   - ci
+  - www
 
 beta-x86_64-gnulinux:
   image: amd64/rust:1
