@@ -1718,6 +1718,11 @@ impl Integer {
     /// 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1. If the value is zero, `(0.0, 0)`
     /// is returned.
     ///
+    /// On 64-bit systems [`u32`] might not be large enough for the exponent,
+    /// which can result in overflow and panic. The
+    /// [`to_f32_exp64`][Self::to_f32_exp64] method is similar to this method
+    /// but returns the exponent as [`u64`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1736,11 +1741,43 @@ impl Integer {
         (trunc_f, exp)
     }
 
+    /// Converts to an [`f32`] and an exponent, rounding towards zero.
+    ///
+    /// The returned [`f32`] is in the range
+    /// 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1. If the value is zero, `(0.0, 0)`
+    /// is returned.
+    ///
+    /// This method is similar to [`to_f32_exp`][Self::to_f32_exp] but returns
+    /// the exponent as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let zero = Integer::new();
+    /// let (d0, exp0) = zero.to_f32_exp64();
+    /// assert_eq!((d0, exp0), (0.0, 0));
+    /// let fifteen = Integer::from(15);
+    /// let (d15, exp15) = fifteen.to_f32_exp64();
+    /// assert_eq!((d15, exp15), (15.0 / 16.0, 4));
+    /// ```
+    #[inline]
+    pub fn to_f32_exp64(&self) -> (f32, u64) {
+        let (f, exp) = self.to_f64_exp64();
+        let trunc_f = misc::trunc_f64_to_f32(f);
+        (trunc_f, exp)
+    }
+
     /// Converts to an [`f64`] and an exponent, rounding towards zero.
     ///
     /// The returned [`f64`] is in the range
     /// 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1. If the value is zero, `(0.0, 0)`
     /// is returned.
+    ///
+    /// On 64-bit systems [`u32`] might not be large enough for the exponent,
+    /// which can result in overflow and panic. The
+    /// [`to_f64_exp64`][Self::to_f64_exp64] method is similar to this method
+    /// but returns the exponent as [`u64`].
     ///
     /// # Examples
     ///
@@ -1755,6 +1792,32 @@ impl Integer {
     /// ```
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, u32) {
+        let (f, exp) = xmpz::get_f64_2exp(self);
+        (f, exp.unwrapped_cast())
+    }
+
+    /// Converts to an [`f64`] and an exponent, rounding towards zero.
+    ///
+    /// The returned [`f64`] is in the range
+    /// 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1. If the value is zero, `(0.0, 0)`
+    /// is returned.
+    ///
+    /// This method is similar to [`to_f64_exp`][Self::to_f64_exp] but returns
+    /// the exponent as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let zero = Integer::new();
+    /// let (d0, exp0) = zero.to_f64_exp64();
+    /// assert_eq!((d0, exp0), (0.0, 0));
+    /// let fifteen = Integer::from(15);
+    /// let (d15, exp15) = fifteen.to_f64_exp64();
+    /// assert_eq!((d15, exp15), (15.0 / 16.0, 4));
+    /// ```
+    #[inline]
+    pub fn to_f64_exp64(&self) -> (f64, u64) {
         let (f, exp) = xmpz::get_f64_2exp(self);
         (f, exp.unwrapped_cast())
     }

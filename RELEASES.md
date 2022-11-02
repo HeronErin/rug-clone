@@ -12,6 +12,9 @@ Version 1.18.0 (unreleased)
     were renamed to [`extended_gcd`][int-eg-1-18],
     [`extended_gcd_mut`][int-egm-1-18] and [`extended_gcd_ref`][int-egr-1-18].
     The old method names are deprecated.
+  * The following methods were added to the [`Integer`][int-1-18] struct to
+    support very large integers better on 64-bit systems.
+    * [`to_f32_exp64`][int-tf32e-1-18], [`to_f64_exp64`][int-tf64e-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-eg-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd
@@ -20,6 +23,8 @@ Version 1.18.0 (unreleased)
 [int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
 [int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
 [int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
+[int-tf32e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f32_exp64
+[int-tf64e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f64_exp64
 
 Version 1.17.0 (2022-08-06)
 ===========================
