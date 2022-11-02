@@ -2304,6 +2304,11 @@ impl Integer {
 
     /// Returns the number of bits required to represent the absolute value.
     ///
+    /// On 64-bit systems [`u32`] might not be large enough for the result,
+    /// which can result in overflow and panic. The
+    /// [`significant_bits_64`][Self::significant_bits_64] method is similar to
+    /// this method but returns a [`u64`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2322,12 +2327,40 @@ impl Integer {
         xmpz::significant_bits(self).unwrapped_cast()
     }
 
+    /// Returns the number of bits required to represent the absolute value.
+    ///
+    /// This method is similar to [`significant_bits`][Self::significant_bits]
+    /// but returns a [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// assert_eq!(Integer::from(0).significant_bits_64(), 0);  //    “”
+    /// assert_eq!(Integer::from(1).significant_bits_64(), 1);  //   “1”
+    /// assert_eq!(Integer::from(4).significant_bits_64(), 3);  // “100”
+    /// assert_eq!(Integer::from(7).significant_bits_64(), 3);  // “111”
+    /// assert_eq!(Integer::from(-1).significant_bits_64(), 1); //   “1”
+    /// assert_eq!(Integer::from(-4).significant_bits_64(), 3); // “100”
+    /// assert_eq!(Integer::from(-7).significant_bits_64(), 3); // “111”
+    /// ```
+    #[inline]
+    pub fn significant_bits_64(&self) -> u64 {
+        xmpz::significant_bits(self).unwrapped_cast()
+    }
+
     /// Returns the number of bits required to represent the value using a
     /// two’s-complement representation.
     ///
     /// For non-negative numbers, this method returns one more than
     /// the [`significant_bits`] method, since an extra zero is needed
     /// before the most significant bit.
+    ///
+    /// On 64-bit systems [`u32`] might not be large enough for the result,
+    /// which can result in overflow and panic. The
+    /// [`signed_bits_64`][Self::signed_bits_64] method is similar to this
+    /// method but returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2346,10 +2379,43 @@ impl Integer {
     /// assert_eq!(Integer::from(4).signed_bits(), 4);  // “0100”
     /// ```
     ///
-    /// [`significant_bits`]: `Integer::significant_bits`
+    /// [`significant_bits`]: Integer::significant_bits
     #[inline]
     pub fn signed_bits(&self) -> u32 {
-        xmpz::signed_bits(self)
+        xmpz::signed_bits(self).unwrapped_cast()
+    }
+
+    /// Returns the number of bits required to represent the value using a
+    /// two’s-complement representation.
+    ///
+    /// For non-negative numbers, this method returns one more than
+    /// the [`significant_bits_64`] method, since an extra zero is needed
+    /// before the most significant bit.
+    ///
+    /// This method is similar to [`signed_bits`][Self::signed_bits] but returns
+    /// a [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// assert_eq!(Integer::from(-5).signed_bits_64(), 4); // “1011”
+    /// assert_eq!(Integer::from(-4).signed_bits_64(), 3); //  “100”
+    /// assert_eq!(Integer::from(-3).signed_bits_64(), 3); //  “101”
+    /// assert_eq!(Integer::from(-2).signed_bits_64(), 2); //   “10”
+    /// assert_eq!(Integer::from(-1).signed_bits_64(), 1); //    “1”
+    /// assert_eq!(Integer::from(0).signed_bits_64(), 1);  //    “0”
+    /// assert_eq!(Integer::from(1).signed_bits_64(), 2);  //   “01”
+    /// assert_eq!(Integer::from(2).signed_bits_64(), 3);  //  “010”
+    /// assert_eq!(Integer::from(3).signed_bits_64(), 3);  //  “011”
+    /// assert_eq!(Integer::from(4).signed_bits_64(), 4);  // “0100”
+    /// ```
+    ///
+    /// [`significant_bits_64`]: Integer::significant_bits_64
+    #[inline]
+    pub fn signed_bits_64(&self) -> u64 {
+        xmpz::signed_bits(self).unwrapped_cast()
     }
 
     /// Returns the number of one bits if the value ≥ 0.

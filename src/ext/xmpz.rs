@@ -1034,19 +1034,18 @@ pub fn significant_bits(op: &Integer) -> usize {
     unsafe { gmp::mpn_sizeinbase(op.inner().d.as_ptr(), size.unwrapped_cast(), 2) }
 }
 
-pub fn signed_bits(op: &Integer) -> u32 {
+pub fn signed_bits(op: &Integer) -> usize {
     let significant = significant_bits(op);
     if op.cmp0() == Ordering::Less {
         let first_one =
             (unsafe { gmp::mpn_scan1(op.inner().d.as_ptr(), 0) }).unwrapped_as::<usize>();
         if first_one == significant - 1 {
-            return significant.unwrapped_cast();
+            return significant;
         }
     }
     significant
         .checked_add(1)
         .expect("overflow")
-        .unwrapped_cast()
 }
 
 pub fn power_of_two_p(op: &Integer) -> bool {

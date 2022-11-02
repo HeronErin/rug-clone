@@ -17,6 +17,7 @@ Version 1.18.0 (unreleased)
     * [`to_f32_exp64`][int-tf32e-1-18], [`to_f64_exp64`][int-tf64e-1-18]
     * [`is_divisible_u64`][int-idu-1-18], [`is_divisible_2pow_64`][int-id2-1-18]
     * [`is_congruent_u64`][int-icu-1-18], [`is_congruent_2pow_64`][int-ic2-1-18]
+    * [`significant_bits_64`][int-sb-1-18], [`signed_bits_64`][int-signedb-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-eg-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd
@@ -29,6 +30,8 @@ Version 1.18.0 (unreleased)
 [int-icu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_u64
 [int-id2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_2pow_64
 [int-idu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_u64
+[int-sb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64
+[int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
 [int-tf32e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f32_exp64
 [int-tf64e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f64_exp64
 
