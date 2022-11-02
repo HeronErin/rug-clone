@@ -30,10 +30,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.18.0 news (unreleased)
 
-  * The methods
-    <code>[Integer][int-1-18]::{[gcd\_cofactors][int-gc-1-18],[gcd\_cofactors\_mut][int-gcm-1-18],[gcd\_cofactors\_ref][int-gcr-1-18]}</code>
-    were renamed to
-    <code>[Integer][int-1-18]::{[extended\_gcd][int-eg-1-18],[extended\_gcd\_mut][int-egm-1-18],[extended\_gcd\_ref][int-egr-1-18]}</code>.
+  * For the [`Integer`] struct, the methods [`gcd_cofactors`][int-gc-1-18],
+    [`gcd_cofactors_mut`][int-gcm-1-18] and [`gcd_cofactors_ref`][int-gcr-1-18]
+    were renamed to [`extended_gcd`][int-eg-1-18],
+    [`extended_gcd_mut`][int-egm-1-18] and [`extended_gcd_ref`][int-egr-1-18].
     The old method names are deprecated.
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
