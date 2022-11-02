@@ -1043,9 +1043,7 @@ pub fn signed_bits(op: &Integer) -> usize {
             return significant;
         }
     }
-    significant
-        .checked_add(1)
-        .expect("overflow")
+    significant.checked_add(1).expect("overflow")
 }
 
 pub fn power_of_two_p(op: &Integer) -> bool {
