@@ -39,7 +39,7 @@ fn check_feature(name: &str, contents: &str) {
     create_dir_or_panic(&try_dir);
     println!("$ cd {:?}", try_dir);
     create_file_or_panic(&try_dir.join(&filename), contents);
-    let mut cmd = Command::new(&rustc);
+    let mut cmd = Command::new(rustc);
     cmd.current_dir(&try_dir)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
