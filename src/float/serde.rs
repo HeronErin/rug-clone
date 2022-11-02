@@ -40,7 +40,7 @@ impl Serialize for Float {
 impl<'de> Deserialize<'de> for Float {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Float, D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
-        let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Float::parse_radix(value, radix).map_err(DeError::custom)?;
         Ok(Float::with_val(prec, p))
     }
 
@@ -49,7 +49,7 @@ impl<'de> Deserialize<'de> for Float {
         place: &mut Float,
     ) -> Result<(), D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
-        let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Float::parse_radix(value, radix).map_err(DeError::custom)?;
         xmpfr::set_prec_nan(place, prec.unwrapped_cast());
         place.assign(p);
         Ok(())

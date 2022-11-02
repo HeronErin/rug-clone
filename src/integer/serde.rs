@@ -36,7 +36,7 @@ impl Serialize for Integer {
 impl<'de> Deserialize<'de> for Integer {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Integer, D::Error> {
         let (radix, value) = de_data(deserializer)?;
-        let p = Integer::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Integer::parse_radix(value, radix).map_err(DeError::custom)?;
         Ok(Integer::from(p))
     }
 
@@ -45,7 +45,7 @@ impl<'de> Deserialize<'de> for Integer {
         place: &mut Integer,
     ) -> Result<(), D::Error> {
         let (radix, value) = de_data(deserializer)?;
-        let p = Integer::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Integer::parse_radix(value, radix).map_err(DeError::custom)?;
         place.assign(p);
         Ok(())
     }

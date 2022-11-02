@@ -37,7 +37,7 @@ impl Serialize for Rational {
 impl<'de> Deserialize<'de> for Rational {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Rational, D::Error> {
         let (radix, value) = de_data(deserializer)?;
-        let p = Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Rational::parse_radix(value, radix).map_err(DeError::custom)?;
         Ok(Rational::from(p))
     }
 
@@ -46,7 +46,7 @@ impl<'de> Deserialize<'de> for Rational {
         place: &mut Rational,
     ) -> Result<(), D::Error> {
         let (radix, value) = de_data(deserializer)?;
-        let p = Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Rational::parse_radix(value, radix).map_err(DeError::custom)?;
         place.assign(p);
         Ok(())
     }

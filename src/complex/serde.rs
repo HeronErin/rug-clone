@@ -42,7 +42,7 @@ impl Serialize for Complex {
 impl<'de> Deserialize<'de> for Complex {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Complex, D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
-        let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Complex::parse_radix(value, radix).map_err(DeError::custom)?;
         Ok(Complex::with_val(prec, p))
     }
 
@@ -51,7 +51,7 @@ impl<'de> Deserialize<'de> for Complex {
         place: &mut Complex,
     ) -> Result<(), D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
-        let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Complex::parse_radix(value, radix).map_err(DeError::custom)?;
         xmpfr::set_prec_nan(place.mut_real(), prec.0.unwrapped_cast());
         xmpfr::set_prec_nan(place.mut_imag(), prec.1.unwrapped_cast());
         place.assign(p);
