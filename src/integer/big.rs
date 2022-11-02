@@ -15,7 +15,7 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpz;
-use crate::integer::{arith::MulIncomplete, Order};
+use crate::integer::{arith::MulIncomplete, Order, SmallInteger};
 use crate::ops::{DivRounding, NegAssign, SubFrom};
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
@@ -2040,6 +2040,30 @@ impl Integer {
         xmpz::divisible_ui_p(self, divisor.into())
     }
 
+    /// Returns [`true`] if the number is divisible by `divisor`. Unlike other
+    /// division functions, `divisor` can be zero.
+    ///
+    /// This method is similar to [`is_divisible_u`][Self::is_divisible_u] but
+    /// takes the divisor as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(230);
+    /// assert!(i.is_divisible_u64(23));
+    /// assert!(!i.is_divisible_u64(100));
+    /// assert!(!i.is_divisible_u64(0));
+    /// ```
+    #[inline]
+    pub fn is_divisible_u64(&self, divisor: u64) -> bool {
+        if let Some(divisor) = divisor.checked_cast() {
+            return xmpz::divisible_ui_p(self, divisor);
+        }
+        let small = SmallInteger::from(divisor);
+        self.is_divisible(&small)
+    }
+
     /// Returns [`true`] if the number is divisible by 2<sup><i>b</i></sup>.
     ///
     /// # Examples
@@ -2054,6 +2078,25 @@ impl Integer {
     #[inline]
     pub fn is_divisible_2pow(&self, b: u32) -> bool {
         xmpz::divisible_2exp_p(self, b.into())
+    }
+
+    /// Returns [`true`] if the number is divisible by 2<sup><i>b</i></sup>.
+    ///
+    /// This method is similar to [`is_divisible_2pow`][Self::is_divisible_2pow]
+    /// but takes `b` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(15 << 17);
+    /// assert!(i.is_divisible_2pow_64(16));
+    /// assert!(i.is_divisible_2pow_64(17));
+    /// assert!(!i.is_divisible_2pow_64(18));
+    /// ```
+    #[inline]
+    pub fn is_divisible_2pow_64(&self, b: u64) -> bool {
+        xmpz::divisible_2exp_p(self, b.unwrapped_cast())
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
