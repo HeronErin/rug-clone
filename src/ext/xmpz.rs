@@ -292,7 +292,7 @@ pub fn divexact_u32<O: OptInteger>(q: &mut Integer, dividend: O, divisor: u32) {
 
 #[inline]
 pub fn divexact_u64<O: OptInteger>(q: &mut Integer, dividend: O, divisor: u64) {
-    if let Some(divisor) = divisor.into() {
+    if let Some(divisor) = divisor.checked_cast() {
         return divexact_ui(q, dividend, divisor);
     }
     let small = SmallInteger::from(divisor);
