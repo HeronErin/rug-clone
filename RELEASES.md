@@ -37,6 +37,8 @@ Version 1.18.0 (unreleased)
       [`root_64_ref`][int-rr-1-18]
     * [`root_rem_64`][int-rre-1-18], [`root_rem_64_mut`][int-rrem-1-18],
       [`root_rem_64_ref`][int-rrer-1-18]
+    * [`gcd_u64`][int-gu-1-18], [`gcd_u64_mut`][int-gum-1-18],
+      [`gcd_u64_ref`][int-gur-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
@@ -53,6 +55,9 @@ Version 1.18.0 (unreleased)
 [int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
 [int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
 [int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
+[int-gu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.gcd_u64
+[int-gum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_mut
+[int-gur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_ref
 [int-hd-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.hamming_dist_64
 [int-ic2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_2pow_64
 [int-icu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_u64

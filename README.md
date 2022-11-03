@@ -47,11 +47,11 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     * [`set_bit_64`][int-sb-1-18], [`get_bit_64`][int-gb-1-18],
       [`toggle_bit_64`][int-tb-1-18]
     * [`hamming_dist_64`][int-hd-1-18]
-    * [`keep_bits_64`][int-kb-1-18], [`keep_bits_mut_64`][int-kbm-1-18],
-      [`keep_bits_ref_64`][int-kbr-1-18]
+    * [`keep_bits_64`][int-kb-1-18], [`keep_bits_64_mut`][int-kbm-1-18],
+      [`keep_bits_64_ref`][int-kbr-1-18]
     * [`keep_signed_bits_64`][int-ksb-1-18],
-      [`keep_signed_bits_mut_64`][int-ksbm-1-18],
-      [`keep_signed_bits_ref_64`][int-ksbr-1-18]
+      [`keep_signed_bits_64_mut`][int-ksbm-1-18],
+      [`keep_signed_bits_64_ref`][int-ksbr-1-18]
     * [`mod_u64`][int-mu-1-18]
     * [`div_exact_u64`][int-deu-1-18], [`div_exact_u64_mut`][int-deum-1-18],
       [`div_exact_u64_ref`][int-deur-1-18]
@@ -60,6 +60,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
       [`root_64_ref`][int-rr-1-18]
     * [`root_rem_64`][int-rre-1-18], [`root_rem_64_mut`][int-rrem-1-18],
       [`root_rem_64_ref`][int-rrer-1-18]
+    * [`gcd_u64`][int-gu-1-18], [`gcd_u64_mut`][int-gum-1-18],
+      [`gcd_u64_ref`][int-gur-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
@@ -76,6 +78,9 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
 [int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
 [int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
+[int-gu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.gcd_u64
+[int-gum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_mut
+[int-gur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_ref
 [int-hd-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.hamming_dist_64
 [int-ic2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_2pow_64
 [int-icu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_u64

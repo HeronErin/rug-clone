@@ -318,6 +318,16 @@ pub fn gcd_u32<O: OptInteger>(rop: &mut Integer, op1: O, op2: u32) {
 }
 
 #[inline]
+pub fn gcd_u64<O: OptInteger>(rop: &mut Integer, op1: O, op2: u64) {
+    if let Some(op2) = op2.checked_cast() {
+        gcd_ui(Some(rop), op1, op2);
+        return;
+    }
+    let small = SmallInteger::from(op2);
+    gcd(rop, op1, &*small);
+}
+
+#[inline]
 pub fn lcm_u32<O: OptInteger>(rop: &mut Integer, op1: O, op2: u32) {
     let rop = rop.as_raw_mut();
     let op1 = op1.mpz_or(rop);

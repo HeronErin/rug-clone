@@ -5418,9 +5418,10 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Option]\<[u32]></code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// The last item above is useful to obtain the result as a [`u32`] if it
-    /// fits. If `other`&nbsp;>&nbsp;0 , the result always fits. If the result
-    /// does not fit, it is equal to the absolute value of `self`.
+    /// The implementation of <code>[From]\<Src> for [Option]\<[u32]></code> is
+    /// useful to obtain the result as a [`u32`] if it fits. If
+    /// `other`&nbsp;>&nbsp;0 , the result always fits. If the result does not
+    /// fit, it is equal to the absolute value of `self`.
     ///
     /// # Examples
     ///
@@ -5438,6 +5439,95 @@ impl Integer {
     #[inline]
     pub fn gcd_u_ref(&self, other: u32) -> GcdUIncomplete<'_> {
         GcdUIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are zero.
+    ///
+    /// This method is similar to [`gcd_u`][Self::gcd_u] but takes `other` as
+    /// [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::new();
+    /// // gcd of 0, 0 is 0
+    /// let gcd1 = i.gcd_u64(0);
+    /// assert_eq!(gcd1, 0);
+    /// // gcd of 0, 10 is 10
+    /// let gcd2 = gcd1.gcd_u64(10);
+    /// assert_eq!(gcd2, 10);
+    /// // gcd of 10, 25 is 5
+    /// let gcd3 = gcd2.gcd_u64(25);
+    /// assert_eq!(gcd3, 5);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn gcd_u64(mut self, other: u64) -> Self {
+        self.gcd_u64_mut(other);
+        self
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are zero.
+    ///
+    /// This method is similar to [`gcd_u_mut`][Self::gcd_u_mut] but takes
+    /// `other` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::new();
+    /// // gcd of 0, 0 is 0
+    /// i.gcd_u64_mut(0);
+    /// assert_eq!(i, 0);
+    /// // gcd of 0, 10 is 10
+    /// i.gcd_u64_mut(10);
+    /// assert_eq!(i, 10);
+    /// // gcd of 10, 25 is 5
+    /// i.gcd_u64_mut(25);
+    /// assert_eq!(i, 5);
+    /// ```
+    #[inline]
+    pub fn gcd_u64_mut(&mut self, other: u64) {
+        xmpz::gcd_u64(self, (), other);
+    }
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are zero.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`gcd_u_ref`][Self::gcd_u_ref] but takes
+    /// `other` as [`u64`], and <code>[From]\<Src> for [Option]\<[u64]></code>
+    /// is *not* implemented.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(100);
+    /// let r = i.gcd_u64_ref(125);
+    /// // gcd of 100, 125 is 25
+    /// assert_eq!(Integer::from(r), 25);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn gcd_u64_ref(&self, other: u64) -> GcdU64Incomplete<'_> {
+        GcdU64Incomplete {
             ref_self: self,
             other,
         }
@@ -6808,6 +6898,7 @@ ref_math_op1_2! { Integer; xmpz::sqrtrem; struct SqrtRemIncomplete {} }
 ref_math_op1! { Integer; xmpz::nextprime; struct NextPrimeIncomplete {} }
 ref_math_op2! { Integer; xmpz::gcd; struct GcdIncomplete { other } }
 ref_math_op1! { Integer; xmpz::gcd_u32; struct GcdUIncomplete { other: u32 } }
+ref_math_op1! { Integer; xmpz::gcd_u64; struct GcdU64Incomplete { other: u64 } }
 
 impl From<GcdUIncomplete<'_>> for Option<u32> {
     #[inline]
