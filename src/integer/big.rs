@@ -6072,6 +6072,8 @@ impl Integer {
     /// assert_eq!(count, 50);
     /// assert_eq!(j, 1000);
     /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn remove_factor_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactorIncomplete<'a> {
         RemoveFactorIncomplete {
@@ -6151,6 +6153,8 @@ impl Integer {
     /// assert_eq!(count, 50);
     /// assert_eq!(j, 1000);
     /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn remove_factor_64_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactor64Incomplete<'a> {
         RemoveFactor64Incomplete {
