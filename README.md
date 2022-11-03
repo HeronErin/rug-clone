@@ -72,6 +72,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
       [`binomial_64_ref`][int-binr-1-18], [`binomial_u64`][int-binu-1-18]
     * [`fibonacci_64`][int-fib-1-18], [`fibonacci_2_64`][int-fib2-1-18],
       [`lucas_64`][int-luc-1-18], [`lucas_2_64`][int-luc2-1-18]
+    * [`random_bits_64`][int-rb-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-bin-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64
@@ -120,6 +121,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-mu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.mod_u64
 [int-p-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.primorial_64
 [int-r-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64
+[int-rb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.random_bits_64
 [int-rf-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.remove_factor_64
 [int-rfm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.remove_factor_64_mut
 [int-rfr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.remove_factor_64_ref

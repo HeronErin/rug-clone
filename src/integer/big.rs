@@ -6808,6 +6808,37 @@ impl Integer {
     /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn random_bits(bits: u32, rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
+        let bits = bits.into();
+        RandomBitsIncomplete { bits, rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number with a specified maximum number of bits.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`random_bits`][Self::random_bits] but takes `bits`
+    /// as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{rand::RandState, Assign, Integer};
+    /// let mut rand = RandState::new();
+    /// let mut i = Integer::from(Integer::random_bits(0, &mut rand));
+    /// assert_eq!(i, 0);
+    /// i.assign(Integer::random_bits(80, &mut rand));
+    /// assert!(i.significant_bits() <= 80);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn random_bits_64(bits: u64, rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
+        let bits = bits.unwrapped_cast();
         RandomBitsIncomplete { bits, rng }
     }
 
@@ -7567,7 +7598,7 @@ ref_math_op0_2! { Integer; xmpz::lucnum2_ui; struct Lucas2Incomplete { n: c_ulon
 
 #[cfg(feature = "rand")]
 pub struct RandomBitsIncomplete<'a> {
-    bits: u32,
+    bits: bitcnt_t,
     rng: &'a mut dyn MutRandState,
 }
 
@@ -7575,7 +7606,7 @@ pub struct RandomBitsIncomplete<'a> {
 impl Assign<RandomBitsIncomplete<'_>> for Integer {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
-        xmpz::urandomb(self, src.rng, src.bits.into())
+        xmpz::urandomb(self, src.rng, src.bits)
     }
 }
 
