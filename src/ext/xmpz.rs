@@ -324,7 +324,7 @@ pub fn gcd_u64<O: OptInteger>(rop: &mut Integer, op1: O, op2: u64) {
         return;
     }
     let small = SmallInteger::from(op2);
-    gcd(rop, op1, &*small);
+    gcd(rop, op1, &small);
 }
 
 #[inline]
@@ -347,7 +347,7 @@ pub fn lcm_u64<O: OptInteger>(rop: &mut Integer, op1: O, op2: u64) {
         return;
     }
     let small = SmallInteger::from(op2);
-    lcm(rop, op1, &*small);
+    lcm(rop, op1, &small);
 }
 
 #[inline]
