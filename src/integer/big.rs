@@ -5855,6 +5855,88 @@ impl Integer {
         }
     }
 
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both inputs are zero.
+    ///
+    /// This method is similar to [`lcm_u`][Self::lcm_u] but takes `other` as
+    /// [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(10);
+    /// // lcm of 10, 25 is 50
+    /// let lcm1 = i.lcm_u64(25);
+    /// assert_eq!(lcm1, 50);
+    /// // lcm of 50, 0 is 0
+    /// let lcm2 = lcm1.lcm_u64(0);
+    /// assert_eq!(lcm2, 0);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn lcm_u64(mut self, other: u64) -> Self {
+        self.lcm_u64_mut(other);
+        self
+    }
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both inputs are zero.
+    ///
+    /// This method is similar to [`lcm_u_mut`][Self::lcm_u_mut] but takes
+    /// `other` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(10);
+    /// // lcm of 10, 25 is 50
+    /// i.lcm_u64_mut(25);
+    /// assert_eq!(i, 50);
+    /// // lcm of 50, 0 is 0
+    /// i.lcm_u64_mut(0);
+    /// assert_eq!(i, 0);
+    /// ```
+    #[inline]
+    pub fn lcm_u64_mut(&mut self, other: u64) {
+        xmpz::lcm_u64(self, (), other);
+    }
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both inputs are zero.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`lcm_u_ref`][Self::lcm_u_ref] but takes
+    /// `other` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(100);
+    /// let r = i.lcm_u_ref(125);
+    /// // lcm of 100, 125 is 500
+    /// assert_eq!(Integer::from(r), 500);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn lcm_u64_ref(&self, other: u64) -> LcmU64Incomplete<'_> {
+        LcmU64Incomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
     /// Calculates the Jacobi symbol (`self`/<i>n</i>).
     ///
     /// # Examples
@@ -6959,6 +7041,7 @@ impl From<GcdExtIncomplete<'_>> for (Integer, Integer) {
 
 ref_math_op2! { Integer; xmpz::lcm; struct LcmIncomplete { other } }
 ref_math_op1! { Integer; xmpz::lcm_u32; struct LcmUIncomplete { other: u32 } }
+ref_math_op1! { Integer; xmpz::lcm_u64; struct LcmU64Incomplete { other: u64 } }
 
 #[derive(Debug)]
 pub struct InvertIncomplete<'a> {

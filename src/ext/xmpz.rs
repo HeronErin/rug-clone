@@ -337,6 +337,20 @@ pub fn lcm_u32<O: OptInteger>(rop: &mut Integer, op1: O, op2: u32) {
 }
 
 #[inline]
+pub fn lcm_u64<O: OptInteger>(rop: &mut Integer, op1: O, op2: u64) {
+    if let Some(op2) = op2.checked_cast() {
+        let rop = rop.as_raw_mut();
+        let op1 = op1.mpz_or(rop);
+        unsafe {
+            gmp::mpz_lcm_ui(rop, op1, op2);
+        }
+        return;
+    }
+    let small = SmallInteger::from(op2);
+    lcm(rop, op1, &*small);
+}
+
+#[inline]
 pub fn root<O: OptInteger>(rop: &mut Integer, op: O, n: c_ulong) {
     assert_ne!(n, 0, "zeroth root");
     let even_root_of_neg = n & 1 == 0 && sgn_or(op, rop) == Ordering::Less;

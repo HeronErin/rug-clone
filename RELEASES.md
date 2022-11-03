@@ -39,6 +39,8 @@ Version 1.18.0 (unreleased)
       [`root_rem_64_ref`][int-rrer-1-18]
     * [`gcd_u64`][int-gu-1-18], [`gcd_u64_mut`][int-gum-1-18],
       [`gcd_u64_ref`][int-gur-1-18]
+    * [`lcm_u64`][int-lu-1-18], [`lcm_u64_mut`][int-lum-1-18],
+      [`lcm_u64_ref`][int-lur-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
@@ -55,7 +57,7 @@ Version 1.18.0 (unreleased)
 [int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
 [int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
 [int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
-[int-gu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.gcd_u64
+[int-gu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64
 [int-gum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_mut
 [int-gur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_ref
 [int-hd-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.hamming_dist_64
@@ -70,6 +72,9 @@ Version 1.18.0 (unreleased)
 [int-ksb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_64
 [int-ksbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_mut_64
 [int-ksbr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_ref_64
+[int-lu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64
+[int-lum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64_mut
+[int-lur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64_ref
 [int-mu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.mod_u64
 [int-r-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64
 [int-rm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_mut
@@ -81,8 +86,8 @@ Version 1.18.0 (unreleased)
 [int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
 [int-signifb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64
 [int-tb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.toggle_bit_64
-[int-tf32e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f32_exp64
-[int-tf64e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f64_exp64
+[int-tf32e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.to_f32_exp64
+[int-tf64e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.to_f64_exp64
 [int-upu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.u64_pow_u64
 
 Version 1.17.0 (2022-08-06)
