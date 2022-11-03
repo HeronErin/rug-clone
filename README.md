@@ -40,9 +40,12 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     * [`to_f32_exp64`][int-tf32e-1-18], [`to_f64_exp64`][int-tf64e-1-18]
     * [`is_divisible_u64`][int-idu-1-18], [`is_divisible_2pow_64`][int-id2-1-18]
     * [`is_congruent_u64`][int-icu-1-18], [`is_congruent_2pow_64`][int-ic2-1-18]
-    * [`significant_bits_64`][int-sb-1-18], [`signed_bits_64`][int-signedb-1-18]
+    * [`significant_bits_64`][int-signifb-1-18],
+      [`signed_bits_64`][int-signedb-1-18]
     * [`count_ones_64`][int-co-1-18], [`count_zeros_64`][int-cz-1-18]
     * [`find_one_64`][int-fo-1-18], [`find_zero_64`][int-fz-1-18]
+    * [`set_bit_64`][int-sb-1-18], [`get_bit_64`][int-gb-1-18],
+      [`toggle_bit_64`][int-tb-1-18]
     * [`hamming_dist_64`][int-hd-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
@@ -53,6 +56,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-egr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_ref
 [int-fo-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.find_one_64
 [int-fz-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.find_zero_64
+[int-gb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.get_bit_64
 [int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
 [int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
 [int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
@@ -61,8 +65,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-icu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_u64
 [int-id2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_2pow_64
 [int-idu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_u64
-[int-sb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64
+[int-sb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.set_bit_64
 [int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
+[int-signifb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64
+[int-tb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.toggle_bit_64
 [int-tf32e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f32_exp64
 [int-tf64e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f64_exp64
 

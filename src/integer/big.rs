@@ -2616,6 +2616,31 @@ impl Integer {
         self
     }
 
+    /// Sets the bit at location `index` to 1 if `val` is [`true`] or 0 if `val`
+    /// is [`false`].
+    ///
+    /// This method is similar to [`set_bit`][Self::set_bit] but takes `index`
+    /// as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let mut i = Integer::from(-1);
+    /// assert_eq!(*i.set_bit_64(0, false), -2);
+    /// i.assign(0xff);
+    /// assert_eq!(*i.set_bit_64(11, true), 0x8ff);
+    /// ```
+    #[inline]
+    pub fn set_bit_64(&mut self, index: u64, val: bool) -> &mut Self {
+        if val {
+            xmpz::setbit(self, index.unwrapped_cast());
+        } else {
+            xmpz::clrbit(self, index.unwrapped_cast());
+        }
+        self
+    }
+
     /// Returns [`true`] if the bit at location `index` is 1 or [`false`] if the
     /// bit is 0.
     ///
@@ -2635,6 +2660,28 @@ impl Integer {
         xmpz::tstbit(self, index.into())
     }
 
+    /// Returns [`true`] if the bit at location `index` is 1 or [`false`] if the
+    /// bit is 0.
+    ///
+    /// This method is similar to [`get_bit`][Self::get_bit] but takes `index`
+    /// as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(0b100101);
+    /// assert!(i.get_bit_64(0));
+    /// assert!(!i.get_bit_64(1));
+    /// assert!(i.get_bit_64(5));
+    /// let neg = Integer::from(-1);
+    /// assert!(neg.get_bit_64(1000));
+    /// ```
+    #[inline]
+    pub fn get_bit_64(&self, index: u64) -> bool {
+        xmpz::tstbit(self, index.unwrapped_cast())
+    }
+
     /// Toggles the bit at location `index`.
     ///
     /// # Examples
@@ -2648,6 +2695,25 @@ impl Integer {
     #[inline]
     pub fn toggle_bit(&mut self, index: u32) -> &mut Self {
         xmpz::combit(self, index.into());
+        self
+    }
+
+    /// Toggles the bit at location `index`.
+    ///
+    /// This method is similar to [`toggle_bit`][Self::toggle_bit] but takes
+    /// `index` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(0b100101);
+    /// i.toggle_bit_64(5);
+    /// assert_eq!(i, 0b101);
+    /// ```
+    #[inline]
+    pub fn toggle_bit_64(&mut self, index: u64) -> &mut Self {
+        xmpz::combit(self, index.unwrapped_cast());
         self
     }
 
