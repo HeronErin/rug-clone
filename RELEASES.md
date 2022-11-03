@@ -33,6 +33,10 @@ Version 1.18.0 (unreleased)
     * [`div_exact_u64`][int-deu-1-18], [`div_exact_u64_mut`][int-deum-1-18],
       [`div_exact_u64_ref`][int-deur-1-18]
     * [`u64_pow_u64`][int-upu-1-18], [`i64_pow_u64`][int-ipu-1-18]
+    * [`root_64`][int-r-1-18], [`root_64_mut`][int-rm-1-18],
+      [`root_64_ref`][int-rr-1-18]
+    * [`root_rem_64`][int-rre-1-18], [`root_rem_64_mut`][int-rrem-1-18],
+      [`root_rem_64_ref`][int-rrer-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
@@ -62,6 +66,12 @@ Version 1.18.0 (unreleased)
 [int-ksbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_mut_64
 [int-ksbr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_ref_64
 [int-mu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.mod_u64
+[int-r-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64
+[int-rm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_mut
+[int-rr- 1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_ref
+[int-rre-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64
+[int-rrem-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_mut
+[int-rrer- 1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_ref
 [int-sb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.set_bit_64
 [int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
 [int-signifb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64
