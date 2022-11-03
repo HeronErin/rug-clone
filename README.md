@@ -52,6 +52,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     * [`keep_signed_bits_64`][int-ksb-1-18],
       [`keep_signed_bits_mut_64`][int-ksbm-1-18],
       [`keep_signed_bits_ref_64`][int-ksbr-1-18]
+    * [`mod_u64`][int-mu-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
@@ -76,6 +77,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-ksb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_64
 [int-ksbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_mut_64
 [int-ksbr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_ref_64
+[int-mu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.mod_u64
 [int-sb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.set_bit_64
 [int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
 [int-signifb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64

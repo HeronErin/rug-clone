@@ -17,7 +17,7 @@
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
 use crate::{misc::NegAbs, ops::NegAssign, Integer};
-use az::{Az, Cast, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
+use az::{Az, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
 use core::cmp::Ordering;
 use core::mem::MaybeUninit;
 use core::ptr::{self, NonNull};
@@ -718,9 +718,9 @@ unsafe fn set_m1_raw(rop: *mut mpz_t) {
 }
 
 #[inline]
-pub fn fdiv_u32(n: &Integer, d: u32) -> u32 {
+pub fn fdiv_ui(n: &Integer, d: c_ulong) -> c_ulong {
     assert_ne!(d, 0, "division by zero");
-    unsafe { gmp::mpz_fdiv_ui(n.as_raw(), d.into()) }.cast()
+    unsafe { gmp::mpz_fdiv_ui(n.as_raw(), d) }
 }
 
 #[inline]

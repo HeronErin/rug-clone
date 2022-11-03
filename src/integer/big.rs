@@ -3880,7 +3880,42 @@ impl Integer {
     /// ```
     #[inline]
     pub fn mod_u(&self, modulo: u32) -> u32 {
-        xmpz::fdiv_u32(self, modulo)
+        xmpz::fdiv_ui(self, modulo.into()).wrapping_cast()
+    }
+
+    /// Returns the modulo, or the remainder of Euclidean division by a [`u32`].
+    ///
+    /// The result is always zero or positive.
+    ///
+    /// This method is similar to [`mod_u`][Self::mod_u] but takes `modulo` as
+    /// [`u64`] and returns a [`u64`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if `modulo` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let pos = Integer::from(23);
+    /// assert_eq!(pos.mod_u64(1), 0);
+    /// assert_eq!(pos.mod_u64(10), 3);
+    /// assert_eq!(pos.mod_u64(100), 23);
+    /// let neg = Integer::from(-23);
+    /// assert_eq!(neg.mod_u64(1), 0);
+    /// assert_eq!(neg.mod_u64(10), 7);
+    /// assert_eq!(neg.mod_u64(100), 77);
+    /// ```
+    #[inline]
+    pub fn mod_u64(&self, modulo: u64) -> u64 {
+        if let Some(modulo) = modulo.checked_cast() {
+            return xmpz::fdiv_ui(self, modulo).into();
+        }
+        let small = SmallInteger::from(modulo);
+        let mut rem = Integer::new();
+        xmpz::fdiv_r(&mut rem, self, &*small);
+        rem.wrapping_cast()
     }
 
     /// Performs an exact division.
