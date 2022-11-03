@@ -2420,6 +2420,11 @@ impl Integer {
 
     /// Returns the number of one bits if the value ≥ 0.
     ///
+    /// On 64-bit systems [`u32`] might not be large enough for the result,
+    /// which can result in overflow and panic. The
+    /// [`count_ones_64`][Self::count_ones_64] method is similar to this method
+    /// but returns a [`u64`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2430,10 +2435,33 @@ impl Integer {
     /// ```
     #[inline]
     pub fn count_ones(&self) -> Option<u32> {
-        xmpz::popcount(self)
+        xmpz::popcount(self).map(UnwrappedCast::unwrapped_cast)
+    }
+
+    /// Returns the number of one bits if the value ≥ 0.
+    ///
+    /// This method is similar to [`count_ones`][Self::count_ones] but returns a
+    /// [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// assert_eq!(Integer::from(0).count_ones_64(), Some(0));
+    /// assert_eq!(Integer::from(15).count_ones_64(), Some(4));
+    /// assert_eq!(Integer::from(-1).count_ones_64(), None);
+    /// ```
+    #[inline]
+    pub fn count_ones_64(&self) -> Option<u64> {
+        xmpz::popcount(self).map(From::from)
     }
 
     /// Returns the number of zero bits if the value < 0.
+    ///
+    /// On 64-bit systems [`u32`] might not be large enough for the result,
+    /// which can result in overflow and panic. The
+    /// [`count_zeros_64`][Self::count_zeros_64] method is similar to this
+    /// method but returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2448,11 +2476,39 @@ impl Integer {
     /// ```
     #[inline]
     pub fn count_zeros(&self) -> Option<u32> {
-        xmpz::zerocount(self)
+        xmpz::zerocount(self).map(UnwrappedCast::unwrapped_cast)
+    }
+
+    /// Returns the number of zero bits if the value < 0.
+    ///
+    /// This method is similar to [`count_zeros`][Self::count_zeros] but returns
+    /// a [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// assert_eq!(Integer::from(0).count_zeros_64(), None);
+    /// assert_eq!(Integer::from(1).count_zeros_64(), None);
+    /// assert_eq!(Integer::from(-1).count_zeros_64(), Some(0));
+    /// assert_eq!(Integer::from(-2).count_zeros_64(), Some(1));
+    /// assert_eq!(Integer::from(-7).count_zeros_64(), Some(2));
+    /// assert_eq!(Integer::from(-8).count_zeros_64(), Some(3));
+    /// ```
+    #[inline]
+    pub fn count_zeros_64(&self) -> Option<u64> {
+        xmpz::zerocount(self).map(From::from)
     }
 
     /// Returns the location of the first zero, starting at `start`. If the bit
     /// at location `start` is zero, returns `start`.
+    ///
+    /// On 64-bit systems [`u32`] might not be large enough for the result,
+    /// which can result in overflow and panic. The
+    /// [`find_zero_64`][Self::find_zero_64] method is similar to this method
+    /// but returns a [`u64`].
+    ///
+    /// # Examples
     ///
     /// ```rust
     /// use rug::Integer;
@@ -2466,11 +2522,40 @@ impl Integer {
     #[inline]
     #[cfg_attr(doc_alias, doc(alias = "trailing_ones"))]
     pub fn find_zero(&self, start: u32) -> Option<u32> {
-        xmpz::scan0(self, start)
+        xmpz::scan0(self, start.into()).map(UnwrappedCast::unwrapped_cast)
+    }
+
+    /// Returns the location of the first zero, starting at `start`. If the bit
+    /// at location `start` is zero, returns `start`.
+    ///
+    /// This method is similar to [`find_zero`][Self::find_zero] but takes
+    /// `start` as [`u64`] and returns a [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // -2 is ...11111110
+    /// assert_eq!(Integer::from(-2).find_zero_64(0), Some(0));
+    /// assert_eq!(Integer::from(-2).find_zero_64(1), None);
+    /// // 15 is ...00001111
+    /// assert_eq!(Integer::from(15).find_zero_64(0), Some(4));
+    /// assert_eq!(Integer::from(15).find_zero_64(20), Some(20));
+    /// ```
+    #[inline]
+    pub fn find_zero_64(&self, start: u64) -> Option<u64> {
+        xmpz::scan0(self, start.unwrapped_cast()).map(From::from)
     }
 
     /// Returns the location of the first one, starting at `start`. If the bit
     /// at location `start` is one, returns `start`.
+    ///
+    /// On 64-bit systems [`u32`] might not be large enough for the result,
+    /// which can result in overflow and panic. The
+    /// [`find_one_64`][Self::find_one_64] method is similar to this method but
+    /// returns a [`u64`].
+    ///
+    /// # Examples
     ///
     /// ```rust
     /// use rug::Integer;
@@ -2484,7 +2569,29 @@ impl Integer {
     #[inline]
     #[cfg_attr(doc_alias, doc(alias = "trailing_zeros"))]
     pub fn find_one(&self, start: u32) -> Option<u32> {
-        xmpz::scan1(self, start)
+        xmpz::scan1(self, start.into()).map(UnwrappedCast::unwrapped_cast)
+    }
+
+    /// Returns the location of the first one, starting at `start`. If the bit
+    /// at location `start` is one, returns `start`.
+    ///
+    /// This method is similar to [`find_one`][Self::find_one] but takes `start`
+    /// as [`u64`] and returns a [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 1 is ...00000001
+    /// assert_eq!(Integer::from(1).find_one_64(0), Some(0));
+    /// assert_eq!(Integer::from(1).find_one_64(1), None);
+    /// // -16 is ...11110000
+    /// assert_eq!(Integer::from(-16).find_one_64(0), Some(4));
+    /// assert_eq!(Integer::from(-16).find_one_64(20), Some(20));
+    /// ```
+    #[inline]
+    pub fn find_one_64(&self, start: u64) -> Option<u64> {
+        xmpz::scan1(self, start.unwrapped_cast()).map(From::from)
     }
 
     /// Sets the bit at location `index` to 1 if `val` is [`true`] or 0 if `val`
@@ -2548,6 +2655,11 @@ impl Integer {
     ///
     /// The Hamming distance is the number of different bits.
     ///
+    /// On 64-bit systems [`u32`] might not be large enough for the result,
+    /// which can result in overflow and panic. The
+    /// [`hamming_dist_64`][Self::hamming_dist_64] method is similar to this
+    /// method but returns a [`u64`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2560,7 +2672,29 @@ impl Integer {
     /// ```
     #[inline]
     pub fn hamming_dist(&self, other: &Self) -> Option<u32> {
-        xmpz::hamdist(self, other)
+        xmpz::hamdist(self, other).map(UnwrappedCast::unwrapped_cast)
+    }
+
+    /// Retuns the Hamming distance if the two numbers have the same sign.
+    ///
+    /// The Hamming distance is the number of different bits.
+    ///
+    /// This method is similar to [`hamming_dist`][Self::hamming_dist] but
+    /// returns a [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// assert_eq!(Integer::from(0).hamming_dist_64(&i), None);
+    /// assert_eq!(Integer::from(-1).hamming_dist_64(&i), Some(0));
+    /// // -1 is ...11111111 and -13 is ...11110011
+    /// assert_eq!(Integer::from(-13).hamming_dist_64(&i), Some(2));
+    /// ```
+    #[inline]
+    pub fn hamming_dist_64(&self, other: &Self) -> Option<u64> {
+        xmpz::hamdist(self, other).map(From::from)
     }
 
     /// Adds a list of [`Integer`] values.

@@ -18,14 +18,22 @@ Version 1.18.0 (unreleased)
     * [`is_divisible_u64`][int-idu-1-18], [`is_divisible_2pow_64`][int-id2-1-18]
     * [`is_congruent_u64`][int-icu-1-18], [`is_congruent_2pow_64`][int-ic2-1-18]
     * [`significant_bits_64`][int-sb-1-18], [`signed_bits_64`][int-signedb-1-18]
+    * [`count_ones_64`][int-co-1-18], [`count_zeros_64`][int-cz-1-18]
+    * [`find_one_64`][int-fo-1-18], [`find_zero_64`][int-fz-1-18]
+    * [`hamming_dist_64`][int-hd-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
+[int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
+[int-cz-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_zeros_64
 [int-eg-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd
 [int-egm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_mut
 [int-egr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_ref
+[int-fo-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.find_one_64
+[int-fz-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.find_zero_64
 [int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
 [int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
 [int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
+[int-hd-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.hamming_dist_64
 [int-ic2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_2pow_64
 [int-icu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_u64
 [int-id2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_2pow_64

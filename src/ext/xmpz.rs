@@ -23,7 +23,7 @@ use core::mem::MaybeUninit;
 use core::ptr::{self, NonNull};
 use core::{i16, i8, u16, u8};
 use gmp_mpfr_sys::gmp::{self, bitcnt_t, limb_t, mpz_t, size_t};
-use libc::{c_int, c_long, c_ulong};
+use libc::{c_int, c_long, c_uint, c_ulong};
 
 #[cfg(gmp_limb_bits_32)]
 pub use crate::ext::xmpz32::*;
@@ -979,49 +979,59 @@ pub fn mulsub_si(rop: &mut Integer, op1: &Integer, op2: c_long) {
 }
 
 #[inline]
-fn bitcount_to_u32(bits: bitcnt_t) -> Option<u32> {
+fn bitcount_check_not_max(bits: bitcnt_t) -> Option<bitcnt_t> {
     if bits == !0 {
         None
     } else {
-        Some(bits.unwrapped_cast())
+        Some(bits)
     }
 }
 
 #[inline]
-pub fn popcount(op: &Integer) -> Option<u32> {
-    bitcount_to_u32(unsafe { gmp::mpz_popcount(op.as_raw()) })
-}
-
-#[inline]
-pub fn zerocount(op: &Integer) -> Option<u32> {
-    if op.cmp0() == Ordering::Less {
-        let size = size_t::from(op.inner().size);
-        let abs_size = size.wrapping_neg();
-        let d = op.inner().d.as_ptr();
-        let count = unsafe {
-            let abs_popcount = gmp::mpn_popcount(d, abs_size);
-            let first_one = gmp::mpn_scan1(d, 0);
-            abs_popcount + first_one - 1
-        };
-        bitcount_to_u32(count)
-    } else {
-        None
+pub fn popcount(op: &Integer) -> Option<bitcnt_t> {
+    let size = op.inner().size;
+    match size.cmp(&0) {
+        Ordering::Less => None,
+        Ordering::Equal => Some(0),
+        Ordering::Greater => {
+            let d = op.inner().d.as_ptr();
+            Some(unsafe { gmp::mpn_popcount(d, size.into()) })
+        }
     }
 }
 
 #[inline]
-pub fn scan0(op: &Integer, start: u32) -> Option<u32> {
-    bitcount_to_u32(unsafe { gmp::mpz_scan0(op.as_raw(), start.into()) })
+pub fn zerocount(op: &Integer) -> Option<bitcnt_t> {
+    let size = op.inner().size;
+    if size >= 0 {
+        return None;
+    }
+    let abs_size = (size.wrapping_neg() as c_uint).unwrapped_as::<size_t>();
+    let d = op.inner().d.as_ptr();
+    // examples:
+    // -1 (...1111 == -1): abs_popcount = 1, first_one = 0, return 1 + 0 - 1 = 0
+    // -2 (...1110 == -10): abs_popcount = 1, first_one = 1, return 1 + 1 - 1 = 1
+    // -3 (...1101 == -11): abs_popcount = 2, first_one = 0, return 2 + 0 - 1 = 1
+    // -4 (...1100 == -100): abs_popcount = 1, first_one = 2, return 1 + 2 - 1 = 2
+    // -5 (...1011 == -101): abs_popcount = 2, first_one = 0, return 2 + 0 - 1 = 1
+    let abs_popcount = unsafe { gmp::mpn_popcount(d, abs_size) };
+    let first_one = unsafe { gmp::mpn_scan1(d, 0) };
+    Some(abs_popcount + first_one - 1)
 }
 
 #[inline]
-pub fn scan1(op: &Integer, start: u32) -> Option<u32> {
-    bitcount_to_u32(unsafe { gmp::mpz_scan1(op.as_raw(), start.into()) })
+pub fn scan0(op: &Integer, start: bitcnt_t) -> Option<bitcnt_t> {
+    bitcount_check_not_max(unsafe { gmp::mpz_scan0(op.as_raw(), start) })
 }
 
 #[inline]
-pub fn hamdist(op1: &Integer, op2: &Integer) -> Option<u32> {
-    bitcount_to_u32(unsafe { gmp::mpz_hamdist(op1.as_raw(), op2.as_raw()) })
+pub fn scan1(op: &Integer, start: bitcnt_t) -> Option<bitcnt_t> {
+    bitcount_check_not_max(unsafe { gmp::mpz_scan1(op.as_raw(), start) })
+}
+
+#[inline]
+pub fn hamdist(op1: &Integer, op2: &Integer) -> Option<bitcnt_t> {
+    bitcount_check_not_max(unsafe { gmp::mpz_hamdist(op1.as_raw(), op2.as_raw()) })
 }
 
 #[inline]
