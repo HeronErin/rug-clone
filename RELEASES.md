@@ -24,11 +24,11 @@ Version 1.18.0 (unreleased)
     * [`set_bit_64`][int-sb-1-18], [`get_bit_64`][int-gb-1-18],
       [`toggle_bit_64`][int-tb-1-18]
     * [`hamming_dist_64`][int-hd-1-18]
-    * [`keep_bits_64`][int-kb-1-18], [`keep_bits_mut_64`][int-kbm-1-18],
-      [`keep_bits_ref_64`][int-kbr-1-18]
+    * [`keep_bits_64`][int-kb-1-18], [`keep_bits_64_mut`][int-kbm-1-18],
+      [`keep_bits_64_ref`][int-kbr-1-18]
     * [`keep_signed_bits_64`][int-ksb-1-18],
-      [`keep_signed_bits_mut_64`][int-ksbm-1-18],
-      [`keep_signed_bits_ref_64`][int-ksbr-1-18]
+      [`keep_signed_bits_64_mut`][int-ksbm-1-18],
+      [`keep_signed_bits_64_ref`][int-ksbr-1-18]
     * [`mod_u64`][int-mu-1-18]
     * [`div_exact_u64`][int-deu-1-18], [`div_exact_u64_mut`][int-deum-1-18],
       [`div_exact_u64_ref`][int-deur-1-18]

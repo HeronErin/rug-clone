@@ -3187,7 +3187,7 @@ impl Integer {
     #[inline]
     #[must_use]
     pub fn keep_bits_64(mut self, n: u64) -> Self {
-        self.keep_bits_mut_64(n);
+        self.keep_bits_64_mut(n);
         self
     }
 
@@ -3202,11 +3202,11 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     /// let mut i = Integer::from(-1);
-    /// i.keep_bits_mut_64(8);
+    /// i.keep_bits_64_mut(8);
     /// assert_eq!(i, 0xff);
     /// ```
     #[inline]
-    pub fn keep_bits_mut_64(&mut self, n: u64) {
+    pub fn keep_bits_64_mut(&mut self, n: u64) {
         xmpz::fdiv_r_2exp(self, (), n.unwrapped_cast())
     }
 
@@ -3227,13 +3227,13 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     /// let i = Integer::from(-1);
-    /// let r = i.keep_bits_ref_64(8);
+    /// let r = i.keep_bits_64_ref(8);
     /// let eight_bits = Integer::from(r);
     /// assert_eq!(eight_bits, 0xff);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
-    pub fn keep_bits_ref_64(&self, n: u64) -> KeepBitsIncomplete {
+    pub fn keep_bits_64_ref(&self, n: u64) -> KeepBitsIncomplete {
         let n = n.unwrapped_cast();
         KeepBitsIncomplete { ref_self: self, n }
     }
@@ -3324,7 +3324,7 @@ impl Integer {
     #[inline]
     #[must_use]
     pub fn keep_signed_bits_64(mut self, n: u64) -> Self {
-        self.keep_signed_bits_mut_64(n);
+        self.keep_signed_bits_64_mut(n);
         self
     }
 
@@ -3340,14 +3340,14 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     /// let mut i = Integer::from(-1);
-    /// i.keep_signed_bits_mut_64(8);
+    /// i.keep_signed_bits_64_mut(8);
     /// assert_eq!(i, -1);
     /// let mut j = Integer::from(15 << 8 | 15);
-    /// j.keep_signed_bits_mut_64(8);
+    /// j.keep_signed_bits_64_mut(8);
     /// assert_eq!(j, 15);
     /// ```
     #[inline]
-    pub fn keep_signed_bits_mut_64(&mut self, n: u64) {
+    pub fn keep_signed_bits_64_mut(&mut self, n: u64) {
         xmpz::keep_signed_bits(self, (), n.unwrapped_cast());
     }
 
@@ -3369,14 +3369,14 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     /// let i = Integer::from(-1);
-    /// let r = i.keep_signed_bits_ref_64(8);
+    /// let r = i.keep_signed_bits_64_ref(8);
     /// let eight_bits = Integer::from(r);
     /// assert_eq!(eight_bits, -1);
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
     #[inline]
-    pub fn keep_signed_bits_ref_64(&self, n: u64) -> KeepSignedBitsIncomplete<'_> {
+    pub fn keep_signed_bits_64_ref(&self, n: u64) -> KeepSignedBitsIncomplete<'_> {
         let n = n.unwrapped_cast();
         KeepSignedBitsIncomplete { ref_self: self, n }
     }
