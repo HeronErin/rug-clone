@@ -14,9 +14,12 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::integer::SmallInteger;
+use crate::misc::NegAbs;
+use crate::ops::NegAssign;
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
-use crate::{misc::NegAbs, ops::NegAssign, Integer};
+use crate::Integer;
 use az::{Az, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
 use core::cmp::Ordering;
 use core::mem::MaybeUninit;
@@ -247,7 +250,16 @@ pub fn divexact_ui<O: OptInteger>(q: &mut Integer, dividend: O, divisor: c_ulong
 
 #[inline]
 pub fn divexact_u32<O: OptInteger>(q: &mut Integer, dividend: O, divisor: u32) {
-    divexact_ui(q, dividend, divisor.into())
+    divexact_ui(q, dividend, divisor.into());
+}
+
+#[inline]
+pub fn divexact_u64<O: OptInteger>(q: &mut Integer, dividend: O, divisor: u64) {
+    if let Some(divisor) = divisor.into() {
+        return divexact_ui(q, dividend, divisor);
+    }
+    let small = SmallInteger::from(divisor);
+    divexact(q, dividend, &*small);
 }
 
 #[inline]

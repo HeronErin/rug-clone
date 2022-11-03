@@ -53,10 +53,15 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
       [`keep_signed_bits_mut_64`][int-ksbm-1-18],
       [`keep_signed_bits_ref_64`][int-ksbr-1-18]
     * [`mod_u64`][int-mu-1-18]
+    * [`div_exact_u64`][int-deu-1-18], [`div_exact_u64_mut`][int-deum-1-18],
+      [`div_exact_u64_ref`][int-deur-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
 [int-cz-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_zeros_64
+[int-deu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64
+[int-deum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64_mut
+[int-deur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64_ref
 [int-eg-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd
 [int-egm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_mut
 [int-egr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_ref
