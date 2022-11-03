@@ -1720,7 +1720,7 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the exponent,
     /// which can result in overflow and panic. The
-    /// [`to_f32_exp64`][Self::to_f32_exp64] method is similar to this method
+    /// [`to_f32_exp64`][Integer::to_f32_exp64] method is similar to this method
     /// but returns the exponent as [`u64`].
     ///
     /// # Examples
@@ -1747,8 +1747,8 @@ impl Integer {
     /// 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1. If the value is zero, `(0.0, 0)`
     /// is returned.
     ///
-    /// This method is similar to [`to_f32_exp`][Self::to_f32_exp] but returns
-    /// the exponent as [`u64`].
+    /// This method is similar to [`to_f32_exp`][Integer::to_f32_exp] but
+    /// returns the exponent as [`u64`].
     ///
     /// # Examples
     ///
@@ -1776,7 +1776,7 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the exponent,
     /// which can result in overflow and panic. The
-    /// [`to_f64_exp64`][Self::to_f64_exp64] method is similar to this method
+    /// [`to_f64_exp64`][Integer::to_f64_exp64] method is similar to this method
     /// but returns the exponent as [`u64`].
     ///
     /// # Examples
@@ -1802,8 +1802,8 @@ impl Integer {
     /// 0.5&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1. If the value is zero, `(0.0, 0)`
     /// is returned.
     ///
-    /// This method is similar to [`to_f64_exp`][Self::to_f64_exp] but returns
-    /// the exponent as [`u64`].
+    /// This method is similar to [`to_f64_exp`][Integer::to_f64_exp] but
+    /// returns the exponent as [`u64`].
     ///
     /// # Examples
     ///
@@ -2043,8 +2043,8 @@ impl Integer {
     /// Returns [`true`] if the number is divisible by `divisor`. Unlike other
     /// division functions, `divisor` can be zero.
     ///
-    /// This method is similar to [`is_divisible_u`][Self::is_divisible_u] but
-    /// takes the divisor as [`u64`].
+    /// This method is similar to [`is_divisible_u`][Integer::is_divisible_u]
+    /// but takes the divisor as [`u64`].
     ///
     /// # Examples
     ///
@@ -2082,8 +2082,9 @@ impl Integer {
 
     /// Returns [`true`] if the number is divisible by 2<sup><i>b</i></sup>.
     ///
-    /// This method is similar to [`is_divisible_2pow`][Self::is_divisible_2pow]
-    /// but takes `b` as [`u64`].
+    /// This method is similar to
+    /// [`is_divisible_2pow`][Integer::is_divisible_2pow] but takes `b` as
+    /// [`u64`].
     ///
     /// # Examples
     ///
@@ -2146,8 +2147,8 @@ impl Integer {
     /// <i>c</i> + <i>q</i> × <i>divisor</i>. Unlike other division functions,
     /// `divisor` can be zero.
     ///
-    /// This method is similar to [`is_congruent_u`][Self::is_congruent_u] but
-    /// takes `c` and the divisor as [`u64`].
+    /// This method is similar to [`is_congruent_u`][Integer::is_congruent_u]
+    /// but takes `c` and the divisor as [`u64`].
     ///
     /// # Examples
     ///
@@ -2192,8 +2193,9 @@ impl Integer {
     /// 2<sup><i>b</i></sup>, that is, if there exists a <i>q</i> such that
     /// `self` = <i>c</i> + <i>q</i> × 2<sup><i>b</i></sup>.
     ///
-    /// This method is similar to [`is_congruent_2pow`][Self::is_congruent_2pow]
-    /// but takes `b` as [`u64`].
+    /// This method is similar to
+    /// [`is_congruent_2pow`][Integer::is_congruent_2pow] but takes `b` as
+    /// [`u64`].
     ///
     /// # Examples
     ///
@@ -2306,8 +2308,8 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the result,
     /// which can result in overflow and panic. The
-    /// [`significant_bits_64`][Self::significant_bits_64] method is similar to
-    /// this method but returns a [`u64`].
+    /// [`significant_bits_64`][Integer::significant_bits_64] method is similar
+    /// to this method but returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2329,8 +2331,8 @@ impl Integer {
 
     /// Returns the number of bits required to represent the absolute value.
     ///
-    /// This method is similar to [`significant_bits`][Self::significant_bits]
-    /// but returns a [`u64`].
+    /// This method is similar to
+    /// [`significant_bits`][Integer::significant_bits] but returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2359,7 +2361,7 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the result,
     /// which can result in overflow and panic. The
-    /// [`signed_bits_64`][Self::signed_bits_64] method is similar to this
+    /// [`signed_bits_64`][Integer::signed_bits_64] method is similar to this
     /// method but returns a [`u64`].
     ///
     /// # Examples
@@ -2392,8 +2394,8 @@ impl Integer {
     /// the [`significant_bits_64`] method, since an extra zero is needed
     /// before the most significant bit.
     ///
-    /// This method is similar to [`signed_bits`][Self::signed_bits] but returns
-    /// a [`u64`].
+    /// This method is similar to [`signed_bits`][Integer::signed_bits] but
+    /// returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2422,8 +2424,8 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the result,
     /// which can result in overflow and panic. The
-    /// [`count_ones_64`][Self::count_ones_64] method is similar to this method
-    /// but returns a [`u64`].
+    /// [`count_ones_64`][Integer::count_ones_64] method is similar to this
+    /// method but returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2440,8 +2442,8 @@ impl Integer {
 
     /// Returns the number of one bits if the value ≥ 0.
     ///
-    /// This method is similar to [`count_ones`][Self::count_ones] but returns a
-    /// [`u64`].
+    /// This method is similar to [`count_ones`][Integer::count_ones] but
+    /// returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2460,7 +2462,7 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the result,
     /// which can result in overflow and panic. The
-    /// [`count_zeros_64`][Self::count_zeros_64] method is similar to this
+    /// [`count_zeros_64`][Integer::count_zeros_64] method is similar to this
     /// method but returns a [`u64`].
     ///
     /// # Examples
@@ -2481,8 +2483,8 @@ impl Integer {
 
     /// Returns the number of zero bits if the value < 0.
     ///
-    /// This method is similar to [`count_zeros`][Self::count_zeros] but returns
-    /// a [`u64`].
+    /// This method is similar to [`count_zeros`][Integer::count_zeros] but
+    /// returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2505,7 +2507,7 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the result,
     /// which can result in overflow and panic. The
-    /// [`find_zero_64`][Self::find_zero_64] method is similar to this method
+    /// [`find_zero_64`][Integer::find_zero_64] method is similar to this method
     /// but returns a [`u64`].
     ///
     /// # Examples
@@ -2528,7 +2530,7 @@ impl Integer {
     /// Returns the location of the first zero, starting at `start`. If the bit
     /// at location `start` is zero, returns `start`.
     ///
-    /// This method is similar to [`find_zero`][Self::find_zero] but takes
+    /// This method is similar to [`find_zero`][Integer::find_zero] but takes
     /// `start` as [`u64`] and returns a [`u64`].
     ///
     /// # Examples
@@ -2552,8 +2554,8 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the result,
     /// which can result in overflow and panic. The
-    /// [`find_one_64`][Self::find_one_64] method is similar to this method but
-    /// returns a [`u64`].
+    /// [`find_one_64`][Integer::find_one_64] method is similar to this method
+    /// but returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2575,8 +2577,8 @@ impl Integer {
     /// Returns the location of the first one, starting at `start`. If the bit
     /// at location `start` is one, returns `start`.
     ///
-    /// This method is similar to [`find_one`][Self::find_one] but takes `start`
-    /// as [`u64`] and returns a [`u64`].
+    /// This method is similar to [`find_one`][Integer::find_one] but takes
+    /// `start` as [`u64`] and returns a [`u64`].
     ///
     /// # Examples
     ///
@@ -2619,8 +2621,8 @@ impl Integer {
     /// Sets the bit at location `index` to 1 if `val` is [`true`] or 0 if `val`
     /// is [`false`].
     ///
-    /// This method is similar to [`set_bit`][Self::set_bit] but takes `index`
-    /// as [`u64`].
+    /// This method is similar to [`set_bit`][Integer::set_bit] but takes
+    /// `index` as [`u64`].
     ///
     /// # Examples
     ///
@@ -2663,8 +2665,8 @@ impl Integer {
     /// Returns [`true`] if the bit at location `index` is 1 or [`false`] if the
     /// bit is 0.
     ///
-    /// This method is similar to [`get_bit`][Self::get_bit] but takes `index`
-    /// as [`u64`].
+    /// This method is similar to [`get_bit`][Integer::get_bit] but takes
+    /// `index` as [`u64`].
     ///
     /// # Examples
     ///
@@ -2700,7 +2702,7 @@ impl Integer {
 
     /// Toggles the bit at location `index`.
     ///
-    /// This method is similar to [`toggle_bit`][Self::toggle_bit] but takes
+    /// This method is similar to [`toggle_bit`][Integer::toggle_bit] but takes
     /// `index` as [`u64`].
     ///
     /// # Examples
@@ -2723,7 +2725,7 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the result,
     /// which can result in overflow and panic. The
-    /// [`hamming_dist_64`][Self::hamming_dist_64] method is similar to this
+    /// [`hamming_dist_64`][Integer::hamming_dist_64] method is similar to this
     /// method but returns a [`u64`].
     ///
     /// # Examples
@@ -2745,7 +2747,7 @@ impl Integer {
     ///
     /// The Hamming distance is the number of different bits.
     ///
-    /// This method is similar to [`hamming_dist`][Self::hamming_dist] but
+    /// This method is similar to [`hamming_dist`][Integer::hamming_dist] but
     /// returns a [`u64`].
     ///
     /// # Examples
@@ -3173,8 +3175,8 @@ impl Integer {
     /// Keeps the <i>n</i> least significant bits only, producing a result that
     /// is greater or equal to 0.
     ///
-    /// This method is similar to [`keep_bits`][Self::keep_bits] but takes `n`
-    /// as [`u64`].
+    /// This method is similar to [`keep_bits`][Integer::keep_bits] but takes
+    /// `n` as [`u64`].
     ///
     /// # Examples
     ///
@@ -3194,7 +3196,7 @@ impl Integer {
     /// Keeps the <i>n</i> least significant bits only, producing a result that
     /// is greater or equal to 0.
     ///
-    /// This method is similar to [`keep_bits_mut`][Self::keep_bits_mut] but
+    /// This method is similar to [`keep_bits_mut`][Integer::keep_bits_mut] but
     /// takes `n` as [`u64`].
     ///
     /// # Examples
@@ -3219,7 +3221,7 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`keep_bits_ref`][Self::keep_bits_ref] but
+    /// This method is similar to [`keep_bits_ref`][Integer::keep_bits_ref] but
     /// takes `n` as [`u64`].
     ///
     /// # Examples
@@ -3307,8 +3309,9 @@ impl Integer {
     /// Keeps the <i>n</i> least significant bits only, producing a negative
     /// result if the <i>n</i>th least significant bit is one.
     ///
-    /// This method is similar to [`keep_signed_bits`][Self::keep_signed_bits]
-    /// but takes `n` as [`u64`].
+    /// This method is similar to
+    /// [`keep_signed_bits`][Integer::keep_signed_bits] but takes `n` as
+    /// [`u64`].
     ///
     /// # Examples
     ///
@@ -3332,7 +3335,7 @@ impl Integer {
     /// result if the <i>n</i>th least significant bit is one.
     ///
     /// This method is similar to
-    /// [`keep_signed_bits_mut`][Self::keep_signed_bits_mut] but takes `n` as
+    /// [`keep_signed_bits_mut`][Integer::keep_signed_bits_mut] but takes `n` as
     /// [`u64`].
     ///
     /// # Examples
@@ -3361,7 +3364,7 @@ impl Integer {
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
     /// This method is similar to
-    /// [`keep_signed_bits_ref`][Self::keep_signed_bits_ref] but takes `n` as
+    /// [`keep_signed_bits_ref`][Integer::keep_signed_bits_ref] but takes `n` as
     /// [`u64`].
     ///
     /// # Examples
@@ -3887,8 +3890,8 @@ impl Integer {
     ///
     /// The result is always zero or positive.
     ///
-    /// This method is similar to [`mod_u`][Self::mod_u] but takes `modulo` as
-    /// [`u64`] and returns a [`u64`].
+    /// This method is similar to [`mod_u`][Integer::mod_u] but takes `modulo`
+    /// as [`u64`] and returns a [`u64`].
     ///
     /// # Panics
     ///
@@ -4096,8 +4099,8 @@ impl Integer {
     /// This is much faster than normal division, but produces correct results
     /// only when the division is exact.
     ///
-    /// This method is similar to [`div_exact_u`][Self::div_exact_u] but takes
-    /// the divisor as [`u64`].
+    /// This method is similar to [`div_exact_u`][Integer::div_exact_u] but
+    /// takes the divisor as [`u64`].
     ///
     /// # Panics
     ///
@@ -4123,8 +4126,8 @@ impl Integer {
     /// This is much faster than normal division, but produces correct results
     /// only when the division is exact.
     ///
-    /// This method is similar to [`div_exact_u_mut`][Self::div_exact_u_mut] but
-    /// takes the divisor as [`u64`].
+    /// This method is similar to [`div_exact_u_mut`][Integer::div_exact_u_mut]
+    /// but takes the divisor as [`u64`].
     ///
     /// # Panics
     ///
@@ -4154,8 +4157,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`div_exact_u_ref`][Self::div_exact_u_ref] but
-    /// takes the divisor as [`u64`].
+    /// This method is similar to [`div_exact_u_ref`][Integer::div_exact_u_ref]
+    /// but takes the divisor as [`u64`].
     ///
     /// # Examples
     ///
@@ -4566,7 +4569,7 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`u_pow_u`][Self::u_pow_u] but takes `base`
+    /// This method is similar to [`u_pow_u`][Integer::u_pow_u] but takes `base`
     /// and `exponent` as [`u64`].
     ///
     /// # Examples
@@ -4615,8 +4618,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`i_pow_u`][Self::i_pow_u] but takes `base` as
-    /// [`i64`] and `exponent` as [`u64`].
+    /// This method is similar to [`i_pow_u`][Integer::i_pow_u] but takes `base`
+    /// as [`i64`] and `exponent` as [`u64`].
     ///
     /// # Examples
     ///
@@ -4702,7 +4705,8 @@ impl Integer {
 
     /// Computes the <i>n</i>th root and truncates the result.
     ///
-    /// This method is similar to [`root`][Self::root] but takes `n` as [`u64`].
+    /// This method is similar to [`root`][Integer::root] but takes `n` as
+    /// [`u64`].
     ///
     /// # Panics
     ///
@@ -4726,8 +4730,8 @@ impl Integer {
 
     /// Computes the <i>n</i>th root and truncates the result.
     ///
-    /// This method is similar to [`root_mut`][Self::root_mut] but takes `n` as
-    /// [`u64`].
+    /// This method is similar to [`root_mut`][Integer::root_mut] but takes `n`
+    /// as [`u64`].
     ///
     /// # Panics
     ///
@@ -4755,8 +4759,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`root_ref`][Self::root_ref] but takes `n` as
-    /// [`u64`].
+    /// This method is similar to [`root_ref`][Integer::root_ref] but takes `n`
+    /// as [`u64`].
     ///
     /// # Examples
     ///
@@ -4874,8 +4878,8 @@ impl Integer {
     ///
     /// The initial value of `remainder` is ignored.
     ///
-    /// This method is similar to [`root_rem`][Self::root_rem] but takes `n` as
-    /// [`u64`].
+    /// This method is similar to [`root_rem`][Integer::root_rem] but takes `n`
+    /// as [`u64`].
     ///
     /// # Panics
     ///
@@ -4905,8 +4909,8 @@ impl Integer {
     ///
     /// The initial value of `remainder` is ignored.
     ///
-    /// This method is similar to [`root_rem_mut`][Self::root_rem_mut] but takes
-    /// `n` as [`u64`].
+    /// This method is similar to [`root_rem_mut`][Integer::root_rem_mut] but
+    /// takes `n` as [`u64`].
     ///
     /// # Panics
     ///
@@ -4941,8 +4945,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
     ///
-    /// This method is similar to [`root_rem_ref`][Self::root_rem_ref] but takes
-    /// `n` as [`u64`].
+    /// This method is similar to [`root_rem_ref`][Integer::root_rem_ref] but
+    /// takes `n` as [`u64`].
     ///
     /// # Examples
     ///
@@ -5448,7 +5452,7 @@ impl Integer {
     ///
     /// The result is always positive except when both inputs are zero.
     ///
-    /// This method is similar to [`gcd_u`][Self::gcd_u] but takes `other` as
+    /// This method is similar to [`gcd_u`][Integer::gcd_u] but takes `other` as
     /// [`u64`].
     ///
     /// # Examples
@@ -5477,7 +5481,7 @@ impl Integer {
     ///
     /// The result is always positive except when both inputs are zero.
     ///
-    /// This method is similar to [`gcd_u_mut`][Self::gcd_u_mut] but takes
+    /// This method is similar to [`gcd_u_mut`][Integer::gcd_u_mut] but takes
     /// `other` as [`u64`].
     ///
     /// # Examples
@@ -5510,7 +5514,7 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`gcd_u_ref`][Self::gcd_u_ref] but takes
+    /// This method is similar to [`gcd_u_ref`][Integer::gcd_u_ref] but takes
     /// `other` as [`u64`], and <code>[From]\<Src> for [Option]\<[u64]></code>
     /// is *not* implemented.
     ///
@@ -5859,7 +5863,7 @@ impl Integer {
     ///
     /// The result is always positive except when one or both inputs are zero.
     ///
-    /// This method is similar to [`lcm_u`][Self::lcm_u] but takes `other` as
+    /// This method is similar to [`lcm_u`][Integer::lcm_u] but takes `other` as
     /// [`u64`].
     ///
     /// # Examples
@@ -5885,7 +5889,7 @@ impl Integer {
     ///
     /// The result is always positive except when one or both inputs are zero.
     ///
-    /// This method is similar to [`lcm_u_mut`][Self::lcm_u_mut] but takes
+    /// This method is similar to [`lcm_u_mut`][Integer::lcm_u_mut] but takes
     /// `other` as [`u64`].
     ///
     /// # Examples
@@ -5915,7 +5919,7 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`lcm_u_ref`][Self::lcm_u_ref] but takes
+    /// This method is similar to [`lcm_u_ref`][Integer::lcm_u_ref] but takes
     /// `other` as [`u64`].
     ///
     /// # Examples
@@ -5998,8 +6002,8 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the number of
     /// occurrences, which can result in overflow and panic. The
-    /// [`remove_factor_64`][Self::remove_factor_64] method is similar to this
-    /// method but returns the number of occurrences as [`u64`].
+    /// [`remove_factor_64`][Integer::remove_factor_64] method is similar to
+    /// this method but returns the number of occurrences as [`u64`].
     ///
     /// # Examples
     ///
@@ -6022,8 +6026,8 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the number of
     /// occurrences, which can result in overflow and panic. The
-    /// [`remove_factor_64_mut`][Self::remove_factor_64_mut] method is similar
-    /// to this method but returns the number of occurrences as [`u64`].
+    /// [`remove_factor_64_mut`][Integer::remove_factor_64_mut] method is
+    /// similar to this method but returns the number of occurrences as [`u64`].
     ///
     /// # Examples
     ///
@@ -6052,8 +6056,8 @@ impl Integer {
     ///
     /// On 64-bit systems [`u32`] might not be large enough for the number of
     /// occurrences, which can result in overflow and panic. The
-    /// [`remove_factor_64_ref`][Self::remove_factor_64_ref] method is similar
-    /// to this method but returns the number of occurrences as [`u64`].
+    /// [`remove_factor_64_ref`][Integer::remove_factor_64_ref] method is
+    /// similar to this method but returns the number of occurrences as [`u64`].
     ///
     /// # Examples
     ///
@@ -6079,7 +6083,7 @@ impl Integer {
     /// Removes all occurrences of `factor`, and returns the number of
     /// occurrences removed.
     ///
-    /// This method is similar to [`remove_factor`][Self::remove_factor] but
+    /// This method is similar to [`remove_factor`][Integer::remove_factor] but
     /// returns the number of occurrences removed as [`u64`].
     ///
     /// # Examples
@@ -6101,8 +6105,9 @@ impl Integer {
     /// Removes all occurrences of `factor`, and returns the number of
     /// occurrences removed.
     ///
-    /// This method is similar to [`remove_factor_mut`][Self::remove_factor_mut]
-    /// but returns the number of occurrences removed as [`u64`].
+    /// This method is similar to
+    /// [`remove_factor_mut`][Integer::remove_factor_mut] but returns the number
+    /// of occurrences removed as [`u64`].
     ///
     /// # Examples
     ///
@@ -6129,8 +6134,9 @@ impl Integer {
     ///   * <code>[From]\<Src> for [(][tuple][Integer][], [u64][][)][tuple]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [u64][][)][tuple]> for Src</code>
     ///
-    /// This method is similar to [`remove_factor_ref`][Self::remove_factor_ref]
-    /// but returns the number of occurrences removed as [`u64`].
+    /// This method is similar to
+    /// [`remove_factor_ref`][Integer::remove_factor_ref] but returns the number
+    /// of occurrences removed as [`u64`].
     ///
     /// # Examples
     ///
@@ -6184,8 +6190,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`factorial`][Self::factorial] but takes `n`
-    /// as [`u64`].
+    /// This method is similar to [`factorial`][Integer::factorial] but takes
+    /// `n` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6233,8 +6239,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`factorial_2`][Self::factorial_2] but takes
-    /// `n` as [`u64`].
+    /// This method is similar to [`factorial_2`][Integer::factorial_2] but
+    /// takes `n` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6283,8 +6289,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`factorial_m`][Self::factorial_m] but takes
-    /// `n` and `m` as [`u64`].
+    /// This method is similar to [`factorial_m`][Integer::factorial_m] but
+    /// takes `n` and `m` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6333,8 +6339,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`primorial`][Self::primorial] but takes `n`
-    /// as [`u64`].
+    /// This method is similar to [`primorial`][Integer::primorial] but takes
+    /// `n` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6411,8 +6417,8 @@ impl Integer {
 
     /// Computes the binomial coefficient over <i>k</i>.
     ///
-    /// This method is similar to [`binomial`][Self::binomial] but takes `k` as
-    /// [`u64`].
+    /// This method is similar to [`binomial`][Integer::binomial] but takes `k`
+    /// as [`u64`].
     ///
     /// # Examples
     ///
@@ -6432,8 +6438,8 @@ impl Integer {
 
     /// Computes the binomial coefficient over <i>k</i>.
     ///
-    /// This method is similar to [`binomial_mut`][Self::binomial_mut] but takes
-    /// `k` as [`u64`].
+    /// This method is similar to [`binomial_mut`][Integer::binomial_mut] but
+    /// takes `k` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6457,8 +6463,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`binomial_ref`][Self::binomial_ref] but takes
-    /// `k` as [`u64`].
+    /// This method is similar to [`binomial_ref`][Integer::binomial_ref] but
+    /// takes `k` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6510,8 +6516,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`binomial_u`][Self::binomial_u] but takes `n`
-    /// and `k` as [`u64`].
+    /// This method is similar to [`binomial_u`][Integer::binomial_u] but takes
+    /// `n` and `k` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6571,8 +6577,8 @@ impl Integer {
     /// should be computed with the [`fibonacci_2_64`][Integer::fibonacci_2_64]
     /// method, then iterations should be used.
     ///
-    /// This method is similar to [`fibonacci`][Self::fibonacci] but takes `n`
-    /// as [`u64`].
+    /// This method is similar to [`fibonacci`][Integer::fibonacci] but takes
+    /// `n` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6635,8 +6641,8 @@ impl Integer {
     /// Fibonacci numbers is required, the first two values of the sequence
     /// should be computed with this function, then iterations should be used.
     ///
-    /// This method is similar to [`fibonacci_2`][Self::fibonacci_2] but takes
-    /// `n` as [`u64`].
+    /// This method is similar to [`fibonacci_2`][Integer::fibonacci_2] but
+    /// takes `n` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6699,7 +6705,7 @@ impl Integer {
     /// computed with the [`lucas_2_64`][Integer::lucas_2_64] method, then
     /// iterations should be used.
     ///
-    /// This method is similar to [`lucas`][Self::lucas] but takes `n` as
+    /// This method is similar to [`lucas`][Integer::lucas] but takes `n` as
     /// [`u64`].
     ///
     /// # Examples
@@ -6762,7 +6768,7 @@ impl Integer {
     /// Lucas numbers is required, the first two values of the sequence should
     /// be computed with this function, then iterations should be used.
     ///
-    /// This method is similar to [`lucas_2`][Self::lucas_2] but takes `n` as
+    /// This method is similar to [`lucas_2`][Integer::lucas_2] but takes `n` as
     /// [`u64`].
     ///
     /// # Examples
@@ -6821,8 +6827,8 @@ impl Integer {
     ///   * <code>[From]\<Src> for [Integer]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
-    /// This method is similar to [`random_bits`][Self::random_bits] but takes `bits`
-    /// as [`u64`].
+    /// This method is similar to [`random_bits`][Integer::random_bits] but
+    /// takes `bits` as [`u64`].
     ///
     /// # Examples
     ///
@@ -6924,21 +6930,23 @@ impl Integer {
         }
     }
 
-    /// This method has been renamed to [`extended_gcd`][Self::extended_gcd].
+    /// This method has been renamed to [`extended_gcd`][Integer::extended_gcd].
     #[deprecated(since = "1.18.0", note = "renamed to `extended_gcd`")]
     #[inline]
     pub fn gcd_cofactors(self, other: Self, rop: Self) -> (Self, Self, Self) {
         self.extended_gcd(other, rop)
     }
 
-    /// This method has been renamed to [`extended_gcd_mut`][Self::extended_gcd_mut].
+    /// This method has been renamed to
+    /// [`extended_gcd_mut`][Integer::extended_gcd_mut].
     #[deprecated(since = "1.18.0", note = "renamed to `extended_gcd_mut`")]
     #[inline]
     pub fn gcd_cofactors_mut(&mut self, other: &mut Self, rop: &mut Self) {
         self.extended_gcd_mut(other, rop);
     }
 
-    /// This method has been renamed to [`extended_gcd_ref`][Self::extended_gcd_ref].
+    /// This method has been renamed to
+    /// [`extended_gcd_ref`][Integer::extended_gcd_ref].
     #[deprecated(since = "1.18.0", note = "renamed to `extended_gcd_ref`")]
     #[inline]
     pub fn gcd_cofactors_ref<'a>(&'a self, other: &'a Self) -> GcdExtIncomplete<'_> {
