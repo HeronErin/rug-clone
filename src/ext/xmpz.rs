@@ -600,11 +600,10 @@ pub fn ediv_r<O: OptInteger, P: OptInteger>(r: &mut Integer, n: O, d: P) {
 }
 
 #[inline]
-pub fn remove<O: OptInteger>(rop: &mut Integer, op: O, f: &Integer) -> u32 {
+pub fn remove<O: OptInteger>(rop: &mut Integer, op: O, f: &Integer) -> bitcnt_t {
     let rop = rop.as_raw_mut();
     let op = op.mpz_or(rop);
-    let count = unsafe { gmp::mpz_remove(rop, op, f.as_raw()) };
-    count.unwrapped_cast()
+    unsafe { gmp::mpz_remove(rop, op, f.as_raw()) }
 }
 
 #[inline]

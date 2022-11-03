@@ -5996,6 +5996,11 @@ impl Integer {
     /// Removes all occurrences of `factor`, and returns the number of
     /// occurrences removed.
     ///
+    /// On 64-bit systems [`u32`] might not be large enough for the number of
+    /// occurrences, which can result in overflow and panic. The
+    /// [`remove_factor_64`][Self::remove_factor_64] method is similar to this
+    /// method but returns the number of occurrences as [`u64`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -6015,6 +6020,11 @@ impl Integer {
     /// Removes all occurrences of `factor`, and returns the number of
     /// occurrences removed.
     ///
+    /// On 64-bit systems [`u32`] might not be large enough for the number of
+    /// occurrences, which can result in overflow and panic. The
+    /// [`remove_factor_64_mut`][Self::remove_factor_64_mut] method is similar
+    /// to this method but returns the number of occurrences as [`u64`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -6027,11 +6037,23 @@ impl Integer {
     /// ```
     #[inline]
     pub fn remove_factor_mut(&mut self, factor: &Self) -> u32 {
-        xmpz::remove(self, (), factor)
+        xmpz::remove(self, (), factor).unwrapped_cast()
     }
 
     /// Removes all occurrences of `factor`, and counts the number of
     /// occurrences removed.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [u32][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [u32][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [u32][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [u32][][)][tuple]> for Src</code>
+    ///
+    /// On 64-bit systems [`u32`] might not be large enough for the number of
+    /// occurrences, which can result in overflow and panic. The
+    /// [`remove_factor_64_ref`][Self::remove_factor_64_ref] method is similar
+    /// to this method but returns the number of occurrences as [`u64`].
     ///
     /// # Examples
     ///
@@ -6049,6 +6071,83 @@ impl Integer {
     #[inline]
     pub fn remove_factor_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactorIncomplete<'a> {
         RemoveFactorIncomplete {
+            ref_self: self,
+            factor,
+        }
+    }
+
+    /// Removes all occurrences of `factor`, and returns the number of
+    /// occurrences removed.
+    ///
+    /// This method is similar to [`remove_factor`][Self::remove_factor] but
+    /// returns the number of occurrences removed as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
+    /// i *= 1000;
+    /// let (remove, count) = i.remove_factor_64(&Integer::from(13));
+    /// assert_eq!(remove, 1000);
+    /// assert_eq!(count, 50);
+    /// ```
+    #[inline]
+    pub fn remove_factor_64(mut self, factor: &Self) -> (Self, u64) {
+        let count = self.remove_factor_64_mut(factor);
+        (self, count)
+    }
+
+    /// Removes all occurrences of `factor`, and returns the number of
+    /// occurrences removed.
+    ///
+    /// This method is similar to [`remove_factor_mut`][Self::remove_factor_mut]
+    /// but returns the number of occurrences removed as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
+    /// i *= 1000;
+    /// let count = i.remove_factor_64_mut(&Integer::from(13));
+    /// assert_eq!(i, 1000);
+    /// assert_eq!(count, 50);
+    /// ```
+    #[inline]
+    pub fn remove_factor_64_mut(&mut self, factor: &Self) -> u64 {
+        xmpz::remove(self, (), factor).into()
+    }
+
+    /// Removes all occurrences of `factor`, and counts the number of
+    /// occurrences removed.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [u64][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [u64][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [u64][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [u64][][)][tuple]> for Src</code>
+    ///
+    /// This method is similar to [`remove_factor_ref`][Self::remove_factor_ref]
+    /// but returns the number of occurrences removed as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
+    /// i *= 1000;
+    /// let factor = Integer::from(13);
+    /// let r = i.remove_factor_64_ref(&factor);
+    /// let (mut j, mut count) = (Integer::new(), 0);
+    /// (&mut j, &mut count).assign(r);
+    /// assert_eq!(count, 50);
+    /// assert_eq!(j, 1000);
+    /// ```
+    #[inline]
+    pub fn remove_factor_64_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactor64Incomplete<'a> {
+        RemoveFactor64Incomplete {
             ref_self: self,
             factor,
         }
@@ -7074,7 +7173,7 @@ pub struct RemoveFactorIncomplete<'a> {
 impl Assign<RemoveFactorIncomplete<'_>> for (&mut Integer, &mut u32) {
     #[inline]
     fn assign(&mut self, src: RemoveFactorIncomplete<'_>) {
-        *self.1 = xmpz::remove(self.0, src.ref_self, src.factor);
+        *self.1 = xmpz::remove(self.0, src.ref_self, src.factor).unwrapped_cast();
     }
 }
 
@@ -7085,14 +7184,29 @@ impl Assign<RemoveFactorIncomplete<'_>> for (Integer, u32) {
     }
 }
 
-impl From<RemoveFactorIncomplete<'_>> for (Integer, u32) {
+from_assign! { RemoveFactorIncomplete<'_> => Integer, u32 }
+
+#[derive(Debug)]
+pub struct RemoveFactor64Incomplete<'a> {
+    ref_self: &'a Integer,
+    factor: &'a Integer,
+}
+
+impl Assign<RemoveFactor64Incomplete<'_>> for (&mut Integer, &mut u64) {
     #[inline]
-    fn from(src: RemoveFactorIncomplete<'_>) -> Self {
-        let mut dst = (Integer::new(), 0u32);
-        (&mut dst.0, &mut dst.1).assign(src);
-        dst
+    fn assign(&mut self, src: RemoveFactor64Incomplete<'_>) {
+        *self.1 = xmpz::remove(self.0, src.ref_self, src.factor).into();
     }
 }
+
+impl Assign<RemoveFactor64Incomplete<'_>> for (Integer, u64) {
+    #[inline]
+    fn assign(&mut self, src: RemoveFactor64Incomplete<'_>) {
+        (&mut self.0, &mut self.1).assign(src);
+    }
+}
+
+from_assign! { RemoveFactor64Incomplete<'_> => Integer, u64 }
 
 ref_math_op0! { Integer; xmpz::fac_ui; struct FactorialIncomplete { n: u32 } }
 ref_math_op0! { Integer; xmpz::twofac_ui; struct Factorial2Incomplete { n: u32 } }

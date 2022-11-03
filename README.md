@@ -64,6 +64,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
       [`gcd_u64_ref`][int-gur-1-18]
     * [`lcm_u64`][int-lu-1-18], [`lcm_u64_mut`][int-lum-1-18],
       [`lcm_u64_ref`][int-lur-1-18]
+    * [`remove_factor_64`][int-rf-1-18], [`remove_factor_64_mut`][int-frm-1-18],
+      [`remove_factor_64_ref`][int-rfr-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
@@ -100,6 +102,9 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-lur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64_ref
 [int-mu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.mod_u64
 [int-r-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64
+[int-rf-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.remove_factor_64
+[int-rfm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.remove_factor_64_mut
+[int-rfr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.remove_factor_64_ref
 [int-rm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_mut
 [int-rr- 1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_ref
 [int-rre-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64
