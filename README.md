@@ -47,6 +47,11 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     * [`set_bit_64`][int-sb-1-18], [`get_bit_64`][int-gb-1-18],
       [`toggle_bit_64`][int-tb-1-18]
     * [`hamming_dist_64`][int-hd-1-18]
+    * [`keep_bits_64`][int-kb-1-18], [`keep_bits_mut_64`][int-kbm-1-18],
+      [`keep_bits_ref_64`][int-kbr-1-18]
+    * [`keep_signed_bits_64`][int-ksb-1-18],
+      [`keep_signed_bits_mut_64`][int-ksbm-1-18],
+      [`keep_signed_bits_ref_64`][int-ksbr-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
@@ -65,6 +70,12 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-icu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_u64
 [int-id2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_2pow_64
 [int-idu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_u64
+[int-kb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_64
+[int-kbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_mut_64
+[int-kbr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_ref_64
+[int-ksb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_64
+[int-ksbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_mut_64
+[int-ksbr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_ref_64
 [int-sb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.set_bit_64
 [int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
 [int-signifb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64

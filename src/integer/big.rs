@@ -27,7 +27,7 @@ use core::marker::PhantomData;
 use core::mem::{self, ManuallyDrop, MaybeUninit};
 use core::ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign};
 use core::slice;
-use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
+use gmp_mpfr_sys::gmp::{self, bitcnt_t, limb_t, mpz_t};
 use libc::{c_char, c_void};
 use std::error::Error;
 #[cfg(feature = "rational")]
@@ -3141,7 +3141,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn keep_bits_mut(&mut self, n: u32) {
-        xmpz::fdiv_r_2exp(self, (), n)
+        xmpz::fdiv_r_2exp(self, (), n.into())
     }
 
     /// Keeps the <i>n</i> least significant bits only, producing a result that
@@ -3164,7 +3164,77 @@ impl Integer {
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
+    #[inline]
     pub fn keep_bits_ref(&self, n: u32) -> KeepBitsIncomplete {
+        let n = n.into();
+        KeepBitsIncomplete { ref_self: self, n }
+    }
+
+    /// Keeps the <i>n</i> least significant bits only, producing a result that
+    /// is greater or equal to 0.
+    ///
+    /// This method is similar to [`keep_bits`][Self::keep_bits] but takes `n`
+    /// as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// let keep_8 = i.keep_bits_64(8);
+    /// assert_eq!(keep_8, 0xff);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn keep_bits_64(mut self, n: u64) -> Self {
+        self.keep_bits_mut_64(n);
+        self
+    }
+
+    /// Keeps the <i>n</i> least significant bits only, producing a result that
+    /// is greater or equal to 0.
+    ///
+    /// This method is similar to [`keep_bits_mut`][Self::keep_bits_mut] but
+    /// takes `n` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(-1);
+    /// i.keep_bits_mut_64(8);
+    /// assert_eq!(i, 0xff);
+    /// ```
+    #[inline]
+    pub fn keep_bits_mut_64(&mut self, n: u64) {
+        xmpz::fdiv_r_2exp(self, (), n.unwrapped_cast())
+    }
+
+    /// Keeps the <i>n</i> least significant bits only, producing a result that
+    /// is greater or equal to 0.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`keep_bits_ref`][Self::keep_bits_ref] but
+    /// takes `n` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// let r = i.keep_bits_ref_64(8);
+    /// let eight_bits = Integer::from(r);
+    /// assert_eq!(eight_bits, 0xff);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    pub fn keep_bits_ref_64(&self, n: u64) -> KeepBitsIncomplete {
+        let n = n.unwrapped_cast();
         KeepBitsIncomplete { ref_self: self, n }
     }
 
@@ -3205,7 +3275,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn keep_signed_bits_mut(&mut self, n: u32) {
-        xmpz::keep_signed_bits(self, (), n);
+        xmpz::keep_signed_bits(self, (), n.into());
     }
 
     /// Keeps the <i>n</i> least significant bits only, producing a negative
@@ -3230,6 +3300,84 @@ impl Integer {
     /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn keep_signed_bits_ref(&self, n: u32) -> KeepSignedBitsIncomplete<'_> {
+        let n = n.into();
+        KeepSignedBitsIncomplete { ref_self: self, n }
+    }
+
+    /// Keeps the <i>n</i> least significant bits only, producing a negative
+    /// result if the <i>n</i>th least significant bit is one.
+    ///
+    /// This method is similar to [`keep_signed_bits`][Self::keep_signed_bits]
+    /// but takes `n` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// let i_keep_8 = i.keep_signed_bits_64(8);
+    /// assert_eq!(i_keep_8, -1);
+    /// let j = Integer::from(15 << 8 | 15);
+    /// let j_keep_8 = j.keep_signed_bits_64(8);
+    /// assert_eq!(j_keep_8, 15);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn keep_signed_bits_64(mut self, n: u64) -> Self {
+        self.keep_signed_bits_mut_64(n);
+        self
+    }
+
+    /// Keeps the <i>n</i> least significant bits only, producing a negative
+    /// result if the <i>n</i>th least significant bit is one.
+    ///
+    /// This method is similar to
+    /// [`keep_signed_bits_mut`][Self::keep_signed_bits_mut] but takes `n` as
+    /// [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(-1);
+    /// i.keep_signed_bits_mut_64(8);
+    /// assert_eq!(i, -1);
+    /// let mut j = Integer::from(15 << 8 | 15);
+    /// j.keep_signed_bits_mut_64(8);
+    /// assert_eq!(j, 15);
+    /// ```
+    #[inline]
+    pub fn keep_signed_bits_mut_64(&mut self, n: u64) {
+        xmpz::keep_signed_bits(self, (), n.unwrapped_cast());
+    }
+
+    /// Keeps the <i>n</i> least significant bits only, producing a negative
+    /// result if the <i>n</i>th least significant bit is one.
+    ///
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to
+    /// [`keep_signed_bits_ref`][Self::keep_signed_bits_ref] but takes `n` as
+    /// [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-1);
+    /// let r = i.keep_signed_bits_ref_64(8);
+    /// let eight_bits = Integer::from(r);
+    /// assert_eq!(eight_bits, -1);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn keep_signed_bits_ref_64(&self, n: u64) -> KeepSignedBitsIncomplete<'_> {
+        let n = n.unwrapped_cast();
         KeepSignedBitsIncomplete { ref_self: self, n }
     }
 
@@ -6220,8 +6368,8 @@ where
     }
 }
 
-ref_math_op1! { Integer; xmpz::fdiv_r_2exp; struct KeepBitsIncomplete { n: u32 } }
-ref_math_op1! { Integer; xmpz::keep_signed_bits; struct KeepSignedBitsIncomplete { n: u32 } }
+ref_math_op1! { Integer; xmpz::fdiv_r_2exp; struct KeepBitsIncomplete { n: bitcnt_t } }
+ref_math_op1! { Integer; xmpz::keep_signed_bits; struct KeepSignedBitsIncomplete { n: bitcnt_t } }
 ref_math_op1! { Integer; xmpz::next_pow_of_two; struct NextPowerOfTwoIncomplete {} }
 ref_math_op2_2! { Integer; xmpz::tdiv_qr; struct DivRemIncomplete { divisor } }
 ref_math_op2_2! { Integer; xmpz::cdiv_qr; struct DivRemCeilIncomplete { divisor } }

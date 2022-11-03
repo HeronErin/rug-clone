@@ -202,10 +202,9 @@ pub fn signum<O: OptInteger>(rop: &mut Integer, op: O) {
 }
 
 #[inline]
-pub fn keep_signed_bits<O: OptInteger>(rop: &mut Integer, op: O, b: u32) {
+pub fn keep_signed_bits<O: OptInteger>(rop: &mut Integer, op: O, b: bitcnt_t) {
     let rop = rop.as_raw_mut();
     let op = op.mpz_or(rop);
-    let b = b.into();
     unsafe {
         if b > 0 && gmp::mpz_tstbit(op, b - 1) != 0 {
             gmp::mpz_cdiv_r_2exp(rop, op, b);
@@ -595,7 +594,7 @@ unsafe_wrap! { fn shl_usize(op1: O; op2: usize) -> mpz_mul_2exp_usize }
 unsafe_wrap! { fn shr_usize(op1: O; op2: usize) -> mpz_fdiv_q_2exp_usize }
 unsafe_wrap! { fn pow_u32(op1: O; op2: u32) -> gmp::mpz_pow_ui }
 unsafe_wrap! { fn abs(op: O) -> gmp::mpz_abs }
-unsafe_wrap! { fn fdiv_r_2exp(op: O; n: u32) -> gmp::mpz_fdiv_r_2exp }
+unsafe_wrap! { fn fdiv_r_2exp(op: O; n: bitcnt_t) -> gmp::mpz_fdiv_r_2exp }
 unsafe_wrap! { fn nextprime(op: O) -> gmp::mpz_nextprime }
 unsafe_wrap! { fn bin_ui(op: O; k: u32) -> gmp::mpz_bin_ui }
 unsafe_wrap! { fn add_ui(op1: O; op2: c_ulong) -> gmp::mpz_add_ui }
