@@ -20,7 +20,7 @@ use crate::ops::NegAssign;
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
 use crate::Integer;
-use az::{Az, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
+use az::{Az, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
 use core::cmp::Ordering;
 use core::mem::MaybeUninit;
 use core::ptr::{self, NonNull};
@@ -187,9 +187,46 @@ pub unsafe fn clear(rop: *mut Integer) {
 }
 
 #[inline]
-pub fn si_pow_ui(rop: &mut Integer, base: i32, exp: u32) {
+pub fn u32_pow_u32(rop: &mut Integer, base: u32, exp: u32) {
+    ui_pow_ui(rop, base.into(), exp.into());
+}
+
+#[inline]
+pub fn u64_pow_u64(rop: &mut Integer, base: u64, exp: u64) {
+    if let Some(exp) = exp.checked_cast() {
+        if let Some(base) = base.checked_cast() {
+            ui_pow_ui(rop, base, exp);
+            return;
+        }
+        let small = SmallInteger::from(base);
+        unsafe {
+            gmp::mpz_pow_ui(rop.as_raw_mut(), small.as_raw(), exp);
+        }
+        return;
+    }
+    // exp is too large, which would mean overflow for any base except 0 and 1
+    if base == 0 {
+        set_0(rop);
+    } else if base == 1 {
+        set_1(rop);
+    } else {
+        panic!("overflow");
+    }
+}
+
+#[inline]
+pub fn i32_pow_u32(rop: &mut Integer, base: i32, exp: u32) {
     let (base_neg, base_abs) = base.neg_abs();
-    ui_pow_ui(rop, base_abs, exp);
+    u32_pow_u32(rop, base_abs, exp);
+    if base_neg && (exp & 1) == 1 {
+        neg(rop, ());
+    }
+}
+
+#[inline]
+pub fn i64_pow_u64(rop: &mut Integer, base: i64, exp: u64) {
+    let (base_neg, base_abs) = base.neg_abs();
+    u64_pow_u64(rop, base_abs, exp);
     if base_neg && (exp & 1) == 1 {
         neg(rop, ());
     }
@@ -584,7 +621,7 @@ pub fn urandomm<O: OptInteger>(rop: &mut Integer, rng: &mut dyn MutRandState, n:
     }
 }
 
-unsafe_wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> gmp::mpz_ui_pow_ui }
+unsafe_wrap0! { fn ui_pow_ui(base: c_ulong, exponent: c_ulong) -> gmp::mpz_ui_pow_ui }
 unsafe_wrap0! { fn fac_ui(n: u32) -> gmp::mpz_fac_ui }
 unsafe_wrap0! { fn twofac_ui(n: u32) -> gmp::mpz_2fac_ui }
 unsafe_wrap0! { fn mfac_uiui(n: u32, m: u32) -> gmp::mpz_mfac_uiui }

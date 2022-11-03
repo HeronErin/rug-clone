@@ -32,6 +32,7 @@ Version 1.18.0 (unreleased)
     * [`mod_u64`][int-mu-1-18]
     * [`div_exact_u64`][int-deu-1-18], [`div_exact_u64_mut`][int-deum-1-18],
       [`div_exact_u64_ref`][int-deur-1-18]
+    * [`u64_pow_u64`][int-upu-1-18], [`i64_pow_u64`][int-ipu-1-18]
 
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
@@ -53,6 +54,7 @@ Version 1.18.0 (unreleased)
 [int-icu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_u64
 [int-id2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_2pow_64
 [int-idu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_u64
+[int-ipu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.i64_pow_u64
 [int-kb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_64
 [int-kbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_mut_64
 [int-kbr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_ref_64
@@ -66,6 +68,7 @@ Version 1.18.0 (unreleased)
 [int-tb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.toggle_bit_64
 [int-tf32e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f32_exp64
 [int-tf64e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.to_f64_exp64
+[int-upu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.u64_pow_u64
 
 Version 1.17.0 (2022-08-06)
 ===========================

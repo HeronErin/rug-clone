@@ -4554,8 +4554,32 @@ impl Integer {
     ///
     /// [icv]: crate#incomplete-computation-values
     #[inline]
-    pub fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete {
-        UPowUIncomplete { base, exponent }
+    pub fn u_pow_u(base: u32, exponent: u32) -> U32PowU32Incomplete {
+        U32PowU32Incomplete { base, exponent }
+    }
+
+    /// Raises `base` to the power of `exponent`.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`u_pow_u`][Self::u_pow_u] but takes `base`
+    /// and `exponent` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Complete, Integer};
+    /// assert_eq!(Integer::u64_pow_u64(13, 12).complete(), 13_u64.pow(12));
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn u64_pow_u64(base: u64, exponent: u64) -> U64PowU64Incomplete {
+        U64PowU64Incomplete { base, exponent }
     }
 
     /// Raises `base` to the power of `exponent`.
@@ -4579,8 +4603,36 @@ impl Integer {
     ///
     /// [icv]: crate#incomplete-computation-values
     #[inline]
-    pub fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete {
-        IPowUIncomplete { base, exponent }
+    pub fn i_pow_u(base: i32, exponent: u32) -> I32PowU32Incomplete {
+        I32PowU32Incomplete { base, exponent }
+    }
+
+    /// Raises `base` to the power of `exponent`.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`i_pow_u`][Self::i_pow_u] but takes `base` as
+    /// [`i64`] and `exponent` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let mut ans = Integer::new();
+    /// ans.assign(Integer::i64_pow_u64(-13, 13));
+    /// assert_eq!(ans, (-13_i64).pow(13));
+    /// ans.assign(Integer::i64_pow_u64(13, 13));
+    /// assert_eq!(ans, (13_i64).pow(13));
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn i64_pow_u64(base: i64, exponent: u64) -> I64PowU64Incomplete {
+        I64PowU64Incomplete { base, exponent }
     }
 
     /// Computes the <i>n</i>th root and truncates the result.
@@ -6560,8 +6612,18 @@ impl Assign<SecurePowModIncomplete<'_>> for Integer {
 
 from_assign! { SecurePowModIncomplete<'_> => Integer }
 
-ref_math_op0! { Integer; xmpz::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 } }
-ref_math_op0! { Integer; xmpz::si_pow_ui; struct IPowUIncomplete { base: i32, exponent: u32 } }
+ref_math_op0! {
+    Integer; xmpz::u32_pow_u32; struct U32PowU32Incomplete { base: u32, exponent: u32 }
+}
+ref_math_op0! {
+    Integer; xmpz::u64_pow_u64; struct U64PowU64Incomplete { base: u64, exponent: u64 }
+}
+ref_math_op0! {
+    Integer; xmpz::i32_pow_u32; struct I32PowU32Incomplete { base: i32, exponent: u32 }
+}
+ref_math_op0! {
+    Integer; xmpz::i64_pow_u64; struct I64PowU64Incomplete { base: i64, exponent: u64 }
+}
 ref_math_op1! { Integer; xmpz::root; struct RootIncomplete { n: u32 } }
 ref_math_op1_2! { Integer; xmpz::rootrem; struct RootRemIncomplete { n: u32 } }
 ref_math_op1! { Integer; xmpz::sqrt; struct SqrtIncomplete {} }
