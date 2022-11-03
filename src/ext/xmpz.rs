@@ -645,13 +645,14 @@ pub fn urandomm<O: OptInteger>(rop: &mut Integer, rng: &mut dyn MutRandState, n:
 }
 
 unsafe_wrap0! { fn ui_pow_ui(base: c_ulong, exponent: c_ulong) -> gmp::mpz_ui_pow_ui }
-unsafe_wrap0! { fn fac_ui(n: u32) -> gmp::mpz_fac_ui }
-unsafe_wrap0! { fn twofac_ui(n: u32) -> gmp::mpz_2fac_ui }
-unsafe_wrap0! { fn mfac_uiui(n: u32, m: u32) -> gmp::mpz_mfac_uiui }
-unsafe_wrap0! { fn primorial_ui(n: u32) -> gmp::mpz_primorial_ui }
-unsafe_wrap0! { fn bin_uiui(n: u32, k: u32) -> gmp::mpz_bin_uiui }
-unsafe_wrap0! { fn fib_ui(n: u32) -> gmp::mpz_fib_ui }
-unsafe_wrap0! { fn lucnum_ui(n: u32) -> gmp::mpz_lucnum_ui }
+unsafe_wrap0! { fn fac_ui(n: c_ulong) -> gmp::mpz_fac_ui }
+unsafe_wrap0! { fn twofac_ui(n: c_ulong) -> gmp::mpz_2fac_ui }
+unsafe_wrap0! { fn mfac_uiui(n: c_ulong, m: c_ulong) -> gmp::mpz_mfac_uiui }
+unsafe_wrap0! { fn primorial_ui(n: c_ulong) -> gmp::mpz_primorial_ui }
+unsafe_wrap! { fn bin_ui(n: O; k: c_ulong) -> gmp::mpz_bin_ui }
+unsafe_wrap0! { fn bin_uiui(n: c_ulong, k: c_ulong) -> gmp::mpz_bin_uiui }
+unsafe_wrap0! { fn fib_ui(n: c_ulong) -> gmp::mpz_fib_ui }
+unsafe_wrap0! { fn lucnum_ui(n: c_ulong) -> gmp::mpz_lucnum_ui }
 unsafe_wrap! { fn neg(op: O) -> gmp::mpz_neg }
 unsafe_wrap! { fn com(op: O) -> gmp::mpz_com }
 unsafe_wrap! { fn add(op1: O, op2: P) -> gmp::mpz_add }
@@ -668,7 +669,6 @@ unsafe_wrap! { fn pow_u32(op1: O; op2: u32) -> gmp::mpz_pow_ui }
 unsafe_wrap! { fn abs(op: O) -> gmp::mpz_abs }
 unsafe_wrap! { fn fdiv_r_2exp(op: O; n: bitcnt_t) -> gmp::mpz_fdiv_r_2exp }
 unsafe_wrap! { fn nextprime(op: O) -> gmp::mpz_nextprime }
-unsafe_wrap! { fn bin_ui(op: O; k: u32) -> gmp::mpz_bin_ui }
 unsafe_wrap! { fn add_ui(op1: O; op2: c_ulong) -> gmp::mpz_add_ui }
 unsafe_wrap! { fn sub_ui(op1: O; op2: c_ulong) -> gmp::mpz_sub_ui }
 unsafe_wrap! { fn mul_ui(op1: O; op2: c_ulong) -> gmp::mpz_mul_ui }
@@ -1289,16 +1289,16 @@ pub fn kronecker(a: &Integer, b: &Integer) -> c_int {
 }
 
 #[inline]
-pub fn fib2_ui(f_n: &mut Integer, fnsub1: &mut Integer, n: u32) {
+pub fn fib2_ui(f_n: &mut Integer, fnsub1: &mut Integer, n: c_ulong) {
     unsafe {
-        gmp::mpz_fib2_ui(f_n.as_raw_mut(), fnsub1.as_raw_mut(), n.into());
+        gmp::mpz_fib2_ui(f_n.as_raw_mut(), fnsub1.as_raw_mut(), n);
     }
 }
 
 #[inline]
-pub fn lucnum2_ui(ln: &mut Integer, lnsub1: &mut Integer, n: u32) {
+pub fn lucnum2_ui(ln: &mut Integer, lnsub1: &mut Integer, n: c_ulong) {
     unsafe {
-        gmp::mpz_lucnum2_ui(ln.as_raw_mut(), lnsub1.as_raw_mut(), n.into());
+        gmp::mpz_lucnum2_ui(ln.as_raw_mut(), lnsub1.as_raw_mut(), n);
     }
 }
 
