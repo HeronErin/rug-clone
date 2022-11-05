@@ -65,7 +65,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
       [`gcd_u64_ref`][int-gur-1-18]
     * [`lcm_u64`][int-lu-1-18], [`lcm_u64_mut`][int-lum-1-18],
       [`lcm_u64_ref`][int-lur-1-18]
-    * [`remove_factor_64`][int-rf-1-18], [`remove_factor_64_mut`][int-frm-1-18],
+    * [`remove_factor_64`][int-rf-1-18], [`remove_factor_64_mut`][int-rfm-1-18],
       [`remove_factor_64_ref`][int-rfr-1-18]
     * [`factorial_64`][int-fact-1-18], [`factorial_2_64`][int-fact2-1-18],
       [`factorial_m_64`][int-factm-1-18], [`primorial_64`][int-p-1-18]
@@ -131,10 +131,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-rfm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.remove_factor_64_mut
 [int-rfr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.remove_factor_64_ref
 [int-rm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_mut
-[int-rr- 1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_ref
+[int-rr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_ref
 [int-rre-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64
 [int-rrem-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_mut
-[int-rrer- 1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_ref
+[int-rrer-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_ref
 [int-sb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.set_bit_64
 [int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
 [int-signifb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64
