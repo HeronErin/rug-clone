@@ -58,30 +58,6 @@ beta-x86_64-gnulinux:
   only:
   - ci
 
-stable-x86_64-gnulinux:
-  image: amd64/rust:1
-  stage: test
-  dependencies:
-  - clibs-x86_64-gnulinux
-  variables:
-    TOOLCHAIN: stable-x86_64
-  script:
-  - etc/test.sh
-  only:
-  - ci
-
-nightly-x86_64-gnulinux:
-  image: amd64/rust:1
-  stage: test
-  dependencies:
-  - clibs-x86_64-gnulinux
-  variables:
-    TOOLCHAIN: nightly-x86_64
-  script:
-  - etc/test.sh
-  only:
-  - ci
-
 1.37.0-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
@@ -177,30 +153,6 @@ beta-i686-gnulinux:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: beta-i686
-  script:
-  - etc/test.sh
-  only:
-  - ci
-
-stable-i686-gnulinux:
-  image: i386/rust:1
-  stage: test
-  dependencies:
-  - clibs-i686-gnulinux
-  variables:
-    TOOLCHAIN: stable-i686
-  script:
-  - etc/test.sh
-  only:
-  - ci
-
-nightly-i686-gnulinux:
-  image: i386/rust:1
-  stage: test
-  dependencies:
-  - clibs-i686-gnulinux
-  variables:
-    TOOLCHAIN: nightly-i686
   script:
   - etc/test.sh
   only:
