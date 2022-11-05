@@ -36,6 +36,8 @@ mod traits;
 
 pub use crate::rational::big::{BorrowRational, ParseRationalError};
 pub use crate::rational::small::SmallRational;
+use core::fmt::{Display, Formatter, Result as FmtResult};
+use std::error::Error;
 
 /**
 An error which can be returned when a checked conversion from a floating-point
@@ -55,7 +57,26 @@ let error: TryFromFloatError = match Rational::try_from(inf) {
 println!("Error: {}", error);
 ```
 */
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TryFromFloatError {
     pub(crate) _unused: (),
+}
+
+impl TryFromFloatError {
+    fn desc(&self) -> &str {
+        "conversion of infinite or NaN value attempted"
+    }
+}
+
+impl Display for TryFromFloatError {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        Display::fmt(self.desc(), f)
+    }
+}
+
+impl Error for TryFromFloatError {
+    #[allow(deprecated)]
+    fn description(&self) -> &str {
+        self.desc()
+    }
 }

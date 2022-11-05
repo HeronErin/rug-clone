@@ -26,7 +26,6 @@ use core::hash::{Hash, Hasher};
 use core::mem::{self, MaybeUninit};
 use core::str::FromStr;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
-use std::error::Error;
 
 impl Default for Rational {
     #[inline]
@@ -259,24 +258,6 @@ fn fmt_radix(
     let neg = s.starts_with('-');
     let buf = if neg { &s[1..] } else { &s[..] };
     f.pad_integral(!neg, prefix, buf)
-}
-
-impl TryFromFloatError {
-    fn desc(&self) -> &str {
-        "conversion of infinite or NaN value attempted"
-    }
-}
-
-impl Error for TryFromFloatError {
-    fn description(&self) -> &str {
-        self.desc()
-    }
-}
-
-impl Display for TryFromFloatError {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        Display::fmt(self.desc(), f)
-    }
 }
 
 // Safety: mpq_t is thread safe as guaranteed by the GMP library.

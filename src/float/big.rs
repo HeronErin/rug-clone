@@ -9915,7 +9915,6 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
     None
 }
 
-#[derive(Debug)]
 /**
 An error which can be returned when parsing a [`Float`].
 
@@ -9935,11 +9934,12 @@ let error: ParseFloatError = match Float::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 */
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ParseFloatError {
     kind: ParseErrorKind,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ParseErrorKind {
     InvalidDigit,
     NoDigits,
@@ -9965,15 +9965,16 @@ impl ParseFloatError {
     }
 }
 
-impl Error for ParseFloatError {
-    fn description(&self) -> &str {
-        self.desc()
-    }
-}
-
 impl Display for ParseFloatError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(self.desc(), f)
+    }
+}
+
+impl Error for ParseFloatError {
+    #[allow(deprecated)]
+    fn description(&self) -> &str {
+        self.desc()
     }
 }
 

@@ -12,6 +12,7 @@ Version 1.18.0 (unreleased)
     were renamed to [`extended_gcd`][int-eg-1-18],
     [`extended_gcd_mut`][int-egm-1-18] and [`extended_gcd_ref`][int-egr-1-18].
     The old method names are deprecated.
+  * All error types now implement [`Clone`], [`Copy`], [`PartialEq`] and [`Eq`].
   * The following methods were added to the [`Integer`][int-1-18] struct to
     support very large integers better on 64-bit systems.
     * [`to_f32_exp64`][int-tf32e-1-18], [`to_f64_exp64`][int-tf64e-1-18]
@@ -906,11 +907,15 @@ Version 0.6.0 (2017-08-09)
 [NegOutput]: https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html#associatedtype.Output
 [`AsMut`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html
 [`AsRef`]: https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html
+[`Clone`]: https://doc.rust-lang.org/core/clone/trait.Clone.html
+[`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
 [`Default`]: https://doc.rust-lang.org/nightly/core/default/trait.Default.html
+[`Eq`]: https://doc.rust-lang.org/core/cmp/trait.Eq.html
 [`LowerExp`]: https://doc.rust-lang.org/nightly/core/fmt/trait.LowerExp.html
 [`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
 [`Neg`]: https://doc.rust-lang.org/nightly/core/ops/trait.Neg.html
 [`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
+[`PartialEq`]: https://doc.rust-lang.org/core/cmp/trait.PartialEq.html
 [`Product`]: https://doc.rust-lang.org/nightly/core/iter/trait.Product.html
 [`RemAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.RemAssign.html
 [`Rem`]: https://doc.rust-lang.org/nightly/core/ops/trait.Rem.html

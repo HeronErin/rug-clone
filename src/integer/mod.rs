@@ -75,7 +75,7 @@ println!("Error: {}", error);
 
 [`Integer`]: crate::Integer
 */
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TryFromIntegerError {
     _unused: (),
 }

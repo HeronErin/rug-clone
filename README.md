@@ -35,6 +35,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     were renamed to [`extended_gcd`][int-eg-1-18],
     [`extended_gcd_mut`][int-egm-1-18] and [`extended_gcd_ref`][int-egr-1-18].
     The old method names are deprecated.
+  * All error types now implement [`Clone`], [`Copy`], [`PartialEq`] and [`Eq`].
   * The following methods were added to the [`Integer`][int-1-18] struct to
     support very large integers better on 64-bit systems.
     * [`to_f32_exp64`][int-tf32e-1-18], [`to_f64_exp64`][int-tf64e-1-18]
@@ -74,6 +75,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
       [`lucas_64`][int-luc-1-18], [`lucas_2_64`][int-luc2-1-18]
     * [`random_bits_64`][int-rb-1-18]
 
+[`Clone`]: https://doc.rust-lang.org/core/clone/trait.Clone.html
+[`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
+[`Eq`]: https://doc.rust-lang.org/core/cmp/trait.Eq.html
+[`PartialEq`]: https://doc.rust-lang.org/core/cmp/trait.PartialEq.html
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-bin-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64
 [int-binm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64_mut

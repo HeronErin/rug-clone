@@ -7824,7 +7824,6 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
     })
 }
 
-#[derive(Debug)]
 /**
 An error which can be returned when parsing an [`Integer`].
 
@@ -7844,11 +7843,12 @@ let error: ParseIntegerError = match Integer::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 */
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ParseIntegerError {
     kind: ParseErrorKind,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ParseErrorKind {
     InvalidDigit,
     NoDigits,
@@ -7864,15 +7864,16 @@ impl ParseIntegerError {
     }
 }
 
-impl Error for ParseIntegerError {
-    fn description(&self) -> &str {
-        self.desc()
-    }
-}
-
 impl Display for ParseIntegerError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(self.desc(), f)
+    }
+}
+
+impl Error for ParseIntegerError {
+    #[allow(deprecated)]
+    fn description(&self) -> &str {
+        self.desc()
     }
 }
 

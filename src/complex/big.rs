@@ -4235,7 +4235,6 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseComplexEr
     Ok(ParseIncomplete::Complex(re, im))
 }
 
-#[derive(Debug)]
 /**
 An error which can be returned when parsing a [`Complex`] number.
 
@@ -4255,11 +4254,12 @@ let error: ParseComplexError = match Complex::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 */
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ParseComplexError {
     kind: ParseErrorKind,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ParseErrorKind {
     NoDigits,
     NoRealDigits,
@@ -4270,23 +4270,6 @@ enum ParseErrorKind {
     MissingSeparator,
     MultipleSeparators,
     CloseNotLast,
-}
-
-impl Error for ParseComplexError {
-    fn description(&self) -> &str {
-        use self::ParseErrorKind::*;
-        match self.kind {
-            NoDigits => "string has no digits",
-            NoRealDigits => "string has no real digits",
-            NoImagDigits => "string has no imaginary digits",
-            InvalidFloat(_) => "string is not a valid float",
-            InvalidRealFloat(_) => "real part of string is not a valid float",
-            InvalidImagFloat(_) => "imaginary part of string is not a valid float",
-            MissingSeparator => "string has no separator inside brackets",
-            MultipleSeparators => "string has more than one separator inside brackets",
-            CloseNotLast => "string has more characters after closing bracket",
-        }
-    }
 }
 
 impl Display for ParseComplexError {
@@ -4313,6 +4296,24 @@ impl Display for ParseComplexError {
                 Display::fmt("string has more than one separator inside brackets", f)
             }
             CloseNotLast => Display::fmt("string has more characters after closing bracket", f),
+        }
+    }
+}
+
+impl Error for ParseComplexError {
+    #[allow(deprecated)]
+    fn description(&self) -> &str {
+        use self::ParseErrorKind::*;
+        match self.kind {
+            NoDigits => "string has no digits",
+            NoRealDigits => "string has no real digits",
+            NoImagDigits => "string has no imaginary digits",
+            InvalidFloat(_) => "string is not a valid float",
+            InvalidRealFloat(_) => "real part of string is not a valid float",
+            InvalidImagFloat(_) => "imaginary part of string is not a valid float",
+            MissingSeparator => "string has no separator inside brackets",
+            MultipleSeparators => "string has more than one separator inside brackets",
+            CloseNotLast => "string has more characters after closing bracket",
         }
     }
 }

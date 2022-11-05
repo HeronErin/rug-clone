@@ -307,15 +307,16 @@ impl TryFromIntegerError {
     }
 }
 
-impl Error for TryFromIntegerError {
-    fn description(&self) -> &str {
-        self.desc()
-    }
-}
-
 impl Display for TryFromIntegerError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         Display::fmt(self.desc(), f)
+    }
+}
+
+impl Error for TryFromIntegerError {
+    #[allow(deprecated)]
+    fn description(&self) -> &str {
+        self.desc()
     }
 }
 

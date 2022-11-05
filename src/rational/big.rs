@@ -3032,7 +3032,6 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError
     })
 }
 
-#[derive(Debug)]
 /**
 An error which can be returned when parsing a [`Rational`] number.
 
@@ -3052,11 +3051,12 @@ let error: ParseRationalError = match Rational::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 */
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ParseRationalError {
     kind: ParseErrorKind,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ParseErrorKind {
     InvalidDigit,
     NoDigits,
@@ -3080,14 +3080,15 @@ impl ParseRationalError {
     }
 }
 
-impl Error for ParseRationalError {
-    fn description(&self) -> &str {
-        self.desc()
-    }
-}
-
 impl Display for ParseRationalError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(self.desc(), f)
+    }
+}
+
+impl Error for ParseRationalError {
+    #[allow(deprecated)]
+    fn description(&self) -> &str {
+        self.desc()
     }
 }
