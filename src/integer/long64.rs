@@ -19,8 +19,9 @@ use crate::misc;
 use crate::{Assign, Complete, Integer};
 use az::UnwrappedCast;
 use gmp_mpfr_sys::gmp::bitcnt_t;
+use libc::c_ulong;
 
-pub trait Sealed {}
+pub trait Sealed: Sized {}
 impl Sealed for Integer {}
 
 /// [`Integer`] extension trait with 64-bit alternatives of some methods.
@@ -583,6 +584,213 @@ pub trait IntegerExt64: Sealed {
     ///
     /// [icv]: crate#incomplete-computation-values
     fn div_exact_u64_ref(&self, divisor: u64) -> DivExactUIncomplete<'_>;
+
+    /// Raises `base` to the power of `exponent`.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`u_pow_u`][Integer::u_pow_u] but takes `base`
+    /// and `exponent` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::{Complete, Integer};
+    /// assert_eq!(Integer::u64_pow_u64(13, 12).complete(), 13_u64.pow(12));
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    fn u64_pow_u64(base: u64, exponent: u64) -> UPowUIncomplete;
+
+    /// Raises `base` to the power of `exponent`.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`i_pow_u`][Integer::i_pow_u] but takes `base`
+    /// as [`i64`] and `exponent` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::{Assign, Integer};
+    /// let mut ans = Integer::new();
+    /// ans.assign(Integer::i64_pow_u64(-13, 13));
+    /// assert_eq!(ans, (-13_i64).pow(13));
+    /// ans.assign(Integer::i64_pow_u64(13, 13));
+    /// assert_eq!(ans, (13_i64).pow(13));
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    fn i64_pow_u64(base: i64, exponent: u64) -> IPowUIncomplete;
+
+    /// Computes the <i>n</i>th root and truncates the result.
+    ///
+    /// This method is similar to [`root`][Integer::root] but takes `n` as
+    /// [`u64`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the value is
+    /// negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::from(1004);
+    /// let root = i.root_64(3);
+    /// assert_eq!(root, 10);
+    /// ```
+    fn root_64(self, n: u64) -> Self;
+
+    /// Computes the <i>n</i>th root and truncates the result.
+    ///
+    /// This method is similar to [`root_mut`][Integer::root_mut] but takes `n`
+    /// as [`u64`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the value is
+    /// negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let mut i = Integer::from(1004);
+    /// i.root_64_mut(3);
+    /// assert_eq!(i, 10);
+    /// ```
+    fn root_64_mut(&mut self, n: u64);
+
+    /// Computes the <i>n</i>th root and truncates the result.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`root_ref`][Integer::root_ref] but takes `n`
+    /// as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::from(1004);
+    /// assert_eq!(Integer::from(i.root_64_ref(3)), 10);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    fn root_64_ref(&self, n: u64) -> RootIncomplete<'_>;
+
+    /// Computes the <i>n</i>th root and returns the truncated root and the
+    /// remainder.
+    ///
+    /// The remainder is the original number minus the truncated root raised to
+    /// the power of <i>n</i>.
+    ///
+    /// The initial value of `remainder` is ignored.
+    ///
+    /// This method is similar to [`root_rem`][Integer::root_rem] but takes `n`
+    /// as [`u64`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the value is
+    /// negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::from(1004);
+    /// let (root, rem) = i.root_rem_64(Integer::new(), 3);
+    /// assert_eq!(root, 10);
+    /// assert_eq!(rem, 4);
+    /// ```
+    fn root_rem_64(self, remainder: Self, n: u64) -> (Self, Self);
+
+    /// Computes the <i>n</i>th root and returns the truncated root and the
+    /// remainder.
+    ///
+    /// The remainder is the original number minus the truncated root raised to
+    /// the power of <i>n</i>.
+    ///
+    /// The initial value of `remainder` is ignored.
+    ///
+    /// This method is similar to [`root_rem_mut`][Integer::root_rem_mut] but
+    /// takes `n` as [`u64`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if <i>n</i> is zero or if <i>n</i> is even and the value is
+    /// negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let mut i = Integer::from(1004);
+    /// let mut rem = Integer::new();
+    /// i.root_rem_64_mut(&mut rem, 3);
+    /// assert_eq!(i, 10);
+    /// assert_eq!(rem, 4);
+    /// ```
+    fn root_rem_64_mut(&mut self, remainder: &mut Self, n: u64);
+
+    /// Computes the <i>n</i>th root and returns the truncated root and the
+    /// remainder.
+    ///
+    /// The remainder is the original number minus the truncated root raised to
+    /// the power of <i>n</i>.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
+    ///
+    /// This method is similar to [`root_rem_ref`][Integer::root_rem_ref] but
+    /// takes `n` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::{Assign, Complete, Integer};
+    /// let i = Integer::from(1004);
+    /// let mut root = Integer::new();
+    /// let mut rem = Integer::new();
+    /// // 1004 = 10^3 + 5
+    /// (&mut root, &mut rem).assign(i.root_rem_64_ref(3));
+    /// assert_eq!(root, 10);
+    /// assert_eq!(rem, 4);
+    /// // 1004 = 3^6 + 275
+    /// let (other_root, other_rem) = i.root_rem_64_ref(6).complete();
+    /// assert_eq!(other_root, 3);
+    /// assert_eq!(other_rem, 275);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    fn root_rem_64_ref(&self, n: u64) -> RootRemIncomplete<'_>;
 }
 
 impl IntegerExt64 for Integer {
@@ -735,8 +943,57 @@ impl IntegerExt64 for Integer {
             divisor,
         }
     }
+
+    #[inline]
+    fn u64_pow_u64(base: u64, exponent: u64) -> UPowUIncomplete {
+        UPowUIncomplete { base, exponent }
+    }
+
+    #[inline]
+    fn i64_pow_u64(base: i64, exponent: u64) -> IPowUIncomplete {
+        IPowUIncomplete { base, exponent }
+    }
+
+    #[inline]
+    #[must_use]
+    fn root_64(mut self, n: u64) -> Self {
+        self.root_64_mut(n);
+        self
+    }
+
+    #[inline]
+    fn root_64_mut(&mut self, n: u64) {
+        xmpz::root(self, (), n.unwrapped_cast());
+    }
+
+    #[inline]
+    fn root_64_ref(&self, n: u64) -> RootIncomplete<'_> {
+        let n = n.unwrapped_cast();
+        RootIncomplete { ref_self: self, n }
+    }
+
+    #[inline]
+    fn root_rem_64(mut self, mut remainder: Self, n: u64) -> (Self, Self) {
+        self.root_rem_64_mut(&mut remainder, n);
+        (self, remainder)
+    }
+
+    #[inline]
+    fn root_rem_64_mut(&mut self, remainder: &mut Self, n: u64) {
+        xmpz::rootrem(self, remainder, (), n.unwrapped_cast());
+    }
+
+    #[inline]
+    fn root_rem_64_ref(&self, n: u64) -> RootRemIncomplete<'_> {
+        let n = n.unwrapped_cast();
+        RootRemIncomplete { ref_self: self, n }
+    }
 }
 
 ref_math_op1! { Integer; xmpz::fdiv_r_2exp; struct KeepBitsIncomplete { n: bitcnt_t } }
 ref_math_op1! { Integer; xmpz::keep_signed_bits; struct KeepSignedBitsIncomplete { n: bitcnt_t } }
 ref_math_op1! { Integer; xmpz::divexact_u64; struct DivExactUIncomplete { divisor: u64 } }
+ref_math_op0! { Integer; xmpz::u64_pow_u64; struct UPowUIncomplete { base: u64, exponent: u64 } }
+ref_math_op0! { Integer; xmpz::i64_pow_u64; struct IPowUIncomplete { base: i64, exponent: u64 } }
+ref_math_op1! { Integer; xmpz::root; struct RootIncomplete { n: c_ulong } }
+ref_math_op1_2! { Integer; xmpz::rootrem; struct RootRemIncomplete { n: c_ulong } }

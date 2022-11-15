@@ -40,11 +40,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     integers better on some 64-bit platforms.
   * The following methods were added to the [`Integer`][int-1-18] struct to
     support very large integers better on 64-bit systems.
-    * [`u64_pow_u64`][int-upu-1-18], [`i64_pow_u64`][int-ipu-1-18]
-    * [`root_64`][int-r-1-18], [`root_64_mut`][int-rm-1-18],
-      [`root_64_ref`][int-rr-1-18]
-    * [`root_rem_64`][int-rre-1-18], [`root_rem_64_mut`][int-rrem-1-18],
-      [`root_rem_64_ref`][int-rrer-1-18]
     * [`gcd_u64`][int-gu-1-18], [`gcd_u64_mut`][int-gum-1-18],
       [`gcd_u64_ref`][int-gur-1-18]
     * [`lcm_u64`][int-lu-1-18], [`lcm_u64_mut`][int-lum-1-18],
@@ -83,24 +78,16 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-gu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64
 [int-gum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_mut
 [int-gur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_ref
-[int-ipu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.i64_pow_u64
 [int-lu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64
 [int-luc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lucas_64
 [int-luc2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lucas_2_64
 [int-lum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64_mut
 [int-lur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64_ref
 [int-p-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.primorial_64
-[int-r-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64
 [int-rb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.random_bits_64
 [int-rf-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.remove_factor_64
 [int-rfm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#methoed.remove_factor_64_mut
 [int-rfr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.remove_factor_64_ref
-[int-rm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_mut
-[int-rr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64_ref
-[int-rre-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64
-[int-rrem-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_mut
-[int-rrer-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_ref
-[int-upu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.u64_pow_u64
 
 ### Version 1.17.0 news (2022-08-06)
 
