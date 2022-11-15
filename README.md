@@ -40,18 +40,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     integers better on some 64-bit platforms.
   * The following methods were added to the [`Integer`][int-1-18] struct to
     support very large integers better on 64-bit systems.
-    * [`significant_bits_64`][int-signifb-1-18],
-      [`signed_bits_64`][int-signedb-1-18]
-    * [`count_ones_64`][int-co-1-18], [`count_zeros_64`][int-cz-1-18]
-    * [`find_one_64`][int-fo-1-18], [`find_zero_64`][int-fz-1-18]
-    * [`set_bit_64`][int-sb-1-18], [`get_bit_64`][int-gb-1-18],
-      [`toggle_bit_64`][int-tb-1-18]
-    * [`hamming_dist_64`][int-hd-1-18]
-    * [`keep_bits_64`][int-kb-1-18], [`keep_bits_64_mut`][int-kbm-1-18],
-      [`keep_bits_64_ref`][int-kbr-1-18]
-    * [`keep_signed_bits_64`][int-ksb-1-18],
-      [`keep_signed_bits_64_mut`][int-ksbm-1-18],
-      [`keep_signed_bits_64_ref`][int-ksbr-1-18]
     * [`mod_u64`][int-mu-1-18]
     * [`div_exact_u64`][int-deu-1-18], [`div_exact_u64_mut`][int-deum-1-18],
       [`div_exact_u64_ref`][int-deur-1-18]
@@ -84,8 +72,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-binm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64_mut
 [int-binr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64_ref
 [int-binu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_u64
-[int-co-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_ones_64
-[int-cz-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.count_zeros_64
 [int-deu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64
 [int-deum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64_mut
 [int-deur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64_ref
@@ -97,23 +83,13 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-factm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.factorial_m_64
 [int-fib-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.fibonacci_64
 [int-fib2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.fibonacci_2_64
-[int-fo-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.find_one_64
-[int-fz-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.find_zero_64
-[int-gb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.get_bit_64
 [int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
 [int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
 [int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
 [int-gu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64
 [int-gum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_mut
 [int-gur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_ref
-[int-hd-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.hamming_dist_64
 [int-ipu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.i64_pow_u64
-[int-kb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_64
-[int-kbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_mut_64
-[int-kbr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_ref_64
-[int-ksb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_64
-[int-ksbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_mut_64
-[int-ksbr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_signed_bits_ref_64
 [int-lu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64
 [int-luc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lucas_64
 [int-luc2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lucas_2_64
@@ -131,10 +107,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-rre-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64
 [int-rrem-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_mut
 [int-rrer-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_rem_64_ref
-[int-sb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.set_bit_64
-[int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
-[int-signifb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64
-[int-tb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.toggle_bit_64
 [int-upu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.u64_pow_u64
 
 ### Version 1.17.0 news (2022-08-06)
