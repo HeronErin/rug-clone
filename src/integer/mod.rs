@@ -44,6 +44,8 @@ mod cmp;
 mod division;
 #[cfg(feature = "num-traits")]
 mod impl_num_traits;
+#[cfg(all(target_pointer_width = "64", not(windows)))]
+mod long64;
 #[cfg(feature = "serde")]
 mod serde;
 pub(crate) mod small;
@@ -53,6 +55,8 @@ mod traits;
 
 pub use crate::integer::big::{BorrowInteger, IsPrime, ParseIntegerError, UnsignedPrimitive};
 pub use crate::integer::small::{SmallInteger, ToSmall};
+#[cfg(all(target_pointer_width = "64", not(windows)))]
+pub use crate::integer::long64::IntegerExt64;
 
 use libc::c_int;
 

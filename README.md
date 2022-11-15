@@ -36,9 +36,10 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     [`extended_gcd_mut`][int-egm-1-18] and [`extended_gcd_ref`][int-egr-1-18].
     The old method names are deprecated.
   * All error types now implement [`Clone`], [`Copy`], [`PartialEq`] and [`Eq`].
+  * The [`IntegerExt64`][ie64-1-18] trait was added to support very large
+    integers better on some 64-bit platforms.
   * The following methods were added to the [`Integer`][int-1-18] struct to
     support very large integers better on 64-bit systems.
-    * [`to_f32_exp64`][int-tf32e-1-18], [`to_f64_exp64`][int-tf64e-1-18]
     * [`is_divisible_u64`][int-idu-1-18], [`is_divisible_2pow_64`][int-id2-1-18]
     * [`is_congruent_u64`][int-icu-1-18], [`is_congruent_2pow_64`][int-ic2-1-18]
     * [`significant_bits_64`][int-signifb-1-18],
@@ -79,6 +80,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
 [`Eq`]: https://doc.rust-lang.org/core/cmp/trait.Eq.html
 [`PartialEq`]: https://doc.rust-lang.org/core/cmp/trait.PartialEq.html
+[ie64-1-18]: https://docs.rs/rug/~1.18/rug/integer/trait.IntegerExt64.html
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
 [int-bin-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64
 [int-binm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64_mut
@@ -139,8 +141,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-signedb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.signed_bits_64
 [int-signifb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.significant_bits_64
 [int-tb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.toggle_bit_64
-[int-tf32e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.to_f32_exp64
-[int-tf64e-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.to_f64_exp64
 [int-upu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.u64_pow_u64
 
 ### Version 1.17.0 news (2022-08-06)
