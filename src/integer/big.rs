@@ -15,7 +15,7 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpz;
-use crate::integer::{arith::MulIncomplete, Order, SmallInteger};
+use crate::integer::{arith::MulIncomplete, Order};
 use crate::ops::{DivRounding, NegAssign, SubFrom};
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
@@ -3320,41 +3320,6 @@ impl Integer {
         xmpz::fdiv_ui(self, modulo.into()).wrapping_cast()
     }
 
-    /// Returns the modulo, or the remainder of Euclidean division by a [`u32`].
-    ///
-    /// The result is always zero or positive.
-    ///
-    /// This method is similar to [`mod_u`][Integer::mod_u] but takes `modulo`
-    /// as [`u64`] and returns a [`u64`].
-    ///
-    /// # Panics
-    ///
-    /// Panics if `modulo` is zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let pos = Integer::from(23);
-    /// assert_eq!(pos.mod_u64(1), 0);
-    /// assert_eq!(pos.mod_u64(10), 3);
-    /// assert_eq!(pos.mod_u64(100), 23);
-    /// let neg = Integer::from(-23);
-    /// assert_eq!(neg.mod_u64(1), 0);
-    /// assert_eq!(neg.mod_u64(10), 7);
-    /// assert_eq!(neg.mod_u64(100), 77);
-    /// ```
-    #[inline]
-    pub fn mod_u64(&self, modulo: u64) -> u64 {
-        if let Some(modulo) = modulo.checked_cast() {
-            return xmpz::fdiv_ui(self, modulo).into();
-        }
-        let small = SmallInteger::from(modulo);
-        let mut rem = Integer::new();
-        xmpz::fdiv_r(&mut rem, self, &*small);
-        rem.wrapping_cast()
-    }
-
     /// Performs an exact division.
     ///
     /// This is much faster than normal division, but produces correct results
@@ -3521,92 +3486,8 @@ impl Integer {
     ///
     /// [icv]: crate#incomplete-computation-values
     #[inline]
-    pub fn div_exact_u_ref(&self, divisor: u32) -> DivExactU32Incomplete<'_> {
-        DivExactU32Incomplete {
-            ref_self: self,
-            divisor,
-        }
-    }
-
-    /// Performs an exact division.
-    ///
-    /// This is much faster than normal division, but produces correct results
-    /// only when the division is exact.
-    ///
-    /// This method is similar to [`div_exact_u`][Integer::div_exact_u] but
-    /// takes the divisor as [`u64`].
-    ///
-    /// # Panics
-    ///
-    /// Panics if `divisor` is zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let i = Integer::from(12345 * 54321);
-    /// let q = i.div_exact_u64(12345);
-    /// assert_eq!(q, 54321);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn div_exact_u64(mut self, divisor: u64) -> Self {
-        self.div_exact_u64_mut(divisor);
-        self
-    }
-
-    /// Performs an exact division.
-    ///
-    /// This is much faster than normal division, but produces correct results
-    /// only when the division is exact.
-    ///
-    /// This method is similar to [`div_exact_u_mut`][Integer::div_exact_u_mut]
-    /// but takes the divisor as [`u64`].
-    ///
-    /// # Panics
-    ///
-    /// Panics if `divisor` is zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::from(12345 * 54321);
-    /// i.div_exact_u64_mut(12345);
-    /// assert_eq!(i, 54321);
-    /// ```
-    #[inline]
-    pub fn div_exact_u64_mut(&mut self, divisor: u64) {
-        xmpz::divexact_u64(self, (), divisor);
-    }
-
-    /// Performs an exact division.
-    ///
-    /// This is much faster than normal division, but produces correct results
-    /// only when the division is exact.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`div_exact_u_ref`][Integer::div_exact_u_ref]
-    /// but takes the divisor as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let i = Integer::from(12345 * 54321);
-    /// let r = i.div_exact_u64_ref(12345);
-    /// assert_eq!(Integer::from(r), 54321);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn div_exact_u64_ref(&self, divisor: u64) -> DivExactU64Incomplete<'_> {
-        DivExactU64Incomplete {
+    pub fn div_exact_u_ref(&self, divisor: u32) -> DivExactUIncomplete<'_> {
+        DivExactUIncomplete {
             ref_self: self,
             divisor,
         }
@@ -6819,8 +6700,7 @@ ref_math_op2_2! { Integer; xmpz::fdiv_qr; struct DivRemFloorIncomplete { divisor
 ref_math_op2_2! { Integer; xmpz::rdiv_qr; struct DivRemRoundIncomplete { divisor } }
 ref_math_op2_2! { Integer; xmpz::ediv_qr; struct DivRemEucIncomplete { divisor } }
 ref_math_op2! { Integer; xmpz::divexact; struct DivExactIncomplete { divisor } }
-ref_math_op1! { Integer; xmpz::divexact_u32; struct DivExactU32Incomplete { divisor: u32 } }
-ref_math_op1! { Integer; xmpz::divexact_u64; struct DivExactU64Incomplete { divisor: u64 } }
+ref_math_op1! { Integer; xmpz::divexact_u32; struct DivExactUIncomplete { divisor: u32 } }
 
 #[derive(Debug)]
 pub struct PowModIncomplete<'a> {

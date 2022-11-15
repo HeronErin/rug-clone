@@ -40,9 +40,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     integers better on some 64-bit platforms.
   * The following methods were added to the [`Integer`][int-1-18] struct to
     support very large integers better on 64-bit systems.
-    * [`mod_u64`][int-mu-1-18]
-    * [`div_exact_u64`][int-deu-1-18], [`div_exact_u64_mut`][int-deum-1-18],
-      [`div_exact_u64_ref`][int-deur-1-18]
     * [`u64_pow_u64`][int-upu-1-18], [`i64_pow_u64`][int-ipu-1-18]
     * [`root_64`][int-r-1-18], [`root_64_mut`][int-rm-1-18],
       [`root_64_ref`][int-rr-1-18]
@@ -72,9 +69,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-binm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64_mut
 [int-binr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64_ref
 [int-binu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_u64
-[int-deu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64
-[int-deum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64_mut
-[int-deur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.div_exact_u64_ref
 [int-eg-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd
 [int-egm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_mut
 [int-egr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_ref
@@ -95,7 +89,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-luc2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lucas_2_64
 [int-lum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64_mut
 [int-lur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lcd_u64_ref
-[int-mu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.mod_u64
 [int-p-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.primorial_64
 [int-r-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.root_64
 [int-rb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.random_bits_64

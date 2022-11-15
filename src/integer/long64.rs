@@ -483,6 +483,106 @@ pub trait IntegerExt64: Sealed {
     ///
     /// [icv]: crate#incomplete-computation-values
     fn keep_signed_bits_64_ref(&self, n: u64) -> KeepSignedBitsIncomplete<'_>;
+
+    /// Returns the modulo, or the remainder of Euclidean division by a [`u64`].
+    ///
+    /// The result is always zero or positive.
+    ///
+    /// This method is similar to [`mod_u`][Integer::mod_u] but takes `modulo`
+    /// as [`u64`] and returns a [`u64`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if `modulo` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let pos = Integer::from(23);
+    /// assert_eq!(pos.mod_u64(1), 0);
+    /// assert_eq!(pos.mod_u64(10), 3);
+    /// assert_eq!(pos.mod_u64(100), 23);
+    /// let neg = Integer::from(-23);
+    /// assert_eq!(neg.mod_u64(1), 0);
+    /// assert_eq!(neg.mod_u64(10), 7);
+    /// assert_eq!(neg.mod_u64(100), 77);
+    /// ```
+    fn mod_u64(&self, modulo: u64) -> u64;
+
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
+    ///
+    /// This method is similar to [`div_exact_u`][Integer::div_exact_u] but
+    /// takes the divisor as [`u64`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::from(12345 * 54321);
+    /// let q = i.div_exact_u64(12345);
+    /// assert_eq!(q, 54321);
+    /// ```
+    fn div_exact_u64(self, divisor: u64) -> Self;
+
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
+    ///
+    /// This method is similar to [`div_exact_u_mut`][Integer::div_exact_u_mut]
+    /// but takes the divisor as [`u64`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let mut i = Integer::from(12345 * 54321);
+    /// i.div_exact_u64_mut(12345);
+    /// assert_eq!(i, 54321);
+    /// ```
+    fn div_exact_u64_mut(&mut self, divisor: u64);
+
+    /// Performs an exact division.
+    ///
+    /// This is much faster than normal division, but produces correct results
+    /// only when the division is exact.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`div_exact_u_ref`][Integer::div_exact_u_ref]
+    /// but takes the divisor as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::from(12345 * 54321);
+    /// let r = i.div_exact_u64_ref(12345);
+    /// assert_eq!(Integer::from(r), 54321);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    fn div_exact_u64_ref(&self, divisor: u64) -> DivExactUIncomplete<'_>;
 }
 
 impl IntegerExt64 for Integer {
@@ -610,7 +710,33 @@ impl IntegerExt64 for Integer {
         let n = n.unwrapped_cast();
         KeepSignedBitsIncomplete { ref_self: self, n }
     }
+
+    #[inline]
+    fn mod_u64(&self, modulo: u64) -> u64 {
+        xmpz::fdiv_ui(self, modulo.unwrapped_cast()).into()
+    }
+
+    #[inline]
+    #[must_use]
+    fn div_exact_u64(mut self, divisor: u64) -> Self {
+        self.div_exact_u64_mut(divisor);
+        self
+    }
+
+    #[inline]
+    fn div_exact_u64_mut(&mut self, divisor: u64) {
+        xmpz::divexact_u64(self, (), divisor);
+    }
+
+    #[inline]
+    fn div_exact_u64_ref(&self, divisor: u64) -> DivExactUIncomplete<'_> {
+        DivExactUIncomplete {
+            ref_self: self,
+            divisor,
+        }
+    }
 }
 
 ref_math_op1! { Integer; xmpz::fdiv_r_2exp; struct KeepBitsIncomplete { n: bitcnt_t } }
 ref_math_op1! { Integer; xmpz::keep_signed_bits; struct KeepSignedBitsIncomplete { n: bitcnt_t } }
+ref_math_op1! { Integer; xmpz::divexact_u64; struct DivExactUIncomplete { divisor: u64 } }
