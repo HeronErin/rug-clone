@@ -7,14 +7,14 @@ notice are preserved. This file is offered as-is, without any warranty. -->
 Version 1.18.0 (unreleased)
 ===========================
 
-  * For the [`Integer`] struct, the methods [`gcd_cofactors`][int-gc-1-18],
-    [`gcd_cofactors_mut`][int-gcm-1-18] and [`gcd_cofactors_ref`][int-gcr-1-18]
-    were renamed to [`extended_gcd`][int-eg-1-18],
-    [`extended_gcd_mut`][int-egm-1-18] and [`extended_gcd_ref`][int-egr-1-18].
-    The old method names are deprecated.
+  * For the [`Integer`][int-1-18] struct, the methods
+    [`gcd_cofactors`][int-gc-1-18], [`gcd_cofactors_mut`][int-gcm-1-18] and
+    [`gcd_cofactors_ref`][int-gcr-1-18] were renamed to
+    [`extended_gcd`][int-eg-1-18], [`extended_gcd_mut`][int-egm-1-18] and
+    [`extended_gcd_ref`][int-egr-1-18]. The old method names are deprecated.
   * All error types now implement [`Clone`], [`Copy`], [`PartialEq`] and [`Eq`].
-  * The [`IntegerExt64`][ie64-1-18] trait was added to support very large
-    integers better on some 64-bit platforms.
+  * The [`IntegerExt64`][ie64-1-18] extension trait was added to support very
+    large integers better on some 64-bit platforms.
 
 [ie64-1-18]: https://docs.rs/rug/~1.18/rug/integer/trait.IntegerExt64.html
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
