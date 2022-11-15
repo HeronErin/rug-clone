@@ -1977,30 +1977,6 @@ impl Integer {
         xmpz::divisible_ui_p(self, divisor.into())
     }
 
-    /// Returns [`true`] if the number is divisible by `divisor`. Unlike other
-    /// division functions, `divisor` can be zero.
-    ///
-    /// This method is similar to [`is_divisible_u`][Integer::is_divisible_u]
-    /// but takes the divisor as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let i = Integer::from(230);
-    /// assert!(i.is_divisible_u64(23));
-    /// assert!(!i.is_divisible_u64(100));
-    /// assert!(!i.is_divisible_u64(0));
-    /// ```
-    #[inline]
-    pub fn is_divisible_u64(&self, divisor: u64) -> bool {
-        if let Some(divisor) = divisor.checked_cast() {
-            return xmpz::divisible_ui_p(self, divisor);
-        }
-        let small = SmallInteger::from(divisor);
-        self.is_divisible(&small)
-    }
-
     /// Returns [`true`] if the number is divisible by 2<sup><i>b</i></sup>.
     ///
     /// # Examples
@@ -2015,26 +1991,6 @@ impl Integer {
     #[inline]
     pub fn is_divisible_2pow(&self, b: u32) -> bool {
         xmpz::divisible_2exp_p(self, b.into())
-    }
-
-    /// Returns [`true`] if the number is divisible by 2<sup><i>b</i></sup>.
-    ///
-    /// This method is similar to
-    /// [`is_divisible_2pow`][Integer::is_divisible_2pow] but takes `b` as
-    /// [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let i = Integer::from(15 << 17);
-    /// assert!(i.is_divisible_2pow_64(16));
-    /// assert!(i.is_divisible_2pow_64(17));
-    /// assert!(!i.is_divisible_2pow_64(18));
-    /// ```
-    #[inline]
-    pub fn is_divisible_2pow_64(&self, b: u64) -> bool {
-        xmpz::divisible_2exp_p(self, b.unwrapped_cast())
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
@@ -2080,36 +2036,6 @@ impl Integer {
     }
 
     /// Returns [`true`] if the number is congruent to <i>c</i> mod
-    /// <i>divisor</i>, that is, if there exists a <i>q</i> such that `self` =
-    /// <i>c</i> + <i>q</i> × <i>divisor</i>. Unlike other division functions,
-    /// `divisor` can be zero.
-    ///
-    /// This method is similar to [`is_congruent_u`][Integer::is_congruent_u]
-    /// but takes `c` and the divisor as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let n = Integer::from(105);
-    /// assert!(n.is_congruent_u64(3335, 10));
-    /// assert!(!n.is_congruent_u64(107, 10));
-    /// // n is congruent to itself if divisor is 0
-    /// assert!(n.is_congruent_u64(105, 0));
-    /// ```
-    #[inline]
-    pub fn is_congruent_u64(&self, c: u64, divisor: u64) -> bool {
-        if let Some(c) = c.checked_cast() {
-            if let Some(divisor) = divisor.checked_cast() {
-                return xmpz::congruent_ui_p(self, c, divisor);
-            }
-        }
-        let small_c = SmallInteger::from(c);
-        let small_divisor = SmallInteger::from(divisor);
-        self.is_congruent(&small_c, &small_divisor)
-    }
-
-    /// Returns [`true`] if the number is congruent to <i>c</i> mod
     /// 2<sup><i>b</i></sup>, that is, if there exists a <i>q</i> such that
     /// `self` = <i>c</i> + <i>q</i> × 2<sup><i>b</i></sup>.
     ///
@@ -2124,27 +2050,6 @@ impl Integer {
     #[inline]
     pub fn is_congruent_2pow(&self, c: &Self, b: u32) -> bool {
         xmpz::congruent_2exp_p(self, c, b.into())
-    }
-
-    /// Returns [`true`] if the number is congruent to <i>c</i> mod
-    /// 2<sup><i>b</i></sup>, that is, if there exists a <i>q</i> such that
-    /// `self` = <i>c</i> + <i>q</i> × 2<sup><i>b</i></sup>.
-    ///
-    /// This method is similar to
-    /// [`is_congruent_2pow`][Integer::is_congruent_2pow] but takes `b` as
-    /// [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let n = Integer::from(13 << 17 | 21);
-    /// assert!(n.is_congruent_2pow_64(&Integer::from(7 << 17 | 21), 17));
-    /// assert!(!n.is_congruent_2pow_64(&Integer::from(13 << 17 | 22), 17));
-    /// ```
-    #[inline]
-    pub fn is_congruent_2pow_64(&self, c: &Self, b: u64) -> bool {
-        xmpz::congruent_2exp_p(self, c, b.unwrapped_cast())
     }
 
     /// Returns [`true`] if the number is a perfect power.

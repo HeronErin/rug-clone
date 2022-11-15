@@ -40,8 +40,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     integers better on some 64-bit platforms.
   * The following methods were added to the [`Integer`][int-1-18] struct to
     support very large integers better on 64-bit systems.
-    * [`is_divisible_u64`][int-idu-1-18], [`is_divisible_2pow_64`][int-id2-1-18]
-    * [`is_congruent_u64`][int-icu-1-18], [`is_congruent_2pow_64`][int-ic2-1-18]
     * [`significant_bits_64`][int-signifb-1-18],
       [`signed_bits_64`][int-signedb-1-18]
     * [`count_ones_64`][int-co-1-18], [`count_zeros_64`][int-cz-1-18]
@@ -109,10 +107,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-gum-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_mut
 [int-gur-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_u64_ref
 [int-hd-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.hamming_dist_64
-[int-ic2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_2pow_64
-[int-icu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_congruent_u64
-[int-id2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_2pow_64
-[int-idu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.is_divisible_u64
 [int-ipu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.i64_pow_u64
 [int-kb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_64
 [int-kbm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.keep_bits_mut_64
