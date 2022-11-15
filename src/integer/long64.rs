@@ -19,7 +19,8 @@ use crate::misc;
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
 use crate::{Assign, Complete, Integer};
-use az::UnwrappedCast;
+use az::{CheckedCast, UnwrappedCast};
+use core::cmp::Ordering;
 use gmp_mpfr_sys::gmp::bitcnt_t;
 use libc::c_ulong;
 
@@ -852,11 +853,16 @@ pub trait IntegerExt64: Sealed {
     /// value][icv] as `Src`:
     ///   * <code>[Assign]\<Src> for [Integer]</code>
     ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Option]\<[u64]></code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
     ///
+    /// The implementation of <code>[From]\<Src> for [Option]\<[u64]></code> is
+    /// useful to obtain the result as a [`u64`] if it fits. If
+    /// `other`&nbsp;>&nbsp;0 , the result always fits. If the result does not
+    /// fit, it is equal to the absolute value of `self`.
+    ///
     /// This method is similar to [`gcd_u_ref`][Integer::gcd_u_ref] but takes
-    /// `other` as [`u64`], and <code>[From]\<Src> for [Option]\<[u64]></code>
-    /// is *not* implemented.
+    /// `other` as [`u64`].
     ///
     /// # Examples
     ///
@@ -867,6 +873,8 @@ pub trait IntegerExt64: Sealed {
     /// let r = i.gcd_u64_ref(125);
     /// // gcd of 100, 125 is 25
     /// assert_eq!(Integer::from(r), 25);
+    /// let r = i.gcd_u64_ref(125);
+    /// assert_eq!(Option::<u64>::from(r), Some(25));
     /// ```
     ///
     /// [icv]: crate#incomplete-computation-values
@@ -1683,6 +1691,19 @@ ref_math_op0! { Integer; xmpz::i64_pow_u64; struct IPowUIncomplete { base: i64, 
 ref_math_op1! { Integer; xmpz::root; struct RootIncomplete { n: c_ulong } }
 ref_math_op1_2! { Integer; xmpz::rootrem; struct RootRemIncomplete { n: c_ulong } }
 ref_math_op1! { Integer; xmpz::gcd_u64; struct GcdUIncomplete { other: u64 } }
+
+impl From<GcdUIncomplete<'_>> for Option<u64> {
+    #[inline]
+    fn from(src: GcdUIncomplete) -> Self {
+        let gcd = xmpz::gcd_ui(None, src.ref_self, src.other.into());
+        if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
+            None
+        } else {
+            gcd.checked_cast()
+        }
+    }
+}
+
 ref_math_op1! { Integer; xmpz::lcm_u64; struct LcmUIncomplete { other: u64 } }
 
 #[derive(Debug)]
