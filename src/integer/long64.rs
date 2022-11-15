@@ -791,6 +791,226 @@ pub trait IntegerExt64: Sealed {
     ///
     /// [icv]: crate#incomplete-computation-values
     fn root_rem_64_ref(&self, n: u64) -> RootRemIncomplete<'_>;
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are zero.
+    ///
+    /// This method is similar to [`gcd_u`][Integer::gcd_u] but takes `other` as
+    /// [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::new();
+    /// // gcd of 0, 0 is 0
+    /// let gcd1 = i.gcd_u64(0);
+    /// assert_eq!(gcd1, 0);
+    /// // gcd of 0, 10 is 10
+    /// let gcd2 = gcd1.gcd_u64(10);
+    /// assert_eq!(gcd2, 10);
+    /// // gcd of 10, 25 is 5
+    /// let gcd3 = gcd2.gcd_u64(25);
+    /// assert_eq!(gcd3, 5);
+    /// ```
+    fn gcd_u64(self, other: u64) -> Self;
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are zero.
+    ///
+    /// This method is similar to [`gcd_u_mut`][Integer::gcd_u_mut] but takes
+    /// `other` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let mut i = Integer::new();
+    /// // gcd of 0, 0 is 0
+    /// i.gcd_u64_mut(0);
+    /// assert_eq!(i, 0);
+    /// // gcd of 0, 10 is 10
+    /// i.gcd_u64_mut(10);
+    /// assert_eq!(i, 10);
+    /// // gcd of 10, 25 is 5
+    /// i.gcd_u64_mut(25);
+    /// assert_eq!(i, 5);
+    /// ```
+    fn gcd_u64_mut(&mut self, other: u64);
+
+    /// Finds the greatest common divisor.
+    ///
+    /// The result is always positive except when both inputs are zero.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`gcd_u_ref`][Integer::gcd_u_ref] but takes
+    /// `other` as [`u64`], and <code>[From]\<Src> for [Option]\<[u64]></code>
+    /// is *not* implemented.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::from(100);
+    /// let r = i.gcd_u64_ref(125);
+    /// // gcd of 100, 125 is 25
+    /// assert_eq!(Integer::from(r), 25);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    fn gcd_u64_ref(&self, other: u64) -> GcdUIncomplete<'_>;
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both inputs are zero.
+    ///
+    /// This method is similar to [`lcm_u`][Integer::lcm_u] but takes `other` as
+    /// [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::from(10);
+    /// // lcm of 10, 25 is 50
+    /// let lcm1 = i.lcm_u64(25);
+    /// assert_eq!(lcm1, 50);
+    /// // lcm of 50, 0 is 0
+    /// let lcm2 = lcm1.lcm_u64(0);
+    /// assert_eq!(lcm2, 0);
+    /// ```
+    fn lcm_u64(self, other: u64) -> Self;
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both inputs are zero.
+    ///
+    /// This method is similar to [`lcm_u_mut`][Integer::lcm_u_mut] but takes
+    /// `other` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let mut i = Integer::from(10);
+    /// // lcm of 10, 25 is 50
+    /// i.lcm_u64_mut(25);
+    /// assert_eq!(i, 50);
+    /// // lcm of 50, 0 is 0
+    /// i.lcm_u64_mut(0);
+    /// assert_eq!(i, 0);
+    /// ```
+    fn lcm_u64_mut(&mut self, other: u64);
+
+    /// Finds the least common multiple.
+    ///
+    /// The result is always positive except when one or both inputs are zero.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Integer]</code>
+    ///   * <code>[From]\<Src> for [Integer]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
+    ///
+    /// This method is similar to [`lcm_u_ref`][Integer::lcm_u_ref] but takes
+    /// `other` as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let i = Integer::from(100);
+    /// let r = i.lcm_u64_ref(125);
+    /// // lcm of 100, 125 is 500
+    /// assert_eq!(Integer::from(r), 500);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    fn lcm_u64_ref(&self, other: u64) -> LcmUIncomplete<'_>;
+
+    /// Removes all occurrences of `factor`, and returns the number of
+    /// occurrences removed.
+    ///
+    /// This method is similar to [`remove_factor`][Integer::remove_factor] but
+    /// returns the number of occurrences removed as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
+    /// i *= 1000;
+    /// let (remove, count) = i.remove_factor_64(&Integer::from(13));
+    /// assert_eq!(remove, 1000);
+    /// assert_eq!(count, 50);
+    /// ```
+    fn remove_factor_64(self, factor: &Self) -> (Self, u64);
+
+    /// Removes all occurrences of `factor`, and returns the number of
+    /// occurrences removed.
+    ///
+    /// This method is similar to
+    /// [`remove_factor_mut`][Integer::remove_factor_mut] but returns the number
+    /// of occurrences removed as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::Integer;
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
+    /// i *= 1000;
+    /// let count = i.remove_factor_64_mut(&Integer::from(13));
+    /// assert_eq!(i, 1000);
+    /// assert_eq!(count, 50);
+    /// ```
+    fn remove_factor_64_mut(&mut self, factor: &Self) -> u64;
+
+    /// Removes all occurrences of `factor`, and counts the number of
+    /// occurrences removed.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [u64][][)][tuple]</code>
+    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [u64][][)][tuple]</code>
+    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [u64][][)][tuple]</code>
+    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [u64][][)][tuple]> for Src</code>
+    ///
+    /// This method is similar to
+    /// [`remove_factor_ref`][Integer::remove_factor_ref] but returns the number
+    /// of occurrences removed as [`u64`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::IntegerExt64;
+    /// use rug::{Assign, Integer};
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
+    /// i *= 1000;
+    /// let factor = Integer::from(13);
+    /// let r = i.remove_factor_64_ref(&factor);
+    /// let (mut j, mut count) = (Integer::new(), 0);
+    /// (&mut j, &mut count).assign(r);
+    /// assert_eq!(count, 50);
+    /// assert_eq!(j, 1000);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    fn remove_factor_64_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactorIncomplete<'a>;
 }
 
 impl IntegerExt64 for Integer {
@@ -988,6 +1208,65 @@ impl IntegerExt64 for Integer {
         let n = n.unwrapped_cast();
         RootRemIncomplete { ref_self: self, n }
     }
+
+    #[inline]
+    #[must_use]
+    fn gcd_u64(mut self, other: u64) -> Self {
+        self.gcd_u64_mut(other);
+        self
+    }
+
+    #[inline]
+    fn gcd_u64_mut(&mut self, other: u64) {
+        xmpz::gcd_u64(self, (), other);
+    }
+
+    #[inline]
+    fn gcd_u64_ref(&self, other: u64) -> GcdUIncomplete<'_> {
+        GcdUIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    fn lcm_u64(mut self, other: u64) -> Self {
+        self.lcm_u64_mut(other);
+        self
+    }
+
+    #[inline]
+    fn lcm_u64_mut(&mut self, other: u64) {
+        xmpz::lcm_u64(self, (), other);
+    }
+
+    #[inline]
+    fn lcm_u64_ref(&self, other: u64) -> LcmUIncomplete<'_> {
+        LcmUIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
+    #[inline]
+    fn remove_factor_64(mut self, factor: &Self) -> (Self, u64) {
+        let count = self.remove_factor_64_mut(factor);
+        (self, count)
+    }
+
+    #[inline]
+    fn remove_factor_64_mut(&mut self, factor: &Self) -> u64 {
+        xmpz::remove(self, (), factor).into()
+    }
+
+    #[inline]
+    fn remove_factor_64_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactorIncomplete<'a> {
+        RemoveFactorIncomplete {
+            ref_self: self,
+            factor,
+        }
+    }
 }
 
 ref_math_op1! { Integer; xmpz::fdiv_r_2exp; struct KeepBitsIncomplete { n: bitcnt_t } }
@@ -997,3 +1276,27 @@ ref_math_op0! { Integer; xmpz::u64_pow_u64; struct UPowUIncomplete { base: u64, 
 ref_math_op0! { Integer; xmpz::i64_pow_u64; struct IPowUIncomplete { base: i64, exponent: u64 } }
 ref_math_op1! { Integer; xmpz::root; struct RootIncomplete { n: c_ulong } }
 ref_math_op1_2! { Integer; xmpz::rootrem; struct RootRemIncomplete { n: c_ulong } }
+ref_math_op1! { Integer; xmpz::gcd_u64; struct GcdUIncomplete { other: u64 } }
+ref_math_op1! { Integer; xmpz::lcm_u64; struct LcmUIncomplete { other: u64 } }
+
+#[derive(Debug)]
+pub struct RemoveFactorIncomplete<'a> {
+    ref_self: &'a Integer,
+    factor: &'a Integer,
+}
+
+impl Assign<RemoveFactorIncomplete<'_>> for (&mut Integer, &mut u64) {
+    #[inline]
+    fn assign(&mut self, src: RemoveFactorIncomplete<'_>) {
+        *self.1 = xmpz::remove(self.0, src.ref_self, src.factor).into();
+    }
+}
+
+impl Assign<RemoveFactorIncomplete<'_>> for (Integer, u64) {
+    #[inline]
+    fn assign(&mut self, src: RemoveFactorIncomplete<'_>) {
+        (&mut self.0, &mut self.1).assign(src);
+    }
+}
+
+from_assign! { RemoveFactorIncomplete<'_> => Integer, u64 }

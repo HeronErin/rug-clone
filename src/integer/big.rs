@@ -4535,95 +4535,6 @@ impl Integer {
         }
     }
 
-    /// Finds the greatest common divisor.
-    ///
-    /// The result is always positive except when both inputs are zero.
-    ///
-    /// This method is similar to [`gcd_u`][Integer::gcd_u] but takes `other` as
-    /// [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let i = Integer::new();
-    /// // gcd of 0, 0 is 0
-    /// let gcd1 = i.gcd_u64(0);
-    /// assert_eq!(gcd1, 0);
-    /// // gcd of 0, 10 is 10
-    /// let gcd2 = gcd1.gcd_u64(10);
-    /// assert_eq!(gcd2, 10);
-    /// // gcd of 10, 25 is 5
-    /// let gcd3 = gcd2.gcd_u64(25);
-    /// assert_eq!(gcd3, 5);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn gcd_u64(mut self, other: u64) -> Self {
-        self.gcd_u64_mut(other);
-        self
-    }
-
-    /// Finds the greatest common divisor.
-    ///
-    /// The result is always positive except when both inputs are zero.
-    ///
-    /// This method is similar to [`gcd_u_mut`][Integer::gcd_u_mut] but takes
-    /// `other` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// // gcd of 0, 0 is 0
-    /// i.gcd_u64_mut(0);
-    /// assert_eq!(i, 0);
-    /// // gcd of 0, 10 is 10
-    /// i.gcd_u64_mut(10);
-    /// assert_eq!(i, 10);
-    /// // gcd of 10, 25 is 5
-    /// i.gcd_u64_mut(25);
-    /// assert_eq!(i, 5);
-    /// ```
-    #[inline]
-    pub fn gcd_u64_mut(&mut self, other: u64) {
-        xmpz::gcd_u64(self, (), other);
-    }
-
-    /// Finds the greatest common divisor.
-    ///
-    /// The result is always positive except when both inputs are zero.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`gcd_u_ref`][Integer::gcd_u_ref] but takes
-    /// `other` as [`u64`], and <code>[From]\<Src> for [Option]\<[u64]></code>
-    /// is *not* implemented.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let i = Integer::from(100);
-    /// let r = i.gcd_u64_ref(125);
-    /// // gcd of 100, 125 is 25
-    /// assert_eq!(Integer::from(r), 25);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn gcd_u64_ref(&self, other: u64) -> GcdU64Incomplete<'_> {
-        GcdU64Incomplete {
-            ref_self: self,
-            other,
-        }
-    }
-
     /// Finds the greatest common divisor (GCD) of the two inputs (`self` and
     /// `other`), and two coefficients to obtain the GCD from the two inputs.
     ///
@@ -4946,88 +4857,6 @@ impl Integer {
         }
     }
 
-    /// Finds the least common multiple.
-    ///
-    /// The result is always positive except when one or both inputs are zero.
-    ///
-    /// This method is similar to [`lcm_u`][Integer::lcm_u] but takes `other` as
-    /// [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let i = Integer::from(10);
-    /// // lcm of 10, 25 is 50
-    /// let lcm1 = i.lcm_u64(25);
-    /// assert_eq!(lcm1, 50);
-    /// // lcm of 50, 0 is 0
-    /// let lcm2 = lcm1.lcm_u64(0);
-    /// assert_eq!(lcm2, 0);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn lcm_u64(mut self, other: u64) -> Self {
-        self.lcm_u64_mut(other);
-        self
-    }
-
-    /// Finds the least common multiple.
-    ///
-    /// The result is always positive except when one or both inputs are zero.
-    ///
-    /// This method is similar to [`lcm_u_mut`][Integer::lcm_u_mut] but takes
-    /// `other` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::from(10);
-    /// // lcm of 10, 25 is 50
-    /// i.lcm_u64_mut(25);
-    /// assert_eq!(i, 50);
-    /// // lcm of 50, 0 is 0
-    /// i.lcm_u64_mut(0);
-    /// assert_eq!(i, 0);
-    /// ```
-    #[inline]
-    pub fn lcm_u64_mut(&mut self, other: u64) {
-        xmpz::lcm_u64(self, (), other);
-    }
-
-    /// Finds the least common multiple.
-    ///
-    /// The result is always positive except when one or both inputs are zero.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`lcm_u_ref`][Integer::lcm_u_ref] but takes
-    /// `other` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let i = Integer::from(100);
-    /// let r = i.lcm_u_ref(125);
-    /// // lcm of 100, 125 is 500
-    /// assert_eq!(Integer::from(r), 500);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn lcm_u64_ref(&self, other: u64) -> LcmU64Incomplete<'_> {
-        LcmU64Incomplete {
-            ref_self: self,
-            other,
-        }
-    }
-
     /// Calculates the Jacobi symbol (`self`/<i>n</i>).
     ///
     /// # Examples
@@ -5087,11 +4916,6 @@ impl Integer {
     /// Removes all occurrences of `factor`, and returns the number of
     /// occurrences removed.
     ///
-    /// On 64-bit systems [`u32`] might not be large enough for the number of
-    /// occurrences, which can result in overflow and panic. The
-    /// [`remove_factor_64`][Integer::remove_factor_64] method is similar to
-    /// this method but returns the number of occurrences as [`u64`].
-    ///
     /// # Examples
     ///
     /// ```rust
@@ -5110,11 +4934,6 @@ impl Integer {
 
     /// Removes all occurrences of `factor`, and returns the number of
     /// occurrences removed.
-    ///
-    /// On 64-bit systems [`u32`] might not be large enough for the number of
-    /// occurrences, which can result in overflow and panic. The
-    /// [`remove_factor_64_mut`][Integer::remove_factor_64_mut] method is
-    /// similar to this method but returns the number of occurrences as [`u64`].
     ///
     /// # Examples
     ///
@@ -5141,11 +4960,6 @@ impl Integer {
     ///   * <code>[From]\<Src> for [(][tuple][Integer][], [u32][][)][tuple]</code>
     ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [u32][][)][tuple]> for Src</code>
     ///
-    /// On 64-bit systems [`u32`] might not be large enough for the number of
-    /// occurrences, which can result in overflow and panic. The
-    /// [`remove_factor_64_ref`][Integer::remove_factor_64_ref] method is
-    /// similar to this method but returns the number of occurrences as [`u64`].
-    ///
     /// # Examples
     ///
     /// ```rust
@@ -5164,87 +4978,6 @@ impl Integer {
     #[inline]
     pub fn remove_factor_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactorIncomplete<'a> {
         RemoveFactorIncomplete {
-            ref_self: self,
-            factor,
-        }
-    }
-
-    /// Removes all occurrences of `factor`, and returns the number of
-    /// occurrences removed.
-    ///
-    /// This method is similar to [`remove_factor`][Integer::remove_factor] but
-    /// returns the number of occurrences removed as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
-    /// i *= 1000;
-    /// let (remove, count) = i.remove_factor_64(&Integer::from(13));
-    /// assert_eq!(remove, 1000);
-    /// assert_eq!(count, 50);
-    /// ```
-    #[inline]
-    pub fn remove_factor_64(mut self, factor: &Self) -> (Self, u64) {
-        let count = self.remove_factor_64_mut(factor);
-        (self, count)
-    }
-
-    /// Removes all occurrences of `factor`, and returns the number of
-    /// occurrences removed.
-    ///
-    /// This method is similar to
-    /// [`remove_factor_mut`][Integer::remove_factor_mut] but returns the number
-    /// of occurrences removed as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
-    /// i *= 1000;
-    /// let count = i.remove_factor_64_mut(&Integer::from(13));
-    /// assert_eq!(i, 1000);
-    /// assert_eq!(count, 50);
-    /// ```
-    #[inline]
-    pub fn remove_factor_64_mut(&mut self, factor: &Self) -> u64 {
-        xmpz::remove(self, (), factor).into()
-    }
-
-    /// Removes all occurrences of `factor`, and counts the number of
-    /// occurrences removed.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [u64][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [u64][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [u64][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [u64][][)][tuple]> for Src</code>
-    ///
-    /// This method is similar to
-    /// [`remove_factor_ref`][Integer::remove_factor_ref] but returns the number
-    /// of occurrences removed as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer};
-    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
-    /// i *= 1000;
-    /// let factor = Integer::from(13);
-    /// let r = i.remove_factor_64_ref(&factor);
-    /// let (mut j, mut count) = (Integer::new(), 0);
-    /// (&mut j, &mut count).assign(r);
-    /// assert_eq!(count, 50);
-    /// assert_eq!(j, 1000);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn remove_factor_64_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactor64Incomplete<'a> {
-        RemoveFactor64Incomplete {
             ref_self: self,
             factor,
         }
@@ -6544,7 +6277,6 @@ ref_math_op1_2! { Integer; xmpz::sqrtrem; struct SqrtRemIncomplete {} }
 ref_math_op1! { Integer; xmpz::nextprime; struct NextPrimeIncomplete {} }
 ref_math_op2! { Integer; xmpz::gcd; struct GcdIncomplete { other } }
 ref_math_op1! { Integer; xmpz::gcd_u32; struct GcdUIncomplete { other: u32 } }
-ref_math_op1! { Integer; xmpz::gcd_u64; struct GcdU64Incomplete { other: u64 } }
 
 impl From<GcdUIncomplete<'_>> for Option<u32> {
     #[inline]
@@ -6605,7 +6337,6 @@ impl From<GcdExtIncomplete<'_>> for (Integer, Integer) {
 
 ref_math_op2! { Integer; xmpz::lcm; struct LcmIncomplete { other } }
 ref_math_op1! { Integer; xmpz::lcm_u32; struct LcmUIncomplete { other: u32 } }
-ref_math_op1! { Integer; xmpz::lcm_u64; struct LcmU64Incomplete { other: u64 } }
 
 #[derive(Debug)]
 pub struct InvertIncomplete<'a> {
@@ -6650,28 +6381,6 @@ impl Assign<RemoveFactorIncomplete<'_>> for (Integer, u32) {
 }
 
 from_assign! { RemoveFactorIncomplete<'_> => Integer, u32 }
-
-#[derive(Debug)]
-pub struct RemoveFactor64Incomplete<'a> {
-    ref_self: &'a Integer,
-    factor: &'a Integer,
-}
-
-impl Assign<RemoveFactor64Incomplete<'_>> for (&mut Integer, &mut u64) {
-    #[inline]
-    fn assign(&mut self, src: RemoveFactor64Incomplete<'_>) {
-        *self.1 = xmpz::remove(self.0, src.ref_self, src.factor).into();
-    }
-}
-
-impl Assign<RemoveFactor64Incomplete<'_>> for (Integer, u64) {
-    #[inline]
-    fn assign(&mut self, src: RemoveFactor64Incomplete<'_>) {
-        (&mut self.0, &mut self.1).assign(src);
-    }
-}
-
-from_assign! { RemoveFactor64Incomplete<'_> => Integer, u64 }
 
 ref_math_op0! { Integer; xmpz::fac_ui; struct FactorialIncomplete { n: c_ulong } }
 ref_math_op0! { Integer; xmpz::twofac_ui; struct Factorial2Incomplete { n: c_ulong } }
