@@ -54,9 +54,9 @@ mod tests;
 mod traits;
 
 pub use crate::integer::big::{BorrowInteger, IsPrime, ParseIntegerError, UnsignedPrimitive};
-pub use crate::integer::small::{SmallInteger, ToSmall};
 #[cfg(all(target_pointer_width = "64", not(windows)))]
 pub use crate::integer::long64::IntegerExt64;
+pub use crate::integer::small::{SmallInteger, ToSmall};
 
 use libc::c_int;
 

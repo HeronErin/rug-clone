@@ -5006,32 +5006,6 @@ impl Integer {
         FactorialIncomplete { n }
     }
 
-    /// Computes the factorial of <i>n</i>.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`factorial`][Integer::factorial] but takes
-    /// `n` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Complete, Integer};
-    /// // 10 × 9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1
-    /// assert_eq!(Integer::factorial_64(10).complete(), 3628800);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn factorial_64(n: u64) -> FactorialIncomplete {
-        let n = n.unwrapped_cast();
-        FactorialIncomplete { n }
-    }
-
     /// Computes the double factorial of <i>n</i>.
     ///
     /// The following are implemented with the returned [incomplete-computation
@@ -5052,32 +5026,6 @@ impl Integer {
     #[inline]
     pub fn factorial_2(n: u32) -> Factorial2Incomplete {
         let n = n.into();
-        Factorial2Incomplete { n }
-    }
-
-    /// Computes the double factorial of <i>n</i>.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`factorial_2`][Integer::factorial_2] but
-    /// takes `n` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Complete, Integer};
-    /// // 10 × 8 × 6 × 4 × 2
-    /// assert_eq!(Integer::factorial_2_64(10).complete(), 3840);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn factorial_2_64(n: u64) -> Factorial2Incomplete {
-        let n = n.unwrapped_cast();
         Factorial2Incomplete { n }
     }
 
@@ -5105,33 +5053,6 @@ impl Integer {
         FactorialMIncomplete { n, m }
     }
 
-    /// Computes the <i>m</i>-multi factorial of <i>n</i>.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`factorial_m`][Integer::factorial_m] but
-    /// takes `n` and `m` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Complete, Integer};
-    /// // 10 × 7 × 4 × 1
-    /// assert_eq!(Integer::factorial_m_64(10, 3).complete(), 280);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn factorial_m_64(n: u64, m: u64) -> FactorialMIncomplete {
-        let n = n.unwrapped_cast();
-        let m = m.unwrapped_cast();
-        FactorialMIncomplete { n, m }
-    }
-
     /// Computes the primorial of <i>n</i>.
     ///
     /// The following are implemented with the returned [incomplete-computation
@@ -5152,32 +5073,6 @@ impl Integer {
     #[inline]
     pub fn primorial(n: u32) -> PrimorialIncomplete {
         let n = n.into();
-        PrimorialIncomplete { n }
-    }
-
-    /// Computes the primorial of <i>n</i>.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`primorial`][Integer::primorial] but takes
-    /// `n` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Complete, Integer};
-    /// // 7 × 5 × 3 × 2
-    /// assert_eq!(Integer::primorial_64(10).complete(), 210);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn primorial_64(n: u64) -> PrimorialIncomplete {
-        let n = n.unwrapped_cast();
         PrimorialIncomplete { n }
     }
 
@@ -5239,73 +5134,6 @@ impl Integer {
         BinomialIncomplete { ref_self: self, k }
     }
 
-    /// Computes the binomial coefficient over <i>k</i>.
-    ///
-    /// This method is similar to [`binomial`][Integer::binomial] but takes `k`
-    /// as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// // 7 choose 2 is 21
-    /// let i = Integer::from(7);
-    /// let bin = i.binomial_64(2);
-    /// assert_eq!(bin, 21);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn binomial_64(mut self, k: u64) -> Self {
-        self.binomial_64_mut(k);
-        self
-    }
-
-    /// Computes the binomial coefficient over <i>k</i>.
-    ///
-    /// This method is similar to [`binomial_mut`][Integer::binomial_mut] but
-    /// takes `k` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// // 7 choose 2 is 21
-    /// let mut i = Integer::from(7);
-    /// i.binomial_64_mut(2);
-    /// assert_eq!(i, 21);
-    /// ```
-    #[inline]
-    pub fn binomial_64_mut(&mut self, k: u64) {
-        xmpz::bin_ui(self, (), k.unwrapped_cast());
-    }
-
-    /// Computes the binomial coefficient over <i>k</i>.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`binomial_ref`][Integer::binomial_ref] but
-    /// takes `k` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Complete, Integer};
-    /// // 7 choose 2 is 21
-    /// let i = Integer::from(7);
-    /// assert_eq!(i.binomial_64_ref(2).complete(), 21);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn binomial_64_ref(&self, k: u64) -> BinomialIncomplete<'_> {
-        let k = k.unwrapped_cast();
-        BinomialIncomplete { ref_self: self, k }
-    }
-
     /// Computes the binomial coefficient <i>n</i> over <i>k</i>.
     ///
     /// The following are implemented with the returned [incomplete-computation
@@ -5329,35 +5157,6 @@ impl Integer {
     pub fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete {
         let n = n.into();
         let k = k.into();
-        BinomialUIncomplete { n, k }
-    }
-
-    /// Computes the binomial coefficient <i>n</i> over <i>k</i>.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`binomial_u`][Integer::binomial_u] but takes
-    /// `n` and `k` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// // 7 choose 2 is 21
-    /// let b = Integer::binomial_u64(7, 2);
-    /// let i = Integer::from(b);
-    /// assert_eq!(i, 21);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn binomial_u64(n: u64, k: u64) -> BinomialUIncomplete {
-        let n = n.unwrapped_cast();
-        let k = k.unwrapped_cast();
         BinomialUIncomplete { n, k }
     }
 
@@ -5385,36 +5184,6 @@ impl Integer {
     #[inline]
     pub fn fibonacci(n: u32) -> FibonacciIncomplete {
         let n = n.into();
-        FibonacciIncomplete { n }
-    }
-
-    /// Computes the Fibonacci number.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This function is meant for an isolated number. If a sequence of
-    /// Fibonacci numbers is required, the first two values of the sequence
-    /// should be computed with the [`fibonacci_2_64`][Integer::fibonacci_2_64]
-    /// method, then iterations should be used.
-    ///
-    /// This method is similar to [`fibonacci`][Integer::fibonacci] but takes
-    /// `n` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Complete, Integer};
-    /// assert_eq!(Integer::fibonacci_64(12).complete(), 144);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn fibonacci_64(n: u64) -> FibonacciIncomplete {
-        let n = n.unwrapped_cast();
         FibonacciIncomplete { n }
     }
 
@@ -5452,43 +5221,6 @@ impl Integer {
         Fibonacci2Incomplete { n }
     }
 
-    /// Computes a Fibonacci number, and the previous Fibonacci number.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
-    ///
-    /// This function is meant to calculate isolated numbers. If a sequence of
-    /// Fibonacci numbers is required, the first two values of the sequence
-    /// should be computed with this function, then iterations should be used.
-    ///
-    /// This method is similar to [`fibonacci_2`][Integer::fibonacci_2] but
-    /// takes `n` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer};
-    /// let f = Integer::fibonacci_2_64(12);
-    /// let mut pair = <(Integer, Integer)>::from(f);
-    /// assert_eq!(pair.0, 144);
-    /// assert_eq!(pair.1, 89);
-    /// // Fibonacci number F[-1] is 1
-    /// pair.assign(Integer::fibonacci_2_64(0));
-    /// assert_eq!(pair.0, 0);
-    /// assert_eq!(pair.1, 1);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn fibonacci_2_64(n: u64) -> Fibonacci2Incomplete {
-        let n = n.unwrapped_cast();
-        Fibonacci2Incomplete { n }
-    }
-
     /// Computes the Lucas number.
     ///
     /// The following are implemented with the returned [incomplete-computation
@@ -5513,36 +5245,6 @@ impl Integer {
     #[inline]
     pub fn lucas(n: u32) -> LucasIncomplete {
         let n = n.into();
-        LucasIncomplete { n }
-    }
-
-    /// Computes the Lucas number.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This function is meant for an isolated number. If a sequence of Lucas
-    /// numbers is required, the first two values of the sequence should be
-    /// computed with the [`lucas_2_64`][Integer::lucas_2_64] method, then
-    /// iterations should be used.
-    ///
-    /// This method is similar to [`lucas`][Integer::lucas] but takes `n` as
-    /// [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Complete, Integer};
-    /// assert_eq!(Integer::lucas_64(12).complete(), 322);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn lucas_64(n: u64) -> LucasIncomplete {
-        let n = n.unwrapped_cast();
         LucasIncomplete { n }
     }
 
@@ -5579,42 +5281,6 @@ impl Integer {
         Lucas2Incomplete { n }
     }
 
-    /// Computes a Lucas number, and the previous Lucas number.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Assign]\<Src> for [(][tuple]\&mut [Integer], \&mut [Integer][][)][tuple]</code>
-    ///   * <code>[From]\<Src> for [(][tuple][Integer][], [Integer][][)][tuple]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [(][tuple][Integer][], [Integer][][)][tuple]> for Src</code>
-    ///
-    /// This function is meant to calculate isolated numbers. If a sequence of
-    /// Lucas numbers is required, the first two values of the sequence should
-    /// be computed with this function, then iterations should be used.
-    ///
-    /// This method is similar to [`lucas_2`][Integer::lucas_2] but takes `n` as
-    /// [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer};
-    /// let l = Integer::lucas_2_64(12);
-    /// let mut pair = <(Integer, Integer)>::from(l);
-    /// assert_eq!(pair.0, 322);
-    /// assert_eq!(pair.1, 199);
-    /// pair.assign(Integer::lucas_2_64(0));
-    /// assert_eq!(pair.0, 2);
-    /// assert_eq!(pair.1, -1);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn lucas_2_64(n: u64) -> Lucas2Incomplete {
-        let n = n.unwrapped_cast();
-        Lucas2Incomplete { n }
-    }
-
     #[cfg(feature = "rand")]
     /// Generates a random number with a specified maximum number of bits.
     ///
@@ -5639,36 +5305,6 @@ impl Integer {
     #[inline]
     pub fn random_bits(bits: u32, rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
         let bits = bits.into();
-        RandomBitsIncomplete { bits, rng }
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a random number with a specified maximum number of bits.
-    ///
-    /// The following are implemented with the returned [incomplete-computation
-    /// value][icv] as `Src`:
-    ///   * <code>[Assign]\<Src> for [Integer]</code>
-    ///   * <code>[From]\<Src> for [Integer]</code>
-    ///   * <code>[Complete]\<[Completed][Complete::Completed] = [Integer]> for Src</code>
-    ///
-    /// This method is similar to [`random_bits`][Integer::random_bits] but
-    /// takes `bits` as [`u64`].
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{rand::RandState, Assign, Integer};
-    /// let mut rand = RandState::new();
-    /// let mut i = Integer::from(Integer::random_bits(0, &mut rand));
-    /// assert_eq!(i, 0);
-    /// i.assign(Integer::random_bits(80, &mut rand));
-    /// assert!(i.significant_bits() <= 80);
-    /// ```
-    ///
-    /// [icv]: crate#incomplete-computation-values
-    #[inline]
-    pub fn random_bits_64(bits: u64, rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
-        let bits = bits.unwrapped_cast();
         RandomBitsIncomplete { bits, rng }
     }
 

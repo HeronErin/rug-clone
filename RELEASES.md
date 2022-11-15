@@ -15,37 +15,15 @@ Version 1.18.0 (unreleased)
   * All error types now implement [`Clone`], [`Copy`], [`PartialEq`] and [`Eq`].
   * The [`IntegerExt64`][ie64-1-18] trait was added to support very large
     integers better on some 64-bit platforms.
-  * The following methods were added to the [`Integer`][int-1-18] struct to
-    support very large integers better on 64-bit systems.
-    * [`factorial_64`][int-fact-1-18], [`factorial_2_64`][int-fact2-1-18],
-      [`factorial_m_64`][int-factm-1-18], [`primorial_64`][int-p-1-18]
-    * [`binomial_64`][int-bin-1-18], [`binomial_64_mut`][int-binm-1-18],
-      [`binomial_64_ref`][int-binr-1-18], [`binomial_u64`][int-binu-1-18]
-    * [`fibonacci_64`][int-fib-1-18], [`fibonacci_2_64`][int-fib2-1-18],
-      [`lucas_64`][int-luc-1-18], [`lucas_2_64`][int-luc2-1-18]
-    * [`random_bits_64`][int-rb-1-18]
 
 [ie64-1-18]: https://docs.rs/rug/~1.18/rug/integer/trait.IntegerExt64.html
 [int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
-[int-bin-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64
-[int-binm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64_mut
-[int-binr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_64_ref
-[int-binu-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.binomial_u64
 [int-eg-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd
 [int-egm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_mut
 [int-egr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_ref
-[int-fact-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.factorial_64
-[int-fact2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.factorial_2_64
-[int-factm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.factorial_m_64
-[int-fib-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.fibonacci_64
-[int-fib2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.fibonacci_2_64
 [int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
 [int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
 [int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
-[int-luc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lucas_64
-[int-luc2-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.lucas_2_64
-[int-p-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.primorial_64
-[int-rb-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.random_bits_64
 
 Version 1.17.0 (2022-08-06)
 ===========================
