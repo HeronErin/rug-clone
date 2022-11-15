@@ -4495,7 +4495,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn gcd_u_mut(&mut self, other: u32) {
-        xmpz::gcd_u32(self, (), other);
+        xmpz::gcd_ui(self, (), other.into());
     }
 
     /// Finds the greatest common divisor.
@@ -4529,6 +4529,7 @@ impl Integer {
     /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn gcd_u_ref(&self, other: u32) -> GcdUIncomplete<'_> {
+        let other = other.into();
         GcdUIncomplete {
             ref_self: self,
             other,
@@ -4825,7 +4826,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn lcm_u_mut(&mut self, other: u32) {
-        xmpz::lcm_u32(self, (), other);
+        xmpz::lcm_ui(self, (), other.into());
     }
 
     /// Finds the least common multiple.
@@ -4851,6 +4852,7 @@ impl Integer {
     /// [icv]: crate#incomplete-computation-values
     #[inline]
     pub fn lcm_u_ref(&self, other: u32) -> LcmUIncomplete<'_> {
+        let other = other.into();
         LcmUIncomplete {
             ref_self: self,
             other,
@@ -5912,12 +5914,12 @@ ref_math_op1! { Integer; xmpz::sqrt; struct SqrtIncomplete {} }
 ref_math_op1_2! { Integer; xmpz::sqrtrem; struct SqrtRemIncomplete {} }
 ref_math_op1! { Integer; xmpz::nextprime; struct NextPrimeIncomplete {} }
 ref_math_op2! { Integer; xmpz::gcd; struct GcdIncomplete { other } }
-ref_math_op1! { Integer; xmpz::gcd_u32; struct GcdUIncomplete { other: u32 } }
+ref_math_op1! { Integer; xmpz::gcd_ui; struct GcdUIncomplete { other: c_ulong } }
 
 impl From<GcdUIncomplete<'_>> for Option<u32> {
     #[inline]
     fn from(src: GcdUIncomplete) -> Self {
-        let gcd = xmpz::gcd_ui(None, src.ref_self, src.other.into());
+        let gcd = xmpz::gcd_opt_ui(None, src.ref_self, src.other.into());
         if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
             None
         } else {
@@ -5972,7 +5974,7 @@ impl From<GcdExtIncomplete<'_>> for (Integer, Integer) {
 }
 
 ref_math_op2! { Integer; xmpz::lcm; struct LcmIncomplete { other } }
-ref_math_op1! { Integer; xmpz::lcm_u32; struct LcmUIncomplete { other: u32 } }
+ref_math_op1! { Integer; xmpz::lcm_ui; struct LcmUIncomplete { other: c_ulong } }
 
 #[derive(Debug)]
 pub struct InvertIncomplete<'a> {

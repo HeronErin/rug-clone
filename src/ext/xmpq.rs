@@ -766,7 +766,7 @@ pub fn mul_ui<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
     if O::IS_SOME {
         let (lhs_num, lhs_den) = lhs.unwrap_parts();
-        let gcd = xmpz::gcd_ui(None, lhs_den, rhs);
+        let gcd = xmpz::gcd_opt_ui(None, lhs_den, rhs);
         if gcd != 1 {
             numer.assign(rhs / gcd * lhs_num);
             xmpz::divexact_ui(denom, lhs_den, gcd);
@@ -775,7 +775,7 @@ pub fn mul_ui<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
             denom.assign(lhs_den);
         }
     } else {
-        let gcd = xmpz::gcd_ui(None, &*denom, rhs);
+        let gcd = xmpz::gcd_opt_ui(None, &*denom, rhs);
         if gcd != 1 {
             *numer *= rhs / gcd;
             xmpz::divexact_ui(denom, (), gcd);
@@ -793,7 +793,7 @@ pub fn div_ui<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
     let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
     if O::IS_SOME {
         let (lhs_num, lhs_den) = lhs.unwrap_parts();
-        let gcd = xmpz::gcd_ui(None, lhs_num, rhs);
+        let gcd = xmpz::gcd_opt_ui(None, lhs_num, rhs);
         if gcd != 1 {
             xmpz::divexact_ui(numer, lhs_num, gcd);
             denom.assign(rhs / gcd * lhs_den);
@@ -802,7 +802,7 @@ pub fn div_ui<O: OptRational>(rop: &mut Rational, lhs: O, rhs: c_ulong) {
             denom.assign(rhs * lhs_den);
         }
     } else {
-        let gcd = xmpz::gcd_ui(None, &*numer, rhs);
+        let gcd = xmpz::gcd_opt_ui(None, &*numer, rhs);
         if gcd != 1 {
             xmpz::divexact_ui(numer, (), gcd);
             *denom *= rhs / gcd;
@@ -829,7 +829,7 @@ pub fn ui_div<O: OptRational>(rop: &mut Rational, lhs: c_ulong, rhs: O) {
     let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
     if O::IS_SOME {
         let (rhs_num, rhs_den) = rhs.unwrap_parts();
-        let gcd = xmpz::gcd_ui(None, rhs_num, lhs);
+        let gcd = xmpz::gcd_opt_ui(None, rhs_num, lhs);
         if gcd != 1 {
             numer.assign(lhs / gcd * rhs_den);
             xmpz::divexact_ui(denom, rhs_num, gcd);
@@ -838,7 +838,7 @@ pub fn ui_div<O: OptRational>(rop: &mut Rational, lhs: c_ulong, rhs: O) {
             denom.assign(rhs_num);
         }
     } else {
-        let gcd = xmpz::gcd_ui(None, &*numer, lhs);
+        let gcd = xmpz::gcd_opt_ui(None, &*numer, lhs);
         mem::swap(numer, denom);
         if gcd != 1 {
             *numer *= lhs / gcd;

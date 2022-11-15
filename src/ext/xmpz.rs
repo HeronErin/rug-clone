@@ -14,13 +14,12 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::integer::SmallInteger;
 use crate::misc::NegAbs;
 use crate::ops::NegAssign;
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
 use crate::Integer;
-use az::{Az, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
+use az::{Az, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
 use core::cmp::Ordering;
 use core::mem::MaybeUninit;
 use core::ptr::{self, NonNull};
@@ -192,41 +191,9 @@ pub fn u32_pow_u32(rop: &mut Integer, base: u32, exp: u32) {
 }
 
 #[inline]
-pub fn u64_pow_u64(rop: &mut Integer, base: u64, exp: u64) {
-    if let Some(exp) = exp.checked_cast() {
-        if let Some(base) = base.checked_cast() {
-            ui_pow_ui(rop, base, exp);
-            return;
-        }
-        let small = SmallInteger::from(base);
-        unsafe {
-            gmp::mpz_pow_ui(rop.as_raw_mut(), small.as_raw(), exp);
-        }
-        return;
-    }
-    // exp is too large, which would mean overflow for any base except 0 and 1
-    if base == 0 {
-        set_0(rop);
-    } else if base == 1 {
-        set_1(rop);
-    } else {
-        panic!("overflow");
-    }
-}
-
-#[inline]
 pub fn i32_pow_u32(rop: &mut Integer, base: i32, exp: u32) {
     let (base_neg, base_abs) = base.neg_abs();
     u32_pow_u32(rop, base_abs, exp);
-    if base_neg && (exp & 1) == 1 {
-        neg(rop, ());
-    }
-}
-
-#[inline]
-pub fn i64_pow_u64(rop: &mut Integer, base: i64, exp: u64) {
-    let (base_neg, base_abs) = base.neg_abs();
-    u64_pow_u64(rop, base_abs, exp);
     if base_neg && (exp & 1) == 1 {
         neg(rop, ());
     }
@@ -291,16 +258,7 @@ pub fn divexact_u32<O: OptInteger>(q: &mut Integer, dividend: O, divisor: u32) {
 }
 
 #[inline]
-pub fn divexact_u64<O: OptInteger>(q: &mut Integer, dividend: O, divisor: u64) {
-    if let Some(divisor) = divisor.checked_cast() {
-        return divexact_ui(q, dividend, divisor);
-    }
-    let small = SmallInteger::from(divisor);
-    divexact(q, dividend, &*small);
-}
-
-#[inline]
-pub fn gcd_ui<O: OptInteger>(rop: Option<&mut Integer>, op1: O, op2: c_ulong) -> c_ulong {
+pub fn gcd_opt_ui<O: OptInteger>(rop: Option<&mut Integer>, op1: O, op2: c_ulong) -> c_ulong {
     let (rop, op1) = match rop {
         Some(rop) => {
             let rop = rop.as_raw_mut();
@@ -310,44 +268,6 @@ pub fn gcd_ui<O: OptInteger>(rop: Option<&mut Integer>, op1: O, op2: c_ulong) ->
         None => panic!("no operand"),
     };
     unsafe { gmp::mpz_gcd_ui(rop, op1, op2) }
-}
-
-#[inline]
-pub fn gcd_u32<O: OptInteger>(rop: &mut Integer, op1: O, op2: u32) {
-    gcd_ui(Some(rop), op1, op2.into());
-}
-
-#[inline]
-pub fn gcd_u64<O: OptInteger>(rop: &mut Integer, op1: O, op2: u64) {
-    if let Some(op2) = op2.checked_cast() {
-        gcd_ui(Some(rop), op1, op2);
-        return;
-    }
-    let small = SmallInteger::from(op2);
-    gcd(rop, op1, &small);
-}
-
-#[inline]
-pub fn lcm_u32<O: OptInteger>(rop: &mut Integer, op1: O, op2: u32) {
-    let rop = rop.as_raw_mut();
-    let op1 = op1.mpz_or(rop);
-    unsafe {
-        gmp::mpz_lcm_ui(rop, op1, op2.into());
-    }
-}
-
-#[inline]
-pub fn lcm_u64<O: OptInteger>(rop: &mut Integer, op1: O, op2: u64) {
-    if let Some(op2) = op2.checked_cast() {
-        let rop = rop.as_raw_mut();
-        let op1 = op1.mpz_or(rop);
-        unsafe {
-            gmp::mpz_lcm_ui(rop, op1, op2);
-        }
-        return;
-    }
-    let small = SmallInteger::from(op2);
-    lcm(rop, op1, &small);
 }
 
 #[inline]
@@ -673,6 +593,8 @@ unsafe_wrap! { fn add_ui(op1: O; op2: c_ulong) -> gmp::mpz_add_ui }
 unsafe_wrap! { fn sub_ui(op1: O; op2: c_ulong) -> gmp::mpz_sub_ui }
 unsafe_wrap! { fn mul_ui(op1: O; op2: c_ulong) -> gmp::mpz_mul_ui }
 unsafe_wrap! { fn mul_si(op1: O; op2: c_long) -> gmp::mpz_mul_si }
+unsafe_wrap! { fn gcd_ui(op1: O; op2: c_ulong) -> gmp::mpz_gcd_ui }
+unsafe_wrap! { fn lcm_ui(op1: O; op2: c_ulong) -> gmp::mpz_lcm_ui }
 unsafe_wrap0! { fn setbit(bit_index: bitcnt_t) -> gmp::mpz_setbit }
 unsafe_wrap0! { fn clrbit(bit_index: bitcnt_t) -> gmp::mpz_clrbit }
 unsafe_wrap0! { fn combit(bit_index: bitcnt_t) -> gmp::mpz_combit }

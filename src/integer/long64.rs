@@ -15,7 +15,7 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpz;
-use crate::misc;
+use crate::misc::{self, NegAbs};
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
 use crate::{Assign, Complete, Integer};
@@ -1486,7 +1486,7 @@ impl IntegerExt64 for Integer {
 
     #[inline]
     fn div_exact_u64_mut(&mut self, divisor: u64) {
-        xmpz::divexact_u64(self, (), divisor);
+        xmpz::divexact_ui(self, (), divisor);
     }
 
     #[inline]
@@ -1551,7 +1551,7 @@ impl IntegerExt64 for Integer {
 
     #[inline]
     fn gcd_u64_mut(&mut self, other: u64) {
-        xmpz::gcd_u64(self, (), other);
+        xmpz::gcd_ui(self, (), other);
     }
 
     #[inline]
@@ -1571,7 +1571,7 @@ impl IntegerExt64 for Integer {
 
     #[inline]
     fn lcm_u64_mut(&mut self, other: u64) {
-        xmpz::lcm_u64(self, (), other);
+        xmpz::lcm_ui(self, (), other);
     }
 
     #[inline]
@@ -1683,19 +1683,28 @@ impl IntegerExt64 for Integer {
     }
 }
 
+#[inline]
+fn i64_pow_u64(rop: &mut Integer, base: i64, exp: u64) {
+    let (base_neg, base_abs) = base.neg_abs();
+    xmpz::ui_pow_ui(rop, base_abs, exp);
+    if base_neg && (exp & 1) == 1 {
+        xmpz::neg(rop, ());
+    }
+}
+
 ref_math_op1! { Integer; xmpz::fdiv_r_2exp; struct KeepBitsIncomplete { n: bitcnt_t } }
 ref_math_op1! { Integer; xmpz::keep_signed_bits; struct KeepSignedBitsIncomplete { n: bitcnt_t } }
-ref_math_op1! { Integer; xmpz::divexact_u64; struct DivExactUIncomplete { divisor: u64 } }
-ref_math_op0! { Integer; xmpz::u64_pow_u64; struct UPowUIncomplete { base: u64, exponent: u64 } }
-ref_math_op0! { Integer; xmpz::i64_pow_u64; struct IPowUIncomplete { base: i64, exponent: u64 } }
+ref_math_op1! { Integer; xmpz::divexact_ui; struct DivExactUIncomplete { divisor: u64 } }
+ref_math_op0! { Integer; xmpz::ui_pow_ui; struct UPowUIncomplete { base: u64, exponent: u64 } }
+ref_math_op0! { Integer; i64_pow_u64; struct IPowUIncomplete { base: i64, exponent: u64 } }
 ref_math_op1! { Integer; xmpz::root; struct RootIncomplete { n: c_ulong } }
 ref_math_op1_2! { Integer; xmpz::rootrem; struct RootRemIncomplete { n: c_ulong } }
-ref_math_op1! { Integer; xmpz::gcd_u64; struct GcdUIncomplete { other: u64 } }
+ref_math_op1! { Integer; xmpz::gcd_ui; struct GcdUIncomplete { other: u64 } }
 
 impl From<GcdUIncomplete<'_>> for Option<u64> {
     #[inline]
     fn from(src: GcdUIncomplete) -> Self {
-        let gcd = xmpz::gcd_ui(None, src.ref_self, src.other.into());
+        let gcd = xmpz::gcd_opt_ui(None, src.ref_self, src.other.into());
         if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
             None
         } else {
@@ -1704,7 +1713,7 @@ impl From<GcdUIncomplete<'_>> for Option<u64> {
     }
 }
 
-ref_math_op1! { Integer; xmpz::lcm_u64; struct LcmUIncomplete { other: u64 } }
+ref_math_op1! { Integer; xmpz::lcm_ui; struct LcmUIncomplete { other: u64 } }
 
 #[derive(Debug)]
 pub struct RemoveFactorIncomplete<'a> {
