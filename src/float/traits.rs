@@ -15,7 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpfr;
-use crate::float::big::{self, ExpFormat, Format};
+use crate::float::big;
+use crate::float::big::{ExpFormat, Format};
 use crate::float::{Constant, OrdFloat, Round, Special};
 use crate::ops::AssignRound;
 #[cfg(feature = "integer")]
@@ -347,7 +348,8 @@ unsafe impl Sync for Float {}
 #[cfg(test)]
 #[allow(clippy::float_cmp)]
 mod tests {
-    use crate::float::{self, FreeCache, Round};
+    use crate::float;
+    use crate::float::{FreeCache, Round};
     use crate::ops::AssignRound;
     use crate::{Assign, Float};
     use core::cmp::Ordering;
@@ -375,7 +377,8 @@ mod tests {
     #[cfg(feature = "rational")]
     #[test]
     fn check_fallible_conversions() {
-        use crate::{float::Special, Float, Rational};
+        use crate::float::Special;
+        use crate::{Float, Rational};
         use core::convert::TryFrom;
         let large = [
             Float::with_val(20, Special::Zero),

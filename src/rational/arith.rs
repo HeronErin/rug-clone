@@ -14,8 +14,10 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::ext::xmpq::{self, OptRational};
-use crate::integer::{arith::AsLong, SmallInteger};
+use crate::ext::xmpq;
+use crate::ext::xmpq::OptRational;
+use crate::integer::arith::AsLong;
+use crate::integer::SmallInteger;
 use crate::ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
 use crate::{Assign, Complete, Integer, Rational};
 use az::{CheckedAs, CheckedCast};
@@ -364,7 +366,8 @@ fn rhs_has_more_alloc(lhs: &Rational, rhs: &Rational) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ops::Pow, Integer, Rational};
+    use crate::ops::Pow;
+    use crate::{Integer, Rational};
     use core::cmp::Ordering;
 
     macro_rules! test_ref_op {

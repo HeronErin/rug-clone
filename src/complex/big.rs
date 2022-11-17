@@ -16,7 +16,8 @@
 
 use crate::complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
 use crate::complex::{OrdComplex, Prec};
-use crate::ext::xmpc::{self, Ordering2, Round2, NEAREST2};
+use crate::ext::xmpc;
+use crate::ext::xmpc::{Ordering2, Round2, NEAREST2};
 use crate::ext::xmpfr;
 use crate::float;
 use crate::float::big::{
@@ -111,7 +112,8 @@ versions:
 
 ```rust
 use core::cmp::Ordering;
-use rug::{float::Round, Complex};
+use rug::float::Round;
+use rug::Complex;
 let expected = Complex::with_val(53, (1.2985, 0.6350));
 
 // 1. consume the operand, round to nearest
@@ -261,7 +263,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let round = (Round::Down, Round::Up);
     /// let (c, dir) = Complex::with_val_round(4, (3.3, 2.3), round);
     /// // 3.3 is rounded down to 3.25, 2.3 is rounded up to 2.5
@@ -326,7 +329,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let mut r = Complex::with_val(6, (4.875, 4.625));
     /// assert_eq!(r, (4.875, 4.625));
     /// let dir = r.set_prec_round(4, (Round::Down, Round::Up));
@@ -383,7 +387,8 @@ impl Complex {
     ///
     /// ```rust
     /// use gmp_mpfr_sys::mpc;
-    /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
+    /// use gmp_mpfr_sys::mpfr;
+    /// use gmp_mpfr_sys::mpfr::rnd_t;
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (-14.5, 3.25));
     /// let mut m = c.into_raw();
@@ -412,7 +417,8 @@ impl Complex {
     ///
     /// ```rust
     /// use gmp_mpfr_sys::mpc;
-    /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
+    /// use gmp_mpfr_sys::mpfr;
+    /// use gmp_mpfr_sys::mpfr::rnd_t;
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (-14.5, 3.25));
     /// let m_ptr = c.as_raw();
@@ -601,7 +607,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let c = Complex::with_val(10, 10.4);
     /// let down = (Round::Down, Round::Down);
     /// let nearest = (Round::Nearest, Round::Nearest);
@@ -907,7 +914,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Special, Complex};
+    /// use rug::float::Special;
+    /// use rug::Complex;
     ///
     /// let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
     /// let nan = nan_c.as_ord();
@@ -936,7 +944,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{float::Special, Assign, Complex};
+    /// use rug::float::Special;
+    /// use rug::{Assign, Complex};
     /// let mut c = Complex::with_val(53, (Special::NegZero, Special::Zero));
     /// assert!(c.eq0());
     /// c += 5.2;
@@ -988,7 +997,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{float::Special, Complex};
+    /// use rug::float::Special;
+    /// use rug::Complex;
     /// let mut values = vec![
     ///     Complex::with_val(53, (Special::Zero, Special::Zero)),
     ///     Complex::with_val(53, (Special::Zero, Special::NegZero)),
@@ -1189,7 +1199,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
@@ -1290,7 +1301,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
@@ -1461,7 +1473,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let mut c = Complex::with_val(4, (1.25, 1.25));
     /// // (1.25 + 1.25i) squared is (0 + 3.125i).
     /// // With 4 bits of precision, 3.125 is rounded down to 3.
@@ -1486,7 +1499,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let c = Complex::with_val(53, (1.25, 1.25));
     /// // (1.25 + 1.25i) squared is (0 + 3.125i).
     /// let r = c.square_ref();
@@ -1543,7 +1557,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let mut c = Complex::with_val(4, (2, 2.25));
     /// // Square root of (2 + 2.25i) is (1.5828 + 0.7108i).
     /// // Nearest with 4 bits of precision: (1.625 + 0.6875i)
@@ -1568,7 +1583,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let c = Complex::with_val(53, (2, 2.25));
     /// // Square root of (2 + 2.25i) is (1.5828 + 0.7108i).
     /// let r = c.sqrt_ref();
@@ -1687,7 +1703,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (30, 40));
     /// // 50 rounded up using 4 bits is 52
@@ -1783,7 +1800,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // use only 4 bits of precision
     /// let mut c = Complex::with_val(4, (3, 4));
     /// // arg(3 + 4i) = 0.9316.
@@ -1881,7 +1899,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // only 4 bits of precision for imaginary part
     /// let mut c = Complex::with_val((53, 4), (127, 15));
     /// assert_eq!(c, (127, 15));
@@ -1963,7 +1982,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// let mut c = Complex::with_val(4, (1, 2));
     /// // 1/(1 + 2i) = (0.2 - 0.4i), binary (0.00110011..., -0.01100110...)
     /// // 4 bits of precision: (0.001101, -0.01101) = (13/64, -13/32)
@@ -2045,7 +2065,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // use only 4 bits of precision
     /// let mut c = Complex::with_val(4, (3, 4));
     /// // 25 rounded up using 4 bits is 26
@@ -2129,7 +2150,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1.5, -0.5));
     /// // ln(1.5 - 0.5i) = (0.4581 - 0.3218i)
@@ -2208,7 +2230,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1.5, -0.5));
     /// // log10(1.5 - 0.5i) = (0.1990 - 0.1397i)
@@ -2314,7 +2337,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (0.5, -0.75));
     /// // exp(0.5 - 0.75i) = (1.2064 - 1.1238i)
@@ -2392,7 +2416,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // sin(1 + i) = (1.2985 + 0.6350i)
@@ -2470,7 +2495,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // cos(1 + i) = (0.8337 - 0.9889i)
@@ -2568,7 +2594,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut sin = Complex::with_val(4, (1, 1));
     /// let mut cos = Complex::new(4);
@@ -2602,7 +2629,9 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, ops::AssignRound, Assign, Complex};
+    /// use rug::float::Round;
+    /// use rug::ops::AssignRound;
+    /// use rug::{Assign, Complex};
     /// let phase = Complex::with_val(53, (1, 1));
     ///
     /// let (mut sin, mut cos) = (Complex::new(53), Complex::new(53));
@@ -2671,7 +2700,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // tan(1 + i) = (0.2718 + 1.0839)
@@ -2749,7 +2779,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // sinh(1 + i) = (0.6350 + 1.2985i)
@@ -2827,7 +2858,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // cosh(1 + i) = (0.8337 + 0.9889)
@@ -2905,7 +2937,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // tanh(1 + i) = (1.0839 + 0.2718i)
@@ -2983,7 +3016,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // asin(1 + i) = (0.6662 + 1.0613i)
@@ -3061,7 +3095,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // acos(1 + i) = (0.9046 - 1.0613i)
@@ -3139,7 +3174,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // atan(1 + i) = (1.0172 + 0.4024i)
@@ -3218,7 +3254,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // asinh(1 + i) = (1.0613 + 0.6662i)
@@ -3297,7 +3334,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // acosh(1 + i) = (1.0613 + 0.9046i)
@@ -3376,7 +3414,8 @@ impl Complex {
     ///
     /// ```rust
     /// use core::cmp::Ordering;
-    /// use rug::{float::Round, Complex};
+    /// use rug::float::Round;
+    /// use rug::Complex;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (1, 1));
     /// // atanh(1 + i) = (0.4024 + 1.0172i)
@@ -3443,7 +3482,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{rand::RandState, Assign, Complex};
+    /// use rug::rand::RandState;
+    /// use rug::{Assign, Complex};
     /// let mut rand = RandState::new();
     /// let mut c = Complex::new(2);
     /// c.assign(Complex::random_bits(&mut rand));
@@ -3486,7 +3526,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{rand::RandState, Complex};
+    /// use rug::rand::RandState;
+    /// use rug::Complex;
     /// let mut rand = RandState::new();
     /// let c = Complex::with_val(2, Complex::random_cont(&mut rand));
     /// let (re, im) = c.into_real_imag();
@@ -3989,7 +4030,8 @@ impl CompleteRound for RandomContIncomplete<'_> {
 /// # Examples
 ///
 /// ```rust
-/// use rug::{complex::BorrowComplex, Complex};
+/// use rug::complex::BorrowComplex;
+/// use rug::Complex;
 /// let c = Complex::with_val(53, (4.2, -2.3));
 /// let neg: BorrowComplex = c.as_neg();
 /// // c is still valid
@@ -4019,7 +4061,8 @@ impl BorrowComplex<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{complex::BorrowComplex, Complex};
+    /// use rug::complex::BorrowComplex;
+    /// use rug::Complex;
     /// let c = Complex::with_val(53, (4.2, -2.3));
     /// // Safety: c.as_raw() is a valid pointer.
     /// let raw = unsafe { *c.as_raw() };
@@ -4244,7 +4287,8 @@ details on what strings are accepted.
 # Examples
 
 ```rust
-use rug::{complex::ParseComplexError, Complex};
+use rug::complex::ParseComplexError;
+use rug::Complex;
 // This string is not a complex number.
 let s = "something completely different (_!_!_)";
 let error: ParseComplexError = match Complex::parse_radix(s, 4) {

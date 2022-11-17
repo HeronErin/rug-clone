@@ -39,8 +39,10 @@ pub use crate::float::big::{BorrowFloat, ParseFloatError};
 pub use crate::float::ord::OrdFloat;
 pub use crate::float::small::{SmallFloat, ToSmall};
 use az::SaturatingCast;
-use core::{i32, u32};
-use gmp_mpfr_sys::mpfr::{self, prec_t};
+use core::i32;
+use core::u32;
+use gmp_mpfr_sys::mpfr;
+use gmp_mpfr_sys::mpfr::prec_t;
 
 /**
 Returns the minimum value for the exponent.
@@ -136,7 +138,9 @@ least significant bit set to zero.
 # Examples
 
 ```rust
-use rug::{float::Round, ops::AssignRound, Float};
+use rug::float::Round;
+use rug::ops::AssignRound;
+use rug::Float;
 let mut f4 = Float::new(4);
 f4.assign_round(10.4, Round::Nearest);
 assert_eq!(f4, 10);
@@ -152,7 +156,9 @@ Rounding to the nearest will round numbers exactly between two representable
 numbers to the even one.
 
 ```rust
-use rug::{float::Round, ops::AssignRound, Float};
+use rug::float::Round;
+use rug::ops::AssignRound;
+use rug::Float;
 // 24 is 11000 in binary
 // 25 is 11001 in binary
 // 26 is 11010 in binary
@@ -223,7 +229,8 @@ The available floating-point constants.
 # Examples
 
 ```rust
-use rug::{float::Constant, Float};
+use rug::float::Constant;
+use rug::Float;
 
 let log2 = Float::with_val(53, Constant::Log2);
 let pi = Float::with_val(53, Constant::Pi);
@@ -260,7 +267,8 @@ Special floating-point values.
 # Examples
 
 ```rust
-use rug::{float::Special, Float};
+use rug::float::Special;
+use rug::Float;
 
 let zero = Float::with_val(53, Special::Zero);
 let neg_zero = Float::with_val(53, Special::NegZero);
@@ -302,7 +310,8 @@ Specifies which cache to free.
 # Examples
 
 ```rust
-use rug::float::{self, FreeCache};
+use rug::float;
+use rug::float::FreeCache;
 use std::thread;
 
 fn main() {
@@ -340,7 +349,8 @@ before exiting.
 # Examples
 
 ```rust
-use rug::float::{self, FreeCache};
+use rug::float;
+use rug::float::FreeCache;
 use std::thread;
 
 fn main() {

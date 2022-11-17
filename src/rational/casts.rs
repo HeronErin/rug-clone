@@ -14,7 +14,9 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpq, misc, Integer, Rational};
+use crate::ext::xmpq;
+use crate::misc;
+use crate::{Integer, Rational};
 use az::{Az, Cast, CheckedCast, UnwrappedCast};
 
 macro_rules! cast_int {
@@ -150,7 +152,10 @@ mod tests {
         Az, Cast, CheckedAs, CheckedCast, OverflowingAs, OverflowingCast, SaturatingAs,
         SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast,
     };
-    use core::{borrow::Borrow, f32, f64, fmt::Debug};
+    use core::borrow::Borrow;
+    use core::f32;
+    use core::f64;
+    use core::fmt::Debug;
     use std::panic;
 
     #[test]

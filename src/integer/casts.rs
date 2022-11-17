@@ -14,7 +14,10 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpz, misc, ops::NegAssign, Integer};
+use crate::ext::xmpz;
+use crate::misc;
+use crate::ops::NegAssign;
+use crate::Integer;
 use az::{
     Az, Cast, CheckedCast, OverflowingCast, Round, SaturatingCast, UnwrappedCast, WrappingCast,
 };
@@ -400,7 +403,10 @@ mod tests {
         Az, Cast, CheckedAs, CheckedCast, OverflowingAs, OverflowingCast, Round, SaturatingAs,
         SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast,
     };
-    use core::{borrow::Borrow, f32, f64, fmt::Debug};
+    use core::borrow::Borrow;
+    use core::f32;
+    use core::f64;
+    use core::fmt::Debug;
     use std::panic;
 
     #[test]

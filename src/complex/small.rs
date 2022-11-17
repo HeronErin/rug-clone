@@ -15,13 +15,17 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpfr;
-use crate::float::{self, small::Mpfr, ToSmall};
+use crate::float;
+use crate::float::small::Mpfr;
+use crate::float::ToSmall;
 use crate::{Assign, Complex};
 use core::cell::UnsafeCell;
-use core::mem::{self, MaybeUninit};
+use core::mem;
+use core::mem::MaybeUninit;
 use core::ops::Deref;
 use core::ptr::NonNull;
-use gmp_mpfr_sys::gmp::{self, limb_t};
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::limb_t;
 use gmp_mpfr_sys::mpc::mpc_t;
 use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
 
@@ -56,7 +60,8 @@ The `SmallComplex` type can be coerced to a [`Complex`], as it implements
 # Examples
 
 ```rust
-use rug::{complex::SmallComplex, Complex};
+use rug::complex::SmallComplex;
+use rug::Complex;
 // `a` requires a heap allocation
 let mut a = Complex::with_val(53, (1, 2));
 // `b` can reside on the stack
@@ -328,7 +333,8 @@ impl Assign for SmallComplex {
 #[cfg(test)]
 mod tests {
     use crate::complex::SmallComplex;
-    use crate::float::{self, FreeCache};
+    use crate::float;
+    use crate::float::FreeCache;
     use crate::Assign;
 
     #[test]

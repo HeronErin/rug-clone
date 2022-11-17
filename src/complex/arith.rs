@@ -15,7 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::complex::SmallComplex;
-use crate::ext::xmpc::{self, OptComplex, Ordering2, Round2, NEAREST2};
+use crate::ext::xmpc;
+use crate::ext::xmpc::{OptComplex, Ordering2, Round2, NEAREST2};
 use crate::float::SmallFloat;
 use crate::ops::{
     AddAssignRound, AddFrom, AddFromRound, AssignRound, CompleteRound, DivAssignRound, DivFrom,
@@ -649,7 +650,9 @@ fn mul_sub<O: OptComplex>(
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, arith::tests as float_tests, FreeCache, Special};
+    use crate::float;
+    use crate::float::arith::tests as float_tests;
+    use crate::float::{FreeCache, Special};
     use crate::ops::{NegAssign, Pow};
     #[cfg(feature = "integer")]
     use crate::Integer;

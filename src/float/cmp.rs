@@ -187,7 +187,8 @@ cmp! { IExpIncomplete }
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Special};
+    use crate::float;
+    use crate::float::{FreeCache, Special};
     #[cfg(feature = "integer")]
     use crate::Integer;
     #[cfg(feature = "rational")]

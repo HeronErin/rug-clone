@@ -14,7 +14,8 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::ext::{xmpq, xmpz};
+use crate::ext::xmpq;
+use crate::ext::xmpz;
 use crate::{Assign, Integer, Rational};
 use az::CheckedCast;
 use core::cmp::Ordering;

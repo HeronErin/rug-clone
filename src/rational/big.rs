@@ -14,7 +14,8 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::ext::{xmpq, xmpz};
+use crate::ext::xmpq;
+use crate::ext::xmpz;
 use crate::integer::big as big_integer;
 use crate::ops::{NegAssign, SubFrom};
 use crate::rational::arith::MulIncomplete;
@@ -25,7 +26,8 @@ use core::fmt::{Display, Formatter, Result as FmtResult};
 use core::marker::PhantomData;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign};
-use gmp_mpfr_sys::gmp::{self, mpq_t};
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::mpq_t;
 use std::error::Error;
 
 /**
@@ -224,7 +226,8 @@ impl Rational {
     /// denominator values. See the [GMP documentation][gmp roinit] for details.
     ///
     /// ```rust
-    /// use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
+    /// use gmp_mpfr_sys::gmp;
+    /// use gmp_mpfr_sys::gmp::{limb_t, mpq_t};
     /// use rug::{Integer, Rational};
     /// const NUMER_LIMBS: [limb_t; 2] = [0, 5];
     /// const DENOM_LIMBS: [limb_t; 1] = [3];
@@ -514,7 +517,8 @@ impl Rational {
     ///
     /// ```rust
     /// use core::f32;
-    /// use rug::{rational::SmallRational, Rational};
+    /// use rug::rational::SmallRational;
+    /// use rug::Rational;
     /// let min = Rational::from_f32(f32::MIN).unwrap();
     /// let minus_small = min - &*SmallRational::from((7, 2));
     /// // minus_small is truncated to f32::MIN
@@ -540,7 +544,8 @@ impl Rational {
     ///
     /// ```rust
     /// use core::f64;
-    /// use rug::{rational::SmallRational, Rational};
+    /// use rug::rational::SmallRational;
+    /// use rug::Rational;
     ///
     /// // An `f64` has 53 bits of precision.
     /// let exact = 0x1f_1234_5678_9aff_u64;
@@ -2831,7 +2836,8 @@ ref_rat_op_rat_int! { xmpq::round_fract_whole; struct FractRoundIncomplete {} }
 /// # Examples
 ///
 /// ```rust
-/// use rug::{rational::BorrowRational, Rational};
+/// use rug::rational::BorrowRational;
+/// use rug::Rational;
 /// let r = Rational::from((42, 3));
 /// let neg: BorrowRational = r.as_neg();
 /// // r is still valid
@@ -2865,7 +2871,8 @@ impl BorrowRational<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{rational::BorrowRational, Rational};
+    /// use rug::rational::BorrowRational;
+    /// use rug::Rational;
     /// let r = Rational::from((42, 3));
     /// // Safety: r.as_raw() is a valid pointer.
     /// let raw = unsafe { *r.as_raw() };
@@ -3041,7 +3048,8 @@ for details on what strings are accepted.
 # Examples
 
 ```rust
-use rug::{rational::ParseRationalError, Rational};
+use rug::rational::ParseRationalError;
+use rug::Rational;
 // This string is not a rational number.
 let s = "something completely different (_!_!_)";
 let error: ParseRationalError = match Rational::parse_radix(s, 4) {

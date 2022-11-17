@@ -14,7 +14,9 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpq, misc::NegAbs, Integer, Rational};
+use crate::ext::xmpq;
+use crate::misc::NegAbs;
+use crate::{Integer, Rational};
 use az::{UnwrappedAs, UnwrappedCast};
 use core::cmp::Ordering;
 
@@ -296,7 +298,10 @@ mod tests {
     use crate::tests::{I128, I32, I64, U128, U32, U64};
     use crate::Rational;
     use az::{Az, Cast};
-    use core::{cmp::Ordering, f32, f64, ops::Neg};
+    use core::cmp::Ordering;
+    use core::f32;
+    use core::f64;
+    use core::ops::Neg;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])
     where

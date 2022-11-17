@@ -15,14 +15,17 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpq;
-use crate::integer::{small::Mpz, ToSmall};
+use crate::integer::small::Mpz;
+use crate::integer::ToSmall;
 use crate::{Assign, Rational};
 use az::Cast;
 use core::cell::UnsafeCell;
-use core::mem::{self, MaybeUninit};
+use core::mem;
+use core::mem::MaybeUninit;
 use core::ops::Deref;
 use core::ptr::NonNull;
-use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::{limb_t, mpq_t};
 use libc::c_int;
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
@@ -45,7 +48,8 @@ The `SmallRational` type can be coerced to a [`Rational`], as it implements
 # Examples
 
 ```rust
-use rug::{rational::SmallRational, Rational};
+use rug::rational::SmallRational;
+use rug::Rational;
 // `a` requires a heap allocation
 let mut a = Rational::from((100, 13));
 // `b` can reside on the stack
@@ -220,7 +224,8 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{rational::SmallRational, Assign};
+    /// use rug::rational::SmallRational;
+    /// use rug::Assign;
     /// let mut a = SmallRational::new();
     /// unsafe {
     ///     a.assign_canonical(-13, 10);
@@ -398,7 +403,8 @@ impl Assign for SmallRational {
 
 #[cfg(test)]
 mod tests {
-    use crate::{rational::SmallRational, Assign};
+    use crate::rational::SmallRational;
+    use crate::Assign;
 
     #[test]
     fn check_assign() {

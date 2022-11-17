@@ -19,7 +19,8 @@ use crate::float::tests::{clear_nanflag, nanflag, Cmp};
 use crate::float::{FreeCache, Round, Special};
 use crate::ops::{AddAssignRound, AssignRound, NegAssign, SubAssignRound, SubFrom, SubFromRound};
 use crate::{Assign, Complex};
-use core::{cmp::Ordering, f64};
+use core::cmp::Ordering;
+use core::f64;
 
 #[test]
 fn check_from_str() {

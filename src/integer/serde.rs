@@ -14,7 +14,8 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::serdeize::{self, Data, PrecReq, PrecVal};
+use crate::serdeize;
+use crate::serdeize::{Data, PrecReq, PrecVal};
 use crate::{Assign, Integer};
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};

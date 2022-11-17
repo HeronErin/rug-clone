@@ -15,7 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpz;
-use crate::misc::{self, NegAbs};
+use crate::misc;
+use crate::misc::NegAbs;
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
 use crate::{Assign, Complete, Integer};
@@ -1334,7 +1335,8 @@ pub trait IntegerExt64: Sealed {
     ///
     /// ```rust
     /// use rug::integer::IntegerExt64;
-    /// use rug::{rand::RandState, Assign, Integer};
+    /// use rug::rand::RandState;
+    /// use rug::{Assign, Integer};
     /// let mut rand = RandState::new();
     /// let mut i = Integer::from(Integer::random_bits(0, &mut rand));
     /// assert_eq!(i, 0);

@@ -14,10 +14,16 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpz::*, misc::NegAbs, Integer};
+use crate::ext::xmpz::*;
+use crate::misc::NegAbs;
+use crate::Integer;
 use az::{CheckedCast, WrappingAs, WrappingCast};
-use core::{cmp::Ordering, i32, i64, u32};
-use gmp_mpfr_sys::gmp::{self, mpz_t};
+use core::cmp::Ordering;
+use core::i32;
+use core::i64;
+use core::u32;
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::mpz_t;
 
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {

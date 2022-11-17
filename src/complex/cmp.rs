@@ -14,11 +14,12 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::float::Special;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{float::Special, Complex, Float};
+use crate::{Complex, Float};
 
 impl PartialEq for Complex {
     #[inline]
@@ -83,7 +84,8 @@ eq_re! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Special};
+    use crate::float;
+    use crate::float::{FreeCache, Special};
     #[cfg(feature = "integer")]
     use crate::Integer;
     #[cfg(feature = "rational")]

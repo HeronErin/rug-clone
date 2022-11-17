@@ -15,7 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::complex::SmallComplex;
-use crate::ext::xmpfr::{self, ordering1, raw_round, OptFloat, EXP_ZERO};
+use crate::ext::xmpfr;
+use crate::ext::xmpfr::{ordering1, raw_round, OptFloat, EXP_ZERO};
 use crate::float::Round;
 #[cfg(feature = "integer")]
 use crate::Integer;
@@ -23,9 +24,13 @@ use crate::Integer;
 use crate::Rational;
 use crate::{Complex, Float};
 use az::UnwrappedCast;
-use core::{cmp::Ordering, mem::MaybeUninit, ptr::NonNull};
-use gmp_mpfr_sys::gmp::{self, limb_t};
-use gmp_mpfr_sys::mpc::{self, mpc_t, rnd_t};
+use core::cmp::Ordering;
+use core::mem::MaybeUninit;
+use core::ptr::NonNull;
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::limb_t;
+use gmp_mpfr_sys::mpc;
+use gmp_mpfr_sys::mpc::{mpc_t, rnd_t};
 use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
 use libc::{c_int, c_long, c_ulong};
 

@@ -15,7 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpfr;
-use crate::float::{small, Round, SmallFloat};
+use crate::float::small;
+use crate::float::{Round, SmallFloat};
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
@@ -372,9 +373,10 @@ mod tests {
     use crate::{Assign, Float};
     use az::{Az, SaturatingAs, SaturatingCast};
     use core::borrow::Borrow;
+    use core::f32;
+    use core::f64;
     use core::fmt::Debug;
     use core::ops::{Add, Sub};
-    use core::{f32, f64};
 
     fn check_integer<T>(min: T, max: T)
     where

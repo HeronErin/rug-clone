@@ -14,10 +14,13 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::complex::big::{self, Format};
+use crate::complex::big;
+use crate::complex::big::Format;
 use crate::complex::OrdComplex;
-use crate::ext::xmpc::{self, Ordering2, Round2};
-use crate::float::{big::ExpFormat, Round, Special};
+use crate::ext::xmpc;
+use crate::ext::xmpc::{Ordering2, Round2};
+use crate::float::big::ExpFormat;
+use crate::float::{Round, Special};
 use crate::ops::AssignRound;
 use crate::{Assign, Complex, Float};
 use core::cmp::Ordering;
@@ -303,7 +306,8 @@ unsafe impl Sync for Complex {}
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Round};
+    use crate::float;
+    use crate::float::{FreeCache, Round};
     use crate::ops::AssignRound;
     use crate::{Assign, Complex, Float};
     use core::cmp::Ordering;

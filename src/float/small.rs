@@ -14,17 +14,21 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::ext::xmpfr::{self, raw_round};
+use crate::ext::xmpfr;
+use crate::ext::xmpfr::raw_round;
 use crate::float::{self, Round, Special};
 use crate::misc::NegAbs;
 use crate::{Assign, Float};
 use az::{Az, UnwrappedCast, WrappingCast};
 use core::cell::UnsafeCell;
-use core::mem::{self, MaybeUninit};
+use core::mem;
+use core::mem::MaybeUninit;
 use core::ops::Deref;
 use core::ptr::NonNull;
-use gmp_mpfr_sys::gmp::{self, limb_t};
-use gmp_mpfr_sys::mpfr::{self, exp_t, mpfr_t, prec_t};
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::limb_t;
+use gmp_mpfr_sys::mpfr;
+use gmp_mpfr_sys::mpfr::{exp_t, mpfr_t, prec_t};
 use libc::c_int;
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
@@ -55,7 +59,8 @@ The `SmallFloat` type can be coerced to a [`Float`], as it implements
 # Examples
 
 ```rust
-use rug::{float::SmallFloat, Float};
+use rug::float::SmallFloat;
+use rug::Float;
 // `a` requires a heap allocation, has 53-bit precision
 let mut a = Float::with_val(53, 250);
 // `b` can reside on the stack
@@ -497,7 +502,8 @@ pub(crate) unsafe fn unchecked_get_unshifted_u128(small: &SmallFloat) -> u128 {
 #[cfg(test)]
 #[allow(clippy::float_cmp)]
 mod tests {
-    use crate::float::{self, FreeCache, SmallFloat, Special};
+    use crate::float;
+    use crate::float::{FreeCache, SmallFloat, Special};
     use crate::Assign;
 
     #[test]

@@ -15,7 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpz;
-use crate::integer::{big, ParseIntegerError, TryFromIntegerError};
+use crate::integer::big;
+use crate::integer::{ParseIntegerError, TryFromIntegerError};
 use crate::{Assign, Integer};
 use az::{Az, CheckedCast};
 use core::convert::TryFrom;
@@ -23,7 +24,8 @@ use core::fmt::{
     Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex,
 };
 use core::hash::{Hash, Hasher};
-use core::mem::{self, MaybeUninit};
+use core::mem;
+use core::mem::MaybeUninit;
 use core::str::FromStr;
 use gmp_mpfr_sys::gmp::limb_t;
 use std::error::Error;

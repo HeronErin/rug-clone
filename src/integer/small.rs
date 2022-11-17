@@ -14,13 +14,16 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{misc::NegAbs, Assign, Integer};
+use crate::misc::NegAbs;
+use crate::{Assign, Integer};
 use az::{Az, Cast, WrappingCast};
 use core::cell::UnsafeCell;
-use core::mem::{self, MaybeUninit};
+use core::mem;
+use core::mem::MaybeUninit;
 use core::ops::Deref;
 use core::ptr::NonNull;
-use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::{limb_t, mpz_t};
 use libc::c_int;
 
 pub const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
@@ -43,7 +46,8 @@ The `SmallInteger` type can be coerced to an [`Integer`], as it implements
 # Examples
 
 ```rust
-use rug::{integer::SmallInteger, Integer};
+use rug::integer::SmallInteger;
+use rug::Integer;
 // `a` requires a heap allocation
 let mut a = Integer::from(250);
 // `b` can reside on the stack
@@ -137,7 +141,8 @@ impl SmallInteger {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{integer::SmallInteger, Assign};
+    /// use rug::integer::SmallInteger;
+    /// use rug::Assign;
     /// let mut i = SmallInteger::from(1u64);
     /// let capacity = i.capacity();
     /// // another u64 will not require a reallocation
@@ -392,7 +397,8 @@ impl Assign for SmallInteger {
 
 #[cfg(test)]
 mod tests {
-    use crate::{integer::SmallInteger, Assign};
+    use crate::integer::SmallInteger;
+    use crate::Assign;
 
     #[test]
     fn check_assign() {

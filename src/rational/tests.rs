@@ -14,7 +14,9 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ops::SubFrom, rational::SmallRational, Assign, Complete, Integer, Rational};
+use crate::ops::SubFrom;
+use crate::rational::SmallRational;
+use crate::{Assign, Complete, Integer, Rational};
 
 #[test]
 fn check_fract_trunc() {

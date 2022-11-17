@@ -8,7 +8,8 @@
 
 use std::env;
 use std::ffi::OsString;
-use std::fs::{self, File};
+use std::fs;
+use std::fs::File;
 use std::io::{Result as IoResult, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};

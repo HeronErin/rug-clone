@@ -14,8 +14,10 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::ext::{xmpq, xmpz};
-use crate::rational::{big, ParseRationalError, TryFromFloatError};
+use crate::ext::xmpq;
+use crate::ext::xmpz;
+use crate::rational::big;
+use crate::rational::{ParseRationalError, TryFromFloatError};
 use crate::{Assign, Integer, Rational};
 use az::CheckedCast;
 use core::convert::TryFrom;
@@ -23,9 +25,11 @@ use core::fmt::{
     Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex,
 };
 use core::hash::{Hash, Hasher};
-use core::mem::{self, MaybeUninit};
+use core::mem;
+use core::mem::MaybeUninit;
 use core::str::FromStr;
-use gmp_mpfr_sys::gmp::{self, mpq_t};
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::mpq_t;
 
 impl Default for Rational {
     #[inline]

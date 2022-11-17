@@ -14,7 +14,8 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::ext::xmpfr::{self, OptFloat};
+use crate::ext::xmpfr;
+use crate::ext::xmpfr::OptFloat;
 use crate::float::{Round, SmallFloat};
 use crate::ops::{
     AddAssignRound, AddFrom, AddFromRound, AssignRound, CompleteRound, DivAssignRound, DivFrom,
@@ -692,13 +693,16 @@ fn mul_sub<O: OptFloat>(rop: &mut Float, mul: MulIncomplete<'_>, sub: O, rnd: Ro
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use crate::float::{self, FreeCache, Special};
+    use crate::float;
+    use crate::float::{FreeCache, Special};
     use crate::ops::Pow;
     use crate::Float;
+    #[cfg(feature = "integer")]
+    use crate::Integer;
     #[cfg(feature = "rational")]
     use crate::Rational;
     #[cfg(feature = "integer")]
-    use {crate::Integer, core::str::FromStr};
+    use core::str::FromStr;
 
     pub fn same(a: Float, b: Float) -> bool {
         if a.is_nan() && b.is_nan() {

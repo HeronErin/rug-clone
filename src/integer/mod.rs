@@ -25,7 +25,9 @@ the [`SmallInteger`] type.
 # Examples
 
 ```rust
-use rug::{integer::SmallInteger, Assign, Integer};
+use rug::integer::SmallInteger;
+use rug::Assign;
+use rug::Integer;
 let mut int = Integer::from(10);
 assert_eq!(int, 10);
 let small = SmallInteger::from(-15);
@@ -67,7 +69,8 @@ An error which can be returned when a checked conversion from [`Integer`] fails.
 
 ```rust
 use core::convert::TryFrom;
-use rug::{integer::TryFromIntegerError, Integer};
+use rug::integer::TryFromIntegerError;
+use rug::Integer;
 // This is negative and cannot be converted to u32.
 let i = Integer::from(-5);
 let error: TryFromIntegerError = match u32::try_from(&i) {
@@ -90,7 +93,8 @@ The ordering of digits inside a [slice], and bytes inside a digit.
 # Examples
 
 ```rust
-use rug::{integer::Order, Integer};
+use rug::integer::Order;
+use rug::Integer;
 
 let i = Integer::from(0x0102_0304);
 let mut buf: [u16; 4] = [0; 4];

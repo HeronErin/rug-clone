@@ -42,7 +42,8 @@ use crate::Integer;
 use az::{Cast, UnwrappedAs, UnwrappedCast};
 use core::marker::PhantomData;
 use core::mem::{ManuallyDrop, MaybeUninit};
-use core::ptr::{self, NonNull};
+use core::ptr;
+use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randfnptr_t, randseed_t, randstate_t};
 use libc::{c_ulong, c_void};
 use std::process;
@@ -158,7 +159,8 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{rand::RandState, Integer};
+    /// use rug::rand::RandState;
+    /// use rug::Integer;
     /// let a = match Integer::from_str_radix("292787ebd3329ad7e7575e2fd", 16) {
     ///     Ok(i) => i,
     ///     Err(_) => unreachable!(),
@@ -474,7 +476,8 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{rand::RandState, Integer};
+    /// use rug::rand::RandState;
+    /// use rug::Integer;
     /// let seed = Integer::from(123456);
     /// let mut rand = RandState::new();
     /// rand.seed(&seed);
@@ -909,7 +912,8 @@ impl ThreadRandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{rand::ThreadRandState, Integer};
+    /// use rug::rand::ThreadRandState;
+    /// use rug::Integer;
     /// # use az::WrappingCast;
     /// # struct Gen { _dummy: *const i32, seed: u64 }
     /// # impl rug::rand::ThreadRandGen for Gen {
@@ -1222,7 +1226,11 @@ This is similar to [`RandGen`] but can only be used in a single thread.
 
 ```rust
 # #[cfg(skip_this)]
-use rand::{rngs::ThreadRng, thread_rng, RngCore};
+use rand::rngs::ThreadRng;
+# #[cfg(skip_this)]
+use rand::thread_rng;
+# #[cfg(skip_this)]
+use rand::RngCore;
 # struct ThreadRng(*const i32, u32);
 # impl ThreadRng {
 #     pub fn next_u32(&mut self) -> u32 { self.1 = self.1.wrapping_add(1); self.1 }
@@ -1246,7 +1254,11 @@ This would not compile, since `ThreadRng` is not [`Send`] and not [`Sync`].
 
 ```compile_fail
 # #[cfg(skip_this)]
-use rand::{rngs::ThreadRng, thread_rng, RngCore};
+use rand::rngs::ThreadRng;
+# #[cfg(skip_this)]
+use rand::thread_rng;
+# #[cfg(skip_this)]
+use rand::RngCore;
 # struct ThreadRng(*const i32, u32);
 # impl ThreadRng {
 #     pub fn next_u32(&mut self) -> u32 { self.1 = self.1.wrapping_add(1); self.1 }

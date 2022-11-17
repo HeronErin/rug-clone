@@ -14,7 +14,8 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::ext::xmpz::{self, OptInteger};
+use crate::ext::xmpz;
+use crate::ext::xmpz::OptInteger;
 use crate::integer::SmallInteger;
 use crate::ops::{
     DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding, RemRoundingAssign,

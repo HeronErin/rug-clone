@@ -14,7 +14,8 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::{ext::xmpz, Integer};
+use crate::ext::xmpz;
+use crate::Integer;
 use az::UnwrappedAs;
 use core::cmp::Ordering;
 
@@ -163,7 +164,10 @@ mod tests {
         tests::{I128, I32, I64, U128, U32, U64},
         Integer,
     };
-    use core::{cmp::Ordering, f32, f64, ops::Neg};
+    use core::cmp::Ordering;
+    use core::f32;
+    use core::f64;
+    use core::ops::Neg;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])
     where

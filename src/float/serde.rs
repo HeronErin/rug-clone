@@ -15,7 +15,8 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpfr;
-use crate::float::{self, OrdFloat};
+use crate::float;
+use crate::float::OrdFloat;
 use crate::serdeize::{self, Data, PrecReq, PrecVal};
 use crate::{Assign, Float};
 use az::UnwrappedCast;
@@ -91,7 +92,8 @@ impl<'de> Deserialize<'de> for OrdFloat {
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Special};
+    use crate::float;
+    use crate::float::{FreeCache, Special};
     use crate::{Assign, Float};
     use az::UnwrappedCast;
     use serde_json::json;

@@ -16,7 +16,8 @@
 
 #![allow(clippy::float_cmp)]
 
-use crate::float::{self, FreeCache, Round, Special};
+use crate::float;
+use crate::float::{FreeCache, Round, Special};
 use crate::ops::{AddAssignRound, AssignRound, NegAssign, SubAssignRound, SubFrom, SubFromRound};
 #[cfg(feature = "rand")]
 use crate::rand::{RandGen, RandState};

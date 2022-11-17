@@ -16,8 +16,10 @@
 
 use crate::complex::OrdComplex;
 use crate::ext::xmpfr;
-use crate::serdeize::{self, Data, PrecReq, PrecVal};
-use crate::{float, Assign, Complex};
+use crate::float;
+use crate::serdeize;
+use crate::serdeize::{Data, PrecReq, PrecVal};
+use crate::{Assign, Complex};
 use az::UnwrappedCast;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
@@ -104,7 +106,8 @@ impl<'de> Deserialize<'de> for OrdComplex {
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Special};
+    use crate::float;
+    use crate::float::{FreeCache, Special};
     use crate::{Assign, Complex};
     use az::UnwrappedCast;
     use serde_json::json;

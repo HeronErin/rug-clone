@@ -74,7 +74,8 @@ impl OrdFloat {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{float::OrdFloat, Float};
+    /// use rug::float::OrdFloat;
+    /// use rug::Float;
     /// let f = Float::with_val(53, 1.5);
     /// let ord = OrdFloat::from(f);
     /// let f_ref = ord.as_float();
@@ -94,7 +95,8 @@ impl OrdFloat {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{float::OrdFloat, Float};
+    /// use rug::float::OrdFloat;
+    /// use rug::Float;
     /// let f = Float::with_val(53, -1.5);
     /// let mut ord = OrdFloat::from(f);
     /// ord.as_float_mut().abs_mut();
@@ -191,7 +193,8 @@ impl AsMut<Float> for OrdFloat {
 #[allow(clippy::eq_op)]
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, OrdFloat, Special};
+    use crate::float;
+    use crate::float::{FreeCache, OrdFloat, Special};
     use crate::ops::NegAssign;
     use crate::{Assign, Float};
     use core::hash::{Hash, Hasher};

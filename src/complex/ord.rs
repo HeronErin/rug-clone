@@ -30,7 +30,9 @@ infinity. Comparing two negative NaNs or two positive NaNs produces equality.
 
 ```rust
 use core::cmp::Ordering;
-use rug::{complex::OrdComplex, float::Special, Complex};
+use rug::complex::OrdComplex;
+use rug::float::Special;
+use rug::Complex;
 
 let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
 let nan = OrdComplex::from(nan_c);
@@ -65,7 +67,8 @@ impl OrdComplex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{complex::OrdComplex, Complex};
+    /// use rug::complex::OrdComplex;
+    /// use rug::Complex;
     /// let c = Complex::with_val(53, (1.5, 2.5));
     /// let ord = OrdComplex::from(c);
     /// let c_ref = ord.as_complex();
@@ -85,7 +88,8 @@ impl OrdComplex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{complex::OrdComplex, Complex};
+    /// use rug::complex::OrdComplex;
+    /// use rug::Complex;
     /// let c = Complex::with_val(53, (1.5, -2.5));
     /// let mut ord = OrdComplex::from(c);
     /// ord.as_complex_mut().conj_mut();
@@ -163,7 +167,8 @@ impl AsMut<Complex> for OrdComplex {
 #[cfg(test)]
 mod tests {
     use crate::complex::OrdComplex;
-    use crate::float::{self, FreeCache, Special};
+    use crate::float;
+    use crate::float::{FreeCache, Special};
     use crate::Complex;
     use core::hash::{Hash, Hasher};
     use std::collections::hash_map::DefaultHasher;
