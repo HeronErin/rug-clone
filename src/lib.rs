@@ -601,23 +601,6 @@ mod static_assertions {
 
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
-    #[cfg(any(feature = "rational", feature = "float"))]
-    use core::f32;
-    #[cfg(any(feature = "rational", feature = "float"))]
-    use core::f64;
-    use core::i128;
-    use core::i16;
-    use core::i32;
-    use core::i64;
-    use core::i8;
-    use core::isize;
-    use core::u128;
-    use core::u16;
-    use core::u32;
-    use core::u64;
-    use core::u8;
-    use core::usize;
-
     pub const U8: &[u8] = &[0, 1, 100, 101, i8::MAX as u8 + 1, u8::MAX];
     pub const I8: &[i8] = &[i8::MIN, -101, -100, -1, 0, 1, 100, 101, i8::MAX];
     pub const U16: &[u16] = &[0, 1, 1000, 1001, i16::MAX as u16 + 1, u16::MAX];

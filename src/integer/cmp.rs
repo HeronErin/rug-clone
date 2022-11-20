@@ -165,8 +165,6 @@ mod tests {
         Integer,
     };
     use core::cmp::Ordering;
-    use core::f32;
-    use core::f64;
     use core::ops::Neg;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])

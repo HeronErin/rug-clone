@@ -19,9 +19,6 @@ use crate::misc::NegAbs;
 use crate::Integer;
 use az::{CheckedCast, WrappingAs, WrappingCast};
 use core::cmp::Ordering;
-use core::i32;
-use core::i64;
-use core::u32;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::mpz_t;
 

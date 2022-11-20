@@ -20,14 +20,6 @@ use crate::integer::Order;
 use crate::ops::{NegAssign, SubFrom};
 use crate::{Assign, Complete, Integer};
 use az::{Az, WrappingAs};
-use core::f32;
-use core::f64;
-use core::i128;
-use core::i32;
-use core::i64;
-use core::u128;
-use core::u32;
-use core::u64;
 
 #[test]
 fn check_int_conversions() {

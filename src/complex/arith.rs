@@ -884,7 +884,6 @@ mod tests {
     #[test]
     fn check_pow() {
         use crate::tests::{F32, I32};
-        use core::f64;
         let large = [
             Complex::with_val(20, (Special::Zero, 1.0)),
             Complex::with_val(20, (Special::NegZero, 1.0)),

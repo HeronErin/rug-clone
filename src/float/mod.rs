@@ -41,8 +41,6 @@ pub use crate::float::borrow::BorrowFloat;
 pub use crate::float::ord::OrdFloat;
 pub use crate::float::small::{SmallFloat, ToSmall};
 use az::SaturatingCast;
-use core::i32;
-use core::u32;
 use gmp_mpfr_sys::mpfr;
 use gmp_mpfr_sys::mpfr::prec_t;
 

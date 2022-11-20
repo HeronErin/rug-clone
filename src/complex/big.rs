@@ -486,7 +486,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::Complex;
     ///
     /// let valid1 = Complex::parse("(12.5, -13.5)");
@@ -537,7 +536,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::Complex;
     ///
     /// let valid1 = Complex::parse_radix("(12, 1a)", 16);
@@ -1366,7 +1364,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::Complex;
     /// let c1 = Complex::with_val(53, (1.5, 2.5));
     /// let proj1 = c1.proj();
@@ -1394,7 +1391,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::Complex;
     /// let mut c1 = Complex::with_val(53, (1.5, 2.5));
     /// c1.proj_mut();
@@ -1426,7 +1422,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::Complex;
     /// let c1 = Complex::with_val(53, (f64::INFINITY, 50));
     /// let proj1 = Complex::with_val(53, c1.proj_ref());

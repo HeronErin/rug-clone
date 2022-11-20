@@ -24,7 +24,6 @@ use crate::rand::{RandGen, RandState};
 use crate::{Assign, Float};
 use az::Az;
 use core::cmp::Ordering;
-use core::f64;
 use core::fmt::{Debug, Error as FmtError, Formatter};
 use gmp_mpfr_sys::{gmp, mpfr};
 

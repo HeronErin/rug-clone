@@ -831,8 +831,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use core::i32;
-    /// use core::u32;
     /// use rug::{Assign, Float};
     /// let mut f = Float::with_val(53, -13.7);
     /// assert_eq!(f.to_i32_saturating(), Some(-14));
@@ -878,7 +876,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use core::u32;
     /// use rug::{Assign, Float};
     /// let mut f = Float::with_val(53, 13.7);
     /// assert_eq!(f.to_u32_saturating(), Some(14));
@@ -923,7 +920,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::{Assign, Float};
     /// let mut f = Float::with_val(53, 13.7);
     /// assert_eq!(f.to_f32(), 13.7);
@@ -945,7 +941,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::float::Round;
     /// use rug::Float;
     /// let f = Float::with_val(53, 1.0 + (-50f64).exp2());
@@ -964,7 +959,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::{Assign, Float};
     /// let mut f = Float::with_val(53, 13.7);
     /// assert_eq!(f.to_f64(), 13.7);
@@ -985,7 +979,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::float::Round;
     /// use rug::Float;
     /// // (2.0 ^ -90) + 1
@@ -2004,7 +1997,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::Float;
     /// // minimum single subnormal is 0.5 × 2 ^ -148 = 2 ^ -149
     /// let single_min_subnormal = (-149f64).exp2();

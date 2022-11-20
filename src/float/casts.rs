@@ -373,8 +373,6 @@ mod tests {
     use crate::{Assign, Float};
     use az::{Az, SaturatingAs, SaturatingCast};
     use core::borrow::Borrow;
-    use core::f32;
-    use core::f64;
     use core::fmt::Debug;
     use core::ops::{Add, Sub};
 

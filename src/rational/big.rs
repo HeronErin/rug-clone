@@ -337,7 +337,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::Rational;
     /// // -17.125 can be stored exactly as f32
     /// let r = Rational::from_f32(-17.125).unwrap();
@@ -363,7 +362,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::Rational;
     /// // -17.125 can be stored exactly as f64
     /// let r = Rational::from_f64(-17.125).unwrap();
@@ -516,7 +514,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::rational::SmallRational;
     /// use rug::Rational;
     /// let min = Rational::from_f32(f32::MIN).unwrap();
@@ -543,7 +540,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::rational::SmallRational;
     /// use rug::Rational;
     ///
@@ -606,7 +602,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::Rational;
     /// let mut r = Rational::new();
     /// let ret = r.assign_f32(12.75);

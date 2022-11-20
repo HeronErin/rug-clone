@@ -871,7 +871,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::Integer;
     /// let i = Integer::from_f32(-5.6).unwrap();
     /// assert_eq!(i, -5);
@@ -894,7 +893,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::Integer;
     /// let i = Integer::from_f64(1e20).unwrap();
     /// assert_eq!(i, "100000000000000000000".parse::<Integer>().unwrap());
@@ -1670,7 +1668,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::Integer;
     /// let min = Integer::from_f32(f32::MIN).unwrap();
     /// let min_minus_one = min - 1u32;
@@ -1697,7 +1694,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f64;
     /// use rug::Integer;
     ///
     /// // An `f64` has 53 bits of precision.
@@ -1807,7 +1803,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use core::f32;
     /// use rug::Integer;
     /// let mut i = Integer::new();
     /// let ret = i.assign_f64(-12.7);

@@ -404,8 +404,6 @@ mod tests {
         SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast,
     };
     use core::borrow::Borrow;
-    use core::f32;
-    use core::f64;
     use core::fmt::Debug;
     use std::panic;
 
