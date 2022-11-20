@@ -2528,7 +2528,7 @@ impl<Src> CastPtr<Src> {
     #[inline(always)]
     pub fn get<Dst>(self) -> *const Dst {
         debug_assert_eq!(core::mem::align_of::<Dst>(), core::mem::align_of::<Src>());
-        self.0 as *const Dst
+        self.0.cast()
     }
 }
 
@@ -2543,7 +2543,7 @@ impl<Src> CastPtrMut<Src> {
     #[inline(always)]
     pub fn get<Dst>(self) -> *mut Dst {
         debug_assert_eq!(core::mem::align_of::<Dst>(), core::mem::align_of::<Src>());
-        self.0 as *mut Dst
+        self.0.cast()
     }
 }
 

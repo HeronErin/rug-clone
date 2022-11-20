@@ -1292,19 +1292,19 @@ impl Float {
         let exp: exp_t;
         unsafe {
             let vec = s.as_mut_vec();
-            let write_ptr = vec.as_mut_ptr();
+            let write_ptr = vec.as_mut_ptr().cast();
             let mut maybe_exp = MaybeUninit::uninit();
             let c_buf = mpfr::get_str(
-                write_ptr as *mut c_char,
+                write_ptr,
                 maybe_exp.as_mut_ptr(),
                 format.radix.unwrapped_cast(),
                 digits,
                 f.as_raw(),
                 raw_round(format.round),
             );
-            assert_eq!(c_buf, write_ptr as *mut c_char);
+            assert_eq!(c_buf, write_ptr);
             exp = maybe_exp.assume_init();
-            let c_len = CStr::from_ptr(write_ptr as *mut c_char).to_bytes().len();
+            let c_len = CStr::from_ptr(write_ptr).to_bytes().len();
             // there is also 1 byte for nul character, so use < rather than <=
             assert!(c_len < size, "buffer overflow");
             vec.set_len(c_len);
@@ -9705,22 +9705,22 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     let mut exp: exp_t;
     unsafe {
         let vec = s.as_mut_vec();
-        let write_ptr = vec.as_mut_ptr().add(vec.len());
+        let write_ptr = vec.as_mut_ptr().add(vec.len()).cast();
         let mut maybe_exp = MaybeUninit::uninit();
         let c_buf = mpfr::get_str(
-            write_ptr as *mut c_char,
+            write_ptr,
             maybe_exp.as_mut_ptr(),
             radix_with_case.unwrapped_cast(),
             digits,
             f.as_raw(),
             raw_round(format.round),
         );
-        assert_eq!(c_buf, write_ptr as *mut c_char);
+        assert_eq!(c_buf, write_ptr);
         exp = maybe_exp.assume_init();
-        let c_len = CStr::from_ptr(write_ptr as *mut c_char).to_bytes().len();
+        let c_len = CStr::from_ptr(write_ptr).to_bytes().len();
         // there is also 1 byte for nul character, which will be used for point
         assert!(c_len + 1 < size, "buffer overflow");
-        let added_sign = *write_ptr == b'-';
+        let added_sign = *write_ptr == b'-' as c_char;
         let added_digits = c_len - usize::from(added_sign);
         let digits_before_point = if format.exp == ExpFormat::Exp
             || exp <= 0
@@ -9740,7 +9740,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         } else {
             let point_ptr = write_ptr.add(bytes_before_point);
             point_ptr.copy_to(point_ptr.offset(1), c_len - bytes_before_point);
-            *point_ptr = b'.';
+            *point_ptr = b'.' as c_char;
             vec.set_len(vec.len() + c_len + 1);
         }
     }
@@ -9791,7 +9791,7 @@ impl AssignRound<ParseIncomplete> for Float {
             )
         };
         let nul = cast_ptr!(c_string.as_bytes_with_nul().last().unwrap(), c_char);
-        assert_eq!(unsafe { c_str_end.assume_init() } as *const c_char, nul);
+        assert_eq!(unsafe { c_str_end.assume_init() }.cast_const(), nul);
         ordering1(ret)
     }
 }

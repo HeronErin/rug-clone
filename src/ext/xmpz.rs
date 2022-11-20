@@ -53,7 +53,7 @@ impl OptInteger for () {
     }
     #[inline(always)]
     fn mpz_or(self, default: *mut mpz_t) -> *const mpz_t {
-        default as *const mpz_t
+        default.cast_const()
     }
     #[inline(always)]
     fn unwrap<'a>(self) -> &'a Integer
@@ -156,7 +156,7 @@ pub const fn owned_init() -> mpz_t {
     mpz_t {
         alloc: 0,
         size: 0,
-        d: unsafe { NonNull::new_unchecked(UNO_DIEGO_10 as *const limb_t as *mut limb_t) },
+        d: unsafe { NonNull::new_unchecked((UNO_DIEGO_10 as *const limb_t).cast_mut()) },
     }
 }
 
@@ -1151,7 +1151,7 @@ pub fn pow_mod<O: OptInteger>(rop: &mut Integer, base: O, exponent: &Integer, mo
         unsafe {
             gmp::mpz_powm(
                 rop,
-                rop as *const mpz_t,
+                rop.cast_const(),
                 exponent.as_neg().as_raw(),
                 modulo.as_raw(),
             );

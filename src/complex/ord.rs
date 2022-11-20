@@ -217,28 +217,28 @@ mod tests {
     fn check_refs() {
         let f = Complex::with_val(53, (23.5, 32.5));
         assert_eq!(
-            &f as *const Complex as *const OrdComplex,
+            (&f as *const Complex).cast::<OrdComplex>(),
             f.as_ord() as *const OrdComplex
         );
         assert_eq!(
-            &f as *const Complex as *const OrdComplex,
+            (&f as *const Complex).cast::<OrdComplex>(),
             AsRef::<OrdComplex>::as_ref(&f) as *const OrdComplex
         );
         let mut o = OrdComplex::from(f);
         assert_eq!(
-            &o as *const OrdComplex as *const Complex,
+            (&o as *const OrdComplex).cast::<Complex>(),
             o.as_complex() as *const Complex
         );
         assert_eq!(
-            &o as *const OrdComplex as *const Complex,
+            (&o as *const OrdComplex).cast::<Complex>(),
             AsRef::<Complex>::as_ref(&o) as *const Complex
         );
         assert_eq!(
-            &mut o as *mut OrdComplex as *mut Complex,
+            (&mut o as *mut OrdComplex).cast::<Complex>(),
             o.as_complex_mut() as *mut Complex
         );
         assert_eq!(
-            &mut o as *mut OrdComplex as *mut Complex,
+            (&mut o as *mut OrdComplex).cast::<Complex>(),
             AsMut::<Complex>::as_mut(&mut o) as *mut Complex
         );
     }

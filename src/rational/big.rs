@@ -233,8 +233,8 @@ impl Rational {
     /// const DENOM_LIMBS: [limb_t; 1] = [3];
     /// const MPQ: mpq_t = unsafe {
     ///     mpq_t {
-    ///         num: gmp::MPZ_ROINIT_N(NUMER_LIMBS.as_ptr() as *mut limb_t, -2),
-    ///         den: gmp::MPZ_ROINIT_N(DENOM_LIMBS.as_ptr() as *mut limb_t, 1),
+    ///         num: gmp::MPZ_ROINIT_N(NUMER_LIMBS.as_ptr().cast_mut(), -2),
+    ///         den: gmp::MPZ_ROINIT_N(DENOM_LIMBS.as_ptr().cast_mut(), 1),
     ///     }
     /// };
     /// // Must *not* be const, otherwise it would lead to undefined

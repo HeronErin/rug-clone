@@ -54,7 +54,7 @@ impl OptComplex for () {
     }
     #[inline(always)]
     fn mpc_or(self, default: *mut mpc_t) -> *const mpc_t {
-        default as *const mpc_t
+        default.cast_const()
     }
     #[inline(always)]
     fn parts(self) -> ((), ()) {
@@ -208,7 +208,7 @@ where
     let rop = rop.as_raw_mut();
     let capacity = values.size_hint().0.checked_add(1).expect("overflow");
     let mut pointers = Vec::with_capacity(capacity);
-    pointers.push(rop as *const mpc_t);
+    pointers.push(rop.cast_const());
     pointers.extend(values.map(Complex::as_raw));
     unsafe { sum_raw(rop, &pointers, rnd) }
 }
@@ -241,13 +241,13 @@ where
             prec: 1,
             sign: 1,
             exp: 1,
-            d: unsafe { NonNull::new_unchecked(&LIMB_MSB as *const limb_t as *mut limb_t) },
+            d: unsafe { NonNull::new_unchecked((&LIMB_MSB as *const limb_t).cast_mut()) },
         },
         im: mpfr_t {
             prec: 1,
             sign: 1,
             exp: EXP_ZERO,
-            d: unsafe { NonNull::new_unchecked(&LIMB_MSB as *const limb_t as *mut limb_t) },
+            d: unsafe { NonNull::new_unchecked((&LIMB_MSB as *const limb_t).cast_mut()) },
         },
     };
 
@@ -255,7 +255,7 @@ where
     let capacity = values.size_hint().0.checked_add(1).expect("overflow");
     let mut pointers_a = Vec::with_capacity(capacity);
     let mut pointers_b = Vec::with_capacity(capacity);
-    pointers_a.push(rop as *const mpc_t);
+    pointers_a.push(rop.cast_const());
     pointers_b.push(&ONE as *const mpc_t);
     for a_b in values {
         pointers_a.push(a_b.0.as_raw());

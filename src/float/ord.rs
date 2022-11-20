@@ -269,28 +269,28 @@ mod tests {
     fn check_refs() {
         let f = Float::with_val(53, 23.5);
         assert_eq!(
-            &f as *const Float as *const OrdFloat,
+            (&f as *const Float).cast::<OrdFloat>(),
             f.as_ord() as *const OrdFloat
         );
         assert_eq!(
-            &f as *const Float as *const OrdFloat,
+            (&f as *const Float).cast::<OrdFloat>(),
             AsRef::<OrdFloat>::as_ref(&f) as *const OrdFloat
         );
         let mut o = OrdFloat::from(f);
         assert_eq!(
-            &o as *const OrdFloat as *const Float,
+            (&o as *const OrdFloat).cast::<Float>(),
             o.as_float() as *const Float
         );
         assert_eq!(
-            &o as *const OrdFloat as *const Float,
+            (&o as *const OrdFloat).cast::<Float>(),
             AsRef::<Float>::as_ref(&o) as *const Float
         );
         assert_eq!(
-            &mut o as *mut OrdFloat as *mut Float,
+            (&mut o as *mut OrdFloat).cast::<Float>(),
             o.as_float_mut() as *mut Float
         );
         assert_eq!(
-            &mut o as *mut OrdFloat as *mut Float,
+            (&mut o as *mut OrdFloat).cast::<Float>(),
             AsMut::<Float>::as_mut(&mut o) as *mut Float
         );
     }

@@ -32,7 +32,7 @@ use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::limb_t;
 use gmp_mpfr_sys::mpfr;
 use gmp_mpfr_sys::mpfr::{exp_t, mpfr_t, prec_t, rnd_t};
-use libc::{c_int, c_long, c_ulong, c_void, intmax_t, uintmax_t};
+use libc::{c_int, c_long, c_ulong, intmax_t, uintmax_t};
 
 pub trait OptFloat: Copy {
     const IS_SOME: bool;
@@ -51,7 +51,7 @@ impl OptFloat for () {
     }
     #[inline(always)]
     fn mpfr_or(self, default: *mut mpfr_t) -> *const mpfr_t {
-        default as *const mpfr_t
+        default.cast_const()
     }
     #[inline(always)]
     fn unwrap_or<'a>(self, default: &'a mut Float) -> &'a Float
@@ -299,7 +299,7 @@ where
     let rop = rop.as_raw_mut();
     let capacity = values.size_hint().0.checked_add(1).expect("overflow");
     let mut pointers = Vec::with_capacity(capacity);
-    pointers.push(rop as *const mpfr_t);
+    pointers.push(rop.cast_const());
     pointers.extend(values.map(Float::as_raw));
     unsafe { sum_raw(rop, &pointers, rnd) }
 }
@@ -331,14 +331,14 @@ where
         prec: 1,
         sign: 1,
         exp: 1,
-        d: unsafe { NonNull::new_unchecked(&LIMB_MSB as *const limb_t as *mut limb_t) },
+        d: unsafe { NonNull::new_unchecked((&LIMB_MSB as *const limb_t).cast_mut()) },
     };
 
     let rop = rop.as_raw_mut();
     let capacity = values.size_hint().0.checked_add(1).expect("overflow");
     let mut pointers_a = Vec::with_capacity(capacity);
     let mut pointers_b = Vec::with_capacity(capacity);
-    pointers_a.push(rop as *const mpfr_t);
+    pointers_a.push(rop.cast_const());
     pointers_b.push(&ONE as *const mpfr_t);
     for a_b in values {
         pointers_a.push(a_b.0.as_raw());
@@ -830,23 +830,23 @@ pub fn submul<O: OptFloat>(
 #[inline]
 pub unsafe fn custom_zero(f: *mut mpfr_t, limbs: *mut limb_t, prec: prec_t) {
     unsafe {
-        mpfr::custom_init(limbs as *mut c_void, prec);
-        mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs as *mut c_void);
+        mpfr::custom_init(limbs.cast(), prec);
+        mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs.cast());
     }
 }
 
 #[inline]
 pub unsafe fn custom_regular(f: *mut mpfr_t, limbs: *mut limb_t, exp: exp_t, prec: prec_t) {
     unsafe {
-        mpfr::custom_init(limbs as *mut c_void, prec);
-        mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut c_void);
+        mpfr::custom_init(limbs.cast(), prec);
+        mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs.cast());
     }
 }
 
 #[inline]
 pub unsafe fn custom_special(f: *mut mpfr_t, limbs: *mut limb_t, special: Special, prec: prec_t) {
     unsafe {
-        mpfr::custom_init(limbs as *mut c_void, prec);
+        mpfr::custom_init(limbs.cast(), prec);
     }
     let kind = match special {
         Special::Zero => mpfr::ZERO_KIND,
@@ -856,7 +856,7 @@ pub unsafe fn custom_special(f: *mut mpfr_t, limbs: *mut limb_t, special: Specia
         Special::Nan => mpfr::NAN_KIND,
     };
     unsafe {
-        mpfr::custom_init_set(f, kind, 0, prec, limbs as *mut c_void);
+        mpfr::custom_init_set(f, kind, 0, prec, limbs.cast());
     }
 }
 

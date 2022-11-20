@@ -37,7 +37,7 @@ use gmp_mpfr_sys::gmp;
 #[cfg(feature = "rational")]
 use gmp_mpfr_sys::gmp::mpq_t;
 use gmp_mpfr_sys::gmp::{bitcnt_t, limb_t, mpz_t};
-use libc::{c_char, c_ulong, c_void};
+use libc::{c_char, c_ulong};
 use std::error::Error;
 
 /**
@@ -423,7 +423,7 @@ impl Integer {
     /// use rug::Integer;
     /// const LIMBS: [limb_t; 2] = [123, 456];
     /// const MPZ: mpz_t =
-    ///     unsafe { gmp::MPZ_ROINIT_N(LIMBS.as_ptr() as *mut limb_t, -2) };
+    ///     unsafe { gmp::MPZ_ROINIT_N(LIMBS.as_ptr().cast_mut(), -2) };
     /// // Must *not* be const, otherwise it would lead to undefined
     /// // behavior on use, as it would create a copy that is dropped.
     /// static I: Integer = unsafe { Integer::from_raw(MPZ) };
@@ -583,7 +583,7 @@ impl Integer {
     /// let ptr = digits.as_ptr();
     /// let mut i = Integer::new();
     /// unsafe {
-    ///     let unaligned = (ptr as *const u8).offset(2) as *const u32;
+    ///     let unaligned = (ptr.cast::<u8>()).offset(2).cast::<u32>();
     ///     i.assign_digits_unaligned(unaligned, 2, Order::MsfBe);
     /// }
     /// assert_eq!(i, 0xba98_8787_8787_7654u64);
@@ -600,7 +600,7 @@ impl Integer {
         let nails = 8 * bytes - T::PRIVATE.bits;
         let raw = self.as_raw_mut();
         let (order, endian) = (order.order(), order.endian());
-        let src = src as *const c_void;
+        let src = src.cast();
         unsafe {
             gmp::mpz_import(raw, len, order, bytes, endian, nails, src);
         }
@@ -657,12 +657,12 @@ impl Integer {
     /// ```
     pub fn to_digits<T: UnsignedPrimitive>(&self, order: Order) -> Vec<T> {
         let digit_count = self.significant_digits::<T>();
-        let mut v = Vec::with_capacity(digit_count);
+        let mut v = Vec::<T>::with_capacity(digit_count);
         unsafe {
             let digits_ptr = v.as_mut_ptr();
             let mut count = MaybeUninit::uninit();
             gmp::mpz_export(
-                digits_ptr as *mut c_void,
+                digits_ptr.cast(),
                 count.as_mut_ptr(),
                 order.order(),
                 T::PRIVATE.bytes,
@@ -743,7 +743,7 @@ impl Integer {
     /// let mut digits = [0xffff_ffffu32; 4];
     /// let ptr = digits.as_mut_ptr();
     /// unsafe {
-    ///     let unaligned = (ptr as *mut u8).offset(2) as *mut u32;
+    ///     let unaligned = (ptr.cast::<u8>()).offset(2).cast::<u32>();
     ///     i.write_digits_unaligned(unaligned, 3, Order::MsfBe);
     /// }
     /// assert_eq!(
@@ -801,10 +801,10 @@ impl Integer {
         };
         unsafe {
             // use *mut u8 to allow for unaligned pointers
-            (zeros as *mut u8).write_bytes(0, zero_bytes);
+            (zeros.cast::<u8>()).write_bytes(0, zero_bytes);
         }
         let mut count = MaybeUninit::uninit();
-        let digits = digits as *mut c_void;
+        let digits = digits.cast();
         let count_ptr = count.as_mut_ptr();
         let (order, endian) = (order.order(), order.endian());
         let raw = self.as_raw();
@@ -1926,7 +1926,7 @@ impl Integer {
             den: mpz_t {
                 alloc: 1,
                 size: 1,
-                d: unsafe { NonNull::new_unchecked(&ONE as *const limb_t as *mut limb_t) },
+                d: unsafe { NonNull::new_unchecked((&ONE as *const limb_t).cast_mut()) },
             },
         };
         // Safety: the lifetime of the return type is equal to the lifetime of self.

@@ -48,7 +48,7 @@ impl OptRational for () {
     }
     #[inline(always)]
     fn mpq_or(self, default: *mut mpq_t) -> *const mpq_t {
-        default as *const mpq_t
+        default.cast_const()
     }
     #[inline(always)]
     fn parts(self) -> ((), ()) {
