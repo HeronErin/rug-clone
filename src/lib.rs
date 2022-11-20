@@ -443,8 +443,7 @@ NzQgMCAwLjY1NDc1IDAuNDc0MTMgMS4xNzQgMS4xMjg5IDEuMTc0eiIvPgogICA8L2c+CiAgPC9nPgog
 ")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
-#![cfg_attr(unsafe_in_unsafe, warn(unsafe_op_in_unsafe_fn))]
-#![cfg_attr(not(unsafe_in_unsafe), allow(unused_unsafe))]
+#![warn(unsafe_op_in_unsafe_fn)]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
 #![allow(clippy::useless_conversion)]
 #[macro_use]

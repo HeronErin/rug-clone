@@ -26,11 +26,9 @@ fn main() {
         }
         println!("cargo:rustc-cfg=gmp_limb_bits_{bits}");
     }
-
-    check_feature("unsafe_in_unsafe", TRY_UNSAFE_IN_UNSAFE);
-    check_feature("doc_alias", TRY_DOC_ALIAS);
 }
 
+#[allow(dead_code)]
 fn check_feature(name: &str, contents: &str) {
     let rustc = cargo_env("RUSTC");
     let out_dir = PathBuf::from(cargo_env("OUT_DIR"));
@@ -89,15 +87,3 @@ fn create_file_or_panic(filename: &Path, contents: &str) {
     file.write_all(contents.as_bytes())
         .unwrap_or_else(|_| panic!("Unable to write to file: {filename:?}"));
 }
-
-const TRY_UNSAFE_IN_UNSAFE: &str = r#"// try_unsafe_in_unsafe.rs
-#![deny(unknown_lints)]
-#![warn(unsafe_op_in_unsafe_fn)]
-
-fn main() {}
-"#;
-
-const TRY_DOC_ALIAS: &str = r#"// try_doc_alias.rs
-#[doc(alias = "alias")]
-pub fn main() {}
-"#;

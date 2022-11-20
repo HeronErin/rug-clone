@@ -2263,7 +2263,7 @@ impl Integer {
     /// assert_eq!(Integer::from(15).find_zero(20), Some(20));
     /// ```
     #[inline]
-    #[cfg_attr(doc_alias, doc(alias = "trailing_ones"))]
+    #[doc(alias = "trailing_ones")]
     pub fn find_zero(&self, start: u32) -> Option<u32> {
         xmpz::scan0(self, start.into()).map(UnwrappedCast::unwrapped_cast)
     }
@@ -2283,7 +2283,7 @@ impl Integer {
     /// assert_eq!(Integer::from(-16).find_one(20), Some(20));
     /// ```
     #[inline]
-    #[cfg_attr(doc_alias, doc(alias = "trailing_zeros"))]
+    #[doc(alias = "trailing_zeros")]
     pub fn find_one(&self, start: u32) -> Option<u32> {
         xmpz::scan1(self, start.into()).map(UnwrappedCast::unwrapped_cast)
     }
