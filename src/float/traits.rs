@@ -21,20 +21,20 @@ use crate::float::{Constant, OrdFloat, Round, Special};
 use crate::ops::AssignRound;
 #[cfg(feature = "integer")]
 use crate::Integer;
+#[cfg(feature = "rational")]
+use crate::{rational::TryFromFloatError, Rational};
 use crate::{Assign, Float};
+#[cfg(feature = "rational")]
+use az::CheckedCast;
 use az::{UnwrappedAs, UnwrappedCast};
 use core::cmp::Ordering;
+#[cfg(feature = "rational")]
+use core::convert::TryFrom;
 use core::fmt::{
     Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult, UpperExp,
     UpperHex,
 };
 use gmp_mpfr_sys::mpfr;
-#[cfg(feature = "rational")]
-use {
-    crate::{rational::TryFromFloatError, Rational},
-    az::CheckedCast,
-    core::convert::TryFrom,
-};
 
 impl Clone for Float {
     #[inline]

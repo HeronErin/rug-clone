@@ -264,10 +264,9 @@ fn fmt_radix(
 
 #[cfg(feature = "float")]
 mod float_conv {
-    use {
-        crate::{float, Float, Integer},
-        core::fmt::{Formatter, LowerExp, Result as FmtResult, UpperExp},
-    };
+    use crate::float;
+    use crate::{Float, Integer};
+    use core::fmt::{Formatter, LowerExp, Result as FmtResult, UpperExp};
 
     fn float_from_int(i: &Integer) -> Float {
         let abs = i.as_abs();
