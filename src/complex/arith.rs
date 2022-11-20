@@ -29,11 +29,11 @@ use crate::Integer;
 use crate::Rational;
 use crate::{Complex, Float};
 use az::{CheckedAs, CheckedCast};
+use core::ffi::{c_long, c_ulong};
 use core::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
     SubAssign,
 };
-use libc::{c_long, c_ulong};
 
 impl Neg for Complex {
     type Output = Complex;

@@ -39,6 +39,7 @@ use crate::Integer;
 use crate::Rational;
 use az::{Az, CheckedCast, SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs};
 use core::cmp::Ordering;
+use core::ffi::c_char;
 use core::fmt::{Display, Formatter, Result as FmtResult};
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::num::FpCategory;
@@ -54,7 +55,6 @@ use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::mpfr::prec_t;
 use gmp_mpfr_sys::mpfr::{exp_t, mpfr_t};
-use libc::c_char;
 use std::error::Error;
 use std::ffi::{CStr, CString};
 

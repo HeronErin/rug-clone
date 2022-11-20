@@ -26,13 +26,14 @@ use crate::Integer;
 use crate::Rational;
 use az::{CheckedAs, UnwrappedCast};
 use core::cmp::Ordering;
+use core::ffi::{c_int, c_long, c_ulong};
 use core::mem::MaybeUninit;
 use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::limb_t;
 use gmp_mpfr_sys::mpfr;
 use gmp_mpfr_sys::mpfr::{exp_t, mpfr_t, prec_t, rnd_t};
-use libc::{c_int, c_long, c_ulong, intmax_t, uintmax_t};
+use libc::{intmax_t, uintmax_t};
 
 pub trait OptFloat: Copy {
     const IS_SOME: bool;

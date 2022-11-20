@@ -20,13 +20,13 @@ use crate::integer::ToSmall;
 use crate::{Assign, Rational};
 use az::Cast;
 use core::cell::UnsafeCell;
+use core::ffi::c_int;
 use core::mem;
 use core::mem::MaybeUninit;
 use core::ops::Deref;
 use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::{limb_t, mpq_t};
-use libc::c_int;
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
 type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];

@@ -23,12 +23,12 @@ use crate::ops::{
 };
 use crate::{Assign, Complete, Integer};
 use az::{CheckedAs, CheckedCast};
+use core::ffi::{c_long, c_ulong};
 use core::iter::{Product, Sum};
 use core::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
     Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
-use libc::{c_long, c_ulong};
 
 arith_unary! {
     Integer;

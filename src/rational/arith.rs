@@ -21,12 +21,12 @@ use crate::integer::SmallInteger;
 use crate::ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
 use crate::{Assign, Complete, Integer, Rational};
 use az::{CheckedAs, CheckedCast};
+use core::ffi::{c_long, c_ulong};
 use core::iter::{Product, Sum};
 use core::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
     SubAssign,
 };
-use libc::{c_long, c_ulong};
 
 arith_unary! {
     Rational;

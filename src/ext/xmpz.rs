@@ -21,12 +21,12 @@ use crate::rand::MutRandState;
 use crate::Integer;
 use az::{Az, UnwrappedAs, UnwrappedCast, WrappingAs, WrappingCast};
 use core::cmp::Ordering;
+use core::ffi::{c_int, c_long, c_uint, c_ulong};
 use core::mem::MaybeUninit;
 use core::ptr;
 use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::{bitcnt_t, limb_t, mpz_t, size_t};
-use libc::{c_int, c_long, c_uint, c_ulong};
 
 #[cfg(gmp_limb_bits_32)]
 pub use crate::ext::xmpz32::*;

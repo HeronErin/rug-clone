@@ -21,6 +21,7 @@ use crate::misc::NegAbs;
 use crate::{Assign, Float};
 use az::{Az, UnwrappedCast, WrappingCast};
 use core::cell::UnsafeCell;
+use core::ffi::c_int;
 use core::mem;
 use core::mem::MaybeUninit;
 use core::ops::Deref;
@@ -29,7 +30,6 @@ use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::limb_t;
 use gmp_mpfr_sys::mpfr;
 use gmp_mpfr_sys::mpfr::{exp_t, mpfr_t, prec_t};
-use libc::c_int;
 
 const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
 type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];

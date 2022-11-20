@@ -30,11 +30,11 @@ use crate::Integer;
 use crate::Rational;
 use az::{CheckedAs, CheckedCast};
 use core::cmp::Ordering;
+use core::ffi::{c_long, c_ulong};
 use core::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Shl, ShlAssign, Shr,
     ShrAssign, Sub, SubAssign,
 };
-use libc::{c_long, c_ulong};
 
 impl Neg for Float {
     type Output = Float;

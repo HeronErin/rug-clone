@@ -40,12 +40,12 @@ so that they can be used with methods like
 
 use crate::Integer;
 use az::{Cast, UnwrappedAs, UnwrappedCast};
+use core::ffi::{c_ulong, c_void};
 use core::marker::PhantomData;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::ptr;
 use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randfnptr_t, randseed_t, randstate_t};
-use libc::{c_ulong, c_void};
 use std::process;
 
 /**

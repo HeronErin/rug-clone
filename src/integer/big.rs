@@ -26,6 +26,7 @@ use crate::rational::BorrowRational;
 use crate::{Assign, Complete};
 use az::{Az, Cast, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingCast};
 use core::cmp::Ordering;
+use core::ffi::{c_char, c_ulong};
 use core::fmt::{Display, Formatter, Result as FmtResult};
 use core::mem;
 use core::mem::{ManuallyDrop, MaybeUninit};
@@ -37,7 +38,6 @@ use gmp_mpfr_sys::gmp;
 #[cfg(feature = "rational")]
 use gmp_mpfr_sys::gmp::mpq_t;
 use gmp_mpfr_sys::gmp::{bitcnt_t, limb_t, mpz_t};
-use libc::{c_char, c_ulong};
 use std::error::Error;
 
 /**

@@ -18,13 +18,13 @@ use crate::misc::NegAbs;
 use crate::{Assign, Integer};
 use az::{Az, Cast, WrappingCast};
 use core::cell::UnsafeCell;
+use core::ffi::c_int;
 use core::mem;
 use core::mem::MaybeUninit;
 use core::ops::Deref;
 use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::{limb_t, mpz_t};
-use libc::c_int;
 
 pub const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
 pub type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];

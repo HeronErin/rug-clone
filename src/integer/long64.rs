@@ -22,8 +22,8 @@ use crate::rand::MutRandState;
 use crate::{Assign, Complete, Integer};
 use az::{CheckedCast, UnwrappedCast};
 use core::cmp::Ordering;
+use core::ffi::c_ulong;
 use gmp_mpfr_sys::gmp::bitcnt_t;
-use libc::c_ulong;
 
 pub trait Sealed: Sized {}
 impl Sealed for Integer {}

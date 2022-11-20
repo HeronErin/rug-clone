@@ -22,11 +22,11 @@ use crate::rational::SmallRational;
 use crate::{Assign, Integer, Rational};
 use az::{Az, CheckedAs, UnwrappedAs, UnwrappedCast};
 use core::cmp::Ordering;
+use core::ffi::{c_int, c_long, c_ulong};
 use core::mem;
 use core::mem::MaybeUninit;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::mpq_t;
-use libc::{c_int, c_long, c_ulong};
 
 pub trait OptRational: Copy {
     const IS_SOME: bool;

@@ -25,6 +25,7 @@ use crate::Rational;
 use crate::{Complex, Float};
 use az::UnwrappedCast;
 use core::cmp::Ordering;
+use core::ffi::{c_int, c_long, c_ulong};
 use core::mem::MaybeUninit;
 use core::ptr::NonNull;
 use gmp_mpfr_sys::gmp;
@@ -32,7 +33,6 @@ use gmp_mpfr_sys::gmp::limb_t;
 use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpc::{mpc_t, rnd_t};
 use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
-use libc::{c_int, c_long, c_ulong};
 
 pub trait OptComplex: Copy {
     const IS_SOME: bool;

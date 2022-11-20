@@ -62,7 +62,7 @@ pub use crate::integer::borrow::BorrowInteger;
 pub use crate::integer::long64::IntegerExt64;
 pub use crate::integer::small::{SmallInteger, ToSmall};
 
-use libc::c_int;
+use core::ffi::c_int;
 
 /**
 An error which can be returned when a checked conversion from [`Integer`] fails.

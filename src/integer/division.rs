@@ -23,7 +23,7 @@ use crate::ops::{
 };
 use crate::{Assign, Integer};
 use az::{CheckedAs, CheckedCast};
-use libc::{c_long, c_ulong};
+use core::ffi::{c_long, c_ulong};
 
 // big / big -> Big
 // big / &big -> Big
