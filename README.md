@@ -204,7 +204,7 @@ updated to an incompatible newer version.
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [GNU LGPL]: https://www.gnu.org/licenses/lgpl-3.0.en.html
 [GNU]: https://www.gnu.org/
-[MPC]: http://www.multiprecision.org/mpc/
+[MPC]: https://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
 [`Assign::assign`]: https://docs.rs/rug/~1.18/rug/trait.Assign.html#tymethod.assign
 [`Assign`]: https://docs.rs/rug/~1.18/rug/trait.Assign.html
