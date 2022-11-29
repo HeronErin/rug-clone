@@ -14,9 +14,15 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
+use crate::float::OrdComplex;
 use crate::Complex;
+use core::borrow::Borrow;
+use core::convert::AsRef;
+use core::fmt::{
+    Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Pointer, Result as FmtResult,
+    UpperExp, UpperHex,
+};
 use core::marker::PhantomData;
-use core::mem::ManuallyDrop;
 use core::ops::Deref;
 use gmp_mpfr_sys::mpc::mpc_t;
 
@@ -37,14 +43,14 @@ use gmp_mpfr_sys::mpc::mpc_t;
 /// assert_eq!(c, (4.2, -2.3));
 /// assert_eq!(*neg, (-4.2, 2.3));
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct BorrowComplex<'a> {
-    inner: ManuallyDrop<Complex>,
+    inner: mpc_t,
     phantom: PhantomData<&'a Complex>,
 }
 
-impl BorrowComplex<'_> {
+impl<'a> BorrowComplex<'a> {
     /// Create a borrow from a raw [MPC complex number][mpc_t].
     ///
     /// # Safety
@@ -70,9 +76,9 @@ impl BorrowComplex<'_> {
     /// assert_eq!(c, *borrow);
     /// ```
     // unsafe because the lifetime is obtained from return type
-    pub unsafe fn from_raw<'a>(raw: mpc_t) -> BorrowComplex<'a> {
+    pub unsafe fn from_raw(raw: mpc_t) -> BorrowComplex<'a> {
         BorrowComplex {
-            inner: ManuallyDrop::new(unsafe { Complex::from_raw(raw) }),
+            inner: raw,
             phantom: PhantomData,
         }
     }
@@ -82,6 +88,87 @@ impl Deref for BorrowComplex<'_> {
     type Target = Complex;
     #[inline]
     fn deref(&self) -> &Complex {
-        &self.inner
+        let ptr = cast_ptr!(&self.inner, Complex);
+        // Safety: the inner pointer is valid for the duration of the lifetime.
+        unsafe { &*ptr }
     }
 }
+
+impl Borrow<Complex> for BorrowComplex<'_> {
+    #[inline]
+    fn borrow(&self) -> &Complex {
+        &**self
+    }
+}
+
+impl AsRef<Complex> for BorrowComplex<'_> {
+    #[inline]
+    fn as_ref(&self) -> &Complex {
+        &**self
+    }
+}
+
+impl AsRef<OrdComplex> for BorrowComplex<'_> {
+    #[inline]
+    fn as_ref(&self) -> &OrdComplex {
+        self.as_ord()
+    }
+}
+
+impl Pointer for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Pointer::fmt(&&**self, f)
+    }
+}
+
+impl Display for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&**self, f)
+    }
+}
+
+impl Debug for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Debug::fmt(&**self, f)
+    }
+}
+
+impl Binary for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Binary::fmt(&**self, f)
+    }
+}
+
+impl Octal for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Octal::fmt(&**self, f)
+    }
+}
+
+impl LowerHex for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        LowerHex::fmt(&**self, f)
+    }
+}
+
+impl UpperHex for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        UpperHex::fmt(&**self, f)
+    }
+}
+
+impl LowerExp for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        LowerExp::fmt(&**self, f)
+    }
+}
+
+impl UpperExp for BorrowComplex<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        UpperExp::fmt(&**self, f)
+    }
+}
+
+// Safety: mpc_t is thread safe as guaranteed by the MPCm library.
+unsafe impl Send for BorrowComplex<'_> {}
+unsafe impl Sync for BorrowComplex<'_> {}
