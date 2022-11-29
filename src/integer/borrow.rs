@@ -15,8 +15,14 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::Integer;
+use core::borrow::Borrow;
+use core::convert::AsRef;
+use core::fmt::{
+    Binary, Debug, Display, Formatter, LowerHex, Octal, Pointer, Result as FmtResult, UpperHex,
+};
+#[cfg(feature = "float")]
+use core::fmt::{LowerExp, UpperExp};
 use core::marker::PhantomData;
-use core::mem::ManuallyDrop;
 use core::ops::Deref;
 use gmp_mpfr_sys::gmp::mpz_t;
 
@@ -37,14 +43,14 @@ use gmp_mpfr_sys::gmp::mpz_t;
 /// assert_eq!(i, 42);
 /// assert_eq!(*neg, -42);
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct BorrowInteger<'a> {
-    inner: ManuallyDrop<Integer>,
+    inner: mpz_t,
     phantom: PhantomData<&'a Integer>,
 }
 
-impl BorrowInteger<'_> {
+impl<'a> BorrowInteger<'a> {
     /// Create a borrow from a raw [GMP integer][mpz_t].
     ///
     /// # Safety
@@ -69,9 +75,10 @@ impl BorrowInteger<'_> {
     /// let borrow = unsafe { BorrowInteger::from_raw(raw) };
     /// assert_eq!(i, *borrow);
     /// ```
-    pub const unsafe fn from_raw<'a>(raw: mpz_t) -> BorrowInteger<'a> {
+    #[inline]
+    pub const unsafe fn from_raw(raw: mpz_t) -> BorrowInteger<'a> {
         BorrowInteger {
-            inner: ManuallyDrop::new(unsafe { Integer::from_raw(raw) }),
+            inner: raw,
             phantom: PhantomData,
         }
     }
@@ -81,6 +88,82 @@ impl Deref for BorrowInteger<'_> {
     type Target = Integer;
     #[inline]
     fn deref(&self) -> &Integer {
-        &self.inner
+        let ptr = cast_ptr!(&self.inner, Integer);
+        // Safety: the inner pointer is valid for the duration of the lifetime.
+        unsafe { &*ptr }
     }
 }
+
+impl Borrow<Integer> for BorrowInteger<'_> {
+    #[inline]
+    fn borrow(&self) -> &Integer {
+        &**self
+    }
+}
+
+impl AsRef<Integer> for BorrowInteger<'_> {
+    #[inline]
+    fn as_ref(&self) -> &Integer {
+        &**self
+    }
+}
+
+impl Pointer for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Pointer::fmt(&&**self, f)
+    }
+}
+
+impl Display for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&**self, f)
+    }
+}
+
+impl Debug for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Debug::fmt(&**self, f)
+    }
+}
+
+impl Binary for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Binary::fmt(&**self, f)
+    }
+}
+
+impl Octal for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Octal::fmt(&**self, f)
+    }
+}
+
+impl LowerHex for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        LowerHex::fmt(&**self, f)
+    }
+}
+
+impl UpperHex for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        UpperHex::fmt(&**self, f)
+    }
+}
+
+#[cfg(feature = "float")]
+impl LowerExp for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        LowerExp::fmt(&**self, f)
+    }
+}
+
+#[cfg(feature = "float")]
+impl UpperExp for BorrowInteger<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        UpperExp::fmt(&**self, f)
+    }
+}
+
+// Safety: mpz_t is thread safe as guaranteed by the GMP library.
+unsafe impl Send for BorrowInteger<'_> {}
+unsafe impl Sync for BorrowInteger<'_> {}
