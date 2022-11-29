@@ -87,7 +87,7 @@ assert_eq!(c, (-19, 2));
 */
 #[repr(transparent)]
 pub struct Rational {
-    pub(crate) inner: mpq_t,
+    inner: mpq_t,
 }
 
 static_assert_same_layout!(Rational, mpq_t);
