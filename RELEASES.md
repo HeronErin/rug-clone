@@ -4,6 +4,18 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
+Version 1.19.0 (unreleased)
+===========================
+
+  * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
+    [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
+    more traits, including [`Clone`] and [`Copy`].
+
+[bc-1-19]: https://docs.rs/rug/~1.19/rug/complex/struct.BorrowComplex.html
+[bf-1-19]: https://docs.rs/rug/~1.19/rug/float/struct.BorrowFloat.html
+[bi-1-19]: https://docs.rs/rug/~1.19/rug/integer/struct.BorrowInteger.html
+[br-1-19]: https://docs.rs/rug/~1.19/rug/rational/struct.BorrowRational.html
+
 Version 1.18.0 (2022-11-17)
 ===========================
 

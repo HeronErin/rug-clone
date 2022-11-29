@@ -28,6 +28,18 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
+### Version 1.19.0 news (unreleased)
+
+  * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
+    [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
+    more traits, including [`Clone`] and [`Copy`].
+
+[`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
+[bc-1-19]: https://docs.rs/rug/~1.19/rug/complex/struct.BorrowComplex.html
+[bf-1-19]: https://docs.rs/rug/~1.19/rug/float/struct.BorrowFloat.html
+[bi-1-19]: https://docs.rs/rug/~1.19/rug/integer/struct.BorrowInteger.html
+[br-1-19]: https://docs.rs/rug/~1.19/rug/rational/struct.BorrowRational.html
+
 ### Version 1.18.0 news (2022-11-17)
 
   * For the [`Integer`][int-1-18] struct, the methods
