@@ -96,14 +96,14 @@ impl Deref for BorrowFloat<'_> {
 impl Borrow<Float> for BorrowFloat<'_> {
     #[inline]
     fn borrow(&self) -> &Float {
-        &**self
+        self
     }
 }
 
 impl AsRef<Float> for BorrowFloat<'_> {
     #[inline]
     fn as_ref(&self) -> &Float {
-        &**self
+        self
     }
 }
 

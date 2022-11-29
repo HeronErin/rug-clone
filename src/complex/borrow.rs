@@ -14,7 +14,7 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::float::OrdComplex;
+use crate::complex::OrdComplex;
 use crate::Complex;
 use core::borrow::Borrow;
 use core::convert::AsRef;
@@ -97,14 +97,14 @@ impl Deref for BorrowComplex<'_> {
 impl Borrow<Complex> for BorrowComplex<'_> {
     #[inline]
     fn borrow(&self) -> &Complex {
-        &**self
+        self
     }
 }
 
 impl AsRef<Complex> for BorrowComplex<'_> {
     #[inline]
     fn as_ref(&self) -> &Complex {
-        &**self
+        self
     }
 }
 
@@ -169,6 +169,6 @@ impl UpperExp for BorrowComplex<'_> {
     }
 }
 
-// Safety: mpc_t is thread safe as guaranteed by the MPCm library.
+// Safety: mpc_t is thread safe as guaranteed by the MPC library.
 unsafe impl Send for BorrowComplex<'_> {}
 unsafe impl Sync for BorrowComplex<'_> {}

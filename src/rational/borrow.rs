@@ -100,14 +100,14 @@ impl Deref for BorrowRational<'_> {
 impl Borrow<Rational> for BorrowRational<'_> {
     #[inline]
     fn borrow(&self) -> &Rational {
-        &**self
+        self
     }
 }
 
 impl AsRef<Rational> for BorrowRational<'_> {
     #[inline]
     fn as_ref(&self) -> &Rational {
-        &**self
+        self
     }
 }
 

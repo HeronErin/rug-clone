@@ -97,14 +97,14 @@ impl Deref for BorrowInteger<'_> {
 impl Borrow<Integer> for BorrowInteger<'_> {
     #[inline]
     fn borrow(&self) -> &Integer {
-        &**self
+        self
     }
 }
 
 impl AsRef<Integer> for BorrowInteger<'_> {
     #[inline]
     fn as_ref(&self) -> &Integer {
-        &**self
+        self
     }
 }
 
