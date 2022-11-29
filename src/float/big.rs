@@ -22,7 +22,7 @@ use crate::float;
 use crate::float::arith::{
     AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete,
 };
-use crate::float::{OrdFloat, Round, SmallFloat, Special};
+use crate::float::{BorrowFloat, OrdFloat, Round, SmallFloat, Special};
 #[cfg(feature = "integer")]
 use crate::integer::BorrowInteger;
 use crate::misc;
@@ -40,10 +40,9 @@ use crate::Rational;
 use az::{Az, CheckedCast, SaturatingCast, UnwrappedAs, UnwrappedCast, WrappingAs};
 use core::cmp::Ordering;
 use core::fmt::{Display, Formatter, Result as FmtResult};
-use core::marker::PhantomData;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::num::FpCategory;
-use core::ops::{Add, AddAssign, Deref, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::{slice, str};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::limb_t;
@@ -1340,6 +1339,9 @@ impl Float {
     /// assert_eq!(*reneg_f, 4.2);
     /// assert_eq!(*reneg_f, f);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_neg(&self) -> BorrowFloat<'_> {
         let mut raw = self.inner;
         raw.sign = -raw.sign;
@@ -1369,6 +1371,9 @@ impl Float {
     /// assert_eq!(*reabs_f, 4.2);
     /// assert_eq!(*reabs_f, *abs_f);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_abs(&self) -> BorrowFloat<'_> {
         let mut raw = self.inner;
         raw.sign = 1;
@@ -1439,6 +1444,9 @@ impl Float {
     /// let c_mul_i = c.as_mul_i(false);
     /// assert_eq!(*c_mul_i, (0.0, 4.2));
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_complex(&self) -> BorrowComplex<'_> {
         // im.d is set to be the same as re.d since the precision is equal;
         // though it will not be read as the imaginary part is 0 (which is singular).
@@ -1871,6 +1879,8 @@ impl Float {
     /// assert_eq!(check_int << sig_bits << (check_exp - exp), *significand);
     /// ```
     ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     /// [significant bits]: Integer::significant_bits
     #[inline]
     pub fn get_significand(&self) -> Option<BorrowInteger<'_>> {
@@ -9588,71 +9598,6 @@ impl CompleteRound for RandomExpIncomplete<'_> {
     #[inline]
     fn complete_round(self, prec: u32, round: Round) -> (Float, Ordering) {
         Float::with_val_round(prec, self, round)
-    }
-}
-
-/// Used to get a reference to a [`Float`].
-///
-/// The struct implements <code>[Deref]\<[Target][Deref::Target] = [Float]></code>.
-///
-/// No memory is unallocated when this struct is dropped.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::float::BorrowFloat;
-/// use rug::Float;
-/// let f = Float::with_val(53, 4.2);
-/// let neg: BorrowFloat = f.as_neg();
-/// // f is still valid
-/// assert_eq!(f, 4.2);
-/// assert_eq!(*neg, -4.2);
-/// ```
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct BorrowFloat<'a> {
-    inner: ManuallyDrop<Float>,
-    phantom: PhantomData<&'a Float>,
-}
-
-impl BorrowFloat<'_> {
-    /// Create a borrow from a raw [MPFR floating-point number][mpfr_t].
-    ///
-    /// # Safety
-    ///
-    ///   * The value must be initialized.
-    ///   * The [`mpfr_t`] type can be considered as a kind of pointer, so there
-    ///     can be multiple copies of it. [`BorrowFloat`] cannot mutate the
-    ///     value, so there can be other copies, but none of them are allowed to
-    ///     mutate the value.
-    ///   * The lifetime is obtained from the return type. The user must ensure
-    ///     the value remains valid for the duration of the lifetime.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::float::BorrowFloat;
-    /// use rug::Float;
-    /// let f = Float::with_val(53, 4.2);
-    /// // Safety: f.as_raw() is a valid pointer.
-    /// let raw = unsafe { *f.as_raw() };
-    /// // Safety: f is still valid when borrow is used.
-    /// let borrow = unsafe { BorrowFloat::from_raw(raw) };
-    /// assert_eq!(f, *borrow);
-    /// ```
-    pub unsafe fn from_raw<'a>(raw: mpfr_t) -> BorrowFloat<'a> {
-        BorrowFloat {
-            inner: ManuallyDrop::new(unsafe { Float::from_raw(raw) }),
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl Deref for BorrowFloat<'_> {
-    type Target = Float;
-    #[inline]
-    fn deref(&self) -> &Float {
-        &self.inner
     }
 }
 

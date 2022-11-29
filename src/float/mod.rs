@@ -23,6 +23,7 @@ This module provides support for floating-point numbers of type
 
 pub(crate) mod arith;
 pub(crate) mod big;
+mod borrow;
 mod casts;
 mod cmp;
 #[cfg(feature = "num-traits")]
@@ -35,7 +36,8 @@ pub(crate) mod small;
 pub(crate) mod tests;
 mod traits;
 
-pub use crate::float::big::{BorrowFloat, ParseFloatError};
+pub use crate::float::big::ParseFloatError;
+pub use crate::float::borrow::BorrowFloat;
 pub use crate::float::ord::OrdFloat;
 pub use crate::float::small::{SmallFloat, ToSmall};
 use az::SaturatingCast;
