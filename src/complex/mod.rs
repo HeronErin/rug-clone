@@ -23,6 +23,7 @@ This module provides support for complex numbers of type
 
 pub(crate) mod arith;
 pub(crate) mod big;
+mod borrow;
 mod cmp;
 #[cfg(feature = "num-traits")]
 mod impl_num_traits;
@@ -34,7 +35,8 @@ mod small;
 mod tests;
 mod traits;
 
-pub use crate::complex::big::{BorrowComplex, ParseComplexError};
+pub use crate::complex::big::ParseComplexError;
+pub use crate::complex::borrow::BorrowComplex;
 pub use crate::complex::ord::OrdComplex;
 pub use crate::complex::small::SmallComplex;
 

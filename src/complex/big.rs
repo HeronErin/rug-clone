@@ -15,7 +15,7 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
-use crate::complex::{OrdComplex, Prec};
+use crate::complex::{BorrowComplex, OrdComplex, Prec};
 use crate::ext::xmpc;
 use crate::ext::xmpc::{Ordering2, Round2, NEAREST2};
 use crate::ext::xmpfr;
@@ -34,9 +34,8 @@ use crate::{Assign, Float};
 use az::UnwrappedCast;
 use core::cmp::Ordering;
 use core::fmt::{Display, Formatter, Result as FmtResult};
-use core::marker::PhantomData;
 use core::mem::{ManuallyDrop, MaybeUninit};
-use core::ops::{Add, AddAssign, Deref, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::slice;
 use gmp_mpfr_sys::mpc::mpc_t;
 use std::error::Error;
@@ -762,6 +761,9 @@ impl Complex {
     /// let c = Complex::borrow_real_imag(&real, &imag);
     /// assert_eq!(*c, (4.2, -2.3));
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn borrow_real_imag<'a>(real: &'a Float, imag: &'a Float) -> BorrowComplex<'a> {
         let raw = mpc_t {
             re: *real.inner(),
@@ -824,6 +826,9 @@ impl Complex {
     /// assert_eq!(*reneg_c, (4.2, -2.3));
     /// assert_eq!(*reneg_c, c);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_neg(&self) -> BorrowComplex<'_> {
         let mut raw = self.inner;
         raw.re.sign = -raw.re.sign;
@@ -854,6 +859,9 @@ impl Complex {
     /// assert_eq!(*reconj_c, (4.2, -2.3));
     /// assert_eq!(*reconj_c, c);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_conj(&self) -> BorrowComplex<'_> {
         let mut raw = self.inner;
         raw.im.sign = -raw.im.sign;
@@ -887,6 +895,9 @@ impl Complex {
     /// assert_eq!(*mul_1_c, (4.2, -2.3));
     /// assert_eq!(*mul_1_c, c);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
         let mut raw = mpc_t {
             re: self.inner.im,
@@ -4020,73 +4031,6 @@ impl CompleteRound for RandomContIncomplete<'_> {
         Complex::with_val_round(prec, self, round)
     }
 }
-
-/// Used to get a reference to a [`Complex`] number.
-///
-/// The struct implements <code>[Deref]\<[Target][Deref::Target] = [Complex]></code>.
-///
-/// No memory is unallocated when this struct is dropped.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::complex::BorrowComplex;
-/// use rug::Complex;
-/// let c = Complex::with_val(53, (4.2, -2.3));
-/// let neg: BorrowComplex = c.as_neg();
-/// // c is still valid
-/// assert_eq!(c, (4.2, -2.3));
-/// assert_eq!(*neg, (-4.2, 2.3));
-/// ```
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct BorrowComplex<'a> {
-    inner: ManuallyDrop<Complex>,
-    phantom: PhantomData<&'a Complex>,
-}
-
-impl BorrowComplex<'_> {
-    /// Create a borrow from a raw [MPC complex number][mpc_t].
-    ///
-    /// # Safety
-    ///
-    ///   * The value must be initialized.
-    ///   * The [`mpc_t`] type can be considered as a kind of pointer, so there
-    ///     can be multiple copies of it. [`BorrowComplex`] cannot mutate the
-    ///     value, so there can be other copies, but none of them are allowed to
-    ///     mutate the value.
-    ///   * The lifetime is obtained from the return type. The user must ensure
-    ///     the value remains valid for the duration of the lifetime.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::complex::BorrowComplex;
-    /// use rug::Complex;
-    /// let c = Complex::with_val(53, (4.2, -2.3));
-    /// // Safety: c.as_raw() is a valid pointer.
-    /// let raw = unsafe { *c.as_raw() };
-    /// // Safety: c is still valid when borrow is used.
-    /// let borrow = unsafe { BorrowComplex::from_raw(raw) };
-    /// assert_eq!(c, *borrow);
-    /// ```
-    // unsafe because the lifetime is obtained from return type
-    pub unsafe fn from_raw<'a>(raw: mpc_t) -> BorrowComplex<'a> {
-        BorrowComplex {
-            inner: ManuallyDrop::new(unsafe { Complex::from_raw(raw) }),
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl Deref for BorrowComplex<'_> {
-    type Target = Complex;
-    #[inline]
-    fn deref(&self) -> &Complex {
-        &self.inner
-    }
-}
-
 #[derive(Clone, Copy)]
 pub(crate) struct Format {
     pub radix: i32,
