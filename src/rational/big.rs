@@ -18,14 +18,14 @@ use crate::ext::xmpq;
 use crate::ext::xmpz;
 use crate::integer::big as big_integer;
 use crate::ops::{NegAssign, SubFrom};
+use crate::rational::BorrowRational;
 use crate::rational::arith::MulIncomplete;
 use crate::{Assign, Complete, Integer};
 use az::{Cast, CheckedCast, UnwrappedAs, UnwrappedCast};
 use core::cmp::Ordering;
 use core::fmt::{Display, Formatter, Result as FmtResult};
-use core::marker::PhantomData;
 use core::mem::{ManuallyDrop, MaybeUninit};
-use core::ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::gmp::mpq_t;
 use std::error::Error;
@@ -87,7 +87,7 @@ assert_eq!(c, (-19, 2));
 */
 #[repr(transparent)]
 pub struct Rational {
-    inner: mpq_t,
+    pub(crate) inner: mpq_t,
 }
 
 static_assert_same_layout!(Rational, mpq_t);
@@ -931,6 +931,9 @@ impl Rational {
     /// assert_eq!(*reneg_r, (7, 11));
     /// assert_eq!(*reneg_r, r);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_neg(&self) -> BorrowRational<'_> {
         let mut raw = self.inner;
         raw.num.size = raw.num.size.checked_neg().expect("overflow");
@@ -958,6 +961,9 @@ impl Rational {
     /// assert_eq!(*reabs_r, (7, 11));
     /// assert_eq!(*reabs_r, *abs_r);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_abs(&self) -> BorrowRational<'_> {
         let mut raw = self.inner;
         raw.num.size = raw.num.size.checked_abs().expect("overflow");
@@ -989,6 +995,9 @@ impl Rational {
     /// assert_eq!(*rerecip_r, (-7, 11));
     /// assert_eq!(*rerecip_r, r);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_recip(&self) -> BorrowRational<'_> {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
         let mut raw = mpq_t {
@@ -2826,77 +2835,6 @@ ref_rat_op_rat_int! { xmpq::floor_fract_whole; struct FractFloorIncomplete {} }
 ref_rat_op_int! { xmpq::round_int; struct RoundIncomplete {} }
 ref_math_op1! { Rational; xmpq::round_fract; struct RemRoundIncomplete {} }
 ref_rat_op_rat_int! { xmpq::round_fract_whole; struct FractRoundIncomplete {} }
-
-/// Used to get a reference to a [`Rational`] number.
-///
-/// The struct implements <code>[Deref]\<[Target][Deref::Target] = [Rational]></code>.
-///
-/// No memory is unallocated when this struct is dropped.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::rational::BorrowRational;
-/// use rug::Rational;
-/// let r = Rational::from((42, 3));
-/// let neg: BorrowRational = r.as_neg();
-/// // r is still valid
-/// assert_eq!(r, (42, 3));
-/// assert_eq!(*neg, (-42, 3));
-/// ```
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct BorrowRational<'a> {
-    inner: ManuallyDrop<Rational>,
-    phantom: PhantomData<&'a Rational>,
-}
-
-impl BorrowRational<'_> {
-    /// Create a borrow from a raw [GMP rational number][mpq_t].
-    ///
-    /// # Safety
-    ///
-    ///   * The value must be initialized.
-    ///   * The [`mpq_t`] type can be considered as a kind of pointer, so there
-    ///     can be multiple copies of it. [`BorrowRational`] cannot mutate the
-    ///     value, so there can be other copies, but none of them are allowed to
-    ///     mutate the value.
-    ///   * The lifetime is obtained from the return type. The user must ensure
-    ///     the value remains valid for the duration of the lifetime.
-    ///   * The numerator and denominator must be in canonical form, as the rest
-    ///     of the library assumes that they are. Most GMP functions leave the
-    ///     rational number in canonical form, but assignment functions do not.
-    ///     Check the [GMP documentation][gmp mpq] for details.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::rational::BorrowRational;
-    /// use rug::Rational;
-    /// let r = Rational::from((42, 3));
-    /// // Safety: r.as_raw() is a valid pointer.
-    /// let raw = unsafe { *r.as_raw() };
-    /// // Safety: r is still valid when borrow is used.
-    /// let borrow = unsafe { BorrowRational::from_raw(raw) };
-    /// assert_eq!(r, *borrow);
-    /// ```
-    ///
-    /// [gmp mpq]: gmp_mpfr_sys::C::GMP::Rational_Number_Functions#index-Rational-number-functions
-    pub const unsafe fn from_raw<'a>(raw: mpq_t) -> BorrowRational<'a> {
-        BorrowRational {
-            inner: ManuallyDrop::new(Rational { inner: raw }),
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl Deref for BorrowRational<'_> {
-    type Target = Rational;
-    #[inline]
-    fn deref(&self) -> &Rational {
-        &self.inner
-    }
-}
 
 pub(crate) fn append_to_string(s: &mut String, r: &Rational, radix: i32, to_upper: bool) {
     let (num, den) = (r.numer(), r.denom());

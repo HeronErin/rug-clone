@@ -23,6 +23,7 @@ This module provides support for arbitrary-precision rational numbers of type
 
 mod arith;
 pub(crate) mod big;
+mod borrow;
 mod casts;
 mod cmp;
 #[cfg(feature = "num-traits")]
@@ -34,7 +35,8 @@ mod small;
 mod tests;
 mod traits;
 
-pub use crate::rational::big::{BorrowRational, ParseRationalError};
+pub use crate::rational::big::ParseRationalError;
+pub use crate::rational::borrow::BorrowRational;
 pub use crate::rational::small::SmallRational;
 use core::fmt::{Display, Formatter, Result as FmtResult};
 use std::error::Error;
