@@ -41,6 +41,7 @@ assert_eq!(int, 15);
 
 pub(crate) mod arith;
 pub(crate) mod big;
+mod borrow;
 mod casts;
 mod cmp;
 mod division;
@@ -55,7 +56,8 @@ pub(crate) mod small;
 mod tests;
 mod traits;
 
-pub use crate::integer::big::{BorrowInteger, IsPrime, ParseIntegerError, UnsignedPrimitive};
+pub use crate::integer::big::{IsPrime, ParseIntegerError, UnsignedPrimitive};
+pub use crate::integer::borrow::BorrowInteger;
 #[cfg(all(target_pointer_width = "64", not(windows)))]
 pub use crate::integer::long64::IntegerExt64;
 pub use crate::integer::small::{SmallInteger, ToSmall};

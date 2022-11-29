@@ -16,7 +16,7 @@
 
 use crate::ext::xmpz;
 use crate::integer::arith::MulIncomplete;
-use crate::integer::Order;
+use crate::integer::{BorrowInteger, Order};
 use crate::misc;
 use crate::ops::{DivRounding, NegAssign, SubFrom};
 #[cfg(feature = "rand")]
@@ -27,10 +27,9 @@ use crate::{Assign, Complete};
 use az::{Az, Cast, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingCast};
 use core::cmp::Ordering;
 use core::fmt::{Display, Formatter, Result as FmtResult};
-use core::marker::PhantomData;
 use core::mem;
 use core::mem::{ManuallyDrop, MaybeUninit};
-use core::ops::{Add, AddAssign, Deref, Mul, MulAssign, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 #[cfg(feature = "rational")]
 use core::ptr::NonNull;
 use core::slice;
@@ -1864,6 +1863,9 @@ impl Integer {
     /// assert_eq!(*reneg_i, 42);
     /// assert_eq!(*reneg_i, i);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_neg(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
         raw.size = raw.size.checked_neg().expect("overflow");
@@ -1890,6 +1892,9 @@ impl Integer {
     /// assert_eq!(*reabs_i, 42);
     /// assert_eq!(*reabs_i, *abs_i);
     /// ```
+    ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     pub fn as_abs(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
         raw.size = raw.size.checked_abs().expect("overflow");
@@ -1915,6 +1920,8 @@ impl Integer {
     /// assert_eq!(*recip_r, (1, 42));
     /// ```
     ///
+    /// [Deref::Target]: core::ops::Deref::Target
+    /// [Deref]: core::ops::Deref
     /// [Rational]: crate::Rational
     pub const fn as_rational(&self) -> BorrowRational<'_> {
         const ONE: limb_t = 1;
@@ -6098,71 +6105,6 @@ impl From<RandomBelowIncomplete<'_>> for Integer {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
-    }
-}
-
-/// Used to get a reference to an [`Integer`].
-///
-/// The struct implements <code>[Deref]\<[Target][Deref::Target] = [Integer]></code>.
-///
-/// No memory is unallocated when this struct is dropped.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::integer::BorrowInteger;
-/// use rug::Integer;
-/// let i = Integer::from(42);
-/// let neg: BorrowInteger = i.as_neg();
-/// // i is still valid
-/// assert_eq!(i, 42);
-/// assert_eq!(*neg, -42);
-/// ```
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct BorrowInteger<'a> {
-    inner: ManuallyDrop<Integer>,
-    phantom: PhantomData<&'a Integer>,
-}
-
-impl BorrowInteger<'_> {
-    /// Create a borrow from a raw [GMP integer][mpz_t].
-    ///
-    /// # Safety
-    ///
-    ///   * The value must be initialized.
-    ///   * The [`mpz_t`] type can be considered as a kind of pointer, so there
-    ///     can be multiple copies of it. [`BorrowInteger`] cannot mutate the
-    ///     value, so there can be other copies, but none of them are allowed to
-    ///     mutate the value.
-    ///   * The lifetime is obtained from the return type. The user must ensure
-    ///     the value remains valid for the duration of the lifetime.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::integer::BorrowInteger;
-    /// use rug::Integer;
-    /// let i = Integer::from(42);
-    /// // Safety: i.as_raw() is a valid pointer.
-    /// let raw = unsafe { *i.as_raw() };
-    /// // Safety: i is still valid when borrow is used.
-    /// let borrow = unsafe { BorrowInteger::from_raw(raw) };
-    /// assert_eq!(i, *borrow);
-    /// ```
-    pub const unsafe fn from_raw<'a>(raw: mpz_t) -> BorrowInteger<'a> {
-        BorrowInteger {
-            inner: ManuallyDrop::new(unsafe { Integer::from_raw(raw) }),
-            phantom: PhantomData,
-        }
-    }
-}
-
-impl Deref for BorrowInteger<'_> {
-    type Target = Integer;
-    #[inline]
-    fn deref(&self) -> &Integer {
-        &self.inner
     }
 }
 
