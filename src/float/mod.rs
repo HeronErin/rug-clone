@@ -183,6 +183,8 @@ pub enum Round {
     Up,
     /// Round towards minus infinity.
     Down,
+    /// Round away from zero.
+    AwayZero,
 }
 
 impl Round {

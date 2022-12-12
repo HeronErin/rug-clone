@@ -89,6 +89,7 @@ pub fn raw_round(round: Round) -> rnd_t {
         Round::Zero => rnd_t::RNDZ,
         Round::Up => rnd_t::RNDU,
         Round::Down => rnd_t::RNDD,
+        Round::AwayZero => rnd_t::RNDA,
     }
 }
 

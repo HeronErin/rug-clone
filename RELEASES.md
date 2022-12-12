@@ -9,6 +9,8 @@ Version 1.19.0 (unreleased)
 
   * The crate now requires rustc version 1.65.0 or later.
   * The [gmp-mpfr-sys] dependency was updated to [version 1.5][sys-1-5].
+  * The <code>[Round][r-1-19]::[AwayZero][r-az-1-19]</code> rounding mode was
+    added.
   * The following methods are now const functions:
       * <code>[Integer][int-1-19]::[as\_limbs][int-al-1-19]</code>
       * <code>[Integer][int-1-19]::[as\_neg][int-an-1-19]</code>,
@@ -95,6 +97,8 @@ Version 1.19.0 (unreleased)
 [int-c-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.cmp0
 [int-ie-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_even
 [int-io-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_odd
+[r-1-19]: https://docs.rs/rug/~1.19/rug/float/enum.Round.html
+[r-az-1-19]: https://docs.rs/rug/~1.19/rug/float/enum.Round.html#variant.AwayZero
 [rat-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html
 [rat-aa-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.as_abs
 [rat-an-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.as_neg
