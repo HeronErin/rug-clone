@@ -176,7 +176,6 @@ impl AssignRound<Constant> for Float {
             Constant::Pi => xmpfr::const_pi(self, round),
             Constant::Euler => xmpfr::const_euler(self, round),
             Constant::Catalan => xmpfr::const_catalan(self, round),
-            _ => unreachable!(),
         }
     }
 }
@@ -330,10 +329,10 @@ fn fmt_radix(flt: &Float, fmt: &mut Formatter<'_>, format: Format, prefix: &str)
     };
     let mut s = String::new();
     big::append_to_string(&mut s, flt, format);
-    let (neg, buf) = if s.starts_with('-') {
-        (true, &s[1..])
+    let (neg, buf) = if let Some(stripped) = s.strip_prefix('-') {
+        (true, stripped)
     } else {
-        (false, &s[..])
+        (false, &*s)
     };
     let prefix = if flt.is_finite() { prefix } else { "" };
     fmt.pad_integral(!neg, prefix, buf)

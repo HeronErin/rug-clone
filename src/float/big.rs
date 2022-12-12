@@ -1266,7 +1266,7 @@ impl Float {
         num_digits: Option<usize>,
         round: Round,
     ) -> (bool, String, Option<i32>) {
-        assert!((2..=36).contains(&radix), "radix {} out of range", radix);
+        assert!((2..=36).contains(&radix), "radix {radix} out of range");
         let sign = self.is_sign_negative();
         if self.is_zero() {
             return (sign, String::from("0"), None);
@@ -9646,9 +9646,9 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
             3
         }
     } else {
+        use core::f64::consts::LOG10_2;
         let digits = req_digits(f, format);
         let log2_radix = f64::from(format.radix).log2();
-        const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
         let exp = (xmpfr::get_exp(f).az::<f64>() / log2_radix - 1.0).abs();
         // add 1 for '-' and an extra 1 in case of rounding errors
         let exp_digits = (exp * LOG10_2).ceil().az::<usize>() + 2;
@@ -9760,7 +9760,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         } else {
             'e'
         });
-        write!(s, "{}", exp).unwrap();
+        write!(s, "{exp}").unwrap();
     }
     debug_assert_eq!(reserved_ptr, s.as_ptr());
 }
@@ -9822,7 +9822,7 @@ macro_rules! parse_error {
 }
 
 fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatError> {
-    assert!((2..=36).contains(&radix), "radix {} out of range", radix);
+    assert!((2..=36).contains(&radix), "radix {radix} out of range");
     let bradix = radix.unwrapped_as::<u8>();
     let small_bound = b'a' - 10 + bradix;
     let capital_bound = b'A' - 10 + bradix;

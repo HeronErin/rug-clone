@@ -117,7 +117,6 @@ pub fn raw_round2(round: Round2) -> rnd_t {
         (Round::Down, Round::Zero) => mpc::RNDDZ,
         (Round::Down, Round::Up) => mpc::RNDDU,
         (Round::Down, Round::Down) => mpc::RNDDD,
-        _ => unreachable!(),
     }
 }
 

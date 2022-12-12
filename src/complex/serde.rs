@@ -183,8 +183,8 @@ mod tests {
     #[test]
     fn check() {
         let prec_min = float::prec_min();
-        let real_prec_err = format!("real precision 0 less than minimum {}", prec_min);
-        let imag_prec_err = format!("imaginary precision 0 less than minimum {}", prec_min);
+        let real_prec_err = format!("real precision 0 less than minimum {prec_min}");
+        let imag_prec_err = format!("imaginary precision 0 less than minimum {prec_min}");
         Check::DeError((0, 32), &real_prec_err).check(10, "0");
         Check::DeError((40, 0), &imag_prec_err).check(10, "0");
         Check::DeError((40, 32), "radix 1 less than minimum 2").check(1, "0");

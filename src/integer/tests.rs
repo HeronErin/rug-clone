@@ -217,13 +217,10 @@ fn check_from_str() {
     for &(s, radix, msg) in bad_strings.iter() {
         match Integer::parse_radix(s, radix) {
             Ok(o) => panic!(
-                "\"{}\" (radix {}) parsed correctly as {}, expected: {}",
-                s,
-                radix,
+                "\"{s}\" (radix {radix}) parsed correctly as {}, expected: {msg}",
                 Integer::from(o),
-                msg
             ),
-            Err(e) => assert_eq!(e.to_string(), msg, "\"{}\" (radix {})", s, radix),
+            Err(e) => assert_eq!(e.to_string(), msg, "\"{s}\" (radix {radix})"),
         }
     }
     let good_strings = [
@@ -243,7 +240,7 @@ fn check_from_str() {
     for &(s, radix, i) in good_strings.iter() {
         match Integer::parse_radix(s, radix) {
             Ok(ok) => assert_eq!(Integer::from(ok), i),
-            Err(err) => panic!("could not parse {}: {}", s, err),
+            Err(err) => panic!("could not parse {s}: {err}"),
         }
     }
 }
@@ -251,57 +248,57 @@ fn check_from_str() {
 #[test]
 fn check_formatting() {
     let mut i = Integer::from(11);
-    assert_eq!(format!("{}", i), "11");
-    assert_eq!(format!("{:?}", i), "11");
-    assert_eq!(format!("{:<10}", i), "11        ");
-    assert_eq!(format!("{:>10}", i), "        11");
-    assert_eq!(format!("{:10}", i), "        11");
-    assert_eq!(format!("{:^10}", i), "    11    ");
-    assert_eq!(format!("{:^11}", i), "    11     ");
-    assert_eq!(format!("{:+}", i), "+11");
-    assert_eq!(format!("{:b}", i), "1011");
-    assert_eq!(format!("{:#b}", i), "0b1011");
-    assert_eq!(format!("{:o}", i), "13");
-    assert_eq!(format!("{:#o}", i), "0o13");
-    assert_eq!(format!("{:x}", i), "b");
-    assert_eq!(format!("{:X}", i), "B");
-    assert_eq!(format!("{:8x}", i), "       b");
-    assert_eq!(format!("{:08X}", i), "0000000B");
-    assert_eq!(format!("{:#08x}", i), "0x00000b");
-    assert_eq!(format!("{:#8X}", i), "     0xB");
+    assert_eq!(format!("{i}"), "11");
+    assert_eq!(format!("{i:?}"), "11");
+    assert_eq!(format!("{i:<10}"), "11        ");
+    assert_eq!(format!("{i:>10}"), "        11");
+    assert_eq!(format!("{i:10}"), "        11");
+    assert_eq!(format!("{i:^10}"), "    11    ");
+    assert_eq!(format!("{i:^11}"), "    11     ");
+    assert_eq!(format!("{i:+}"), "+11");
+    assert_eq!(format!("{i:b}"), "1011");
+    assert_eq!(format!("{i:#b}"), "0b1011");
+    assert_eq!(format!("{i:o}"), "13");
+    assert_eq!(format!("{i:#o}"), "0o13");
+    assert_eq!(format!("{i:x}"), "b");
+    assert_eq!(format!("{i:X}"), "B");
+    assert_eq!(format!("{i:8x}"), "       b");
+    assert_eq!(format!("{i:08X}"), "0000000B");
+    assert_eq!(format!("{i:#08x}"), "0x00000b");
+    assert_eq!(format!("{i:#8X}"), "     0xB");
     i.assign(-11);
-    assert_eq!(format!("{}", i), "-11");
-    assert_eq!(format!("{:?}", i), "-11");
-    assert_eq!(format!("{:+}", i), "-11");
-    assert_eq!(format!("{:b}", i), "-1011");
-    assert_eq!(format!("{:#b}", i), "-0b1011");
-    assert_eq!(format!("{:o}", i), "-13");
-    assert_eq!(format!("{:#o}", i), "-0o13");
-    assert_eq!(format!("{:x}", i), "-b");
-    assert_eq!(format!("{:X}", i), "-B");
-    assert_eq!(format!("{:8x}", i), "      -b");
-    assert_eq!(format!("{:08X}", i), "-000000B");
-    assert_eq!(format!("{:#08x}", i), "-0x0000b");
-    assert_eq!(format!("{:#8X}", i), "    -0xB");
+    assert_eq!(format!("{i}"), "-11");
+    assert_eq!(format!("{i:?}"), "-11");
+    assert_eq!(format!("{i:+}"), "-11");
+    assert_eq!(format!("{i:b}"), "-1011");
+    assert_eq!(format!("{i:#b}"), "-0b1011");
+    assert_eq!(format!("{i:o}"), "-13");
+    assert_eq!(format!("{i:#o}"), "-0o13");
+    assert_eq!(format!("{i:x}"), "-b");
+    assert_eq!(format!("{i:X}"), "-B");
+    assert_eq!(format!("{i:8x}"), "      -b");
+    assert_eq!(format!("{i:08X}"), "-000000B");
+    assert_eq!(format!("{i:#08x}"), "-0x0000b");
+    assert_eq!(format!("{i:#8X}"), "    -0xB");
 
     #[cfg(feature = "float")]
     {
         // one "1" followed by 1000 "0"s
         i.assign(Integer::u_pow_u(10, 1000));
-        assert_eq!(format!("{:.1e}", i), "1e1000");
-        assert_eq!(format!("{:.2E}", i), "1.0E1000");
+        assert_eq!(format!("{i:.1e}"), "1e1000");
+        assert_eq!(format!("{i:.2E}"), "1.0E1000");
         i -= Integer::from(Integer::u_pow_u(10, 990));
         // ten "9"s followed by 990 "0"s
-        assert_eq!(format!("{:.1e}", i), "1e1000");
-        assert_eq!(format!("{:+.2E}", i), "+1.0E1000");
-        assert_eq!(format!("{:.9e}", i), "1.00000000e1000");
-        assert_eq!(format!("{:.10E}", i), "9.999999999E999");
+        assert_eq!(format!("{i:.1e}"), "1e1000");
+        assert_eq!(format!("{i:+.2E}"), "+1.0E1000");
+        assert_eq!(format!("{i:.9e}"), "1.00000000e1000");
+        assert_eq!(format!("{i:.10E}"), "9.999999999E999");
         i.neg_assign();
-        assert_eq!(format!("{:.9E}", i), "-1.00000000E1000");
-        assert_eq!(format!("{:.10e}", i), "-9.999999999e999");
+        assert_eq!(format!("{i:.9E}"), "-1.00000000E1000");
+        assert_eq!(format!("{i:.10e}"), "-9.999999999e999");
 
         i.assign(0);
-        assert_eq!(format!("{:.1e}", i), "0");
+        assert_eq!(format!("{i:.1e}"), "0");
     }
 }
 

@@ -89,7 +89,7 @@ fn check_from_str() {
                 Complex::with_val(53, o),
                 msg
             ),
-            Err(e) => assert_eq!(e.to_string(), msg, "\"{}\" (radix {})", s, radix),
+            Err(e) => assert_eq!(e.to_string(), msg, "\"{s}\" (radix {radix})"),
         }
     }
     let good_strings = [
@@ -108,10 +108,10 @@ fn check_from_str() {
         match Complex::parse_radix(s, radix) {
             Ok(ok) => {
                 let c = Complex::with_val(53, ok);
-                assert_eq!(*c.real(), r, "real mismatch for {}", s);
-                assert_eq!(*c.imag(), i, "imaginary mismatch for {}", s);
+                assert_eq!(*c.real(), r, "real mismatch for {s}");
+                assert_eq!(*c.imag(), i, "imaginary mismatch for {s}");
             }
-            Err(e) => panic!("could not parse {} because {}", s, e),
+            Err(e) => panic!("could not parse {s} because {e}"),
         }
     }
 
@@ -122,31 +122,31 @@ fn check_from_str() {
 fn check_formatting() {
     let mut c = Complex::new((53, 53));
     c.assign((Special::Zero, Special::NegZero));
-    assert_eq!(format!("{}", c), "(0 -0)");
-    assert_eq!(format!("{:?}", c), "(0 -0)");
-    assert_eq!(format!("{:+}", c), "(+0 -0)");
+    assert_eq!(format!("{c}"), "(0 -0)");
+    assert_eq!(format!("{c:?}"), "(0 -0)");
+    assert_eq!(format!("{c:+}"), "(+0 -0)");
     assert_eq!(format!("{:+}", *c.as_neg()), "(-0 +0)");
-    assert_eq!(format!("{:<15}", c), "(0 -0)         ");
-    assert_eq!(format!("{:>15}", c), "         (0 -0)");
-    assert_eq!(format!("{:15}", c), "         (0 -0)");
-    assert_eq!(format!("{:^15}", c), "    (0 -0)     ");
-    assert_eq!(format!("{:^16}", c), "     (0 -0)     ");
+    assert_eq!(format!("{c:<15}"), "(0 -0)         ");
+    assert_eq!(format!("{c:>15}"), "         (0 -0)");
+    assert_eq!(format!("{c:15}"), "         (0 -0)");
+    assert_eq!(format!("{c:^15}"), "    (0 -0)     ");
+    assert_eq!(format!("{c:^16}"), "     (0 -0)     ");
     c.assign((2.7, f64::NEG_INFINITY));
-    assert_eq!(format!("{:.2}", c), "(2.7 -inf)");
-    assert_eq!(format!("{:+.8}", c), "(+2.7000000 -inf)");
-    assert_eq!(format!("{:.4e}", c), "(2.700e0 -inf)");
-    assert_eq!(format!("{:.4E}", c), "(2.700E0 -inf)");
-    assert_eq!(format!("{:16.2}", c), "      (2.7 -inf)");
+    assert_eq!(format!("{c:.2}"), "(2.7 -inf)");
+    assert_eq!(format!("{c:+.8}"), "(+2.7000000 -inf)");
+    assert_eq!(format!("{c:.4e}"), "(2.700e0 -inf)");
+    assert_eq!(format!("{c:.4E}"), "(2.700E0 -inf)");
+    assert_eq!(format!("{c:16.2}"), "      (2.7 -inf)");
     c.assign((-3.5, 11));
-    assert_eq!(format!("{:.4b}", c), "(-11.10 1011)");
-    assert_eq!(format!("{:#.4b}", c), "(-0b11.10 0b1011)");
-    assert_eq!(format!("{:.4o}", c), "(-3.400 13.00)");
-    assert_eq!(format!("{:#.4o}", c), "(-0o3.400 0o13.00)");
+    assert_eq!(format!("{c:.4b}"), "(-11.10 1011)");
+    assert_eq!(format!("{c:#.4b}"), "(-0b11.10 0b1011)");
+    assert_eq!(format!("{c:.4o}"), "(-3.400 13.00)");
+    assert_eq!(format!("{c:#.4o}"), "(-0o3.400 0o13.00)");
     c.assign((3.5, -11));
-    assert_eq!(format!("{:.2x}", c), "(3.8 -b.0)");
-    assert_eq!(format!("{:#.2x}", c), "(0x3.8 -0xb.0)");
-    assert_eq!(format!("{:.2X}", c), "(3.8 -B.0)");
-    assert_eq!(format!("{:#.2X}", c), "(0x3.8 -0xB.0)");
+    assert_eq!(format!("{c:.2x}"), "(3.8 -b.0)");
+    assert_eq!(format!("{c:#.2x}"), "(0x3.8 -0xb.0)");
+    assert_eq!(format!("{c:.2X}"), "(3.8 -B.0)");
+    assert_eq!(format!("{c:#.2X}"), "(0x3.8 -0xB.0)");
 
     float::free_cache(FreeCache::All);
 }

@@ -266,10 +266,7 @@ pub fn cmp_i32(op1: &Integer, op2: i32) -> Ordering {
 
 #[inline]
 pub fn fits_u32(op: &Integer) -> bool {
-    match op.inner().size {
-        0 | 1 => true,
-        _ => false,
-    }
+    matches!(op.inner().size, 0 | 1)
 }
 
 #[inline]
@@ -284,10 +281,7 @@ pub fn fits_i32(op: &Integer) -> bool {
 
 #[inline]
 pub fn fits_u64(op: &Integer) -> bool {
-    match op.inner().size {
-        0 | 1 | 2 => true,
-        _ => false,
-    }
+    matches!(op.inner().size, 0 | 1 | 2)
 }
 
 #[inline]
@@ -306,10 +300,7 @@ pub fn fits_i64(op: &Integer) -> bool {
 
 #[inline]
 pub fn fits_u128(op: &Integer) -> bool {
-    match op.inner().size {
-        0 | 1 | 2 | 3 | 4 => true,
-        _ => false,
-    }
+    matches!(op.inner().size, 0 | 1 | 2 | 3 | 4)
 }
 
 #[inline]

@@ -219,13 +219,11 @@ where
 {
     if val < min {
         Err(DeError::custom(format_args!(
-            "{} {} less than minimum {}",
-            name, val, min,
+            "{name} {val} less than minimum {min}"
         )))
     } else if val > max {
         Err(DeError::custom(format_args!(
-            "{} {} greater than maximum {}",
-            name, val, max,
+            "{name} {val} greater than maximum {max}"
         )))
     } else {
         Ok(())

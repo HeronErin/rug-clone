@@ -174,7 +174,7 @@ assert_eq!(f4, 28);
 ```
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-// TODO: replace with exhaustive once rustc dependency >= 1.40
+#[non_exhaustive]
 pub enum Round {
     /// Round towards the nearest, with ties rounding to even.
     Nearest,
@@ -184,8 +184,6 @@ pub enum Round {
     Up,
     /// Round towards minus infinity.
     Down,
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl Round {
@@ -246,7 +244,7 @@ assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
 ```
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-// TODO: replace with exhaustive once rustc dependency >= 1.40
+#[non_exhaustive]
 pub enum Constant {
     /// The logarithm of two, 0.693147…
     Log2,
@@ -259,8 +257,6 @@ pub enum Constant {
     Euler,
     /// Catalan’s constant, 0.915965…
     Catalan,
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 /**
@@ -290,7 +286,7 @@ assert!(nan.is_nan());
 ```
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-// TODO: replace with exhaustive once rustc dependency >= 1.40
+#[non_exhaustive]
 pub enum Special {
     /// Positive zero.
     Zero,
@@ -302,8 +298,6 @@ pub enum Special {
     NegInfinity,
     /// Not a number.
     Nan,
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 /**
@@ -329,7 +323,7 @@ fn main() {
 */
 #[allow(clippy::needless_doctest_main)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-// TODO: replace with exhaustive once rustc dependency >= 1.40
+#[non_exhaustive]
 pub enum FreeCache {
     /// Free caches local to the current thread.
     Local,
@@ -337,8 +331,6 @@ pub enum FreeCache {
     Global,
     /// Free both local and global caches.
     All,
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 /**
@@ -375,7 +367,6 @@ pub fn free_cache(which: FreeCache) {
         FreeCache::Local => mpfr::FREE_LOCAL_CACHE,
         FreeCache::Global => mpfr::FREE_GLOBAL_CACHE,
         FreeCache::All => mpfr::FREE_LOCAL_CACHE | mpfr::FREE_GLOBAL_CACHE,
-        _ => unreachable!(),
     };
     unsafe {
         mpfr::free_cache2(way);

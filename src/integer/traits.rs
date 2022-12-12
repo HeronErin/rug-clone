@@ -253,10 +253,10 @@ fn fmt_radix(
 ) -> FmtResult {
     let mut s = String::new();
     big::append_to_string(&mut s, i, radix, to_upper);
-    let (neg, buf) = if s.starts_with('-') {
-        (true, &s[1..])
+    let (neg, buf) = if let Some(stripped) = s.strip_prefix('-') {
+        (true, stripped)
     } else {
-        (false, &s[..])
+        (false, &*s)
     };
     f.pad_integral(!neg, prefix, buf)
 }

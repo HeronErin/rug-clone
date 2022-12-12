@@ -206,7 +206,7 @@ fn check_from_str() {
                 Rational::from(o),
                 msg
             ),
-            Err(e) => assert_eq!(e.to_string(), msg, "\"{}\" (radix {})", s, radix),
+            Err(e) => assert_eq!(e.to_string(), msg, "\"{s}\" (radix {radix})"),
         }
     }
     let good_strings = [
@@ -224,10 +224,10 @@ fn check_from_str() {
         match Rational::parse_radix(s, radix) {
             Ok(ok) => {
                 let r = Rational::from(ok);
-                assert_eq!(*r.numer(), n, "numerator mismatch for {}", s);
-                assert_eq!(*r.denom(), d, "denominator mismatch for {}", s);
+                assert_eq!(*r.numer(), n, "numerator mismatch for {s}");
+                assert_eq!(*r.denom(), d, "denominator mismatch for {s}");
             }
-            Err(err) => panic!("could not parse {}: {}", s, err),
+            Err(err) => panic!("could not parse {s}: {err}"),
         }
     }
 }
@@ -235,36 +235,36 @@ fn check_from_str() {
 #[test]
 fn check_formatting() {
     let r = Rational::from((-11, 15));
-    assert_eq!(format!("{}", r), "-11/15");
-    assert_eq!(format!("{:?}", r), "-11/15");
-    assert_eq!(format!("{:<10}", r), "-11/15    ");
-    assert_eq!(format!("{:>10}", r), "    -11/15");
-    assert_eq!(format!("{:10}", r), "    -11/15");
-    assert_eq!(format!("{:^10}", r), "  -11/15  ");
-    assert_eq!(format!("{:^11}", r), "  -11/15   ");
-    assert_eq!(format!("{:b}", r), "-1011/1111");
-    assert_eq!(format!("{:#b}", r), "-0b1011/1111");
-    assert_eq!(format!("{:o}", r), "-13/17");
-    assert_eq!(format!("{:#o}", r), "-0o13/17");
-    assert_eq!(format!("{:x}", r), "-b/f");
-    assert_eq!(format!("{:X}", r), "-B/F");
-    assert_eq!(format!("{:8x}", r), "    -b/f");
-    assert_eq!(format!("{:08X}", r), "-0000B/F");
-    assert_eq!(format!("{:#08x}", r), "-0x00b/f");
-    assert_eq!(format!("{:#8X}", r), "  -0xB/F");
+    assert_eq!(format!("{r}"), "-11/15");
+    assert_eq!(format!("{r:?}"), "-11/15");
+    assert_eq!(format!("{r:<10}"), "-11/15    ");
+    assert_eq!(format!("{r:>10}"), "    -11/15");
+    assert_eq!(format!("{r:10}"), "    -11/15");
+    assert_eq!(format!("{r:^10}"), "  -11/15  ");
+    assert_eq!(format!("{r:^11}"), "  -11/15   ");
+    assert_eq!(format!("{r:b}"), "-1011/1111");
+    assert_eq!(format!("{r:#b}"), "-0b1011/1111");
+    assert_eq!(format!("{r:o}"), "-13/17");
+    assert_eq!(format!("{r:#o}"), "-0o13/17");
+    assert_eq!(format!("{r:x}"), "-b/f");
+    assert_eq!(format!("{r:X}"), "-B/F");
+    assert_eq!(format!("{r:8x}"), "    -b/f");
+    assert_eq!(format!("{r:08X}"), "-0000B/F");
+    assert_eq!(format!("{r:#08x}"), "-0x00b/f");
+    assert_eq!(format!("{r:#8X}"), "  -0xB/F");
     let i = r * &*SmallRational::from(15);
-    assert_eq!(format!("{}", i), "-11");
-    assert_eq!(format!("{:?}", i), "-11");
-    assert_eq!(format!("{:b}", i), "-1011");
-    assert_eq!(format!("{:#b}", i), "-0b1011");
-    assert_eq!(format!("{:o}", i), "-13");
-    assert_eq!(format!("{:#o}", i), "-0o13");
-    assert_eq!(format!("{:x}", i), "-b");
-    assert_eq!(format!("{:X}", i), "-B");
-    assert_eq!(format!("{:8x}", i), "      -b");
-    assert_eq!(format!("{:08X}", i), "-000000B");
-    assert_eq!(format!("{:#08x}", i), "-0x0000b");
-    assert_eq!(format!("{:#8X}", i), "    -0xB");
+    assert_eq!(format!("{i}"), "-11");
+    assert_eq!(format!("{i:?}"), "-11");
+    assert_eq!(format!("{i:b}"), "-1011");
+    assert_eq!(format!("{i:#b}"), "-0b1011");
+    assert_eq!(format!("{i:o}"), "-13");
+    assert_eq!(format!("{i:#o}"), "-0o13");
+    assert_eq!(format!("{i:x}"), "-b");
+    assert_eq!(format!("{i:X}"), "-B");
+    assert_eq!(format!("{i:8x}"), "      -b");
+    assert_eq!(format!("{i:08X}"), "-000000B");
+    assert_eq!(format!("{i:#08x}"), "-0x0000b");
+    assert_eq!(format!("{i:#8X}"), "    -0xB");
 }
 
 #[test]

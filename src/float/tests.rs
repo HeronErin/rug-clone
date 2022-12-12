@@ -115,7 +115,7 @@ fn check_from_str() {
                 Float::with_val(53, o),
                 msg
             ),
-            Err(e) => assert_eq!(e.to_string(), msg, "\"{}\" (radix {})", s, radix),
+            Err(e) => assert_eq!(e.to_string(), msg, "\"{s}\" (radix {radix})"),
         }
     }
     let good_strings = [
@@ -136,7 +136,7 @@ fn check_from_str() {
     for &(s, radix, f) in good_strings.iter() {
         match Float::parse_radix(s, radix) {
             Ok(ok) => assert_eq!(Float::with_val(53, ok), f),
-            Err(err) => panic!("could not parse {}: {}", s, err),
+            Err(err) => panic!("could not parse {s}: {err}"),
         }
     }
 
@@ -186,87 +186,87 @@ fn check_clamping_panic() {
 #[test]
 fn check_formatting() {
     let mut f = Float::with_val(53, Special::Zero);
-    assert_eq!(format!("{}", f), "0");
-    assert_eq!(format!("{:e}", f), "0");
-    assert_eq!(format!("{:?}", f), "0");
-    assert_eq!(format!("{:+?}", f), "+0");
-    assert_eq!(format!("{:<10}", f), "0         ");
-    assert_eq!(format!("{:>10}", f), "         0");
-    assert_eq!(format!("{:10}", f), "         0");
-    assert_eq!(format!("{:^10}", f), "    0     ");
-    assert_eq!(format!("{:^11}", f), "     0     ");
+    assert_eq!(format!("{f}"), "0");
+    assert_eq!(format!("{f:e}"), "0");
+    assert_eq!(format!("{f:?}"), "0");
+    assert_eq!(format!("{f:+?}"), "+0");
+    assert_eq!(format!("{f:<10}"), "0         ");
+    assert_eq!(format!("{f:>10}"), "         0");
+    assert_eq!(format!("{f:10}"), "         0");
+    assert_eq!(format!("{f:^10}"), "    0     ");
+    assert_eq!(format!("{f:^11}"), "     0     ");
     f.assign(Special::NegZero);
-    assert_eq!(format!("{}", f), "-0");
-    assert_eq!(format!("{:?}", f), "-0");
-    assert_eq!(format!("{:+?}", f), "-0");
+    assert_eq!(format!("{f}"), "-0");
+    assert_eq!(format!("{f:?}"), "-0");
+    assert_eq!(format!("{f:+?}"), "-0");
     f.assign(Special::Infinity);
-    assert_eq!(format!("{}", f), "inf");
-    assert_eq!(format!("{:+}", f), "+inf");
-    assert_eq!(format!("{:x}", f), "@inf@");
+    assert_eq!(format!("{f}"), "inf");
+    assert_eq!(format!("{f:+}"), "+inf");
+    assert_eq!(format!("{f:x}"), "@inf@");
     f.assign(Special::NegInfinity);
-    assert_eq!(format!("{}", f), "-inf");
-    assert_eq!(format!("{:x}", f), "-@inf@");
+    assert_eq!(format!("{f}"), "-inf");
+    assert_eq!(format!("{f:x}"), "-@inf@");
     f.assign(Special::Nan);
-    assert_eq!(format!("{}", f), "NaN");
-    assert_eq!(format!("{:+}", f), "+NaN");
-    assert_eq!(format!("{:x}", f), "@NaN@");
+    assert_eq!(format!("{f}"), "NaN");
+    assert_eq!(format!("{f:+}"), "+NaN");
+    assert_eq!(format!("{f:x}"), "@NaN@");
     f = -f;
-    assert_eq!(format!("{}", f), "-NaN");
-    assert_eq!(format!("{:x}", f), "-@NaN@");
+    assert_eq!(format!("{f}"), "-NaN");
+    assert_eq!(format!("{f:x}"), "-@NaN@");
     f.assign(-2.75);
-    assert_eq!(format!("{:.1}", f), "-3");
-    assert_eq!(format!("{:.2}", f), "-2.8");
-    assert_eq!(format!("{:.4?}", f), "-2.750");
-    assert_eq!(format!("{:.1e}", f), "-3e0");
-    assert_eq!(format!("{:.2e}", f), "-2.8e0");
-    assert_eq!(format!("{:.4e}", f), "-2.750e0");
-    assert_eq!(format!("{:.4E}", f), "-2.750E0");
-    assert_eq!(format!("{:.8b}", f), "-10.110000");
-    assert_eq!(format!("{:.3b}", f), "-11.0");
-    assert_eq!(format!("{:#.8b}", f), "-0b10.110000");
-    assert_eq!(format!("{:.2o}", f), "-2.6");
-    assert_eq!(format!("{:#.2o}", f), "-0o2.6");
-    assert_eq!(format!("{:.2x}", f), "-2.c");
-    assert_eq!(format!("{:.2X}", f), "-2.C");
-    assert_eq!(format!("{:12.1x}", f), "          -3");
-    assert_eq!(format!("{:12.2x}", f), "        -2.c");
-    assert_eq!(format!("{:012.3X}", f), "-00000002.C0");
-    assert_eq!(format!("{:#012.2x}", f), "-0x0000002.c");
-    assert_eq!(format!("{:#12.2X}", f), "      -0x2.C");
+    assert_eq!(format!("{f:.1}"), "-3");
+    assert_eq!(format!("{f:.2}"), "-2.8");
+    assert_eq!(format!("{f:.4?}"), "-2.750");
+    assert_eq!(format!("{f:.1e}"), "-3e0");
+    assert_eq!(format!("{f:.2e}"), "-2.8e0");
+    assert_eq!(format!("{f:.4e}"), "-2.750e0");
+    assert_eq!(format!("{f:.4E}"), "-2.750E0");
+    assert_eq!(format!("{f:.8b}"), "-10.110000");
+    assert_eq!(format!("{f:.3b}"), "-11.0");
+    assert_eq!(format!("{f:#.8b}"), "-0b10.110000");
+    assert_eq!(format!("{f:.2o}"), "-2.6");
+    assert_eq!(format!("{f:#.2o}"), "-0o2.6");
+    assert_eq!(format!("{f:.2x}"), "-2.c");
+    assert_eq!(format!("{f:.2X}"), "-2.C");
+    assert_eq!(format!("{f:12.1x}"), "          -3");
+    assert_eq!(format!("{f:12.2x}"), "        -2.c");
+    assert_eq!(format!("{f:012.3X}"), "-00000002.C0");
+    assert_eq!(format!("{f:#012.2x}"), "-0x0000002.c");
+    assert_eq!(format!("{f:#12.2X}"), "      -0x2.C");
     f.assign(-27);
-    assert_eq!(format!("{:.1}", f), "-3e1");
-    assert_eq!(format!("{:.2}", f), "-27");
-    assert_eq!(format!("{:.4?}", f), "-27.00");
-    assert_eq!(format!("{:.1e}", f), "-3e1");
-    assert_eq!(format!("{:.2e}", f), "-2.7e1");
-    assert_eq!(format!("{:.4e}", f), "-2.700e1");
-    assert_eq!(format!("{:.4E}", f), "-2.700E1");
-    assert_eq!(format!("{:.8b}", f), "-11011.000");
-    assert_eq!(format!("{:.3b}", f), "-1.11e4");
-    assert_eq!(format!("{:#.8b}", f), "-0b11011.000");
-    assert_eq!(format!("{:.2o}", f), "-33");
-    assert_eq!(format!("{:#.2o}", f), "-0o33");
-    assert_eq!(format!("{:.2x}", f), "-1b");
-    assert_eq!(format!("{:.2X}", f), "-1B");
-    assert_eq!(format!("{:12.1x}", f), "        -2@1");
-    assert_eq!(format!("{:12.2x}", f), "         -1b");
-    assert_eq!(format!("{:012.3X}", f), "-00000001B.0");
-    assert_eq!(format!("{:#012.2x}", f), "-0x00000001b");
-    assert_eq!(format!("{:#12.2X}", f), "       -0x1B");
+    assert_eq!(format!("{f:.1}"), "-3e1");
+    assert_eq!(format!("{f:.2}"), "-27");
+    assert_eq!(format!("{f:.4?}"), "-27.00");
+    assert_eq!(format!("{f:.1e}"), "-3e1");
+    assert_eq!(format!("{f:.2e}"), "-2.7e1");
+    assert_eq!(format!("{f:.4e}"), "-2.700e1");
+    assert_eq!(format!("{f:.4E}"), "-2.700E1");
+    assert_eq!(format!("{f:.8b}"), "-11011.000");
+    assert_eq!(format!("{f:.3b}"), "-1.11e4");
+    assert_eq!(format!("{f:#.8b}"), "-0b11011.000");
+    assert_eq!(format!("{f:.2o}"), "-33");
+    assert_eq!(format!("{f:#.2o}"), "-0o33");
+    assert_eq!(format!("{f:.2x}"), "-1b");
+    assert_eq!(format!("{f:.2X}"), "-1B");
+    assert_eq!(format!("{f:12.1x}"), "        -2@1");
+    assert_eq!(format!("{f:12.2x}"), "         -1b");
+    assert_eq!(format!("{f:012.3X}"), "-00000001B.0");
+    assert_eq!(format!("{f:#012.2x}"), "-0x00000001b");
+    assert_eq!(format!("{f:#12.2X}"), "       -0x1B");
     f <<= 144;
-    assert_eq!(format!("{:.8b}", f), "-1.1011000e148");
-    assert_eq!(format!("{:.3b}", f), "-1.11e148");
-    assert_eq!(format!("{:#.8b}", f), "-0b1.1011000e148");
-    assert_eq!(format!("{:.2o}", f), "-3.3e49");
-    assert_eq!(format!("{:#.2o}", f), "-0o3.3e49");
-    assert_eq!(format!("{:.1x}", f), "-2@37");
-    assert_eq!(format!("{:.2x}", f), "-1.b@37");
-    assert_eq!(format!("{:.2X}", f), "-1.B@37");
-    assert_eq!(format!("{:12.1x}", f), "       -2@37");
-    assert_eq!(format!("{:12.2x}", f), "     -1.b@37");
-    assert_eq!(format!("{:012.3X}", f), "-00001.B0@37");
-    assert_eq!(format!("{:#012.2x}", f), "-0x0001.b@37");
-    assert_eq!(format!("{:#12.2X}", f), "   -0x1.B@37");
+    assert_eq!(format!("{f:.8b}"), "-1.1011000e148");
+    assert_eq!(format!("{f:.3b}"), "-1.11e148");
+    assert_eq!(format!("{f:#.8b}"), "-0b1.1011000e148");
+    assert_eq!(format!("{f:.2o}"), "-3.3e49");
+    assert_eq!(format!("{f:#.2o}"), "-0o3.3e49");
+    assert_eq!(format!("{f:.1x}"), "-2@37");
+    assert_eq!(format!("{f:.2x}"), "-1.b@37");
+    assert_eq!(format!("{f:.2X}"), "-1.B@37");
+    assert_eq!(format!("{f:12.1x}"), "       -2@37");
+    assert_eq!(format!("{f:12.2x}"), "     -1.b@37");
+    assert_eq!(format!("{f:012.3X}"), "-00001.B0@37");
+    assert_eq!(format!("{f:#012.2x}"), "-0x0001.b@37");
+    assert_eq!(format!("{f:#12.2X}"), "   -0x1.B@37");
 
     float::free_cache(FreeCache::All);
 }
