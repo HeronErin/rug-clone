@@ -35,6 +35,9 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
     1.5][sys-1-5].
   * The <code>[Round][r-1-19]::[AwayZero][r-az-1-19]</code> rounding mode was
     added.
+  * The following methods were added to [`Complex`][com-1-19]:
+      * [`agm`][com-a-1-19], [`agm_mut`][com-am-1-19],
+        [`agm_round`][com-aro-1-19], [`agm_ref`][com-are-1-19]
   * The following methods are now const functions:
       * <code>[Integer][int-1-19]::[as\_limbs][int-al-1-19]</code>
       * <code>[Integer][int-1-19]::[as\_neg][int-an-1-19]</code>,
@@ -71,7 +74,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
       * <code>[Complex][com-1-19]::[prec][com-p-1-19]</code>,
       * <code>[Complex][com-1-19]::[from\_raw][com-fr-1-19]</code>,
         <code>[Complex][com-1-19]::[into\_raw][com-ir-1-19]</code>,
-        <code>[Complex][com-1-19]::[as\_raw][com-ar-1-19]</code>
+        <code>[Complex][com-1-19]::[as\_raw][com-ara-1-19]</code>
       * <code>[Complex][com-1-19]::[real][com-r-1-19]</code>,
         <code>[Complex][com-1-19]::[imag][com-i-1-19]</code>
       * <code>[Complex][com-1-19]::[into\_real\_imag][com-iri-1-19]</code>
@@ -88,8 +91,12 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [bi-1-19]: https://docs.rs/rug/~1.19/rug/integer/struct.BorrowInteger.html
 [br-1-19]: https://docs.rs/rug/~1.19/rug/rational/struct.BorrowRational.html
 [com-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html
+[com-a-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.agm
+[com-am-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.agm_mut
 [com-ao-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.as_ord
-[com-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.as_raw
+[com-ara-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.as_raw
+[com-are-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.agm_ref
+[com-aro-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.agm_round
 [com-bri-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.borrow_real_imag
 [com-e-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.eq0
 [com-fr-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.from_raw

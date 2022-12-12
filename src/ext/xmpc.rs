@@ -308,6 +308,7 @@ unsafe_wrap! { fn atan(op: O) -> mpc::atan }
 unsafe_wrap! { fn asinh(op: O) -> mpc::asinh }
 unsafe_wrap! { fn acosh(op: O) -> mpc::acosh }
 unsafe_wrap! { fn atanh(op: O) -> mpc::atanh }
+unsafe_wrap! { fn agm(op1: O, op2: P) -> mpc::agm }
 unsafe_wrap! { fn fma(op1: O, op2: P, op3: Q) -> mpc::fma }
 unsafe_wrap! { fn add(op1: O, op2: P) -> mpc::add }
 unsafe_wrap! { fn sub(op1: O, op2: P) -> mpc::sub }

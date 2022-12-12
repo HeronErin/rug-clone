@@ -181,6 +181,15 @@ macro_rules! ref_math_op1_2_complex {
     };
 }
 
+macro_rules! ref_math_op2_complex {
+    ($($rest:tt)*) => {
+        ref_math_op2_round! {
+            Complex, (u32, u32), Round2, NEAREST2, Ordering2;
+            $($rest)*
+        }
+    };
+}
+
 impl Complex {
     #[inline]
     pub(crate) fn new_nan<P: Prec>(prec: P) -> Self {
@@ -3503,6 +3512,94 @@ impl Complex {
         AtanhIncomplete { ref_self: self }
     }
 
+    /// Computes the arithmetic-geometric mean of `self` and `other`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let f = Complex::with_val(53, (1.25, 1.0));
+    /// let g = Complex::with_val(53, (3.75, -1.0));
+    /// let agm = f.agm(&g);
+    /// let expected = Complex::with_val(53, (2.4763, 0.2571));
+    /// assert!(*(agm - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn agm(mut self, other: &Self) -> Self {
+        self.agm_round(other, NEAREST2);
+        self
+    }
+
+    /// Computes the arithmetic-geometric mean of `self` and `other`, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut f = Complex::with_val(53, (1.25, 1.0));
+    /// let g = Complex::with_val(53, (3.75, -1.0));
+    /// f.agm_mut(&g);
+    /// let expected = Complex::with_val(53, (2.4763, 0.2571));
+    /// assert!(*(f - expected).abs().real() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn agm_mut(&mut self, other: &Self) {
+        self.agm_round(other, NEAREST2);
+    }
+
+    /// Computes the arithmetic-geometric mean of `self` and `other`, applying
+    /// the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::cmp::Ordering;
+    /// use rug::float::Round;
+    /// use rug::Complex;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut f = Complex::with_val(4, (1.25, 1.0));
+    /// let g = Complex::with_val(4, (3.75, -1.0));
+    /// // agm(1.25 + 1.0i, 3.75 - 1.0i) = 2.4763 + 0.2571i
+    /// // using 4 significant bits: 2.5 + 0.25i
+    /// let dir = f.agm_round(&g, (Round::Nearest, Round::Nearest));
+    /// assert_eq!(f, (2.5, 0.25));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn agm_round(&mut self, other: &Self, round: Round2) -> Ordering2 {
+        xmpc::agm(self, (), other, round)
+    }
+
+    /// Computes the arithmetic-geometric mean.
+    ///
+    /// The following are implemented with the returned [incomplete-computation
+    /// value][icv] as `Src`:
+    ///   * <code>[Assign]\<Src> for [Complex]</code>
+    ///   * <code>[AssignRound]\<Src> for [Complex]</code>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let f = Complex::with_val(53, (1.25, 1.0));
+    /// let g = Complex::with_val(53, (3.75, -1.0));
+    /// let agm = Complex::with_val(53, f.agm_ref(&g));
+    /// let expected = Complex::with_val(53, (2.4763, 0.2571));
+    /// assert!(*(agm - expected).abs().real() < 0.0001);
+    /// ```
+    ///
+    /// [icv]: crate#incomplete-computation-values
+    #[inline]
+    pub fn agm_ref<'a>(&'a self, other: &'a Self) -> AgmIncomplete<'_> {
+        AgmIncomplete {
+            ref_self: self,
+            other,
+        }
+    }
+
     #[cfg(feature = "rand")]
     /// Generates a random complex number with both the real and imaginary parts
     /// in the range 0&nbsp;≤&nbsp;<i>x</i>&nbsp;<&nbsp;1.
@@ -4007,6 +4104,7 @@ ref_math_op1_complex! { xmpc::atan; struct AtanIncomplete {} }
 ref_math_op1_complex! { xmpc::asinh; struct AsinhIncomplete {} }
 ref_math_op1_complex! { xmpc::acosh; struct AcoshIncomplete {} }
 ref_math_op1_complex! { xmpc::atanh; struct AtanhIncomplete {} }
+ref_math_op2_complex! { xmpc::agm; struct AgmIncomplete { other } }
 
 #[cfg(feature = "rand")]
 pub struct RandomBitsIncomplete<'a> {
