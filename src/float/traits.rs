@@ -28,8 +28,6 @@ use crate::{Assign, Float};
 use az::CheckedCast;
 use az::{UnwrappedAs, UnwrappedCast};
 use core::cmp::Ordering;
-#[cfg(feature = "rational")]
-use core::convert::TryFrom;
 use core::fmt::{
     Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult, UpperExp,
     UpperHex,
@@ -379,7 +377,6 @@ mod tests {
     fn check_fallible_conversions() {
         use crate::float::Special;
         use crate::{Float, Rational};
-        use core::convert::TryFrom;
         let large = [
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),

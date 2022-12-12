@@ -11,6 +11,7 @@ branches:
     - www
 
 environment:
+  MSRV: 1.65.0
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
       TARGET: x86_64-pc-windows-gnu
@@ -44,7 +45,7 @@ install:
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
   - rustup-init.exe -y --default-host %TARGET% --default-toolchain none --no-modify-path
   - rustup --version
-  - rustup toolchain install --profile minimal beta-%TARGET% 1.37.0-%TARGET%
+  - rustup toolchain install --profile minimal beta-%TARGET% %MSRV%-%TARGET%
   - rustup component add --toolchain beta-%TARGET% rustfmt clippy
 
 build: false
@@ -65,7 +66,7 @@ test_script:
   - cargo +beta-%TARGET% clippy --all-targets --features "fail-on-warnings num-traits"
   - cargo +beta-%TARGET% clippy --all-targets --features "fail-on-warnings serde"
   - rm Cargo.lock
-  - cargo +1.37.0-%TARGET% check --features "fail-on-warnings num-traits serde"
+  - cargo +%MSRV%-%TARGET% check --features "fail-on-warnings num-traits serde"
 
 after_test:
   - bash -c "cd ""$USERPROFILE/.cargo/registry""; for c in cache/*/*.crate; do s=src/${c#cache/}; if [ ! -e ${s/.crate/} ]; then rm -v $c; fi; done; find cache -name \*.crate | sort"

@@ -30,6 +30,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ### Version 1.19.0 news (unreleased)
 
+  * The crate now requires rustc version 1.65.0 or later.
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
     more traits, including [`Clone`] and [`Copy`].
@@ -157,7 +158,7 @@ a dependency inside [*Cargo.toml*]:
 rug = "1.18"
 ```
 
-Rug requires rustc version 1.37.0 or later.
+Rug requires rustc version 1.65.0 or later.
 
 Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the low-level
 FFI bindings in the [gmp-mpfr-sys crate][sys crate], which needs some setup to

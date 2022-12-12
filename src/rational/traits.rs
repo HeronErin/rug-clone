@@ -20,7 +20,6 @@ use crate::rational::big;
 use crate::rational::{ParseRationalError, TryFromFloatError};
 use crate::{Assign, Integer, Rational};
 use az::CheckedCast;
-use core::convert::TryFrom;
 use core::fmt::{
     Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex,
 };
@@ -272,7 +271,6 @@ unsafe impl Sync for Rational {}
 #[allow(clippy::float_cmp)]
 mod tests {
     use crate::{Assign, Rational};
-    use core::convert::TryFrom;
 
     #[test]
     fn check_assign() {

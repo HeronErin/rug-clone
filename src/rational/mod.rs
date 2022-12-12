@@ -48,7 +48,6 @@ number to a [`Rational`][crate::Rational] number fails.
 # Examples
 
 ```rust
-use core::convert::TryFrom;
 use rug::rational::TryFromFloatError;
 use rug::Rational;
 // This is not finite and cannot be converted to Rational.

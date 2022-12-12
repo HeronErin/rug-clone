@@ -7,6 +7,7 @@ notice are preserved. This file is offered as-is, without any warranty. -->
 Version 1.19.0 (unreleased)
 ===========================
 
+  * The crate now requires rustc version 1.65.0 or later.
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
     more traits, including [`Clone`] and [`Copy`].

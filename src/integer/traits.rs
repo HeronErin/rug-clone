@@ -19,7 +19,6 @@ use crate::integer::big;
 use crate::integer::{ParseIntegerError, TryFromIntegerError};
 use crate::{Assign, Integer};
 use az::{Az, CheckedCast};
-use core::convert::TryFrom;
 use core::fmt::{
     Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex,
 };
@@ -328,7 +327,6 @@ unsafe impl Sync for Integer {}
 #[cfg(test)]
 mod tests {
     use crate::{Assign, Integer};
-    use core::convert::TryFrom;
 
     #[test]
     fn check_assign() {

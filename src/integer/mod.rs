@@ -70,7 +70,6 @@ An error which can be returned when a checked conversion from [`Integer`] fails.
 # Examples
 
 ```rust
-use core::convert::TryFrom;
 use rug::integer::TryFromIntegerError;
 use rug::Integer;
 // This is negative and cannot be converted to u32.
