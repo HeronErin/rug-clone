@@ -1944,7 +1944,7 @@ impl Integer {
     /// assert!(Integer::from(-14).is_even());
     /// ```
     #[inline]
-    pub fn is_even(&self) -> bool {
+    pub const fn is_even(&self) -> bool {
         xmpz::even_p(self)
     }
 
@@ -1958,7 +1958,7 @@ impl Integer {
     /// assert!(!Integer::from(-14).is_odd());
     /// ```
     #[inline]
-    pub fn is_odd(&self) -> bool {
+    pub const fn is_odd(&self) -> bool {
         xmpz::odd_p(self)
     }
 
@@ -2144,7 +2144,7 @@ impl Integer {
     /// assert_eq!(Integer::from(5).cmp0(), Ordering::Greater);
     /// ```
     #[inline]
-    pub fn cmp0(&self) -> Ordering {
+    pub const fn cmp0(&self) -> Ordering {
         xmpz::sgn(self)
     }
 

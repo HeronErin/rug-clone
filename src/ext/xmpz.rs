@@ -124,8 +124,14 @@ macro_rules! unsafe_wrap0 {
 macro_rules! unsafe_wrap_p {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
-        pub fn $fn(n: &Integer $(, $op: &Integer)* $(, $param: $T)*) -> bool{
+        pub fn $fn(n: &Integer $(, $op: &Integer)* $(, $param: $T)*) -> bool {
             (unsafe { $deleg(n.as_raw() $(, $op.as_raw())* $(, $param.into())*) }) != 0
+        }
+    };
+    (const fn $fn:ident() -> $deleg:path) => {
+        #[inline]
+        pub const fn $fn(n: &Integer) -> bool {
+            (unsafe { $deleg(n.as_raw()) }) != 0
         }
     };
 }
@@ -599,8 +605,8 @@ unsafe_wrap! { fn lcm_ui(op1: O; op2: c_ulong) -> gmp::mpz_lcm_ui }
 unsafe_wrap0! { fn setbit(bit_index: bitcnt_t) -> gmp::mpz_setbit }
 unsafe_wrap0! { fn clrbit(bit_index: bitcnt_t) -> gmp::mpz_clrbit }
 unsafe_wrap0! { fn combit(bit_index: bitcnt_t) -> gmp::mpz_combit }
-unsafe_wrap_p! { fn even_p() -> gmp::mpz_even_p }
-unsafe_wrap_p! { fn odd_p() -> gmp::mpz_odd_p }
+unsafe_wrap_p! { const fn even_p() -> gmp::mpz_even_p }
+unsafe_wrap_p! { const fn odd_p() -> gmp::mpz_odd_p }
 unsafe_wrap_p! { fn divisible_p(d) -> gmp::mpz_divisible_p }
 unsafe_wrap_p! { fn divisible_ui_p(; d: c_ulong) -> gmp::mpz_divisible_ui_p }
 unsafe_wrap_p! { fn divisible_2exp_p(; b: bitcnt_t) -> gmp::mpz_divisible_2exp_p }
@@ -620,8 +626,15 @@ pub fn cold_realloc(rop: &mut Integer, limbs: size_t) {
 }
 
 #[inline]
-pub fn sgn(op: &Integer) -> Ordering {
-    (unsafe { gmp::mpz_sgn(op.as_raw()) }).cmp(&0)
+pub const fn sgn(op: &Integer) -> Ordering {
+    let s = unsafe { gmp::mpz_sgn(op.as_raw()) };
+    if s < 0 {
+        Ordering::Less
+    } else if s == 0 {
+        Ordering::Equal
+    } else {
+        Ordering::Greater
+    }
 }
 
 #[inline]
