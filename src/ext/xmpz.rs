@@ -1073,9 +1073,9 @@ pub fn power_of_two_p(op: &Integer) -> bool {
 }
 
 #[inline]
-pub unsafe fn limb(z: &Integer, index: isize) -> limb_t {
+pub const unsafe fn limb(z: &Integer, index: isize) -> limb_t {
     let ptr = z.inner().d.as_ptr();
-    unsafe { *ptr.offset(index) }
+    unsafe { *ptr.offset(index).cast_const() }
 }
 
 #[inline]

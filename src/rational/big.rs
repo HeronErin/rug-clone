@@ -277,9 +277,10 @@ impl Rational {
     /// }
     /// ```
     #[inline]
-    pub fn into_raw(self) -> mpq_t {
-        let m = ManuallyDrop::new(self);
-        m.inner
+    pub const fn into_raw(self) -> mpq_t {
+        let ret = self.inner;
+        let _ = ManuallyDrop::new(self);
+        ret
     }
 
     /// Returns a pointer to the inner [GMP rational number][mpq_t].
@@ -301,7 +302,7 @@ impl Rational {
     /// assert_eq!(r, (-145, 10));
     /// ```
     #[inline]
-    pub fn as_raw(&self) -> *const mpq_t {
+    pub const fn as_raw(&self) -> *const mpq_t {
         &self.inner
     }
 
@@ -746,7 +747,7 @@ impl Rational {
     /// assert_eq!(*r.numer(), -3)
     /// ```
     #[inline]
-    pub fn numer(&self) -> &Integer {
+    pub const fn numer(&self) -> &Integer {
         xmpq::numref_const(self)
     }
 
@@ -761,7 +762,7 @@ impl Rational {
     /// assert_eq!(*r.denom(), 5);
     /// ```
     #[inline]
-    pub fn denom(&self) -> &Integer {
+    pub const fn denom(&self) -> &Integer {
         xmpq::denref_const(self)
     }
 
@@ -1023,7 +1024,7 @@ impl Rational {
     /// assert_eq!(Rational::from((5, 7)).cmp0(), Ordering::Greater);
     /// ```
     #[inline]
-    pub fn cmp0(&self) -> Ordering {
+    pub const fn cmp0(&self) -> Ordering {
         self.numer().cmp0()
     }
 
@@ -1054,7 +1055,7 @@ impl Rational {
     /// assert!(Rational::from(3).is_integer());
     /// ```
     #[inline]
-    pub fn is_integer(&self) -> bool {
+    pub const fn is_integer(&self) -> bool {
         xmpq::is_integer(self)
     }
 

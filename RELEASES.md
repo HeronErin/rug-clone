@@ -13,6 +13,12 @@ Version 1.19.0 (unreleased)
       * <code>[Integer][int-1-19]::[is\_even][int-ie-1-19]</code>,
         <code>[Integer][int-1-19]::[is\_odd][int-io-1-19]</code>
       * <code>[Integer][int-1-19]::[cmp0][int-c-1-19]</code>
+      * <code>[Rational][rat-1-19]::[into\_raw][rat-ir-1-19]</code>,
+        <code>[Rational][rat-1-19]::[as\_raw][rat-ar-1-19]</code>
+      * <code>[Rational][rat-1-19]::[numer][rat-n-1-19]</code>,
+        <code>[Rational][rat-1-19]::[denom][rat-d-1-19]</code>
+      * <code>[Rational][rat-1-19]::[cmp0][rat-c-1-19]</code>
+      * <code>[Rational][rat-1-19]::[is\_integer][rat-ii-1-19]</code>
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
     more traits, including [`Clone`] and [`Copy`].
@@ -25,6 +31,13 @@ Version 1.19.0 (unreleased)
 [int-c-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.cmp0
 [int-ie-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_even
 [int-io-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_odd
+[rat-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html
+[rat-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.as_raw
+[rat-c-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.cmp0
+[rat-d-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.denom
+[rat-ii-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.is_integer
+[rat-ir-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.into_raw
+[rat-n-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.numer
 [sys-1-5]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html
 
 Version 1.18.0 (2022-11-17)

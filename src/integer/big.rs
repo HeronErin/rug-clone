@@ -192,7 +192,7 @@ pub struct Integer {
 
 impl Integer {
     #[inline]
-    pub(crate) fn inner(&self) -> &mpz_t {
+    pub(crate) const fn inner(&self) -> &mpz_t {
         &self.inner
     }
     #[inline]

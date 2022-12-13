@@ -2522,12 +2522,12 @@ pub struct CastPtr<Src>(pub *const Src);
 #[cfg(any(feature = "integer", feature = "float"))]
 impl<Src> CastPtr<Src> {
     #[inline(always)]
-    pub fn static_check_size(&self) -> Src {
+    pub const fn static_check_size(&self) -> Src {
         unreachable!()
     }
     #[inline(always)]
-    pub fn get<Dst>(self) -> *const Dst {
-        debug_assert_eq!(core::mem::align_of::<Dst>(), core::mem::align_of::<Src>());
+    pub const fn get<Dst>(self) -> *const Dst {
+        debug_assert!(core::mem::align_of::<Dst>() == core::mem::align_of::<Src>());
         self.0.cast()
     }
 }
@@ -2555,8 +2555,10 @@ macro_rules! cast_ptr {
             #[allow(unused_unsafe)]
             // clippy false positive. We are transmuting pointees, not pointers.
             #[allow(clippy::transmute_ptr_to_ptr)]
+            // clippy false positive. We are forgetting to avoid dropping, which we cannot do.
+            #[allow(clippy::forget_copy)]
             unsafe {
-                let _ = core::mem::transmute::<_, $T>(ptr.static_check_size());
+                core::mem::forget(core::mem::transmute::<_, $T>(ptr.static_check_size()));
             }
         }
         ptr.get::<$T>()

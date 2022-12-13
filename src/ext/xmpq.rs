@@ -365,12 +365,12 @@ pub fn canonicalize(r: &mut Rational) {
 }
 
 #[inline]
-pub fn numref_const(r: &Rational) -> &Integer {
+pub const fn numref_const(r: &Rational) -> &Integer {
     unsafe { &*cast_ptr!(gmp::mpq_numref_const(r.as_raw()), Integer) }
 }
 
 #[inline]
-pub fn denref_const(r: &Rational) -> &Integer {
+pub const fn denref_const(r: &Rational) -> &Integer {
     unsafe { &*cast_ptr!(gmp::mpq_denref_const(r.as_raw()), Integer) }
 }
 
@@ -884,7 +884,7 @@ pub fn si_div<O: OptRational>(rop: &mut Rational, lhs: c_long, rhs: O) {
 }
 
 #[inline]
-pub fn is_integer(op: &Rational) -> bool {
+pub const fn is_integer(op: &Rational) -> bool {
     let denom = op.denom();
     denom.inner().size == 1 && unsafe { xmpz::limb(denom, 0) } == 1
 }
