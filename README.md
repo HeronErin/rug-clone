@@ -34,6 +34,9 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
   * The [gmp-mpfr-sys][sys crate] dependency was updated to [version
     1.5][sys-1-5].
   * The following methods are now const functions:
+      * <code>[Integer][int-1-19]::[as\_limbs][int-al-1-19]</code>
+      * <code>[Integer][int-1-19]::[as\_neg][int-an-1-19]</code>,
+        <code>[Integer][int-1-19]::[as\_abs][int-aa-1-19]</code>
       * <code>[Integer][int-1-19]::[is\_even][int-ie-1-19]</code>,
         <code>[Integer][int-1-19]::[is\_odd][int-io-1-19]</code>
       * <code>[Integer][int-1-19]::[cmp0][int-c-1-19]</code>
@@ -82,6 +85,9 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [flo-iz-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_zero
 [flo-p-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.prec
 [int-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html
+[int-aa-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.as_abs
+[int-al-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.as_limbs
+[int-an-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.as_neg
 [int-c-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.cmp0
 [int-ie-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_even
 [int-io-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_odd

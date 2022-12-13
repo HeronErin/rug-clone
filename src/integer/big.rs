@@ -26,7 +26,7 @@ use crate::rational::BorrowRational;
 use crate::{Assign, Complete};
 use az::{Az, Cast, CheckedCast, UnwrappedAs, UnwrappedCast, WrappingCast};
 use core::cmp::Ordering;
-use core::ffi::{c_char, c_ulong};
+use core::ffi::{c_char, c_uint, c_ulong};
 use core::fmt::{Display, Formatter, Result as FmtResult};
 use core::mem;
 use core::mem::{ManuallyDrop, MaybeUninit};
@@ -200,14 +200,13 @@ impl Integer {
         &mut self.inner
     }
     #[inline]
-    pub(crate) fn inner_data(&self) -> &[limb_t] {
-        let limbs = self
-            .inner
-            .size
-            .checked_abs()
-            .expect("overflow")
-            .unwrapped_as::<usize>();
-        unsafe { slice::from_raw_parts(self.inner.d.as_ptr(), limbs) }
+    pub(crate) const fn inner_data(&self) -> &[limb_t] {
+        let limbs = self.inner.size.unsigned_abs();
+        let limbs_usize = limbs as usize;
+        if limbs != limbs_usize as c_uint {
+            panic!("overflow");
+        }
+        unsafe { slice::from_raw_parts(self.inner.d.as_ptr(), limbs_usize) }
     }
 }
 
@@ -858,7 +857,7 @@ impl Integer {
     /// ```
     ///
     /// [slice]: prim@slice
-    pub fn as_limbs(&self) -> &[limb_t] {
+    pub const fn as_limbs(&self) -> &[limb_t] {
         self.inner_data()
     }
 
@@ -1861,9 +1860,12 @@ impl Integer {
     ///
     /// [Deref::Target]: core::ops::Deref::Target
     /// [Deref]: core::ops::Deref
-    pub fn as_neg(&self) -> BorrowInteger<'_> {
+    pub const fn as_neg(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
-        raw.size = raw.size.checked_neg().expect("overflow");
+        raw.size = match raw.size.checked_neg() {
+            Some(s) => s,
+            None => panic!("overflow"),
+        };
         // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowInteger::from_raw(raw) }
     }
@@ -1890,9 +1892,12 @@ impl Integer {
     ///
     /// [Deref::Target]: core::ops::Deref::Target
     /// [Deref]: core::ops::Deref
-    pub fn as_abs(&self) -> BorrowInteger<'_> {
+    pub const fn as_abs(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
-        raw.size = raw.size.checked_abs().expect("overflow");
+        raw.size = match raw.size.checked_abs() {
+            Some(s) => s,
+            None => panic!("overflow"),
+        };
         // Safety: the lifetime of the return type is equal to the lifetime of self.
         unsafe { BorrowInteger::from_raw(raw) }
     }
