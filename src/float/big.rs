@@ -1451,7 +1451,7 @@ impl Float {
     /// assert_eq!(zero.cmp(neg_zero), Ordering::Greater);
     /// ```
     #[inline]
-    pub fn as_ord(&self) -> &OrdFloat {
+    pub const fn as_ord(&self) -> &OrdFloat {
         // Safety: OrdFloat is repr(transparent) over Float
         unsafe { &*cast_ptr!(self, OrdFloat) }
     }
@@ -1480,7 +1480,7 @@ impl Float {
     ///
     /// [Deref::Target]: core::ops::Deref::Target
     /// [Deref]: core::ops::Deref
-    pub fn as_complex(&self) -> BorrowComplex<'_> {
+    pub const fn as_complex(&self) -> BorrowComplex<'_> {
         // im.d is set to be the same as re.d since the precision is equal;
         // though it will not be read as the imaginary part is 0 (which is singular).
         let raw_complex = mpc_t {

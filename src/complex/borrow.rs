@@ -76,7 +76,7 @@ impl<'a> BorrowComplex<'a> {
     /// assert_eq!(c, *borrow);
     /// ```
     // unsafe because the lifetime is obtained from return type
-    pub unsafe fn from_raw(raw: mpc_t) -> BorrowComplex<'a> {
+    pub const unsafe fn from_raw(raw: mpc_t) -> BorrowComplex<'a> {
         BorrowComplex {
             inner: raw,
             phantom: PhantomData,

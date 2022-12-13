@@ -82,7 +82,7 @@ impl OrdFloat {
     /// assert_eq!(f_ref.to_f64(), 1.5);
     /// ```
     #[inline]
-    pub fn as_float(&self) -> &Float {
+    pub const fn as_float(&self) -> &Float {
         &self.inner
     }
 

@@ -75,7 +75,7 @@ impl<'a> BorrowFloat<'a> {
     /// let borrow = unsafe { BorrowFloat::from_raw(raw) };
     /// assert_eq!(f, *borrow);
     /// ```
-    pub unsafe fn from_raw(raw: mpfr_t) -> BorrowFloat<'a> {
+    pub const unsafe fn from_raw(raw: mpfr_t) -> BorrowFloat<'a> {
         BorrowFloat {
             inner: raw,
             phantom: PhantomData,

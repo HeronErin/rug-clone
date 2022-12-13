@@ -54,6 +54,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
       * <code>[Float][flo-1-19]::[from\_raw][flo-fr-1-19]</code>,
         <code>[Float][flo-1-19]::[into\_raw][flo-ir-1-19]</code>,
         <code>[Float][flo-1-19]::[as\_raw][flo-ar-1-19]</code>
+      * <code>[Float][flo-1-19]::[as\_ord][flo-ao-1-19]</code>,
+        <code>[Float][flo-1-19]::[as\_complex][flo-ac-1-19]</code>
       * <code>[Float][flo-1-19]::[is\_nan][flo-ina-1-19]</code>,
         <code>[Float][flo-1-19]::[is\_infinite][flo-ii-1-19]</code>,
         <code>[Float][flo-1-19]::[is\_finite][flo-if-1-19]</code>,
@@ -74,6 +76,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [bi-1-19]: https://docs.rs/rug/~1.19/rug/integer/struct.BorrowInteger.html
 [br-1-19]: https://docs.rs/rug/~1.19/rug/rational/struct.BorrowRational.html
 [flo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html
+[flo-ac-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_complex
+[flo-ao-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_ord
 [flo-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_raw
 [flo-cl-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.classify
 [flo-cm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cmp0
