@@ -241,7 +241,7 @@ pub struct Float {
 
 impl Float {
     #[inline]
-    pub(crate) fn inner(&self) -> &mpfr_t {
+    pub(crate) const fn inner(&self) -> &mpfr_t {
         &self.inner
     }
     #[inline]

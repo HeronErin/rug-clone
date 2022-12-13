@@ -292,7 +292,7 @@ impl Complex {
     /// assert_eq!(r.prec(), (24, 53));
     /// ```
     #[inline]
-    pub fn prec(&self) -> (u32, u32) {
+    pub const fn prec(&self) -> (u32, u32) {
         (self.real().prec(), self.imag().prec())
     }
 
@@ -351,6 +351,10 @@ impl Complex {
     ///
     /// # Safety
     ///
+    ///   * The function must *not* be used to create a constant [`Complex`]
+    ///     number, though it can be used to create a static [`Complex`] number.
+    ///     This is because constant values are *copied* on use, leading to
+    ///     undefined behavior when they are dropped.
     ///   * The value must be initialized.
     ///   * The [`mpc_t`] type can be considered as a kind of pointer, so there
     ///     can be multiple copies of it. Since this function takes over
@@ -373,8 +377,46 @@ impl Complex {
     /// assert_eq!(c, (-14.5, 3.25));
     /// // since c is a Complex now, deallocation is automatic
     /// ```
+    ///
+    /// This can be used to create a static [`Complex`] number. See [`mpc_t`],
+    /// [`mpfr_t`] and the [MPFR documentation][mpfr internals] for details.
+    ///
+    /// ```rust
+    /// use core::ptr::NonNull;
+    /// use gmp_mpfr_sys::gmp::limb_t;
+    /// use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
+    /// use gmp_mpfr_sys::mpc::mpc_t;
+    /// use rug::{Complex, Float};
+    /// const LIMBS: [limb_t; 2] = [5, 1 << (limb_t::BITS - 1)];
+    /// const LIMBS_PTR: *const [limb_t; 2] = &LIMBS;
+    /// const MANTISSA_DIGITS: u32 = limb_t::BITS * 2;
+    /// const MPC: mpc_t = mpc_t {
+    ///     re: mpfr_t {
+    ///         prec: MANTISSA_DIGITS as prec_t,
+    ///         sign: -1,
+    ///         exp: 1,
+    ///         d: unsafe { NonNull::new_unchecked(LIMBS_PTR.cast_mut().cast()) },
+    ///     },
+    ///     im: mpfr_t {
+    ///         prec: MANTISSA_DIGITS as prec_t,
+    ///         sign: 1,
+    ///         exp: 1,
+    ///         d: unsafe { NonNull::new_unchecked(LIMBS_PTR.cast_mut().cast()) },
+    ///     },
+    /// };
+    /// // Must *not* be const, otherwise it would lead to undefined
+    /// // behavior on use, as it would create a copy that is dropped.
+    /// static C: Complex = unsafe { Complex::from_raw(MPC) };
+    /// let lsig = Float::with_val(MANTISSA_DIGITS, 5) >> (MANTISSA_DIGITS - 1);
+    /// let msig = 1u32;
+    /// let val = lsig + msig;
+    /// let check = Complex::from((-val.clone(), val));
+    /// assert_eq!(C, check);
+    /// ```
+    ///
+    /// [mpfr internals]: gmp_mpfr_sys::C::MPFR::MPFR_Interface#Internals
     #[inline]
-    pub unsafe fn from_raw(raw: mpc_t) -> Self {
+    pub const unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }
     }
 
@@ -403,9 +445,10 @@ impl Complex {
     /// }
     /// ```
     #[inline]
-    pub fn into_raw(self) -> mpc_t {
-        let m = ManuallyDrop::new(self);
-        m.inner
+    pub const fn into_raw(self) -> mpc_t {
+        let ret = self.inner;
+        let _ = ManuallyDrop::new(self);
+        ret
     }
 
     /// Returns a pointer to the inner [MPC complex number][mpc_t].
@@ -433,7 +476,7 @@ impl Complex {
     /// assert_eq!(c, (-14.5, 3.25));
     /// ```
     #[inline]
-    pub fn as_raw(&self) -> *const mpc_t {
+    pub const fn as_raw(&self) -> *const mpc_t {
         &self.inner
     }
 
@@ -651,7 +694,7 @@ impl Complex {
     /// assert_eq!(*c.real(), 12.5)
     /// ```
     #[inline]
-    pub fn real(&self) -> &Float {
+    pub const fn real(&self) -> &Float {
         xmpc::realref_const(self)
     }
 
@@ -665,7 +708,7 @@ impl Complex {
     /// assert_eq!(*c.imag(), -20.75)
     /// ```
     #[inline]
-    pub fn imag(&self) -> &Float {
+    pub const fn imag(&self) -> &Float {
         xmpc::imagref_const(self)
     }
 
@@ -736,7 +779,7 @@ impl Complex {
     /// assert_eq!(imag, -20.75);
     /// ```
     #[inline]
-    pub fn into_real_imag(self) -> (Float, Float) {
+    pub const fn into_real_imag(self) -> (Float, Float) {
         xmpc::split(self)
     }
 
@@ -762,7 +805,7 @@ impl Complex {
     ///
     /// [Deref::Target]: core::ops::Deref::Target
     /// [Deref]: core::ops::Deref
-    pub fn borrow_real_imag<'a>(real: &'a Float, imag: &'a Float) -> BorrowComplex<'a> {
+    pub const fn borrow_real_imag<'a>(real: &'a Float, imag: &'a Float) -> BorrowComplex<'a> {
         let raw = mpc_t {
             re: *real.inner(),
             im: *imag.inner(),
@@ -942,7 +985,7 @@ impl Complex {
     /// assert_eq!(one_pos0.cmp(zero_inf), Ordering::Greater);
     /// ```
     #[inline]
-    pub fn as_ord(&self) -> &OrdComplex {
+    pub const fn as_ord(&self) -> &OrdComplex {
         // Safety: OrdComplex is repr(transparent) over Complex
         unsafe { &*cast_ptr!(self, OrdComplex) }
     }
@@ -963,8 +1006,9 @@ impl Complex {
     /// assert!(!c.eq0());
     /// ```
     #[inline]
-    pub fn eq0(&self) -> bool {
-        self.real().cmp0() == Some(Ordering::Equal) && self.imag().cmp0() == Some(Ordering::Equal)
+    pub const fn eq0(&self) -> bool {
+        matches!(self.real().cmp0(), Some(Ordering::Equal))
+            && matches!(self.imag().cmp0(), Some(Ordering::Equal))
     }
 
     /// Compares the absolute values of `self` and `other`.

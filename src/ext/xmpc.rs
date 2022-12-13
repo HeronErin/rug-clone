@@ -363,12 +363,12 @@ pub fn write_real_imag(dst: &mut MaybeUninit<Complex>, real: Float, imag: Float)
 }
 
 #[inline]
-pub fn realref_const(c: &Complex) -> &Float {
+pub const fn realref_const(c: &Complex) -> &Float {
     unsafe { &*cast_ptr!(mpc::realref_const(c.as_raw()), Float) }
 }
 
 #[inline]
-pub fn imagref_const(c: &Complex) -> &Float {
+pub const fn imagref_const(c: &Complex) -> &Float {
     unsafe { &*cast_ptr!(mpc::imagref_const(c.as_raw()), Float) }
 }
 
@@ -394,7 +394,7 @@ pub fn realref_imagref(c: &mut Complex) -> (&mut Float, &mut Float) {
 }
 
 #[inline]
-pub fn split(c: Complex) -> (Float, Float) {
+pub const fn split(c: Complex) -> (Float, Float) {
     let raw = c.into_raw();
     // raw has no Drop
     unsafe { (Float::from_raw(raw.re), Float::from_raw(raw.im)) }

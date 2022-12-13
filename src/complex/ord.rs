@@ -76,7 +76,7 @@ impl OrdComplex {
     /// assert_eq!(*c_ref.imag(), 2.5);
     /// ```
     #[inline]
-    pub fn as_complex(&self) -> &Complex {
+    pub const fn as_complex(&self) -> &Complex {
         &self.inner
     }
 

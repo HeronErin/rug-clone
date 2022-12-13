@@ -42,6 +42,16 @@ Version 1.19.0 (unreleased)
       * <code>[Float][flo-1-19]::[get\_exp][flo-ge-1-19]</code>,
       * <code>[Float][flo-1-19]::[is\_sign\_positive][flo-isp-1-19]</code>,
         <code>[Float][flo-1-19]::[is\_sign\_negative][flo-isn-1-19]</code>
+      * <code>[Complex][com-1-19]::[prec][com-p-1-19]</code>,
+      * <code>[Complex][com-1-19]::[from\_raw][com-fr-1-19]</code>,
+        <code>[Complex][com-1-19]::[into\_raw][com-ir-1-19]</code>,
+        <code>[Complex][com-1-19]::[as\_raw][com-ar-1-19]</code>
+      * <code>[Complex][com-1-19]::[real][com-r-1-19]</code>,
+        <code>[Complex][com-1-19]::[imag][com-i-1-19]</code>
+      * <code>[Complex][com-1-19]::[into\_real\_imag][com-iri-1-19]</code>
+      * <code>[Complex][com-1-19]::[borrow\_real\_imag][com-bri-1-19]</code>
+      * <code>[Complex][com-1-19]::[as\_ord][com-ao-1-19]</code>
+      * <code>[Complex][com-1-19]::[eq0][com-e-1-19]</code>
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
     more traits, including [`Clone`] and [`Copy`].
@@ -50,6 +60,17 @@ Version 1.19.0 (unreleased)
 [bf-1-19]: https://docs.rs/rug/~1.19/rug/float/struct.BorrowFloat.html
 [bi-1-19]: https://docs.rs/rug/~1.19/rug/integer/struct.BorrowInteger.html
 [br-1-19]: https://docs.rs/rug/~1.19/rug/rational/struct.BorrowRational.html
+[com-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html
+[com-ao-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.as_ord
+[com-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.as_raw
+[com-bri-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.borrow_real_imag
+[com-e-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.eq0
+[com-fr-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.from_raw
+[com-i-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.imag
+[com-ir-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.into_raw
+[com-iri-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.into_real_imag
+[com-p-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.prec
+[com-r-1-19]: https://docs.rs/rug/~1.19/rug/struct.Complex.html#method.real
 [flo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html
 [flo-ac-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_complex
 [flo-ao-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_ord
