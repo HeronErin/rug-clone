@@ -41,9 +41,13 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
         <code>[Integer][int-1-19]::[is\_odd][int-io-1-19]</code>
       * <code>[Integer][int-1-19]::[cmp0][int-c-1-19]</code>
       * <code>[Rational][rat-1-19]::[into\_raw][rat-ir-1-19]</code>,
-        <code>[Rational][rat-1-19]::[as\_raw][rat-ar-1-19]</code>
+        <code>[Rational][rat-1-19]::[as\_raw][rat-ara-1-19]</code>
       * <code>[Rational][rat-1-19]::[numer][rat-n-1-19]</code>,
         <code>[Rational][rat-1-19]::[denom][rat-d-1-19]</code>
+      * <code>[Rational][rat-1-19]::[into\_numer\_denom][rat-ind-1-19]</code>
+      * <code>[Rational][rat-1-19]::[as\_neg][rat-an-1-19]</code>,
+        <code>[Rational][rat-1-19]::[as\_abs][rat-aa-1-19]</code>,
+        <code>[Rational][rat-1-19]::[as\_recip][rat-are-1-19]</code>
       * <code>[Rational][rat-1-19]::[cmp0][rat-c-1-19]</code>
       * <code>[Rational][rat-1-19]::[is\_integer][rat-ii-1-19]</code>
       * <code>[Float][flo-1-19]::[prec][flo-p-1-19]</code>,
@@ -92,10 +96,14 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [int-ie-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_even
 [int-io-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_odd
 [rat-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html
-[rat-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.as_raw
+[rat-aa-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.as_abs
+[rat-an-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.as_neg
+[rat-ara-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.as_raw
+[rat-are-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.as_recip
 [rat-c-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.cmp0
 [rat-d-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.denom
 [rat-ii-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.is_integer
+[rat-ind-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.into_numer_denom
 [rat-ir-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.into_raw
 [rat-n-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.numer
 [sys-1-5]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html

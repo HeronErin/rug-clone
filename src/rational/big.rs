@@ -902,7 +902,7 @@ impl Rational {
     /// assert_eq!(den, 5);
     /// ```
     #[inline]
-    pub fn into_numer_denom(self) -> (Integer, Integer) {
+    pub const fn into_numer_denom(self) -> (Integer, Integer) {
         let raw = self.into_raw();
         // Safety: raw contains two valid Integers.
         unsafe { (Integer::from_raw(raw.num), Integer::from_raw(raw.den)) }
@@ -930,9 +930,12 @@ impl Rational {
     ///
     /// [Deref::Target]: core::ops::Deref::Target
     /// [Deref]: core::ops::Deref
-    pub fn as_neg(&self) -> BorrowRational<'_> {
+    pub const fn as_neg(&self) -> BorrowRational<'_> {
         let mut raw = self.inner;
-        raw.num.size = raw.num.size.checked_neg().expect("overflow");
+        raw.num.size = match raw.num.size.checked_neg() {
+            Some(s) => s,
+            None => panic!("overflow"),
+        };
         // Safety: the lifetime of the return type is equal to the lifetime of self.
         // Safety: the number is in canonical form as only the sign of the numerator was changed.
         unsafe { BorrowRational::from_raw(raw) }
@@ -960,9 +963,12 @@ impl Rational {
     ///
     /// [Deref::Target]: core::ops::Deref::Target
     /// [Deref]: core::ops::Deref
-    pub fn as_abs(&self) -> BorrowRational<'_> {
+    pub const fn as_abs(&self) -> BorrowRational<'_> {
         let mut raw = self.inner;
-        raw.num.size = raw.num.size.checked_abs().expect("overflow");
+        raw.num.size = match raw.num.size.checked_abs() {
+            Some(s) => s,
+            None => panic!("overflow"),
+        };
         // Safety: the lifetime of the return type is equal to the lifetime of self.
         // Safety: the number is in canonical form as only the sign of the numerator was changed.
         unsafe { BorrowRational::from_raw(raw) }
@@ -994,15 +1000,18 @@ impl Rational {
     ///
     /// [Deref::Target]: core::ops::Deref::Target
     /// [Deref]: core::ops::Deref
-    pub fn as_recip(&self) -> BorrowRational<'_> {
-        assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
+    pub const fn as_recip(&self) -> BorrowRational<'_> {
+        assert!(!matches!(self.cmp0(), Ordering::Equal), "division by zero");
         let mut raw = mpq_t {
             num: self.inner.den,
             den: self.inner.num,
         };
         if raw.den.size < 0 {
             raw.den.size = raw.den.size.wrapping_neg();
-            raw.num.size = raw.num.size.checked_neg().expect("overflow");
+            raw.num.size = match raw.num.size.checked_neg() {
+                Some(s) => s,
+                None => panic!("overflow"),
+            };
         }
         // Safety: the lifetime of the return type is equal to the lifetime of self.
         // Safety: the number is in canonical form as the numerator and denominator are
