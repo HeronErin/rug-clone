@@ -113,7 +113,7 @@ macro_rules! cast_int {
                 }
                 // We already checked for NaN, so we can use mpfr::sgn.
                 debug_assert!(!small.is_nan());
-                let cmp0 = xmpfr::sgn(&*small);
+                let cmp0 = xmpfr::sgn_not_nan(&*small);
                 match cmp0 {
                     Ordering::Less => match small.get_exp() {
                         None => None,
@@ -173,7 +173,7 @@ macro_rules! cast_uint {
                 }
                 // We already checked for NaN, so we can use mpfr::sgn.
                 debug_assert!(!small.is_nan());
-                let cmp0 = xmpfr::sgn(&*small);
+                let cmp0 = xmpfr::sgn_not_nan(&*small);
                 match cmp0 {
                     Ordering::Less => None,
                     Ordering::Equal => Some(0),

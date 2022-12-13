@@ -402,8 +402,15 @@ impl Float {
     /// assert_eq!(f.prec(), 53);
     /// ```
     #[inline]
-    pub fn prec(&self) -> u32 {
-        xmpfr::get_prec(self).unwrapped_cast()
+    pub const fn prec(&self) -> u32 {
+        let ret_prec_t = xmpfr::get_prec(self);
+        #[allow(clippy::unnecessary_cast)]
+        let ret = ret_prec_t as u32;
+        #[allow(clippy::unnecessary_cast)]
+        if ret_prec_t < 0 || ret_prec_t != ret as prec_t {
+            panic!("overflow");
+        }
+        ret
     }
 
     /// Sets the precision, rounding to the nearest.
@@ -460,6 +467,10 @@ impl Float {
     ///
     /// # Safety
     ///
+    ///   * The function must *not* be used to create a constant [`Float`],
+    ///     though it can be used to create a static [`Float`]. This is because
+    ///     constant values are *copied* on use, leading to undefined behavior
+    ///     when they are dropped.
     ///   * The value must be initialized.
     ///   * The [`mpfr_t`] type can be considered as a kind of
     ///     pointer, so there can be multiple copies of it. Since this
@@ -484,8 +495,36 @@ impl Float {
     /// assert_eq!(f, -14.5);
     /// // since f is a Float now, deallocation is automatic
     /// ```
+    ///
+    /// This can be used to create a static [`Float`]. See [`mpfr_t`] and the
+    /// [MPFR documentation][mpfr internals] for details.
+    ///
+    /// ```rust
+    /// use core::ptr::NonNull;
+    /// use gmp_mpfr_sys::gmp::limb_t;
+    /// use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
+    /// use rug::Float;
+    /// const LIMBS: [limb_t; 2] = [5, 1 << (limb_t::BITS - 1)];
+    /// const LIMBS_PTR: *const [limb_t; 2] = &LIMBS;
+    /// const MANTISSA_DIGITS: u32 = limb_t::BITS * 2;
+    /// const MPFR: mpfr_t = mpfr_t {
+    ///     prec: MANTISSA_DIGITS as prec_t,
+    ///     sign: -1,
+    ///     exp: 1,
+    ///     d: unsafe { NonNull::new_unchecked(LIMBS_PTR.cast_mut().cast()) },
+    /// };
+    /// // Must *not* be const, otherwise it would lead to undefined
+    /// // behavior on use, as it would create a copy that is dropped.
+    /// static F: Float = unsafe { Float::from_raw(MPFR) };
+    /// let lsig = Float::with_val(MANTISSA_DIGITS, 5) >> (MANTISSA_DIGITS - 1);
+    /// let msig = 1u32;
+    /// let check = -(lsig + msig);
+    /// assert_eq!(F, check);
+    /// ```
+    ///
+    /// [mpfr internals]: gmp_mpfr_sys::C::MPFR::MPFR_Interface#Internals
     #[inline]
-    pub unsafe fn from_raw(raw: mpfr_t) -> Self {
+    pub const unsafe fn from_raw(raw: mpfr_t) -> Self {
         Float { inner: raw }
     }
 
@@ -509,9 +548,10 @@ impl Float {
     /// }
     /// ```
     #[inline]
-    pub fn into_raw(self) -> mpfr_t {
-        let m = ManuallyDrop::new(self);
-        m.inner
+    pub const fn into_raw(self) -> mpfr_t {
+        let ret = self.inner;
+        let _ = ManuallyDrop::new(self);
+        ret
     }
 
     /// Returns a pointer to the inner [MPFR floating-point number][mpfr_t].
@@ -534,7 +574,7 @@ impl Float {
     /// assert_eq!(f, -14.5);
     /// ```
     #[inline]
-    pub fn as_raw(&self) -> *const mpfr_t {
+    pub const fn as_raw(&self) -> *const mpfr_t {
         &self.inner
     }
 
@@ -1484,7 +1524,7 @@ impl Float {
     /// assert!(f.is_nan());
     /// ```
     #[inline]
-    pub fn is_nan(&self) -> bool {
+    pub const fn is_nan(&self) -> bool {
         xmpfr::nan_p(self)
     }
 
@@ -1500,7 +1540,7 @@ impl Float {
     /// assert!(f.is_infinite());
     /// ```
     #[inline]
-    pub fn is_infinite(&self) -> bool {
+    pub const fn is_infinite(&self) -> bool {
         xmpfr::inf_p(self)
     }
 
@@ -1517,7 +1557,7 @@ impl Float {
     /// assert!(!f.is_finite());
     /// ```
     #[inline]
-    pub fn is_finite(&self) -> bool {
+    pub const fn is_finite(&self) -> bool {
         xmpfr::number_p(self)
     }
 
@@ -1536,7 +1576,7 @@ impl Float {
     /// assert!(!f.is_zero());
     /// ```
     #[inline]
-    pub fn is_zero(&self) -> bool {
+    pub const fn is_zero(&self) -> bool {
         xmpfr::zero_p(self)
     }
 
@@ -1558,7 +1598,7 @@ impl Float {
     /// assert!(!f.is_normal());
     /// ```
     #[inline]
-    pub fn is_normal(&self) -> bool {
+    pub const fn is_normal(&self) -> bool {
         xmpfr::regular_p(self)
     }
 
@@ -1581,7 +1621,7 @@ impl Float {
     /// assert_eq!(normal.classify(), FpCategory::Normal);
     /// ```
     #[inline]
-    pub fn classify(&self) -> FpCategory {
+    pub const fn classify(&self) -> FpCategory {
         if xmpfr::nan_p(self) {
             FpCategory::Nan
         } else if xmpfr::inf_p(self) {
@@ -1613,11 +1653,11 @@ impl Float {
     /// assert_eq!(f.cmp0(), None);
     /// ```
     #[inline]
-    pub fn cmp0(&self) -> Option<Ordering> {
+    pub const fn cmp0(&self) -> Option<Ordering> {
         if self.is_nan() {
             None
         } else {
-            Some(xmpfr::sgn(self))
+            Some(xmpfr::sgn_not_nan(self))
         }
     }
 
@@ -1737,9 +1777,16 @@ impl Float {
     /// assert_eq!(f.get_exp(), None);
     /// ```
     #[inline]
-    pub fn get_exp(&self) -> Option<i32> {
+    pub const fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
-            Some(xmpfr::get_exp(self).unwrapped_cast())
+            let ret_exp_t = xmpfr::get_exp(self);
+            #[allow(clippy::unnecessary_cast)]
+            let ret = ret_exp_t as i32;
+            #[allow(clippy::unnecessary_cast)]
+            if ret_exp_t != ret as exp_t {
+                panic!("overflow");
+            }
+            Some(ret)
         } else {
             None
         }
@@ -1905,7 +1952,7 @@ impl Float {
     /// assert!(!neg.is_sign_positive());
     /// ```
     #[inline]
-    pub fn is_sign_positive(&self) -> bool {
+    pub const fn is_sign_positive(&self) -> bool {
         !self.is_sign_negative()
     }
 
@@ -1922,7 +1969,7 @@ impl Float {
     /// assert!(!pos.is_sign_negative());
     /// ```
     #[inline]
-    pub fn is_sign_negative(&self) -> bool {
+    pub const fn is_sign_negative(&self) -> bool {
         xmpfr::signbit(self)
     }
 

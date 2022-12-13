@@ -19,6 +19,20 @@ Version 1.19.0 (unreleased)
         <code>[Rational][rat-1-19]::[denom][rat-d-1-19]</code>
       * <code>[Rational][rat-1-19]::[cmp0][rat-c-1-19]</code>
       * <code>[Rational][rat-1-19]::[is\_integer][rat-ii-1-19]</code>
+      * <code>[Float][flo-1-19]::[prec][flo-p-1-19]</code>,
+      * <code>[Float][flo-1-19]::[from\_raw][flo-fr-1-19]</code>,
+        <code>[Float][flo-1-19]::[into\_raw][flo-ir-1-19]</code>,
+        <code>[Float][flo-1-19]::[as\_raw][flo-ar-1-19]</code>
+      * <code>[Float][flo-1-19]::[is\_nan][flo-ina-1-19]</code>,
+        <code>[Float][flo-1-19]::[is\_infinite][flo-ii-1-19]</code>,
+        <code>[Float][flo-1-19]::[is\_finite][flo-if-1-19]</code>,
+        <code>[Float][flo-1-19]::[is\_zero][flo-iz-1-19]</code>,
+        <code>[Float][flo-1-19]::[is\_normal][flo-ino-1-19]</code>,
+        <code>[Float][flo-1-19]::[classify][flo-cl-1-19]</code>
+      * <code>[Float][flo-1-19]::[cmp0][flo-cm-1-19]</code>
+      * <code>[Float][flo-1-19]::[get\_exp][flo-ge-1-19]</code>,
+      * <code>[Float][flo-1-19]::[is\_sign\_positive][flo-isp-1-19]</code>,
+        <code>[Float][flo-1-19]::[is\_sign\_negative][flo-isn-1-19]</code>
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
     more traits, including [`Clone`] and [`Copy`].
@@ -27,6 +41,21 @@ Version 1.19.0 (unreleased)
 [bf-1-19]: https://docs.rs/rug/~1.19/rug/float/struct.BorrowFloat.html
 [bi-1-19]: https://docs.rs/rug/~1.19/rug/integer/struct.BorrowInteger.html
 [br-1-19]: https://docs.rs/rug/~1.19/rug/rational/struct.BorrowRational.html
+[flo-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html
+[flo-ar-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.as_raw
+[flo-cl-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.classify
+[flo-cm-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.cmp0
+[flo-fr-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.from_raw
+[flo-ge-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.get_exp
+[flo-if-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_finite
+[flo-ii-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_infinite
+[flo-ina-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_nan
+[flo-ino-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_normal
+[flo-ir-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.into_raw
+[flo-isn-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_sign_negative
+[flo-isp-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_sign_positive
+[flo-iz-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.is_zero
+[flo-p-1-19]: https://docs.rs/rug/~1.19/rug/struct.Float.html#method.prec
 [int-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html
 [int-c-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.cmp0
 [int-ie-1-19]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.is_even

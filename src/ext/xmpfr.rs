@@ -603,12 +603,20 @@ pub fn nextbelow(rop: &mut Float) {
 }
 
 #[inline]
-pub fn sgn(x: &Float) -> Ordering {
-    ordering1(unsafe { mpfr::sgn(x.as_raw()) })
+pub const fn sgn_not_nan(x: &Float) -> Ordering {
+    // do not use mpfr::sgn as it contains a check for NaN and is not const as
+    // it can call set_erangeflag
+    if zero_p(x) {
+        Ordering::Equal
+    } else if signbit(x) {
+        Ordering::Less
+    } else {
+        Ordering::Greater
+    }
 }
 
 #[inline]
-pub fn get_exp(op: &Float) -> exp_t {
+pub const fn get_exp(op: &Float) -> exp_t {
     unsafe { mpfr::get_exp(op.as_raw()) }
 }
 
@@ -649,7 +657,7 @@ pub fn get_ui(op: &Float, rnd: Round) -> c_ulong {
 }
 
 #[inline]
-pub fn get_prec(op: &Float) -> prec_t {
+pub const fn get_prec(op: &Float) -> prec_t {
     unsafe { mpfr::get_prec(op.as_raw()) }
 }
 
@@ -747,7 +755,7 @@ pub fn cmp_i32_2exp(op1: &Float, op2: i32, e: i32) -> Ordering {
 }
 
 #[inline]
-pub fn signbit(op: &Float) -> bool {
+pub const fn signbit(op: &Float) -> bool {
     (unsafe { mpfr::signbit(op.as_raw()) }) != 0
 }
 
@@ -787,28 +795,28 @@ pub fn integer_p(op: &Float) -> bool {
 }
 
 #[inline]
-pub fn nan_p(op: &Float) -> bool {
+pub const fn nan_p(op: &Float) -> bool {
     (unsafe { mpfr::nan_p(op.as_raw()) }) != 0
 }
 
 #[inline]
-pub fn inf_p(op: &Float) -> bool {
+pub const fn inf_p(op: &Float) -> bool {
     (unsafe { mpfr::inf_p(op.as_raw()) }) != 0
 }
 
 #[inline]
-pub fn number_p(op: &Float) -> bool {
-    // do not use mpfr::number_p as it is not inlined like nan_p and inf_p
+pub const fn number_p(op: &Float) -> bool {
+    // do not use mpfr::number_p as it is not inlined or const like nan_p and inf_p
     !nan_p(op) && !inf_p(op)
 }
 
 #[inline]
-pub fn zero_p(op: &Float) -> bool {
+pub const fn zero_p(op: &Float) -> bool {
     (unsafe { mpfr::zero_p(op.as_raw()) }) != 0
 }
 
 #[inline]
-pub fn regular_p(op: &Float) -> bool {
+pub const fn regular_p(op: &Float) -> bool {
     (unsafe { mpfr::regular_p(op.as_raw()) }) != 0
 }
 
