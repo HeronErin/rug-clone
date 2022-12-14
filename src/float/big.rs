@@ -10107,7 +10107,7 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
     // When k = 128, p = 113.
     // When k = 2^32 (overflow), p = 2^32 - 115 = MAX - 114.
     // When k = max allowed = 2^32 - 32, p = 2^32 - 32 - 115 = MAX - 146.
-    if prec < 113 || prec > u32::max_value() - 146 {
+    if !(113..=u32::MAX - 146).contains(&prec) {
         return None;
     }
 
@@ -10166,16 +10166,16 @@ mod tests {
         assert_eq!(ieee_storage_bits_for_prec(144), Some(160));
         assert_eq!(ieee_storage_bits_for_prec(237), Some(256));
         assert_eq!(
-            ieee_storage_bits_for_prec(u32::max_value() - 178),
-            Some(u32::max_value() - 63)
+            ieee_storage_bits_for_prec(u32::MAX - 178),
+            Some(u32::MAX - 63)
         );
-        assert_eq!(ieee_storage_bits_for_prec(u32::max_value() - 145), None);
+        assert_eq!(ieee_storage_bits_for_prec(u32::MAX - 145), None);
         assert_eq!(
-            ieee_storage_bits_for_prec(u32::max_value() - 146),
-            Some(u32::max_value() - 31)
+            ieee_storage_bits_for_prec(u32::MAX - 146),
+            Some(u32::MAX - 31)
         );
-        assert_eq!(ieee_storage_bits_for_prec(u32::max_value() - 147), None);
-        assert_eq!(ieee_storage_bits_for_prec(u32::max_value() - 114), None);
-        assert_eq!(ieee_storage_bits_for_prec(u32::max_value()), None);
+        assert_eq!(ieee_storage_bits_for_prec(u32::MAX - 147), None);
+        assert_eq!(ieee_storage_bits_for_prec(u32::MAX - 114), None);
+        assert_eq!(ieee_storage_bits_for_prec(u32::MAX), None);
     }
 }

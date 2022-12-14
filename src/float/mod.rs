@@ -122,10 +122,11 @@ println!("Maximum precision is {}", float::prec_max());
 */
 #[inline]
 pub const fn prec_max() -> u32 {
-    const MAX_FITS: bool = mpfr::PREC_MAX < u32::MAX as prec_t;
-    const VALUES: [u32; 2] = [u32::MAX, mpfr::PREC_MAX as u32];
-    const PREC_MAX: u32 = VALUES[MAX_FITS as usize];
-    PREC_MAX
+    if mpfr::PREC_MAX < u32::MAX as prec_t {
+        mpfr::PREC_MAX as u32
+    } else {
+        u32::MAX
+    }
 }
 
 /**

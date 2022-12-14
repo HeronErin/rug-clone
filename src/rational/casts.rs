@@ -195,18 +195,18 @@ mod tests {
 
     #[test]
     fn check_integers() {
-        check_there_and_back(i8::min_value(), i8::max_value());
-        check_there_and_back(i16::min_value(), i16::max_value());
-        check_there_and_back(i32::min_value(), i32::max_value());
-        check_there_and_back(i64::min_value(), i64::max_value());
-        check_there_and_back(i128::min_value(), i128::max_value());
-        check_there_and_back(isize::min_value(), isize::max_value());
-        check_there_and_back(u8::min_value(), u8::max_value());
-        check_there_and_back(u16::min_value(), u16::max_value());
-        check_there_and_back(u32::min_value(), u32::max_value());
-        check_there_and_back(u64::min_value(), u64::max_value());
-        check_there_and_back(u128::min_value(), u128::max_value());
-        check_there_and_back(usize::min_value(), usize::max_value());
+        check_there_and_back(i8::MIN, i8::MAX);
+        check_there_and_back(i16::MIN, i16::MAX);
+        check_there_and_back(i32::MIN, i32::MAX);
+        check_there_and_back(i64::MIN, i64::MAX);
+        check_there_and_back(i128::MIN, i128::MAX);
+        check_there_and_back(isize::MIN, isize::MAX);
+        check_there_and_back(u8::MIN, u8::MAX);
+        check_there_and_back(u16::MIN, u16::MAX);
+        check_there_and_back(u32::MIN, u32::MAX);
+        check_there_and_back(u64::MIN, u64::MAX);
+        check_there_and_back(u128::MIN, u128::MAX);
+        check_there_and_back(usize::MIN, usize::MAX);
     }
 
     #[test]

@@ -869,7 +869,7 @@ pub unsafe fn custom_special(f: *mut mpfr_t, limbs: *mut limb_t, special: Specia
     }
 }
 
-pub const EXP_ZERO: mpfr::exp_t = -mpfr::exp_t::max_value();
+pub const EXP_ZERO: mpfr::exp_t = -mpfr::exp_t::MAX;
 
 #[inline]
 #[cfg(feature = "rand")]

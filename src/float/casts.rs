@@ -64,9 +64,9 @@ macro_rules! cast_int_uint_common {
                     Some(val) => val,
                     None => {
                         if self.is_sign_negative() {
-                            <$Prim>::min_value()
+                            <$Prim>::MIN
                         } else {
-                            <$Prim>::max_value()
+                            <$Prim>::MAX
                         }
                     }
                 }
@@ -124,7 +124,7 @@ macro_rules! cast_int {
                             //  2. Since it is a normal integer, exp > 0
                             debug_assert!(small.is_normal());
                             let abs = unsafe { $unchecked_get(&small) >> ($nbits - exp) };
-                            if abs > <$Prim>::min_value().wrapping_as::<$U>() {
+                            if abs > <$Prim>::MIN.wrapping_as::<$U>() {
                                 None
                             } else {
                                 Some(abs.wrapping_as::<$Prim>().wrapping_neg())
@@ -420,18 +420,18 @@ mod tests {
 
     #[test]
     fn check_integers() {
-        check_integer(i8::min_value(), i8::max_value());
-        check_integer(i16::min_value(), i16::max_value());
-        check_integer(i32::min_value(), i32::max_value());
-        check_integer(i64::min_value(), i64::max_value());
-        check_integer(i128::min_value(), i128::max_value());
-        check_integer(isize::min_value(), isize::max_value());
-        check_integer(u8::min_value(), u8::max_value());
-        check_integer(u16::min_value(), u16::max_value());
-        check_integer(u32::min_value(), u32::max_value());
-        check_integer(u64::min_value(), u64::max_value());
-        check_integer(u128::min_value(), u128::max_value());
-        check_integer(usize::min_value(), usize::max_value());
+        check_integer(i8::MIN, i8::MAX);
+        check_integer(i16::MIN, i16::MAX);
+        check_integer(i32::MIN, i32::MAX);
+        check_integer(i64::MIN, i64::MAX);
+        check_integer(i128::MIN, i128::MAX);
+        check_integer(isize::MIN, isize::MAX);
+        check_integer(u8::MIN, u8::MAX);
+        check_integer(u16::MIN, u16::MAX);
+        check_integer(u32::MIN, u32::MAX);
+        check_integer(u64::MIN, u64::MAX);
+        check_integer(u128::MIN, u128::MAX);
+        check_integer(usize::MIN, usize::MAX);
     }
 
     #[test]

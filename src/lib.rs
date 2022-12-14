@@ -583,7 +583,6 @@ pub mod rand;
 
 #[cfg(any(feature = "integer", feature = "float"))]
 mod static_assertions {
-    use core::mem;
     use gmp_mpfr_sys::gmp::{limb_t, LIMB_BITS, NAIL_BITS, NUMB_BITS};
 
     static_assert!(NAIL_BITS == 0);
@@ -595,7 +594,7 @@ mod static_assertions {
     #[cfg(gmp_limb_bits_32)]
     static_assert!(NUMB_BITS == 32);
     static_assert!(NUMB_BITS % 8 == 0);
-    static_assert!(mem::size_of::<limb_t>() == NUMB_BITS as usize / 8);
+    static_assert!(limb_t::BITS == NUMB_BITS as u32);
 }
 
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
