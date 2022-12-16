@@ -8,6 +8,7 @@ Version 1.19.0 (unreleased)
 ===========================
 
   * The crate now requires rustc version 1.65.0 or later.
+  * The [gmp-mpfr-sys] dependency was updated to [version 1.5][sys-1-5].
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
     more traits, including [`Clone`] and [`Copy`].
@@ -16,6 +17,7 @@ Version 1.19.0 (unreleased)
 [bf-1-19]: https://docs.rs/rug/~1.19/rug/float/struct.BorrowFloat.html
 [bi-1-19]: https://docs.rs/rug/~1.19/rug/integer/struct.BorrowInteger.html
 [br-1-19]: https://docs.rs/rug/~1.19/rug/rational/struct.BorrowRational.html
+[sys-1-5]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html
 
 Version 1.18.0 (2022-11-17)
 ===========================

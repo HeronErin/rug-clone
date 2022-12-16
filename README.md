@@ -31,6 +31,8 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 ### Version 1.19.0 news (unreleased)
 
   * The crate now requires rustc version 1.65.0 or later.
+  * The [gmp-mpfr-sys][sys crate] dependency was updated to [version
+    1.5][sys-1-5].
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
     more traits, including [`Clone`] and [`Copy`].
@@ -40,6 +42,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [bf-1-19]: https://docs.rs/rug/~1.19/rug/float/struct.BorrowFloat.html
 [bi-1-19]: https://docs.rs/rug/~1.19/rug/integer/struct.BorrowInteger.html
 [br-1-19]: https://docs.rs/rug/~1.19/rug/rational/struct.BorrowRational.html
+[sys-1-5]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html
 
 ### Version 1.18.0 news (2022-11-17)
 
@@ -236,7 +239,7 @@ updated to an incompatible newer version.
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
-[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html#building-on-gnulinux
-[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html#building-on-macos
-[sys win]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html#building-on-windows
-[sys]: https://docs.rs/gmp-mpfr-sys/~1.4/gmp_mpfr_sys/index.html
+[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html#building-on-gnulinux
+[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html#building-on-macos
+[sys win]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html#building-on-windows
+[sys]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html
