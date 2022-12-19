@@ -105,6 +105,7 @@ impl<'a> BorrowComplex<'a> {
     /// let using_method: &Complex = &BorrowComplex::as_deref(&b);
     /// let using_operator: &Complex = &*b;
     /// let using_trait: &Complex = b.deref();
+    /// assert_eq!(*using_method, (23.5, 12.25));
     /// assert!(ptr::eq(using_method, using_operator));
     /// assert!(ptr::eq(using_method, using_trait));
     /// ```

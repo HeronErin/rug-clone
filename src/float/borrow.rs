@@ -104,6 +104,7 @@ impl<'a> BorrowFloat<'a> {
     /// let using_method: &Float = &BorrowFloat::as_deref(&b);
     /// let using_operator: &Float = &*b;
     /// let using_trait: &Float = b.deref();
+    /// assert_eq!(*using_method, -23.5);
     /// assert!(ptr::eq(using_method, using_operator));
     /// assert!(ptr::eq(using_method, using_trait));
     /// ```

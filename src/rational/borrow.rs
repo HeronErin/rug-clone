@@ -109,6 +109,7 @@ impl<'a> BorrowRational<'a> {
     /// let using_method: &Rational = &BorrowRational::as_deref(&b);
     /// let using_operator: &Rational = &*b;
     /// let using_trait: &Rational = b.deref();
+    /// assert_eq!(*using_trait, (-7, 5));
     /// assert!(ptr::eq(using_method, using_operator));
     /// assert!(ptr::eq(using_method, using_trait));
     /// ```

@@ -106,6 +106,7 @@ impl<'a> BorrowInteger<'a> {
     /// let using_method: &Integer = &BorrowInteger::as_deref(&b);
     /// let using_operator: &Integer = &*b;
     /// let using_trait: &Integer = b.deref();
+    /// assert_eq!(*using_method, -23);
     /// assert!(ptr::eq(using_method, using_operator));
     /// assert!(ptr::eq(using_method, using_trait));
     /// ```
