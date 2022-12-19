@@ -14,10 +14,7 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::complex::OrdComplex;
 use crate::Complex;
-use core::borrow::Borrow;
-use core::convert::AsRef;
 use core::fmt::{
     Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Pointer, Result as FmtResult,
     UpperExp, UpperHex,
@@ -82,36 +79,85 @@ impl<'a> BorrowComplex<'a> {
             phantom: PhantomData,
         }
     }
+
+    /// Gets a reference to [`Complex`] from a `BorrowComplex`.
+    ///
+    /// This is equivalent to taking the reference of the dereferencing operator
+    /// `*` or to <code>[Deref]::[deref][Deref::deref]</code>, but can also be
+    /// used in constant context. Unless required in constant context, use the
+    /// operator or trait instead.
+    ///
+    /// # Planned deprecation
+    ///
+    /// This method will be deprecated when the unary `*` operator and the
+    /// [`Deref`] trait are usable in constant context.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::ops::Deref;
+    /// use core::ptr;
+    /// use rug::complex::BorrowComplex;
+    /// use rug::Complex;
+    ///
+    /// let c = Complex::with_val(53, (23.5, -12.25));
+    /// let b = c.as_conj();
+    /// let using_method: &Complex = &BorrowComplex::as_deref(&b);
+    /// let using_operator: &Complex = &*b;
+    /// let using_trait: &Complex = b.deref();
+    /// assert!(ptr::eq(using_method, using_operator));
+    /// assert!(ptr::eq(using_method, using_trait));
+    /// ```
+    ///
+    /// This method can be used to create a constant reference.
+    ///
+    /// ```rust
+    /// use core::ptr::NonNull;
+    /// use gmp_mpfr_sys::gmp::limb_t;
+    /// use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
+    /// use gmp_mpfr_sys::mpc::mpc_t;
+    /// use rug::complex::BorrowComplex;
+    /// use rug::{Complex, Float};
+    ///
+    /// const LIMBS: [limb_t; 2] = [5, 1 << (limb_t::BITS - 1)];
+    /// const LIMBS_PTR: *const [limb_t; 2] = &LIMBS;
+    /// const MANTISSA_DIGITS: u32 = limb_t::BITS * 2;
+    /// const MPC: mpc_t = mpc_t {
+    ///     re: mpfr_t {
+    ///         prec: MANTISSA_DIGITS as prec_t,
+    ///         sign: -1,
+    ///         exp: 1,
+    ///         d: unsafe { NonNull::new_unchecked(LIMBS_PTR.cast_mut().cast()) },
+    ///     },
+    ///     im: mpfr_t {
+    ///         prec: MANTISSA_DIGITS as prec_t,
+    ///         sign: 1,
+    ///         exp: 1,
+    ///         d: unsafe { NonNull::new_unchecked(LIMBS_PTR.cast_mut().cast()) },
+    ///     },
+    /// };
+    /// // Safety: MPFR will remain valid, and will not be changed.
+    /// const BORROW: BorrowComplex = unsafe { BorrowComplex::from_raw(MPC) };
+    /// const C: &Complex = BorrowComplex::as_deref(&BORROW);
+    /// let lsig = Float::with_val(MANTISSA_DIGITS, 5) >> (MANTISSA_DIGITS - 1);
+    /// let msig = 1u32;
+    /// let val = lsig + msig;
+    /// let check = Complex::from((-val.clone(), val));
+    /// assert_eq!(*C, check);
+    /// ```
+    #[inline]
+    pub const fn as_deref<'b>(b: &'b BorrowComplex<'a>) -> &'b Complex {
+        let ptr = cast_ptr!(&b.inner, Complex);
+        // Safety: the inner pointer is valid for the duration of the lifetime.
+        unsafe { &*ptr }
+    }
 }
 
 impl Deref for BorrowComplex<'_> {
     type Target = Complex;
     #[inline]
     fn deref(&self) -> &Complex {
-        let ptr = cast_ptr!(&self.inner, Complex);
-        // Safety: the inner pointer is valid for the duration of the lifetime.
-        unsafe { &*ptr }
-    }
-}
-
-impl Borrow<Complex> for BorrowComplex<'_> {
-    #[inline]
-    fn borrow(&self) -> &Complex {
-        self
-    }
-}
-
-impl AsRef<Complex> for BorrowComplex<'_> {
-    #[inline]
-    fn as_ref(&self) -> &Complex {
-        self
-    }
-}
-
-impl AsRef<OrdComplex> for BorrowComplex<'_> {
-    #[inline]
-    fn as_ref(&self) -> &OrdComplex {
-        self.as_ord()
+        BorrowComplex::as_deref(self)
     }
 }
 
