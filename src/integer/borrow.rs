@@ -15,8 +15,6 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::Integer;
-use core::borrow::Borrow;
-use core::convert::AsRef;
 use core::fmt::{
     Binary, Debug, Display, Formatter, LowerHex, Octal, Pointer, Result as FmtResult, UpperHex,
 };
@@ -82,29 +80,66 @@ impl<'a> BorrowInteger<'a> {
             phantom: PhantomData,
         }
     }
+
+    /// Gets a reference to [`Integer`] from a `BorrowInteger`.
+    ///
+    /// This is equivalent to taking the reference of the dereferencing operator
+    /// `*` or to <code>[Deref]::[deref][Deref::deref]</code>, but can also be
+    /// used in constant context. Unless required in constant context, use the
+    /// operator or trait instead.
+    ///
+    /// # Planned deprecation
+    ///
+    /// This method will be deprecated when the unary `*` operator and the
+    /// [`Deref`] trait are usable in constant context.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::ops::Deref;
+    /// use core::ptr;
+    /// use rug::integer::BorrowInteger;
+    /// use rug::Integer;
+    ///
+    /// let i = Integer::from(23);
+    /// let b = i.as_neg();
+    /// let using_method: &Integer = &BorrowInteger::as_deref(&b);
+    /// let using_operator: &Integer = &*b;
+    /// let using_trait: &Integer = b.deref();
+    /// assert!(ptr::eq(using_method, using_operator));
+    /// assert!(ptr::eq(using_method, using_trait));
+    /// ```
+    ///
+    /// This method can be used to create a constant reference.
+    ///
+    /// ```rust
+    /// use gmp_mpfr_sys::gmp;
+    /// use gmp_mpfr_sys::gmp::{limb_t, mpz_t};
+    /// use rug::integer::BorrowInteger;
+    /// use rug::Integer;
+    ///
+    /// const LIMBS: [limb_t; 2] = [123, 456];
+    /// const MPZ: mpz_t =
+    ///     unsafe { gmp::MPZ_ROINIT_N(LIMBS.as_ptr().cast_mut(), -2) };
+    /// // Safety: MPZ will remain valid, and will not be changed.
+    /// const BORROW: BorrowInteger = unsafe { BorrowInteger::from_raw(MPZ) };
+    /// const I: &Integer = BorrowInteger::as_deref(&BORROW);
+    /// let check = -((Integer::from(LIMBS[1]) << gmp::NUMB_BITS) + LIMBS[0]);
+    /// assert_eq!(*I, check);
+    /// ```
+    #[inline]
+    pub const fn as_deref<'b>(b: &'b BorrowInteger<'a>) -> &'b Integer {
+        let ptr = cast_ptr!(&b.inner, Integer);
+        // Safety: the inner pointer is valid for the duration of the lifetime.
+        unsafe { &*ptr }
+    }
 }
 
 impl Deref for BorrowInteger<'_> {
     type Target = Integer;
     #[inline]
     fn deref(&self) -> &Integer {
-        let ptr = cast_ptr!(&self.inner, Integer);
-        // Safety: the inner pointer is valid for the duration of the lifetime.
-        unsafe { &*ptr }
-    }
-}
-
-impl Borrow<Integer> for BorrowInteger<'_> {
-    #[inline]
-    fn borrow(&self) -> &Integer {
-        self
-    }
-}
-
-impl AsRef<Integer> for BorrowInteger<'_> {
-    #[inline]
-    fn as_ref(&self) -> &Integer {
-        self
+        BorrowInteger::as_deref(self)
     }
 }
 
