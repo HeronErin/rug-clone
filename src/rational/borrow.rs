@@ -15,8 +15,6 @@
 // <https://www.gnu.org/licenses/>.
 
 use crate::Rational;
-use core::borrow::Borrow;
-use core::convert::AsRef;
 use core::fmt::{
     Binary, Debug, Display, Formatter, LowerHex, Octal, Pointer, Result as FmtResult, UpperHex,
 };
@@ -85,29 +83,76 @@ impl<'a> BorrowRational<'a> {
             phantom: PhantomData,
         }
     }
+
+    /// Gets a reference to [`Rational`] from a `BorrowRational`.
+    ///
+    /// This is equivalent to taking the reference of the dereferencing operator
+    /// `*` or to <code>[Deref]::[deref][Deref::deref]</code>, but can also be
+    /// used in constant context. Unless required in constant context, use the
+    /// operator or trait instead.
+    ///
+    /// # Planned deprecation
+    ///
+    /// This method will be deprecated when the unary `*` operator and the
+    /// [`Deref`] trait are usable in constant context.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::ops::Deref;
+    /// use core::ptr;
+    /// use rug::rational::BorrowRational;
+    /// use rug::Rational;
+    ///
+    /// let i = Rational::from((-5, 7));
+    /// let b = i.as_recip();
+    /// let using_method: &Rational = &BorrowRational::as_deref(&b);
+    /// let using_operator: &Rational = &*b;
+    /// let using_trait: &Rational = b.deref();
+    /// assert!(ptr::eq(using_method, using_operator));
+    /// assert!(ptr::eq(using_method, using_trait));
+    /// ```
+    ///
+    /// This method can be used to create a constant reference.
+    ///
+    /// ```rust
+    /// use gmp_mpfr_sys::gmp;
+    /// use gmp_mpfr_sys::gmp::{limb_t, mpq_t};
+    /// use rug::rational::BorrowRational;
+    /// use rug::{Integer, Rational};
+    ///
+    /// const NUMER_LIMBS: [limb_t; 2] = [0, 5];
+    /// const DENOM_LIMBS: [limb_t; 1] = [3];
+    /// const MPQ: mpq_t = unsafe {
+    ///     mpq_t {
+    ///         num: gmp::MPZ_ROINIT_N(NUMER_LIMBS.as_ptr().cast_mut(), -2),
+    ///         den: gmp::MPZ_ROINIT_N(DENOM_LIMBS.as_ptr().cast_mut(), 1),
+    ///     }
+    /// };
+    /// // Safety: MPQ will remain valid, and will not be changed.
+    /// const BORROW: BorrowRational = unsafe { BorrowRational::from_raw(MPQ) };
+    /// const R: &Rational = BorrowRational::as_deref(&BORROW);
+    /// let numer_check =
+    ///     -((Integer::from(NUMER_LIMBS[1]) << gmp::NUMB_BITS) + NUMER_LIMBS[0]);
+    /// let denom_check = Integer::from(DENOM_LIMBS[0]);
+    /// let check = Rational::from((&numer_check, &denom_check));
+    /// assert_eq!(*R, check);
+    /// assert_eq!(*R.numer(), *check.numer());
+    /// assert_eq!(*R.denom(), *check.denom());
+    /// ```
+    #[inline]
+    pub const fn as_deref<'b>(b: &'b BorrowRational<'a>) -> &'b Rational {
+        let ptr = cast_ptr!(&b.inner, Rational);
+        // Safety: the inner pointer is valid for the duration of the lifetime.
+        unsafe { &*ptr }
+    }
 }
 
 impl Deref for BorrowRational<'_> {
     type Target = Rational;
     #[inline]
     fn deref(&self) -> &Rational {
-        let ptr = cast_ptr!(&self.inner, Rational);
-        // Safety: the inner pointer is valid for the duration of the lifetime.
-        unsafe { &*ptr }
-    }
-}
-
-impl Borrow<Rational> for BorrowRational<'_> {
-    #[inline]
-    fn borrow(&self) -> &Rational {
-        self
-    }
-}
-
-impl AsRef<Rational> for BorrowRational<'_> {
-    #[inline]
-    fn as_ref(&self) -> &Rational {
-        self
+        BorrowRational::as_deref(self)
     }
 }
 
