@@ -55,7 +55,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
         <code>[Rational][rat-1-19]::[as\_recip][rat-are-1-19]</code>
       * <code>[Rational][rat-1-19]::[cmp0][rat-c-1-19]</code>
       * <code>[Rational][rat-1-19]::[is\_integer][rat-ii-1-19]</code>
-      * <code>[Float][flo-1-19]::[prec][flo-p-1-19]</code>,
+      * <code>[Float][flo-1-19]::[prec][flo-p-1-19]</code>
       * <code>[Float][flo-1-19]::[from\_raw][flo-fr-1-19]</code>,
         <code>[Float][flo-1-19]::[into\_raw][flo-ir-1-19]</code>,
         <code>[Float][flo-1-19]::[as\_raw][flo-ar-1-19]</code>
@@ -68,23 +68,25 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
         <code>[Float][flo-1-19]::[is\_normal][flo-ino-1-19]</code>,
         <code>[Float][flo-1-19]::[classify][flo-cl-1-19]</code>
       * <code>[Float][flo-1-19]::[cmp0][flo-cm-1-19]</code>
-      * <code>[Float][flo-1-19]::[get\_exp][flo-ge-1-19]</code>,
+      * <code>[Float][flo-1-19]::[get\_exp][flo-ge-1-19]</code>
       * <code>[Float][flo-1-19]::[is\_sign\_positive][flo-isp-1-19]</code>,
         <code>[Float][flo-1-19]::[is\_sign\_negative][flo-isn-1-19]</code>
-      * <code>[Complex][com-1-19]::[prec][com-p-1-19]</code>,
+      * <code>[Complex][com-1-19]::[prec][com-p-1-19]</code>
       * <code>[Complex][com-1-19]::[from\_raw][com-fr-1-19]</code>,
         <code>[Complex][com-1-19]::[into\_raw][com-ir-1-19]</code>,
         <code>[Complex][com-1-19]::[as\_raw][com-ara-1-19]</code>
       * <code>[Complex][com-1-19]::[real][com-r-1-19]</code>,
         <code>[Complex][com-1-19]::[imag][com-i-1-19]</code>
-      * <code>[Complex][com-1-19]::[into\_real\_imag][com-iri-1-19]</code>
-      * <code>[Complex][com-1-19]::[borrow\_real\_imag][com-bri-1-19]</code>
+      * <code>[Complex][com-1-19]::[into\_real\_imag][com-iri-1-19]</code>,
+        <code>[Complex][com-1-19]::[borrow\_real\_imag][com-bri-1-19]</code>
       * <code>[Complex][com-1-19]::[as\_ord][com-ao-1-19]</code>
       * <code>[Complex][com-1-19]::[eq0][com-e-1-19]</code>
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
-    [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement many
-    more traits, including [`Clone`] and [`Copy`].
+    [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement
+    [`Clone`], [`Copy`] and formatting traits; and each have a static method
+    `as_deref`.
 
+[`Clone`]: https://doc.rust-lang.org/core/clone/trait.Clone.html
 [`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
 [bc-1-19]: https://docs.rs/rug/~1.19/rug/complex/struct.BorrowComplex.html
 [bf-1-19]: https://docs.rs/rug/~1.19/rug/float/struct.BorrowFloat.html
