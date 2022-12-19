@@ -14,10 +14,7 @@
 // a copy of the GNU General Public License along with this program. If not, see
 // <https://www.gnu.org/licenses/>.
 
-use crate::float::OrdFloat;
 use crate::Float;
-use core::borrow::Borrow;
-use core::convert::AsRef;
 use core::fmt::{
     Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Pointer, Result as FmtResult,
     UpperExp, UpperHex,
@@ -81,36 +78,75 @@ impl<'a> BorrowFloat<'a> {
             phantom: PhantomData,
         }
     }
+
+    /// Gets a reference to [`Float`] from a `BorrowFloat`.
+    ///
+    /// This is equivalent to taking the reference of the dereferencing operator
+    /// `*` or to <code>[Deref]::[deref][Deref::deref]</code>, but can also be
+    /// used in constant context. Unless required in constant context, use the
+    /// operator or trait instead.
+    ///
+    /// # Planned deprecation
+    ///
+    /// This method will be deprecated when the unary `*` operator and the
+    /// [`Deref`] trait are usable in constant context.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use core::ops::Deref;
+    /// use core::ptr;
+    /// use rug::float::BorrowFloat;
+    /// use rug::Float;
+    ///
+    /// let f = Float::with_val(53, 23.5);
+    /// let b = f.as_neg();
+    /// let using_method: &Float = &BorrowFloat::as_deref(&b);
+    /// let using_operator: &Float = &*b;
+    /// let using_trait: &Float = b.deref();
+    /// assert!(ptr::eq(using_method, using_operator));
+    /// assert!(ptr::eq(using_method, using_trait));
+    /// ```
+    ///
+    /// This method can be used to create a constant reference.
+    ///
+    /// ```rust
+    /// use core::ptr::NonNull;
+    /// use gmp_mpfr_sys::gmp::limb_t;
+    /// use gmp_mpfr_sys::mpfr::{mpfr_t, prec_t};
+    /// use rug::float::BorrowFloat;
+    /// use rug::Float;
+    ///
+    /// const LIMBS: [limb_t; 2] = [5, 1 << (limb_t::BITS - 1)];
+    /// const LIMBS_PTR: *const [limb_t; 2] = &LIMBS;
+    /// const MANTISSA_DIGITS: u32 = limb_t::BITS * 2;
+    /// const MPFR: mpfr_t = mpfr_t {
+    ///     prec: MANTISSA_DIGITS as prec_t,
+    ///     sign: -1,
+    ///     exp: 1,
+    ///     d: unsafe { NonNull::new_unchecked(LIMBS_PTR.cast_mut().cast()) },
+    /// };
+    /// // Safety: MPFR will remain valid, and will not be changed.
+    /// const BORROW: BorrowFloat = unsafe { BorrowFloat::from_raw(MPFR) };
+    /// const F: &Float = BorrowFloat::as_deref(&BORROW);
+    /// let lsig = Float::with_val(MANTISSA_DIGITS, 5) >> (MANTISSA_DIGITS - 1);
+    /// let msig = 1u32;
+    /// let check = -(lsig + msig);
+    /// assert_eq!(*F, check);
+    /// ```
+    #[inline]
+    pub const fn as_deref<'b>(b: &'b BorrowFloat<'a>) -> &'b Float {
+        let ptr = cast_ptr!(&b.inner, Float);
+        // Safety: the inner pointer is valid for the duration of the lifetime.
+        unsafe { &*ptr }
+    }
 }
 
 impl Deref for BorrowFloat<'_> {
     type Target = Float;
     #[inline]
     fn deref(&self) -> &Float {
-        let ptr = cast_ptr!(&self.inner, Float);
-        // Safety: the inner pointer is valid for the duration of the lifetime.
-        unsafe { &*ptr }
-    }
-}
-
-impl Borrow<Float> for BorrowFloat<'_> {
-    #[inline]
-    fn borrow(&self) -> &Float {
-        self
-    }
-}
-
-impl AsRef<Float> for BorrowFloat<'_> {
-    #[inline]
-    fn as_ref(&self) -> &Float {
-        self
-    }
-}
-
-impl AsRef<OrdFloat> for BorrowFloat<'_> {
-    #[inline]
-    fn as_ref(&self) -> &OrdFloat {
-        self.as_ord()
+        BorrowFloat::as_deref(self)
     }
 }
 
