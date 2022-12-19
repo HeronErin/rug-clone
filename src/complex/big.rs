@@ -423,6 +423,7 @@ impl Complex {
     /// assert_eq!(C, check);
     /// ```
     ///
+    /// [`mpfr_t`]: gmp_mpfr_sys::mpfr::mpfr_t
     /// [mpfr internals]: gmp_mpfr_sys::C::MPFR::MPFR_Interface#Internals
     #[inline]
     pub const unsafe fn from_raw(raw: mpc_t) -> Self {
