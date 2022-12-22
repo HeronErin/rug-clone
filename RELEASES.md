@@ -60,7 +60,7 @@ Version 1.19.0 (unreleased)
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement
     [`Clone`], [`Copy`] and formatting traits; and each have a static method
-    `as_deref`.
+    `const_deref`.
 
 [bc-1-19]: https://docs.rs/rug/~1.19/rug/complex/struct.BorrowComplex.html
 [bf-1-19]: https://docs.rs/rug/~1.19/rug/float/struct.BorrowFloat.html

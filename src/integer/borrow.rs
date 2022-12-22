@@ -103,7 +103,7 @@ impl<'a> BorrowInteger<'a> {
     ///
     /// let i = Integer::from(23);
     /// let b = i.as_neg();
-    /// let using_method: &Integer = &BorrowInteger::as_deref(&b);
+    /// let using_method: &Integer = &BorrowInteger::const_deref(&b);
     /// let using_operator: &Integer = &*b;
     /// let using_trait: &Integer = b.deref();
     /// assert_eq!(*using_method, -23);
@@ -124,12 +124,12 @@ impl<'a> BorrowInteger<'a> {
     ///     unsafe { gmp::MPZ_ROINIT_N(LIMBS.as_ptr().cast_mut(), -2) };
     /// // Safety: MPZ will remain valid, and will not be changed.
     /// const BORROW: BorrowInteger = unsafe { BorrowInteger::from_raw(MPZ) };
-    /// const I: &Integer = BorrowInteger::as_deref(&BORROW);
+    /// const I: &Integer = BorrowInteger::const_deref(&BORROW);
     /// let check = -((Integer::from(LIMBS[1]) << gmp::NUMB_BITS) + LIMBS[0]);
     /// assert_eq!(*I, check);
     /// ```
     #[inline]
-    pub const fn as_deref<'b>(b: &'b BorrowInteger<'a>) -> &'b Integer {
+    pub const fn const_deref<'b>(b: &'b BorrowInteger<'a>) -> &'b Integer {
         let ptr = cast_ptr!(&b.inner, Integer);
         // Safety: the inner pointer is valid for the duration of the lifetime.
         unsafe { &*ptr }
@@ -140,7 +140,7 @@ impl Deref for BorrowInteger<'_> {
     type Target = Integer;
     #[inline]
     fn deref(&self) -> &Integer {
-        BorrowInteger::as_deref(self)
+        BorrowInteger::const_deref(self)
     }
 }
 

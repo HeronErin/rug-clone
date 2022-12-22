@@ -101,7 +101,7 @@ impl<'a> BorrowFloat<'a> {
     ///
     /// let f = Float::with_val(53, 23.5);
     /// let b = f.as_neg();
-    /// let using_method: &Float = &BorrowFloat::as_deref(&b);
+    /// let using_method: &Float = &BorrowFloat::const_deref(&b);
     /// let using_operator: &Float = &*b;
     /// let using_trait: &Float = b.deref();
     /// assert_eq!(*using_method, -23.5);
@@ -129,14 +129,14 @@ impl<'a> BorrowFloat<'a> {
     /// };
     /// // Safety: MPFR will remain valid, and will not be changed.
     /// const BORROW: BorrowFloat = unsafe { BorrowFloat::from_raw(MPFR) };
-    /// const F: &Float = BorrowFloat::as_deref(&BORROW);
+    /// const F: &Float = BorrowFloat::const_deref(&BORROW);
     /// let lsig = Float::with_val(MANTISSA_DIGITS, 5) >> (MANTISSA_DIGITS - 1);
     /// let msig = 1u32;
     /// let check = -(lsig + msig);
     /// assert_eq!(*F, check);
     /// ```
     #[inline]
-    pub const fn as_deref<'b>(b: &'b BorrowFloat<'a>) -> &'b Float {
+    pub const fn const_deref<'b>(b: &'b BorrowFloat<'a>) -> &'b Float {
         let ptr = cast_ptr!(&b.inner, Float);
         // Safety: the inner pointer is valid for the duration of the lifetime.
         unsafe { &*ptr }
@@ -147,7 +147,7 @@ impl Deref for BorrowFloat<'_> {
     type Target = Float;
     #[inline]
     fn deref(&self) -> &Float {
-        BorrowFloat::as_deref(self)
+        BorrowFloat::const_deref(self)
     }
 }
 

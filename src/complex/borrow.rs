@@ -102,7 +102,7 @@ impl<'a> BorrowComplex<'a> {
     ///
     /// let c = Complex::with_val(53, (23.5, -12.25));
     /// let b = c.as_conj();
-    /// let using_method: &Complex = &BorrowComplex::as_deref(&b);
+    /// let using_method: &Complex = &BorrowComplex::const_deref(&b);
     /// let using_operator: &Complex = &*b;
     /// let using_trait: &Complex = b.deref();
     /// assert_eq!(*using_method, (23.5, 12.25));
@@ -139,7 +139,7 @@ impl<'a> BorrowComplex<'a> {
     /// };
     /// // Safety: MPFR will remain valid, and will not be changed.
     /// const BORROW: BorrowComplex = unsafe { BorrowComplex::from_raw(MPC) };
-    /// const C: &Complex = BorrowComplex::as_deref(&BORROW);
+    /// const C: &Complex = BorrowComplex::const_deref(&BORROW);
     /// let lsig = Float::with_val(MANTISSA_DIGITS, 5) >> (MANTISSA_DIGITS - 1);
     /// let msig = 1u32;
     /// let val = lsig + msig;
@@ -147,7 +147,7 @@ impl<'a> BorrowComplex<'a> {
     /// assert_eq!(*C, check);
     /// ```
     #[inline]
-    pub const fn as_deref<'b>(b: &'b BorrowComplex<'a>) -> &'b Complex {
+    pub const fn const_deref<'b>(b: &'b BorrowComplex<'a>) -> &'b Complex {
         let ptr = cast_ptr!(&b.inner, Complex);
         // Safety: the inner pointer is valid for the duration of the lifetime.
         unsafe { &*ptr }
@@ -158,7 +158,7 @@ impl Deref for BorrowComplex<'_> {
     type Target = Complex;
     #[inline]
     fn deref(&self) -> &Complex {
-        BorrowComplex::as_deref(self)
+        BorrowComplex::const_deref(self)
     }
 }
 

@@ -106,7 +106,7 @@ impl<'a> BorrowRational<'a> {
     ///
     /// let i = Rational::from((-5, 7));
     /// let b = i.as_recip();
-    /// let using_method: &Rational = &BorrowRational::as_deref(&b);
+    /// let using_method: &Rational = &BorrowRational::const_deref(&b);
     /// let using_operator: &Rational = &*b;
     /// let using_trait: &Rational = b.deref();
     /// assert_eq!(*using_trait, (-7, 5));
@@ -132,7 +132,7 @@ impl<'a> BorrowRational<'a> {
     /// };
     /// // Safety: MPQ will remain valid, and will not be changed.
     /// const BORROW: BorrowRational = unsafe { BorrowRational::from_raw(MPQ) };
-    /// const R: &Rational = BorrowRational::as_deref(&BORROW);
+    /// const R: &Rational = BorrowRational::const_deref(&BORROW);
     /// let numer_check =
     ///     -((Integer::from(NUMER_LIMBS[1]) << gmp::NUMB_BITS) + NUMER_LIMBS[0]);
     /// let denom_check = Integer::from(DENOM_LIMBS[0]);
@@ -142,7 +142,7 @@ impl<'a> BorrowRational<'a> {
     /// assert_eq!(*R.denom(), *check.denom());
     /// ```
     #[inline]
-    pub const fn as_deref<'b>(b: &'b BorrowRational<'a>) -> &'b Rational {
+    pub const fn const_deref<'b>(b: &'b BorrowRational<'a>) -> &'b Rational {
         let ptr = cast_ptr!(&b.inner, Rational);
         // Safety: the inner pointer is valid for the duration of the lifetime.
         unsafe { &*ptr }
@@ -153,7 +153,7 @@ impl Deref for BorrowRational<'_> {
     type Target = Rational;
     #[inline]
     fn deref(&self) -> &Rational {
-        BorrowRational::as_deref(self)
+        BorrowRational::const_deref(self)
     }
 }
 

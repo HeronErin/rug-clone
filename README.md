@@ -84,7 +84,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
   * [`BorrowInteger`][bi-1-19], [`BorrowRational`][br-1-19],
     [`BorrowFloat`][bf-1-19] and [`BorrowComplex`][bc-1-19] now implement
     [`Clone`], [`Copy`] and formatting traits; and each have a static method
-    `as_deref`.
+    `const_deref`.
 
 [`Clone`]: https://doc.rust-lang.org/core/clone/trait.Clone.html
 [`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
