@@ -807,8 +807,7 @@ pub const fn inf_p(op: &Float) -> bool {
 
 #[inline]
 pub const fn number_p(op: &Float) -> bool {
-    // do not use mpfr::number_p as it is not inlined or const like nan_p and inf_p
-    !nan_p(op) && !inf_p(op)
+    (unsafe { mpfr::number_p(op.as_raw()) }) != 0
 }
 
 #[inline]

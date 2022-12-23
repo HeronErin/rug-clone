@@ -36,7 +36,7 @@ default-features = false
 
 [dependencies.gmp-mpfr-sys]
 git = "https://gitlab.com/tspiteri/gmp-mpfr-sys"
-rev = "f1cde889"
+rev = "f774430e"
 default-features = false
 optional = true
 
