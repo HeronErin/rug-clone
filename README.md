@@ -28,7 +28,7 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 
 ## What’s new
 
-### Version 1.19.0 news (unreleased)
+### Version 1.19.0 news (2023-01-06)
 
   * The crate now requires rustc version 1.65.0 or later.
   * The [gmp-mpfr-sys][sys crate] dependency was updated to [version
@@ -267,30 +267,6 @@ version. See the full text of the [GNU LGPL] and [GNU GPL] for details.
 [rat-n-1-19]: https://docs.rs/rug/~1.19/rug/struct.Rational.html#method.numer
 [sys-1-5]: https://docs.rs/gmp-mpfr-sys/~1.5/gmp_mpfr_sys/index.html
 
-### Version 1.18.0 news (2022-11-17)
-
-  * For the [`Integer`][int-1-18] struct, the methods
-    [`gcd_cofactors`][int-gc-1-18], [`gcd_cofactors_mut`][int-gcm-1-18] and
-    [`gcd_cofactors_ref`][int-gcr-1-18] were renamed to
-    [`extended_gcd`][int-eg-1-18], [`extended_gcd_mut`][int-egm-1-18] and
-    [`extended_gcd_ref`][int-egr-1-18]. The old method names are deprecated.
-  * All error types now implement [`Clone`], [`Copy`], [`PartialEq`] and [`Eq`].
-  * The [`IntegerExt64`][ie64-1-18] extension trait was added to support very
-    large integers better on some 64-bit platforms.
-
-[`Clone`]: https://doc.rust-lang.org/core/clone/trait.Clone.html
-[`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
-[`Eq`]: https://doc.rust-lang.org/core/cmp/trait.Eq.html
-[`PartialEq`]: https://doc.rust-lang.org/core/cmp/trait.PartialEq.html
-[ie64-1-18]: https://docs.rs/rug/~1.18/rug/integer/trait.IntegerExt64.html
-[int-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
-[int-eg-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd
-[int-egm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_mut
-[int-egr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.extended_gcd_ref
-[int-gc-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors
-[int-gcm-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_mut
-[int-gcr-1-18]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.gcd_cofactors_ref
-
 ### Other releases
 
 Details on other releases can be found in [*RELEASES.md*].
@@ -381,7 +357,7 @@ a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.18"
+rug = "1.19"
 ```
 
 Rug requires rustc version 1.65.0 or later.
@@ -414,7 +390,7 @@ selectively, you can add the dependency like this to [*Cargo.toml*]:
 
 ```toml
 [dependencies.rug]
-version = "1.18"
+version = "1.19"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -435,7 +411,7 @@ updated to an incompatible newer version.
     [*num-traits* crate] and the [*num-integer* crate].
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.18/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.19/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [*num-integer* crate]: https://crates.io/crates/num-integer
 [*num-traits* crate]: https://crates.io/crates/num-traits
@@ -445,20 +421,20 @@ updated to an incompatible newer version.
 [GNU]: https://www.gnu.org/
 [MPC]: https://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.18/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.18/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.18/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.18/rug/struct.Float.html
-[`Integer`]: https://docs.rs/rug/~1.18/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.18/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.18/rug/struct.Rational.html
-[`new`]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.new
-[`ops`]: https://docs.rs/rug/~1.18/rug/ops/index.html
-[`parse_radix`]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.parse_radix
-[`parse`]: https://docs.rs/rug/~1.18/rug/struct.Integer.html#method.parse
+[`Assign::assign`]: https://docs.rs/rug/~1.19/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.19/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.19/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.19/rug/struct.Float.html
+[`Integer`]: https://docs.rs/rug/~1.19/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.19/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.19/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.new
+[`ops`]: https://docs.rs/rug/~1.19/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.19/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.18/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.18/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.19/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.19/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys

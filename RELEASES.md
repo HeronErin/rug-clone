@@ -4,7 +4,7 @@
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty. -->
 
-Version 1.19.0 (unreleased)
+Version 1.19.0 (2023-01-06)
 ===========================
 
   * The crate now requires rustc version 1.65.0 or later.
