@@ -52,9 +52,7 @@ use gmp_mpfr_sys::gmp::mpz_t;
 #[cfg(feature = "complex")]
 use gmp_mpfr_sys::mpc::mpc_t;
 use gmp_mpfr_sys::mpfr;
-#[cfg(feature = "integer")]
-use gmp_mpfr_sys::mpfr::prec_t;
-use gmp_mpfr_sys::mpfr::{exp_t, mpfr_t};
+use gmp_mpfr_sys::mpfr::{exp_t, mpfr_t, prec_t};
 use std::error::Error;
 use std::ffi::{CStr, CString};
 
