@@ -35,8 +35,7 @@ version = "0.2.44"
 default-features = false
 
 [dependencies.gmp-mpfr-sys]
-git = "https://gitlab.com/tspiteri/gmp-mpfr-sys"
-rev = "f774430e"
+version = "~1.5"
 default-features = false
 optional = true
 
