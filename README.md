@@ -6,6 +6,12 @@ notice are preserved. This file is offered as-is, without any warranty. -->
 
 # Arbitrary-precision numbers
 
+
+## Forked to make public some struct fields
+
+
+
+
 Rug provides integers and floating-point numbers with arbitrary precision and
 correct rounding:
 
