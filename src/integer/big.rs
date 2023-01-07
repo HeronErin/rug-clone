@@ -187,7 +187,7 @@ assert_eq!(c, -17);
 */
 #[repr(transparent)]
 pub struct Integer {
-    inner: mpz_t,
+    pub inner: mpz_t,
 }
 
 impl Integer {
